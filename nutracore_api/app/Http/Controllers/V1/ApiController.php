@@ -1976,7 +1976,7 @@ foreach ($subscription_plans as $plan) {
             ->where('to_amount', '>=', $amount)
             ->first();
             if(!empty($active_loyalty)){
-                return ($amount * (int)$active_loyalty->cashback)/100;
+                return round(($amount * (int)$active_loyalty->cashback)/100);
             }
             return 0;
             
