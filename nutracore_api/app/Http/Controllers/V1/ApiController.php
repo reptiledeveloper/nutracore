@@ -1321,7 +1321,7 @@ class ApiController extends Controller
                 }
             }
         }
-
+        $best_deals = [];
         $collections = DB::Table('collections')->where('id',operator: 2)->first();
         $product_ids = explode(",",$collections->product_ids??'');
         $best_dealsArr = Product::where('status', 1)->whereIn('id',$product_ids)->latest()->get();
