@@ -1924,10 +1924,10 @@ class ApiController extends Controller
             }
              $product->rating = "0";
             $product->certificate = CustomHelper::getImageUrl('brands', $brand->certificate ?? '');
-            // if (!empty($varients) && count($varients) > 0) {
-            //     return $product;
-            // }
-             return $product;
+            if (!empty($varients) && count($varients) > 0) {
+                return $product;
+            }
+             //return $product;
         }
 
         return null;
