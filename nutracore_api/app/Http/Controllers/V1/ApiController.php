@@ -76,8 +76,8 @@ class ApiController extends Controller
         if ($phone == '7065452862' || $phone == '6370371406') {
             $otp = 1234;
         } else {
-            // $otp = rand(1111, 9999);
-            $otp = 1234;
+             $otp = rand(1111, 9999);
+           // $otp = 1234;
         }
         $expired_at = Carbon::now()->addMinutes(10);
         User::updateOrCreate([
