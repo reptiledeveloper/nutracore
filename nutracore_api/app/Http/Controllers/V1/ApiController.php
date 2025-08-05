@@ -106,7 +106,7 @@ class ApiController extends Controller
         return response()->json([
             'result' => true,
             'message' => 'OTP Sent',
-            // 'response' => $response,
+            'response' => $response,
         ], 200);
     }
 
@@ -122,7 +122,7 @@ class ApiController extends Controller
             CURLOPT_TIMEOUT => 30,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => "POST",
-            CURLOPT_POSTFIELDS => "{\n  \"flow_id\": \"6875ff00d6fc0551e420c802\",\n  \"sender\": \"NUTRCR\",\n  \"mobiles\": \"91$mobile\",\n  \"otp\": \"$code\",\n  \"user_name\": \"$user_name\"}",
+            CURLOPT_POSTFIELDS => "{\n  \"flow_id\": \"689227c998d5cf4ec72f5c53\",\n  \"sender\": \"NUTRCR\",\n  \"mobiles\": \"91$mobile\",\n  \"otp\": \"$code\",\n  \"user_name\": \"$user_name\"}",
             CURLOPT_HTTPHEADER => [
                 "authkey: 431621ABncLfiKpzo6875ff9bP1",
                 "content-type: application/JSON"
