@@ -1798,10 +1798,10 @@ class ApiController extends Controller
             $product_id = explode(",",$product_id);
         }
         $products = Product::select('products.id', 'product_varients.selling_price')->where('products.is_delete', 0)  // Explicitly specify the table
-            ->where('products.status', 1)
-            ->leftJoin('product_varients', function ($join) {
-                $join->on('products.id', '=', 'product_varients.product_id');
-            });
+            ->where('products.status', 1);
+            // ->leftJoin('product_varients', function ($join) {
+            //     $join->on('products.id', '=', 'product_varients.product_id');
+            // });
         if (isset($min_price) && isset($max_price)) {
             if ($max_price > 0 && $max_price > 0) {
                 $products->where('product_varients.selling_price', '>=', $min_price);
