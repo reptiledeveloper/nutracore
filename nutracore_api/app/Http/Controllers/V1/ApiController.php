@@ -1305,7 +1305,11 @@ foreach ($subscription_plans as $plan) {
         if (!empty($subscription_plans)) {
             foreach ($subscription_plans as $plan) {
                 $plan->image = CustomHelper::getImageUrl('subscription_plans', $plan->image);
-                $plan->is_best_value = ($plan->id == $bestValuePlanId);
+                $is_best_value = 0;
+                if($plan->id == $bestValuePlanId){
+                    $is_best_value = 1;
+                }
+                $plan->is_best_value = $is_best_value;
             }
         }
         $subscription_data = [];
