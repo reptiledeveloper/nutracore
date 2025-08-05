@@ -3908,6 +3908,18 @@ foreach ($subscription_plans as $plan) {
             foreach ($offers as $offer) {
                 $offer->is_expired = 0;
                 $offer->image = CustomHelper::getImageUrl('offers', $offer->image);
+                 $product_ids = explode(",",$offer->product_ids??'');
+        $productsArr = [];
+        $proarr = Product::where('status', 1)->whereIn('id',$product_ids)->latest()->get();
+        if (!empty($proarr)) {
+            foreach ($proarr as $product) {
+                $pro_data = self::getProductDetails($product->id, $user->id);
+                if (!empty($pro_data)) {
+                    $productsArr[] = $pro_data;
+                }
+            }
+        }
+                $offer->products = $productsArr;
                 if (empty($offer->user_id)) {
                     $offersArr[] = $offer;
                 }
@@ -3923,6 +3935,18 @@ foreach ($subscription_plans as $plan) {
             foreach ($offers as $offer) {
                 $offer->is_expired = 0;
                 $offer->image = CustomHelper::getImageUrl('offers', $offer->image);
+                 $product_ids = explode(",",$offer->product_ids??'');
+        $productsArr = [];
+        $proarr = Product::where('status', 1)->whereIn('id',$product_ids)->latest()->get();
+        if (!empty($proarr)) {
+            foreach ($proarr as $product) {
+                $pro_data = self::getProductDetails($product->id, $user->id);
+                if (!empty($pro_data)) {
+                    $productsArr[] = $pro_data;
+                }
+            }
+        }
+                $offer->products = $productsArr;
                 if (empty($offer->user_id)) {
                     $offersArr[] = $offer;
                 }
