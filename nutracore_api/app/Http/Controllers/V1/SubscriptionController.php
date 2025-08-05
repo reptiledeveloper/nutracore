@@ -61,10 +61,32 @@ class SubscriptionController extends Controller
         $subscriptionsArr = null;
         $seller_id = $request->seller_id ?? '';
         $subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->get();
+         $minPricePerDay = PHP_FLOAT_MAX;
+        $bestValuePlanId = null;
+// First pass: Find plan with best price per day
+foreach ($subscription_plans as $plan) {
+    // Assume duration is in days. If months, convert to days.
+    $durationInDays = $plan->duration * 30.44;
+
+    if ($durationInDays > 0) {
+        $pricePerDay = (int)$plan->price / $durationInDays;
+
+        if ($pricePerDay < $minPricePerDay) {
+            $minPricePerDay = $pricePerDay;
+            $bestValuePlanId = $plan->id;
+        }
+    }
+}
+        
         if (!empty($subscription_plans)) {
             foreach ($subscription_plans as $plan) {
                 $original_price = $plan->mrp ?? 0;
                 $discounted_price = $plan->price ?? 0;
+                $is_best_value = 0;
+                if($plan->id == $bestValuePlanId){
+                    $is_best_value = 1;
+                }
+                $plan->is_best_value = $is_best_value;
                 $discount_percentage = (($original_price - $discounted_price) / $original_price) * 100;
                 $plan->discount = round($discount_percentage);
             }
