@@ -1288,6 +1288,7 @@ class ApiController extends Controller
         if (!empty($subscription_plans)) {
             foreach ($subscription_plans as $plan) {
                 $plan->image = CustomHelper::getImageUrl('subscription_plans', $plan->image);
+                
             }
         }
         $subscription_data = [];

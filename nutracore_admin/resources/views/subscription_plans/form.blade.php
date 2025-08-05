@@ -115,8 +115,8 @@
                                 </div>
                                 <div class="form-group col-md-6 mt-3">
                                     <label for="inputEmail4" class="form-label">Terms</label>
-                                    <input type="text" class="form-control" name="terms"
-                                           value="{{ old('terms', $terms) }}">
+                     <textarea name="terms"
+                                                              class="form-control editor">{{old('terms',$terms)}}</textarea>
                                     @include('snippets.errors_first', ['param' => 'terms'])
                                 </div>
                                 <div class="form-group col-md-6 mt-3">
