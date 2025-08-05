@@ -15,7 +15,7 @@ class Order extends Model{
     public static function generateOrderId()
     {
         // Define the prefix
-        $prefix = 'BBC';
+        $prefix = 'NC';
 
         // Get the latest order id from the database
         $latestOrder = self::where('unique_id','!=',null)->orderBy('id', 'desc')->first();

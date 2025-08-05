@@ -244,7 +244,7 @@ class UserController extends Controller
                 $user->save();
                 $dbArray1 = [];
                 $dbArray1['userID'] = $user_id;
-                $dbArray1['txn_no'] = "BBC" . rand(1111, 9999999);
+                $dbArray1['txn_no'] = "NC" . rand(1111, 9999999);
                 $dbArray1['amount'] = $amount;
                 $dbArray1['wallet_type'] = $wallet_type;
                 $dbArray1['type'] = $type;
@@ -263,7 +263,7 @@ class UserController extends Controller
                     $user->save();
                     $dbArray1 = [];
                     $dbArray1['userID'] = $user_id;
-                    $dbArray1['txn_no'] = "BBC" . rand(1111, 9999999);
+                    $dbArray1['txn_no'] = "NC" . rand(1111, 9999999);
                     $dbArray1['amount'] = $amount;
                     $dbArray1['wallet_type'] = $wallet_type;
                     $dbArray1['type'] = $type;
@@ -286,7 +286,7 @@ class UserController extends Controller
                 $user->save();
                 $dbArray1 = [];
                 $dbArray1['userID'] = $user_id;
-                $dbArray1['txn_no'] = "BBC" . rand(1111, 9999999);
+                $dbArray1['txn_no'] = "NC" . rand(1111, 9999999);
                 $dbArray1['amount'] = $amount;
                 $dbArray1['wallet_type'] = $wallet_type;
                 $dbArray1['type'] = $type;
@@ -305,7 +305,7 @@ class UserController extends Controller
                     $user->save();
                     $dbArray1 = [];
                     $dbArray1['userID'] = $user_id;
-                    $dbArray1['txn_no'] = "BBC" . rand(1111, 9999999);
+                    $dbArray1['txn_no'] = "NC" . rand(1111, 9999999);
                     $dbArray1['amount'] = $amount;
                     $dbArray1['wallet_type'] = $wallet_type;
                     $dbArray1['type'] = $type;
