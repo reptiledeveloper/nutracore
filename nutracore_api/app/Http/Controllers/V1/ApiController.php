@@ -1797,7 +1797,7 @@ class ApiController extends Controller
         if(!empty($product_id)){
             $product_id = explode(",",$product_id);
         }
-        $products = Product::select('products.id', 'product_varients.selling_price')->where('products.is_delete', 0)  // Explicitly specify the table
+        $products = Product::select('products.id')->where('products.is_delete', 0)  // Explicitly specify the table
             ->where('products.status', 1);
             // ->leftJoin('product_varients', function ($join) {
             //     $join->on('products.id', '=', 'product_varients.product_id');
@@ -1824,10 +1824,10 @@ class ApiController extends Controller
             $products->where('products.subcategory_id', $subcategory_id); // Explicitly specify the table
         }
         if ($order_by_price == 'low_to_high') {
-            $products->orderByRaw('COALESCE(product_varients.selling_price, 999999) ASC'); // Ascending order
+            //$products->orderByRaw('COALESCE(product_varients.selling_price, 999999) ASC'); // Ascending order
         }
         if ($order_by_price == 'high_to_low') {
-            $products->orderByRaw('COALESCE(product_varients.selling_price, 0) DESC'); // Descending order
+           // $products->orderByRaw('COALESCE(product_varients.selling_price, 0) DESC'); // Descending order
         }
         $products = $products->groupBy('products.id')->paginate(50);
         // Debugging line to check the query log
