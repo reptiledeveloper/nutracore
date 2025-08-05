@@ -1945,6 +1945,8 @@ foreach ($subscription_plans as $plan) {
                 $brand = Brand::find($product->brand_id);
             }
              $product->rating = "0";
+             $nc_cash = 0;
+              $product->nc_cash = $nc_cash;
             $product->certificate = CustomHelper::getImageUrl('brands', $brand->certificate ?? '');
             if (!empty($varients) && count($varients) > 0) {
                 return $product;

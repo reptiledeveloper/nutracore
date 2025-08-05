@@ -60,7 +60,7 @@
                             <tr>
                                 <td>{{$cat->id ?? ''}}</td>
                                 <td>{{ $cat->title ?? '' }}</td>
-                                <td>{{ $cat->type == "not_subscribe" ? "Member" : "NonMember" }}</td>
+                                <td>{{ $cat->type == "not_subscribe" ? "NonMember" : "Member" }}</td>
                                 <td>{{ $cat->from_amount ?? '' }}</td>
                                 <td>{{ $cat->to_amount ?? '' }}</td>
                                 <td>{{ $cat->cashback ?? '' }}</td>
