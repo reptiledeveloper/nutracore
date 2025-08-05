@@ -97,7 +97,7 @@ class ApiController extends Controller
                 $exist->save();
             }
         }
-        // $response = $this->send_sms($phone, $otp);
+        $response = $this->send_sms($phone, $otp);
 
 
         // $emailController = new EmailController();
@@ -124,7 +124,7 @@ class ApiController extends Controller
             CURLOPT_CUSTOMREQUEST => "POST",
             CURLOPT_POSTFIELDS => "{\n  \"flow_id\": \"6875ff00d6fc0551e420c802\",\n  \"sender\": \"NUTRCR\",\n  \"mobiles\": \"91$mobile\",\n  \"otp\": \"$code\",\n  \"user_name\": \"$user_name\"}",
             CURLOPT_HTTPHEADER => [
-                "authkey: 274476AkwGsjBSVigW681dd6e0P1",
+                "authkey: 431621ABncLfiKpzo6875ff9bP1",
                 "content-type: application/JSON"
             ],
         ]);
