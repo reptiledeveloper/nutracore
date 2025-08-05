@@ -1779,6 +1779,7 @@ class ApiController extends Controller
         $max_price = $request->max_price ?? '';
         $order_by_price = $request->order_by_price ?? '';
         $brand_id = $request->brand_id ?? '';
+        $product_id = $request->product_id ?? '';
         // $seller_id = $request->seller_id ?? $user->seller_id ?? '';
         // if (empty($seller_id)) {
         //     return response()->json([
@@ -1793,7 +1794,9 @@ class ApiController extends Controller
             }
         }
 
-
+        if(!empty($product_id)){
+            $product_id = explode(",",$product_id);
+        }
         $products = Product::select('products.id', 'product_varients.selling_price')->where('products.is_delete', 0)  // Explicitly specify the table
             ->where('products.status', 1)
             ->leftJoin('product_varients', function ($join) {
@@ -1807,6 +1810,9 @@ class ApiController extends Controller
         }
         if (!empty($search)) {
             $products->where('products.name', 'like', '%' . $search . '%'); // Explicitly specify the table
+        }
+        if (!empty($product_id)) {
+            $products->whereIn('products.id', $product_id); // Explicitly specify the table
         }
         if (!empty($category_id)) {
             $products->where('products.category_id', $category_id); // Explicitly specify the table
