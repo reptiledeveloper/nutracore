@@ -1922,7 +1922,7 @@ class ApiController extends Controller
             if (!empty($product->brand_id)) {
                 $brand = Brand::find($product->brand_id);
             }
-
+             $product->rating = "0";
             $product->certificate = CustomHelper::getImageUrl('brands', $brand->certificate ?? '');
             if (!empty($varients) && count($varients) > 0) {
                 return $product;
