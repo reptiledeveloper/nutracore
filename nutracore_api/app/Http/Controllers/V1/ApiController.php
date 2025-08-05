@@ -1804,8 +1804,8 @@ class ApiController extends Controller
             // });
         if (isset($min_price) && isset($max_price)) {
             if ($max_price > 0 && $max_price > 0) {
-                $products->where('product_varients.selling_price', '>=', $min_price);
-                $products->where('product_varients.selling_price', '<=', $max_price);
+                // $products->where('product_varients.selling_price', '>=', $min_price);
+                // $products->where('product_varients.selling_price', '<=', $max_price);
             }
         }
         if (!empty($search)) {
