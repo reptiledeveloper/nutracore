@@ -1285,10 +1285,27 @@ class ApiController extends Controller
         }
 
         $subscription_plans = SubscriptionPlans::where('status', 1)->where('is_delete', 0)->get();
+        $minPricePerDay = PHP_FLOAT_MAX;
+        $bestValuePlanId = null;
+// First pass: Find plan with best price per day
+foreach ($subscription_plans as $plan) {
+    // Assume duration is in days. If months, convert to days.
+    $durationInDays = $plan->duration * 30.44;
+
+    if ($durationInDays > 0) {
+        $pricePerDay = (int)$plan->price / $durationInDays;
+
+        if ($pricePerDay < $minPricePerDay) {
+            $minPricePerDay = $pricePerDay;
+            $bestValuePlanId = $plan->id;
+        }
+    }
+}
+        
         if (!empty($subscription_plans)) {
             foreach ($subscription_plans as $plan) {
                 $plan->image = CustomHelper::getImageUrl('subscription_plans', $plan->image);
-                
+                $plan->is_best_value = ($plan->id == $bestValuePlanId);
             }
         }
         $subscription_data = [];

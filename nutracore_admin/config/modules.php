@@ -49,6 +49,8 @@ return [
                 'loyality_system',
                 'free_product',
                 'collections',
+                'new_updates',
+                'testimonial',
 
 
         ],

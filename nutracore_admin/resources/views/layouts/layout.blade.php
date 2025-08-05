@@ -679,6 +679,14 @@ $current_route = Route::currentRouteName();
                         <a class="{{$current_route == 'free_product.index' ? "active":""}}"
                            href="{{route('free_product.index')}}">Free Product</a>
                     </li>
+                     <li>
+                        <a class="{{$current_route == 'new_updates.index' ? "active":""}}"
+                           href="{{route('new_updates.index')}}">Wellness Series</a>
+                    </li>
+                     <li>
+                        <a class="{{$current_route == 'testimonial.index' ? "active":""}}"
+                           href="{{route('testimonial.index')}}">Happy Customers</a>
+                    </li>
                     {{-- <li>
                         <a class="{{$current_route == 'manufacturer.index' ? "active":""}}"
                            href="{{route('manufacturer.index')}}">Manufacturer</a>

@@ -45,6 +45,20 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'edit/{id}', 'BannerController@add')->name('.edit');
             Route::match(['get', 'post'], 'delete/{id}', 'BannerController@delete')->name('.delete');
         });
+////new_updates
+        Route::group(['prefix' => 'new_updates', 'as' => 'new_updates', 'middleware' => ['allowedmodule:new_updates,list']], function () {
+            Route::get('/', 'NewUpdateController@index')->name('.index');
+            Route::match(['get', 'post'], 'add', 'NewUpdateController@add')->name('.add');
+            Route::match(['get', 'post'], 'edit/{id}', 'NewUpdateController@add')->name('.edit');
+            Route::match(['get', 'post'], 'delete/{id}', 'NewUpdateController@delete')->name('.delete');
+        });
+////testimonial
+        Route::group(['prefix' => 'testimonial', 'as' => 'testimonial', 'middleware' => ['allowedmodule:testimonial,list']], function () {
+            Route::get('/', 'TestimonialController@index')->name('.index');
+            Route::match(['get', 'post'], 'add', 'TestimonialController@add')->name('.add');
+            Route::match(['get', 'post'], 'edit/{id}', 'TestimonialController@add')->name('.edit');
+            Route::match(['get', 'post'], 'delete/{id}', 'TestimonialController@delete')->name('.delete');
+        });
 ////collections
         Route::group(['prefix' => 'collections', 'as' => 'collections', 'middleware' => ['allowedmodule:collections,list']], function () {
             Route::get('/', 'CollectionsController@index')->name('.index');
