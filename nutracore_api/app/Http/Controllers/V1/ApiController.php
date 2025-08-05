@@ -1310,7 +1310,9 @@ class ApiController extends Controller
                 }
             }
         }
-        $new_arrivalsArr = Product::where('status', 1)->latest()->limit(4)->get();
+        $collections = DB::Table('collections')->where('id',3)->first();
+        $product_ids = explode(",",$collections->product_ids??'');
+        $new_arrivalsArr = Product::where('status', 1)->whereIn('id',$product_ids)->latest()->get();
         if (!empty($new_arrivalsArr)) {
             foreach ($new_arrivalsArr as $product) {
                 $pro_data = self::getProductDetails($product->id, $user->id);
@@ -1320,13 +1322,28 @@ class ApiController extends Controller
             }
         }
 
-        $best_deals = [];
-        $best_dealsArr = Product::where('status', 1)->latest()->limit(4)->get();
+        $collections = DB::Table('collections')->where('id',operator: 2)->first();
+        $product_ids = explode(",",$collections->product_ids??'');
+        $best_dealsArr = Product::where('status', 1)->whereIn('id',$product_ids)->latest()->get();
+        
         if (!empty($best_dealsArr)) {
             foreach ($best_dealsArr as $product) {
                 $pro_data = self::getProductDetails($product->id, $user->id);
                 if (!empty($pro_data)) {
                     $best_deals[] = $pro_data;
+                }
+            }
+        }
+        $best_sellers = [];
+        $collections = DB::Table('collections')->where('id',1)->first();
+        $product_ids = explode(",",$collections->product_ids??'');
+        $best_sellersArr = Product::where('status', 1)->whereIn('id',$product_ids)->latest()->get();
+        
+        if (!empty($best_sellersArr)) {
+            foreach ($best_sellersArr as $product) {
+                $pro_data = self::getProductDetails($product->id, $user->id);
+                if (!empty($pro_data)) {
+                    $best_sellers[] = $pro_data;
                 }
             }
         }
@@ -1349,6 +1366,7 @@ class ApiController extends Controller
 
 
         $homepageArr['best_deals'] = $best_deals;
+        $homepageArr['best_sellers'] = $best_sellers;
         $homepageArr['selected_address'] = $selected_address;
         $homepageArr['seller_details'] = $seller_details;
         $homepageArr['subscription_plans'] = $subscription_plans;

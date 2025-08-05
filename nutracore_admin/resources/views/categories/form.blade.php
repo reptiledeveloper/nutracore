@@ -100,7 +100,15 @@
                                     @include('snippets.errors_first', ['param' => 'banner_name'])
                                 </div>--}}
 
-                                          
+                                          <div class="form-group col-md-6 mt-3">
+                                    <label for="validationCustom01" class="form-label">Banners (Multiple) : (max 2MB, MinSize : 300 to Max Size: 2000)</label>
+                                    <input type="file" class="form-control" placeholder="Name" name="banners[]"
+                                           multiple accept="image/*">
+
+                                    @include('layouts.show_image',['type'=>'multiple','images'=>$multiple_images,'folder'=>'banners'])
+
+
+                                </div>
                                 <div class="form-group col-md-6 mt-3">
                                     <label for="validationCustom01" class="form-label">Is Subscribe</label>
                                     <select class="form-control" name="is_subscribe">
