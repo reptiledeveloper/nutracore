@@ -1917,9 +1917,9 @@ foreach ($subscription_plans as $plan) {
                         }
                     }
                     $varient->images = $varient_images;
+                    $nc_cash = self::getNcCashPercent($user,$varient->selling_price??'');
 
-
-
+                    $varient->nc_cash = $nc_cash;
 
                 }
             }
@@ -1946,7 +1946,7 @@ foreach ($subscription_plans as $plan) {
             }
              $product->rating = "0";
              $nc_cash = 0;
-              $product->nc_cash = $nc_cash;
+              
             $product->certificate = CustomHelper::getImageUrl('brands', $brand->certificate ?? '');
             if (!empty($varients) && count($varients) > 0) {
                 return $product;
@@ -1955,6 +1955,27 @@ foreach ($subscription_plans as $plan) {
         }
 
         return null;
+    }
+
+    public function getNcCashPercent($user,$amount){
+        $is_active = 0;
+        $subscription_end_date = '';
+        $exist_subscription = Subscriptions::where('user_id', $user->id)->where('paid_status', 1)->latest()->first();
+        if (!empty($exist_subscription)) {
+            $current_date = date('Y-m-d');
+            if (strtotime($exist_subscription->end_date) >= strtotime($current_date)) {
+                $is_active = 1;
+              
+            }
+        }
+        $type = ($is_active == 1 )? 'subscribe' : 'not_subscribe';
+        $active_loyalty = DB::table('loyality_system')
+            ->where('status', 1)
+            ->where('type', $type)
+            ->where('from_amount', '<=', $amount)
+            ->where('to_amount', '>=', $amount)
+            ->first();
+            return $amount * (int)$active_loyalty->cashback;
     }
 
     public function calculateDiscountPer($originalPrice, $discountedPrice)
