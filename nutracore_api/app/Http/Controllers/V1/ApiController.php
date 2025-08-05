@@ -1975,7 +1975,11 @@ foreach ($subscription_plans as $plan) {
             ->where('from_amount', '<=', $amount)
             ->where('to_amount', '>=', $amount)
             ->first();
-            return $amount * (int)$active_loyalty->cashback;
+            if(!empty($active_loyalty)){
+                return $amount * (int)$active_loyalty->cashback;
+            }
+            return 0;
+            
     }
 
     public function calculateDiscountPer($originalPrice, $discountedPrice)
