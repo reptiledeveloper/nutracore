@@ -1757,7 +1757,7 @@ foreach ($subscription_plans as $plan) {
         $banners = $banners->get();
         if (!empty($banners)) {
             foreach ($banners as $banner) {
-                $banner->banner_img = CustomHelper::getImageUrl('banners', $banner->banner_img);
+                $banner->banner_img = CustomHelper::getImageUrl('banners', $banner->image);
             }
         }
 
