@@ -3689,11 +3689,15 @@ foreach ($subscription_plans as $plan) {
         }
 
         $referal_tc = CustomHelper::getSettings('refer_description');
+        $faqs = FAQ::where('type', 'refer')->where('is_delete',0)->get();
+        $amount = 0;
         return response()->json([
             'result' => true,
             'message' => "Successfully",
             'referal_user_list' => CustomHelper::replaceNullwithBlankString($referal_user_list),
             'referal_tc' => $referal_tc,
+            'amount' => $amount,
+            'faqs' => $faqs,
         ], 200);
     }
 

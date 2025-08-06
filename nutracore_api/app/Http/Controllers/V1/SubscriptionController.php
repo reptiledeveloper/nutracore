@@ -77,7 +77,7 @@ foreach ($subscription_plans as $plan) {
         }
     }
 }
-        
+
         if (!empty($subscription_plans)) {
             foreach ($subscription_plans as $plan) {
                 $original_price = $plan->mrp ?? 0;
@@ -103,7 +103,7 @@ foreach ($subscription_plans as $plan) {
             }
         }
 
-        $faqs = FAQ::where('type', 'subscription')->get();
+        $faqs = FAQ::where('type', 'subscription')->where('is_delete',0)->get();
         $subscriptionsArr['prime_benifits'] = $prime_benifitArr;
         $subscriptionsArr['faqs'] = $faqs;
 
