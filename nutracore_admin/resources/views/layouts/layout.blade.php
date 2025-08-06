@@ -685,7 +685,7 @@ $current_route = Route::currentRouteName();
                     </li>
                      <li>
                         <a class="{{$current_route == 'testimonial.index' ? "active":""}}"
-                           href="{{route('testimonial.index')}}">Happy Customers</a>
+                           href="">Happy Customers</a>
                     </li>
                     {{-- <li>
                         <a class="{{$current_route == 'manufacturer.index' ? "active":""}}"
@@ -786,7 +786,7 @@ $current_route = Route::currentRouteName();
                       <a class="{{$current_route == 'subscriptions.index' ? "active":""}}" href="{{route('subscriptions.index')}}
                       ">Subscriptions</a>
                   </li>
-<!-- 
+<!--
                     <li>
                         <a class="{{$current_route == 'subscription_orders.index' ? "active":""}}" href="{{route('subscription_orders.index')}}
                         ">Subscription Orders</a>
@@ -806,7 +806,7 @@ $current_route = Route::currentRouteName();
                 <ul>
 
 
-                   
+
 
                     <li>
                         <a class="{{$current_route == 'products.index' ? "active":""}}" href="{{route('products.index')}}
@@ -1636,7 +1636,7 @@ $current_route = Route::currentRouteName();
 
 
 
-    
+
 
 </script>
 
