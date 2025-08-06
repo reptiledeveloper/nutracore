@@ -15,6 +15,7 @@
     $certificate = isset($brands->certificate) ? $brands->certificate : '';
     $image = \App\Helpers\CustomHelper::getImageUrl('brands', $image);
     $vendors = \App\Helpers\CustomHelper::getVendors();
+    $multiple_images = \App\Helpers\CustomHelper::getCategoryBrandImages($brands_id,'brand');
     ?>
 
     <div class="content ">
@@ -74,19 +75,13 @@
                                     @include('snippets.errors_first', ['param' => 'brand_name'])
                                 </div>
                                 <div class="form-group col-md-6 mt-3">
-                                    <label for="inputEmail4" class="form-label">Choose Vendor</label>
-                                    <select class="form-control" name="vendor_id">
-                                        <option value="" selected disabled>Select Vendor</option>
-                                        <?php if (!empty($vendors)){
-                                        foreach ($vendors as $vendor){
-                                            ?>
-                                        <option
-                                            value="{{$vendor->id}}" <?php if ($vendor->id == $vendor_id) echo "selected" ?>>{{$vendor->name??''}}</option>
-                                        <?php }
+                                    <label for="validationCustom01" class="form-label">Banners (Multiple) : (max 2MB, MinSize : 300 to Max Size: 2000)</label>
+                                    <input type="file" class="form-control" placeholder="Name" name="banners[]"
+                                           multiple accept="image/*">
 
-                                        } ?>
-                                    </select>
-                                    @include('snippets.errors_first', ['param' => 'vendor_id'])
+                                    @include('layouts.show_image',['type'=>'multiple','images'=>$multiple_images,'folder'=>'banners'])
+
+
                                 </div>
                                 <div class="form-group col-md-6 mt-3">
                                     <label for="userName" class="form-label">Status<span

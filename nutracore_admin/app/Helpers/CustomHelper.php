@@ -114,7 +114,7 @@ class CustomHelper
         return $company;
     }
 
-    
+
     public static function loginShipRocket()
     {
         $curl = curl_init();
@@ -958,7 +958,7 @@ class CustomHelper
 
     public static function checkVendorUpdatedPrice($vendor_id, $products_id, $varient_id)
     {
-        
+
         if (!empty($vendor_id) && !empty($products_id) && !empty($varient_id)) {
             return VendorProductPriceAlias::where('vendor_id', $vendor_id)->where('product_id', $products_id)->where('id', $varient_id)->first();
         } else {
@@ -1277,10 +1277,10 @@ class CustomHelper
     {
         $fileName = $path . time() . $file->getClientOriginalName();
         $fileName = str_replace(" ", "-", $fileName);
-        $is_s3 = env('IS_S3');
+        $is_s3 = env('IS_S3')??0;
         if ($is_s3 == 0) {
             $path = dirname(__DIR__, 3) . '/images/' . $path;
-            $path = $file->move($path, $fileName);
+            //$path = $file->move($path, $fileName);
         }
         if ($is_s3 == 1) {
             $path = $path . '/' . $fileName;

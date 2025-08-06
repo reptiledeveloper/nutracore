@@ -313,7 +313,11 @@ class HomeController extends Controller
                     $feature->image = implode(",", $imagesArr);
                     $feature->save();
                 }
-            } else {
+            }
+            if($folder == 'banners') {
+                DB::table('category_brand_images')->where('id', $id)->update(['is_delete' => 1]);
+            }
+            else{
                 DB::table($folder)->where('id', $id)->update(['is_delete' => 1]);
             }
 

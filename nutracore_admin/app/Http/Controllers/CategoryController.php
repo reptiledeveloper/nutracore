@@ -112,7 +112,7 @@ class CategoryController extends Controller
     public function save(Request $request, $id = 0)
     {
 
-        $data = $request->except(['_token', 'back_url', 'image', 'password', 'holiday_date', 'holiday_title']);
+        $data = $request->except(['_token', 'back_url', 'image', 'password', 'holiday_date', 'holiday_title','banners']);
 
 
         $oldImg = '';
@@ -144,6 +144,7 @@ class CategoryController extends Controller
 
         if ($isSaved) {
             $this->saveImage($request, $categories, $oldImg);
+
         }
 
         return $isSaved;
@@ -151,22 +152,25 @@ class CategoryController extends Controller
 
     private function saveImage($request, $categories, $oldImg = '')
     {
-
-        // $file = $request->file('logo');
-        // if ($file) {
-        //     $fileName = "logo" . time() . $file->getClientOriginalName();
-        //     $filePath = 'company/' . $fileName;
-        //     $path = Storage::disk('s3')->put($filePath, file_get_contents($file));
-        //     $users->logo = $fileName;
-        //     $users->save();
-        // }
-
         $file = $request->file('image');
         if ($file) {
             $path = 'categories';
             $uploaded_data = CustomHelper::UploadImage($file, $path);
             $categories->image = $uploaded_data;
             $categories->save();
+        }
+
+        $files = $request->file('banners');
+        if (!empty($files)) {
+            foreach ($files as $file) {
+                $path = 'banners';
+                $uploaded_data = CustomHelper::UploadImage($file, $path);
+                $dbArray = [];
+                $dbArray['type'] = 'category';
+                $dbArray['type_id'] = $categories->id??'';
+                $dbArray['image'] = $uploaded_data;
+                DB::table('category_brand_images')->insert($dbArray);
+            }
         }
     }
 

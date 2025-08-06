@@ -278,75 +278,10 @@ class ApiController extends Controller
                     $refer_amount = $settings->refer_amount ?? '';
                     if (!empty($refer_wallet_type) && !empty($refer_amount)) {
                         if ($refer_wallet_type == 'cashback') {
-                            $user_cashbackwallet = $referral_code_user->cashback_wallet ?? 0;
-                            $new_amount = (float) $user_cashbackwallet + (float) $refer_amount;
-                            $referral_code_user->cashback_wallet = $new_amount;
+                            $referral_code_user->already_refer_done = 0;
                             $referral_code_user->save();
-                            $data = [];
-                            $data['userID'] = $referral_code_user->id ?? '';
-                            $data['txn_no'] = "NCCCashback" . rand(111111, 9999999999);
-                            $data['amount'] = $refer_amount ?? 0;
-                            $data['type'] = 'CREDIT';
-                            $data['note'] = $refer_amount . ' Added In Your Wallet For Referal';
-                            $data['against_for'] = 'cashback_wallet';
-                            $data['paid_by'] = 'admin';
-                            $data['orderID'] = 0;
-                            CustomHelper::saveTransaction($data);
-
-                            ////////Parent User////////////
-                            $user_cashbackwallet = $user->cashback_wallet ?? 0;
-                            $new_amount = (float) $user_cashbackwallet + (float) $refer_amount;
-                            $user->cashback_wallet = $new_amount;
-                            $user->save();
-                            $data = [];
-                            $data['userID'] = $user->id ?? '';
-                            $data['txn_no'] = "NCCCashback" . rand(111111, 9999999999);
-                            $data['amount'] = $refer_amount ?? 0;
-                            $data['type'] = 'CREDIT';
-                            $data['note'] = $refer_amount . ' Added In Your Wallet For Referal';
-                            $data['against_for'] = 'cashback_wallet';
-                            $data['paid_by'] = 'admin';
-                            $data['orderID'] = 0;
-                            CustomHelper::saveTransaction($data);
-
-
-
-
                         }
-                        if ($refer_wallet_type == 'wallet') {
-                            $user_cashbackwallet = $referral_code_user->wallet ?? 0;
-                            $new_amount = (float) $user_cashbackwallet + (float) $refer_amount;
-                            $referral_code_user->wallet = $new_amount;
-                            $referral_code_user->save();
-                            $data = [];
-                            $data['userID'] = $referral_code_user->id ?? '';
-                            $data['txn_no'] = "NCCCashback" . rand(111111, 9999999999);
-                            $data['amount'] = $refer_amount ?? 0;
-                            $data['type'] = 'CREDIT';
-                            $data['note'] = $refer_amount . ' Added In Your Wallet For Referal';
-                            $data['against_for'] = 'wallet';
-                            $data['paid_by'] = 'admin';
-                            $data['orderID'] = 0;
-                            CustomHelper::saveTransaction($data);
 
-
-                            ////Parent User
-
-                            $user_cashbackwallet = $user->wallet ?? 0;
-                            $new_amount = (float) $user_cashbackwallet + (float) $refer_amount;
-                            $user->wallet = $new_amount;
-                            $user->save();
-                            $data = [];
-                            $data['userID'] = $user->id ?? '';
-                            $data['txn_no'] = "NCCCashback" . rand(111111, 9999999999);
-                            $data['amount'] = $refer_amount ?? 0;
-                            $data['type'] = 'CREDIT';
-                            $data['note'] = $refer_amount . ' Added In Your Wallet For Referal';
-                            $data['against_for'] = 'wallet';
-                            $data['paid_by'] = 'admin';
-                            $data['orderID'] = 0;
-                            CustomHelper::saveTransaction($data);
-                        }
                     }
                 }
             }
@@ -823,7 +758,13 @@ class ApiController extends Controller
 
         ]);
         $faqs = [];
-        $faqs = FAQ::get();
+        $type = $request->type??'';
+        $faqs = FAQ::latest();
+        if(!empty($type)){
+            $faqs->where('type',$type);
+        }
+
+        $faqs = $faqs->get();
         return response()->json([
             'result' => true,
             'message' => "Successfully",
@@ -1301,7 +1242,7 @@ foreach ($subscription_plans as $plan) {
         }
     }
 }
-        
+
         if (!empty($subscription_plans)) {
             foreach ($subscription_plans as $plan) {
                 $plan->image = CustomHelper::getImageUrl('subscription_plans', $plan->image);
@@ -1347,7 +1288,7 @@ foreach ($subscription_plans as $plan) {
         $collections = DB::Table('collections')->where('id',operator: 2)->first();
         $product_ids = explode(",",$collections->product_ids??'');
         $best_dealsArr = Product::where('status', 1)->whereIn('id',$product_ids)->latest()->get();
-        
+
         if (!empty($best_dealsArr)) {
             foreach ($best_dealsArr as $product) {
                 $pro_data = self::getProductDetails($product->id, $user->id);
@@ -1360,7 +1301,7 @@ foreach ($subscription_plans as $plan) {
         $collections = DB::Table('collections')->where('id',1)->first();
         $product_ids = explode(",",$collections->product_ids??'');
         $best_sellersArr = Product::where('status', 1)->whereIn('id',$product_ids)->latest()->get();
-        
+
         if (!empty($best_sellersArr)) {
             foreach ($best_sellersArr as $product) {
                 $pro_data = self::getProductDetails($product->id, $user->id);
@@ -1802,14 +1743,18 @@ foreach ($subscription_plans as $plan) {
         $order_by_price = $request->order_by_price ?? '';
         $brand_id = $request->brand_id ?? '';
         $product_id = $request->product_id ?? '';
-        // $seller_id = $request->seller_id ?? $user->seller_id ?? '';
-        // if (empty($seller_id)) {
-        //     return response()->json([
-        //         'result' => false,
-        //         'message' => 'Please Choose Seller',
-        //     ], 200);
-        // }
-        $banners = Banner::where('status', 1)->where('is_delete', 0)->get()->makeHidden(['created_at', 'updated_at', 'is_delete', 'status']);
+
+        $banners = DB::table('category_brand_images')->where('status', 1)->where('is_delete', 0);
+        if(!empty($category_id)){
+            $banners->where('type_id',$category_id);
+            $banners->where('type','category');
+        }
+        if(!empty($brand_id)){
+            $banners->where('type_id',$brand_id);
+            $banners->where('type','brand');
+        }
+
+        $banners = $banners->get();
         if (!empty($banners)) {
             foreach ($banners as $banner) {
                 $banner->banner_img = CustomHelper::getImageUrl('banners', $banner->banner_img);
@@ -1946,7 +1891,7 @@ foreach ($subscription_plans as $plan) {
             }
              $product->rating = "0";
              $nc_cash = 0;
-              
+
             $product->certificate = CustomHelper::getImageUrl('brands', $brand->certificate ?? '');
             if (!empty($varients) && count($varients) > 0) {
                 return $product;
@@ -1965,7 +1910,7 @@ foreach ($subscription_plans as $plan) {
             $current_date = date('Y-m-d');
             if (strtotime($exist_subscription->end_date) >= strtotime($current_date)) {
                 $is_active = 1;
-              
+
             }
         }
         $type = ($is_active == 1 )? 'subscribe' : 'not_subscribe';
@@ -1979,7 +1924,7 @@ foreach ($subscription_plans as $plan) {
                 return round(($amount * (int)$active_loyalty->cashback)/100);
             }
             return 0;
-            
+
     }
 
     public function calculateDiscountPer($originalPrice, $discountedPrice)
@@ -2583,9 +2528,9 @@ foreach ($subscription_plans as $plan) {
                 $cartValue['total_price'] = (int)$cartValue['total_price'] + (int)$selected_freebees_product->amount;
             }
         }
-        
-           
-           
+
+
+
         $delivery_details['delivery_time'] = 10;
         return response()->json([
             'result' => $result,

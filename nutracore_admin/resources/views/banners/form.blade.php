@@ -15,8 +15,9 @@
     $link = isset($banners->link) ? $banners->link : '';
     $type = isset($banners->type) ? $banners->type : '';
     $category_id = isset($banners->category_id) ? $banners->category_id : '';
-    $product_id = isset($banners->product_id) ? $banners->product_id : '';
     $type_id = $banners->type_id ?? '';
+    $product_id = isset($banners->product_id) ? $banners->product_id : '';
+    $brand_id = isset($banners->brand_id) ? $banners->brand_id : '';
     if (!empty($image)) {
         $image = \App\Helpers\CustomHelper::getImageUrl('banners', $image);
     } else {
@@ -25,6 +26,7 @@
 
     $categories = \App\Helpers\CustomHelper::getCategories();
     $vendors = \App\Helpers\CustomHelper::getVendors();
+    $brands = \App\Helpers\CustomHelper::getBrands();
 
     $products = \App\Helpers\CustomHelper::getProducts();
     $product_id = explode(",",$product_id);
@@ -93,6 +95,9 @@
                                         <option value="category" <?php if ($type == 'category') echo "selected" ?>>
                                             Category
                                         </option>
+                                        <option value="brand" <?php if ($type == 'brand') echo "selected" ?>>
+                                            Brand
+                                        </option>
                                         <option value="link" <?php if ($type == 'link') echo "selected" ?>>
                                             Link
                                         </option>
@@ -124,7 +129,7 @@
                                             value="Fixed_banner4" <?php if ($type == 'Fixed_banner4') echo "selected" ?>>
                                             Fixed Banner 4
                                         </option>
-                                       
+
 
                                     </select>
                                     @include('snippets.errors_first', ['param' => 'banner_name'])
@@ -139,7 +144,19 @@
                                                 value="{{$category->id??''}}" {{$category->id == $category_id ? "selected":""}}>{{$category->name??''}}</option>
                                         @endforeach
                                     </select>
-                                    @include('snippets.errors_first', ['param' => 'banner_name'])
+                                    @include('snippets.errors_first', ['param' => 'category_id'])
+                                </div>
+
+                                <div class="form-group col-md-6 mt-3" id="brand_show" style="display: none">
+                                    <label for="inputEmail4" class="form-label">Choose Brand</label>
+                                    <select class="form-control" name="brand_id">
+                                        <option value="" selected>Select</option>
+                                        @foreach($brands as $brand)
+                                            <option
+                                                value="{{$brand->id??''}}" {{$brand->id == $brand_id ? "selected":""}}>{{$brand->brand_name??''}}</option>
+                                        @endforeach
+                                    </select>
+                                    @include('snippets.errors_first', ['param' => 'brand_id'])
                                 </div>
 
                                 @include('layouts.product_search',['selected_data'=>$banners,'product_id'=>$product_id])
@@ -210,6 +227,7 @@
         $(document).ready(function () {
             $('#category_show').hide();
             $('#product_show').hide();
+            $('#brand_show').hide();
             var type = '{{$type}}';
             if (type == 'category') {
                 $('#category_show').show();
@@ -217,16 +235,22 @@
             if (type == 'product') {
                 $('#product_show').show();
             }
+            if (type == 'brand') {
+                $('#brand_show').show();
+            }
         });
-
         function get_type_val(val) {
             $('#category_show').hide();
             $('#product_show').hide();
+            $('#brand_show').hide();
             if (val == 'category') {
                 $('#category_show').show();
             }
             if (val == 'product') {
                 $('#product_show').show();
+            }
+            if (val == 'brand') {
+                $('#brand_show').show();
             }
         }
     </script>

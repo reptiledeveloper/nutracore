@@ -112,7 +112,7 @@ class BrandController extends Controller
     public function save(Request $request, $id = 0)
     {
 
-        $data = $request->except(['_token', 'back_url', 'image','certificate', 'password', 'holiday_date', 'holiday_title']);
+        $data = $request->except(['_token', 'back_url', 'image','certificate', 'banners','password', 'holiday_date', 'holiday_title']);
 
 
         $oldImg = '';
@@ -158,6 +158,19 @@ class BrandController extends Controller
             $uploaded_data = CustomHelper::UploadImage($file, $path);
             $brands->certificate = $uploaded_data;
             $brands->save();
+        }
+
+        $files = $request->file('banners');
+        if (!empty($files)) {
+            foreach ($files as $file) {
+                $path = 'banners';
+                $uploaded_data = CustomHelper::UploadImage($file, $path);
+                $dbArray = [];
+                $dbArray['type'] = 'brand';
+                $dbArray['type_id'] = $brands->id??'';
+                $dbArray['image'] = $uploaded_data;
+                DB::table('category_brand_images')->insert($dbArray);
+            }
         }
     }
 
