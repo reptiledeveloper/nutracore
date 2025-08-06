@@ -3659,6 +3659,44 @@ foreach ($subscription_plans as $plan) {
         }
 
     }
+
+    public function referal_user_list(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+
+        ]);
+        $user = null;
+        if ($validator->fails()) {
+            return response()->json([
+                'result' => false,
+                'message' => json_encode($validator->errors()),
+            ], 400);
+        }
+        $user = auth()->user();
+        if (empty($user)) {
+            return response()->json([
+                'result' => false,
+                'message' => '',
+            ], 401);
+        }
+        $referal_user_list = User::select('id', 'name', 'phone', 'profile_img', 'created_at')->where('referral_userID', $user->id)->latest()->get();
+        if (!empty($referal_user_list)) {
+            foreach ($referal_user_list as $list) {
+                $list->profile_img = CustomHelper::getImageUrl('users', $list->profile_img);
+                $list->date = date('d M Y h:i A', strtotime($list->created_at));
+                $list->phone = CustomHelper::formatPhoneNumber($list->phone);
+            }
+        }
+
+        $referal_tc = CustomHelper::getSettings('refer_description');
+        return response()->json([
+            'result' => true,
+            'message' => "Successfully",
+            'referal_user_list' => CustomHelper::replaceNullwithBlankString($referal_user_list),
+            'referal_tc' => $referal_tc,
+        ], 200);
+    }
+
     public function check_referal_code(Request $request): \Illuminate\Http\JsonResponse
     {
         $validator = Validator::make($request->all(), [

@@ -93,6 +93,7 @@ Route::prefix('v1/')->group(function () {
         Route::post('/offers', [ApiController::class, 'offers']);
         Route::match(['get', 'post'], '/invoice', [ApiController::class, 'invoice']);
         Route::match(['get', 'post'], '/cartdata', [ApiController::class, 'CartData']);
+        Route::match(['get', 'post'], '/referal_user_list', [ApiController::class, 'referal_user_list']);
 
         ////////////////////////
 

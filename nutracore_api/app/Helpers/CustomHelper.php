@@ -120,7 +120,15 @@ class CustomHelper
 
     }
 
-
+    public static function formatPhoneNumber($phoneNumber): string
+    {
+        if (strlen($phoneNumber) >= 10) {
+            $lastFourDigits = substr($phoneNumber, -4);
+            return 'xxxxxx' . $lastFourDigits;
+        } else {
+            return '';
+        }
+    }
 
     public static function numberToWords($number)
     {
@@ -687,7 +695,7 @@ class CustomHelper
         }
 
         $cart = $cart->first();
-      
+
         if (!empty($cart)) {
             $qty = $cart->qty ?? 0;
         }
