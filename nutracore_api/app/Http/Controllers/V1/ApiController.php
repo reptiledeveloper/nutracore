@@ -3679,10 +3679,10 @@ foreach ($subscription_plans as $plan) {
                 'message' => '',
             ], 401);
         }
-        $referal_user_list = User::select('id', 'name', 'phone', 'profile_img', 'created_at')->where('referral_userID', $user->id)->latest()->get();
+        $referal_user_list = User::select('id', 'name', 'phone', 'image', 'created_at')->where('referral_userID', $user->id)->latest()->get();
         if (!empty($referal_user_list)) {
             foreach ($referal_user_list as $list) {
-                $list->profile_img = CustomHelper::getImageUrl('users', $list->profile_img);
+                $list->image = CustomHelper::getImageUrl('users', $list->image);
                 $list->date = date('d M Y h:i A', strtotime($list->created_at));
                 $list->phone = CustomHelper::formatPhoneNumber($list->phone);
             }
