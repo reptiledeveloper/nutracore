@@ -3679,7 +3679,7 @@ foreach ($subscription_plans as $plan) {
                 'message' => '',
             ], 401);
         }
-        $referal_user_list = User::select('id', 'name', 'phone', 'image', 'created_at')->where('referral_userID', $user->id)->latest()->get();
+        $referal_user_list = User::select('id', 'name', 'phone', 'image', 'created_at','already_refer_done')->where('referral_userID', $user->id)->latest()->get();
         if (!empty($referal_user_list)) {
             foreach ($referal_user_list as $list) {
                 $list->image = CustomHelper::getImageUrl('users', $list->image);
