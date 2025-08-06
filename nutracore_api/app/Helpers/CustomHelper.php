@@ -119,7 +119,14 @@ class CustomHelper
         return $product;
 
     }
-
+    public static function getSettings($key = "")
+    {
+        $value = Setting::first();
+        if (!empty($key)) {
+            $value = $value->$key ?? '';
+        }
+        return $value;
+    }
     public static function formatPhoneNumber($phoneNumber): string
     {
         if (strlen($phoneNumber) >= 10) {
