@@ -3699,7 +3699,7 @@ foreach ($subscription_plans as $plan) {
             'referal_tc' => $referal_tc,
 
             'amount' => $amount,
-            'refer_amount' => refer_amount,
+            'refer_amount' => $refer_amount,
             'faqs' => $faqs,
         ], 200);
     }
