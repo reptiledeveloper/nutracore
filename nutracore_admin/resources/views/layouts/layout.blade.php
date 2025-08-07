@@ -685,7 +685,7 @@ $current_route = Route::currentRouteName();
                     </li>
                      <li>
                         <a class="{{$current_route == 'testimonial.index' ? "active":""}}"
-                           href="">Happy Customers</a>
+                           href="{{route('testimonial.index')}}">Happy Customers</a>
                     </li>
                     {{-- <li>
                         <a class="{{$current_route == 'manufacturer.index' ? "active":""}}"

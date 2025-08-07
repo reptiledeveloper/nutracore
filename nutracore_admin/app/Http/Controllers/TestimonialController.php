@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
+use App\Models\Testimonial;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Http\Request;
@@ -39,9 +40,9 @@ class TestimonialController extends Controller
 
     public function index(Request $request)
     {
-        $new_updates = NewUpdates::where('is_delete', 0)->latest()->paginate(10);
-        $data['new_updates'] = $new_updates;
-        return view('new_updates.index', $data);
+        $testimonials = Testimonial::where('is_delete', 0)->latest()->paginate(10);
+        $data['testimonials'] = $testimonials;
+        return view('testimonials.index', $data);
     }
 
 
@@ -50,18 +51,18 @@ class TestimonialController extends Controller
         $data = [];
 
         $id = (isset($request->id)) ? $request->id : 0;
-        $new_updates = '';
+        $testimonial = '';
         if (is_numeric($id) && $id > 0) {
-            $new_updates = NewUpdates::find($id);
-            if (empty($new_updates)) {
-                return redirect($this->ADMIN_ROUTE_NAME . '/new_updates');
+            $testimonial = Testimonial::find($id);
+            if (empty($testimonial)) {
+                return redirect($this->ADMIN_ROUTE_NAME . '/testimonial');
             }
         }
 
         if ($request->method() == 'POST' || $request->method() == 'post') {
 
             if (empty($back_url)) {
-                $back_url = $this->ADMIN_ROUTE_NAME . '/new_updates';
+                $back_url = $this->ADMIN_ROUTE_NAME . '/testimonial';
             }
             $rules = [];
 
@@ -70,9 +71,9 @@ class TestimonialController extends Controller
             $createdCat = $this->save($request, $id);
 
             if ($createdCat) {
-                $alert_msg = 'new_updates has been added successfully.';
+                $alert_msg = 'Testimonial has been added successfully.';
                 if (is_numeric($id) && $id > 0) {
-                    $alert_msg = 'new_updates has been updated successfully.';
+                    $alert_msg = 'Testimonial has been updated successfully.';
                 }
                 return redirect(url($back_url))->with('alert-success', $alert_msg);
             } else {
@@ -81,17 +82,17 @@ class TestimonialController extends Controller
         }
 
 
-        $page_heading = 'Add Wellness Series';
+        $page_heading = 'Add Testimonial';
 
-        if (!empty($new_updates)) {
-            $page_heading = 'Update Wellness Series';
+        if (!empty($testimonial)) {
+            $page_heading = 'Update Testimonial';
         }
 
         $data['page_heading'] = $page_heading;
         $data['id'] = $id;
-        $data['new_updates'] = $new_updates;
+        $data['testimonial'] = $testimonial;
 
-        return view('new_updates.form', $data);
+        return view('testimonials.form', $data);
 
     }
 
@@ -101,11 +102,11 @@ class TestimonialController extends Controller
 
         $data = $request->except(['_token', 'back_url']);
         $oldImg = '';
-       
-        $admin = new NewUpdates();
+
+        $admin = new Testimonial();
 
         if (is_numeric($id) && $id > 0) {
-            $exist = NewUpdates::find($id);
+            $exist = Testimonial::find($id);
             if (isset($exist->id) && $exist->id == $id) {
                 $admin = $exist;
                 $oldImg = $exist->image;
@@ -120,7 +121,7 @@ class TestimonialController extends Controller
         $isSaved = $admin->save();
 
         if ($isSaved) {
-           // $this->saveImage($request, $admin, $oldImg);
+            $this->saveImage($request, $admin, $oldImg);
         }
 
         return $isSaved;
@@ -130,20 +131,12 @@ class TestimonialController extends Controller
     private function saveImage($request, $banner, $oldImg = '')
     {
 
-        $image_text = $request->image_text??'';
-        if(!empty($image_text)){
-            $image_val = $image_text[0]??"";
-            if(!empty($image_val)){
-                $banner->banner_img = $image_val;
-                $banner->save();
-            }
-        }
         $file = $request->file('image');
         if ($file) {
-            $path = 'banners';
+            $path = 'testimonials';
             $uploaded_data = CustomHelper::UploadImage($file, $path);
             if ($uploaded_data) {
-                $banner->banner_img = $uploaded_data;
+                $banner->image = $uploaded_data;
                 $banner->save();
             }
         }
@@ -160,11 +153,11 @@ class TestimonialController extends Controller
         $is_delete = '';
 
         if (is_numeric($id) && $id > 0) {
-            $is_delete = NewUpdates::where('id', $id)->update(['is_delete' => 1]);
+            $is_delete = Testimonial::where('id', $id)->update(['is_delete' => 1]);
         }
 
         if (!empty($is_delete)) {
-            return back()->with('alert-success', 'NewUpdates has been deleted successfully.');
+            return back()->with('alert-success', 'Testimonial has been deleted successfully.');
         } else {
             return back()->with('alert-danger', 'something went wrong, please try again...');
         }
