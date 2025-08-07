@@ -1456,6 +1456,8 @@ foreach ($subscription_plans as $plan) {
         }
         if ($is_goal == 1) {
             $category_list->where('is_goal', $is_goal);
+        }else{
+            $category_list->where('is_goal', 0);
         }
         $category_list = $category_list->get();
         if (!empty($category_list)) {
