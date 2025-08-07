@@ -1280,7 +1280,7 @@ class CustomHelper
         $is_s3 = env('IS_S3')??0;
         if ($is_s3 == 0) {
             $path = dirname(__DIR__, 3) . '/images/' . $path;
-            //$path = $file->move($path, $fileName);
+            $path = $file->move($path, $fileName);
         }
         if ($is_s3 == 1) {
             $path = $path . '/' . $fileName;
