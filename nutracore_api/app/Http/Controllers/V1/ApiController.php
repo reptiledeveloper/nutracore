@@ -412,6 +412,10 @@ class ApiController extends Controller
         if (!empty($request->seller_id)) {
             $userData->seller_id = $request->seller_id;
         }
+
+        if (!empty($request->pincode)) {
+            $userData->pincode = $request->pincode;
+        }
         if (!empty($request->aniversery)) {
             $userData->aniversery = $request->aniversery;
         }
@@ -1176,6 +1180,7 @@ class ApiController extends Controller
                 ], 401);
             }
         }
+
         $homepageArr = [];
         $banners = Banner::where('status', 1)->where('is_delete', 0)->get()->makeHidden(['created_at', 'updated_at', 'is_delete', 'status']);
         if (!empty($banners)) {
