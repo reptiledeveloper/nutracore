@@ -1871,7 +1871,7 @@ foreach ($subscription_plans as $plan) {
                 }
             }else{
                 $varient_images = [];
-                $nc_cash = self::getNcCashPercent($user,$product->selling_price??'');
+                $nc_cash = self::getNcCashPercent($user,$product->product_selling_price??'');
                 $product_images = DB::table('product_images')->where('product_id', $product->id)->get();
                 if (!empty($product_images)) {
                     foreach ($product_images as $product_image) {
@@ -1882,12 +1882,12 @@ foreach ($subscription_plans as $plan) {
                     }
                 }
                 $varients = [
-                    'id' => $product->id, // You can keep it product_id or generate a fake ID
+                    'id' => 0, // You can keep it product_id or generate a fake ID
                     'product_id' => $product->id,
                     'mrp' => $product->product_mrp,
                     'selling_price' => $product->product_selling_price,
                     'actual_price' => null,
-                    'unit' => '3 KG', // You can set this dynamically if available
+                    'unit' => null, // You can set this dynamically if available
                     'unit_value' => null,
                     'subscription_price' => $product->product_subscription_price,
                     'reward_points' => null,
