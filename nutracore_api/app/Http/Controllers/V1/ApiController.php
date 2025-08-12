@@ -1871,7 +1871,7 @@ foreach ($subscription_plans as $plan) {
                 }
             }else{
                 $nc_cash = self::getNcCashPercent($user,$product->selling_price??'');
-                $varients = collect([[
+                $varients = [
                     'id' => $product->id, // You can keep it product_id or generate a fake ID
                     'product_id' => $product->id,
                     'mrp' => $product->product_mrp,
@@ -1898,7 +1898,7 @@ foreach ($subscription_plans as $plan) {
                         ];
                     }),
                     'nc_cash' => $nc_cash
-                ]]);
+                ];
             }
             $product_images = DB::table('product_images')->where('product_id', $product->id)->get();
             if (!empty($product_images)) {
