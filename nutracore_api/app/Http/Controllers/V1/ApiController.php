@@ -1916,7 +1916,7 @@ foreach ($subscription_plans as $plan) {
 
 
 
-            $product->varients = $varients;
+
 
             $product->options = CustomHelper::getProductOptions($product->id ?? '', $product->option_name ?? '');
             $attribute_values = explode(',', $product->attribute_values ?? '');
