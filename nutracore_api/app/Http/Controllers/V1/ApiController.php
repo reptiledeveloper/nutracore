@@ -1870,7 +1870,17 @@ foreach ($subscription_plans as $plan) {
 
                 }
             }else{
+                $varient_images = [];
                 $nc_cash = self::getNcCashPercent($user,$product->selling_price??'');
+                $product_images = DB::table('product_images')->where('product_id', $product->id)->get();
+                if (!empty($product_images)) {
+                    foreach ($product_images as $product_image) {
+                        $dbArray = [];
+                        $dbArray['id'] = $product_image->id ?? '';
+                        $dbArray['image'] = CustomHelper::getImageUrl('products', $product_image->image);
+                        $varient_images[] = $dbArray;
+                    }
+                }
                 $varients = [
                     'id' => $product->id, // You can keep it product_id or generate a fake ID
                     'product_id' => $product->id,
@@ -1891,12 +1901,7 @@ foreach ($subscription_plans as $plan) {
                         ? round((($product->product_mrp - $product->product_selling_price) / $product->product_mrp) * 100)
                         : 0,
                     'is_wishlist' => 0,
-                    'images' => $product->images->map(function ($img) {
-                        return [
-                            'id' => $img->id ?? 0,
-                            'image' => $img->image
-                        ];
-                    }),
+                    'images' => $varient_images,
                     'nc_cash' => $nc_cash
                 ];
             }
