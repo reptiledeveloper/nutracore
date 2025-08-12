@@ -1869,6 +1869,36 @@ foreach ($subscription_plans as $plan) {
                     $varient->nc_cash = $nc_cash;
 
                 }
+            }else{
+                $nc_cash = self::getNcCashPercent($user,$product->selling_price??'');
+                $varients = collect([[
+                    'id' => $product->id, // You can keep it product_id or generate a fake ID
+                    'product_id' => $product->id,
+                    'mrp' => $product->product_mrp,
+                    'selling_price' => $product->product_selling_price,
+                    'actual_price' => null,
+                    'unit' => '3 KG', // You can set this dynamically if available
+                    'unit_value' => null,
+                    'subscription_price' => $product->product_subscription_price,
+                    'reward_points' => null,
+                    'status' => $product->status,
+                    'is_delete' => $product->is_delete,
+                    'created_at' => $product->created_at,
+                    'updated_at' => $product->updated_at,
+                    'varient_sku' => $product->sku,
+                    'qty' => $product->stock ?? 0,
+                    'discount_per' => $product->product_mrp && $product->product_selling_price
+                        ? round((($product->product_mrp - $product->product_selling_price) / $product->product_mrp) * 100)
+                        : 0,
+                    'is_wishlist' => 0,
+                    'images' => $product->images->map(function ($img) {
+                        return [
+                            'id' => $img->id ?? 0,
+                            'image' => $img->image
+                        ];
+                    }),
+                    'nc_cash' => $nc_cash
+                ]]);
             }
             $product_images = DB::table('product_images')->where('product_id', $product->id)->get();
             if (!empty($product_images)) {
@@ -1881,6 +1911,11 @@ foreach ($subscription_plans as $plan) {
             }
             $product->images = $images;
             $product->image = CustomHelper::getImageUrl('products', $product->image);
+
+
+
+
+
             $product->varients = $varients;
 
             $product->options = CustomHelper::getProductOptions($product->id ?? '', $product->option_name ?? '');
