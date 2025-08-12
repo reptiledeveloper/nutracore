@@ -1874,11 +1874,15 @@ foreach ($subscription_plans as $plan) {
             $seller = self::getNearestSeller($latitude,$longitude);
             if(!empty($seller)){
                 $current_time = date('H:i');
-                $day = "";
-                $time = "";
+
+                if ($current_time < '20:00') {
+                    $day_time_text = 'Today 8 PM';
+                } else {
+                    $day_time_text = 'Tomorrow 11 AM';
+                }
 
 
-                $estimated_day = "Get it By ".$time . "  ".$day;
+                $estimated_day = "Get it By ".$day_time_text;
             }
         }
 
@@ -1892,7 +1896,7 @@ foreach ($subscription_plans as $plan) {
             $dbArray['image'] = CustomHelper::getImageUrl('products', $product->image);
             $images[] = $dbArray;
             $varients = $product->varients()->where('is_delete', 0)->where('status', 1)->get();
-        $product->estimated_day = $estimated_day;
+            $product->estimated_day = $estimated_day;
 
             if (!empty($varients) && count($varients) > 0) {
                 foreach ($varients as $varient) {
