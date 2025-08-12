@@ -1826,13 +1826,62 @@ foreach ($subscription_plans as $plan) {
 
         ], 200);
     }
+    public function getNearestSeller($lat,$lon)
+    {
+        $seller = null;
+        if (!empty($lat) && !empty($lon)) {
+            $haversine = "(6371 * acos(
+        cos(radians(?)) * cos(radians(latitude))
+        * cos(radians(longitude) - radians(?))
+        + sin(radians(?)) * sin(radians(latitude))
+    ))";
 
+            $seller = Vendors::select(
+                'id',
+                'name',
+                'image',
+                'address',
+                'avg_rating',
+                'total_rating',
+                'payment_method',
+                'delivery_time',
+                'radius',
+                'open_time',
+                'close_time',
+                'latitude',
+                'longitude'
+            )
+                ->selectRaw("$haversine AS distance", [$lat, $lon, $lat])
+                ->where('status', 1)
+                ->where('is_delete', 0)
+                ->havingRaw('distance <= radius') // Only sellers within their own radius
+                ->orderBy('distance', 'asc') // Nearest first
+                ->first(); // Just get one
+        }
+        return $seller;
+    }
     public function getProductDetails($product_id, $user_id = null)
     {
         $user = [];
+        $day = "Today";
+        $time = "8 PM";
+        $estimated_day = "";
         if (!empty($user_id)) {
             $user = User::find($user_id);
+            $pincode = $user->pincode ??'';
+            $latitude = $user->latitude??'';
+            $longitude = $user->longitude??'';
+            $seller = self::getNearestSeller($latitude,$longitude);
+            if(!empty($seller)){
+                $current_time = date('H:i');
+                $day = "";
+                $time = "";
+
+
+                $estimated_day = "Get it By ".$time . "  ".$day;
+            }
         }
+
         $product = Product::where('id', $product_id)->first();
         if (!empty($product)) {
             $share_link = '';
@@ -1843,7 +1892,7 @@ foreach ($subscription_plans as $plan) {
             $dbArray['image'] = CustomHelper::getImageUrl('products', $product->image);
             $images[] = $dbArray;
             $varients = $product->varients()->where('is_delete', 0)->where('status', 1)->get();
-
+        $product->estimated_day = $estimated_day;
 
             if (!empty($varients) && count($varients) > 0) {
                 foreach ($varients as $varient) {
