@@ -1895,10 +1895,10 @@ foreach ($subscription_plans as $plan) {
              $nc_cash = 0;
 
             $product->certificate = CustomHelper::getImageUrl('brands', $brand->certificate ?? '');
-            if (!empty($varients) && count($varients) > 0) {
-                return $product;
-            }
-             //return $product;
+//            if (!empty($varients) && count($varients) > 0) {
+//                return $product;
+//            }
+             return $product;
         }
 
         return null;
@@ -2531,7 +2531,10 @@ foreach ($subscription_plans as $plan) {
             }
         }
 
+        $delivery_data = null;
+        if(!empty($user_address)){
 
+        }
 
         $delivery_details['delivery_time'] = 10;
         return response()->json([
@@ -2543,6 +2546,7 @@ foreach ($subscription_plans as $plan) {
             'recommendation_product' => $recommendation_product,
             'tips' => $tips,
             'freebees_product' => $freebees_product,
+            'delivery_data' => $delivery_data,
             'selected_freebees_product' => $selected_freebees_product,
         ], 200);
     }
