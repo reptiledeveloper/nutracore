@@ -2629,7 +2629,24 @@ foreach ($subscription_plans as $plan) {
 
         $delivery_data = null;
         if(!empty($user_address)){
+            $cart_price = $cartValue['cart_price']??0;
+            // Express slot
+            $expressSlot = DB::table('delivery_charges')
+                ->where('type', 'express')
+                ->where('status', 1)
+                ->where('is_delete', 0)
+                ->whereRaw('? BETWEEN order_amount AND order_amount2', [$cart_price])
+                ->first();
 
+// Normal slot
+            $normalSlot = DB::table('delivery_charges')
+                ->where('type', 'normal')
+                ->where('status', 1)
+                ->where('is_delete', 0)
+                ->whereRaw('? BETWEEN order_amount AND order_amount2', [$cart_price])
+                ->first();
+            $delivery_data['expressSlot'] = $expressSlot;
+            $delivery_data['normalSlot'] = $normalSlot;
         }
 
         $delivery_details['delivery_time'] = 10;
