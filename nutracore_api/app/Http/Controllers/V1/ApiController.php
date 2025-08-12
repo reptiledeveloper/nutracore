@@ -1760,6 +1760,7 @@ foreach ($subscription_plans as $plan) {
         if (!empty($banners)) {
             foreach ($banners as $banner) {
                 $banner->banner_img = CustomHelper::getImageUrl('banners', $banner->image);
+                $banner->image = CustomHelper::getImageUrl('banners', $banner->image);
             }
         }
 
