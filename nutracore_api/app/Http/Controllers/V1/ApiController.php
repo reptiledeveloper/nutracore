@@ -1874,14 +1874,11 @@ foreach ($subscription_plans as $plan) {
             $seller = self::getNearestSeller($latitude,$longitude);
             if(!empty($seller)){
                 $current_time = date('H:i');
-
                 if ($current_time < '20:00') {
                     $day_time_text = 'Today 8 PM';
                 } else {
                     $day_time_text = 'Tomorrow 11 AM';
                 }
-
-
                 $estimated_day = "Get it By ".$day_time_text;
             }
         }

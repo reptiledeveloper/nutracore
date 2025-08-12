@@ -12,6 +12,7 @@
     $sign = $delivery_charges->sign ?? '';
     $sign2 = $delivery_charges->sign2 ?? '';
     $delivery_charge = $delivery_charges->delivery_charge ?? '';
+    $type = $delivery_charges->type ?? '';
     $radius = $delivery_charges->radius ?? '';
 
     $status = $delivery_charges->status ?? 1;
@@ -62,49 +63,22 @@
                             <input type="hidden" id="id" value="{{ $delivery_charges_id }}">
 
                             <div class="row">
-                                <div class="form-group col-md-6 mt-3">
-                                    <label for="inputEmail4" class="form-label">Choose Vendor</label>
-                                    <select class="form-control" name="vendor_id">
-                                        <option value="" selected disabled>Select Vendor</option>
-                                        <?php if (!empty($vendors)){
-                                        foreach ($vendors as $vendor){
-                                            ?>
-                                        <option
-                                                value="{{$vendor->id}}" <?php if ($vendor->id == $vendor_id) echo "selected" ?>>{{$vendor->name??''}}</option>
-                                        <?php }
+                                <div class="form-group col-md-3 mt-3">
+                                    <label for="inputEmail4" class="form-label">Type</label>
 
-                                        } ?>
-                                    </select>
-                                    @include('snippets.errors_first', ['param' => 'banner_name'])
+                                <select class="form-control" name="type" required>
+                                    <option value="">Select Type</option>
+                                    <option value="express" {{$type == "express" ?"selected":""}}>Express</option>
+                                    <option value="normal" {{$type == "normal" ?"selected":""}}>Normal</option>
+                                </select>
+                                    @include('snippets.errors_first', ['param' => 'type'])
                                 </div>
-
-
-{{--                                <div class="form-group col-md-3 mt-3">--}}
-{{--                                    <label for="inputEmail4" class="form-label">Sign</label>--}}
-{{--                                    <select class="form-control" name="sign">--}}
-{{--                                        <option value="" selected>Select Sign</option>--}}
-{{--                                        @foreach($signes as $s => $value)--}}
-{{--                                            <option value="{{$value}}" {{$sign == $value?"selected":""}}>{{$value}}</option>--}}
-{{--                                        @endforeach--}}
-{{--                                    </select>--}}
-{{--                                    @include('snippets.errors_first', ['param' => 'order_amount'])--}}
-{{--                                </div>--}}
                                 <div class="form-group col-md-3 mt-3">
                                     <label for="inputEmail4" class="form-label">From</label>
                                     <input type="number" name="order_amount" class="form-control"
                                            value="{{old('order_amount',$order_amount)}}">
                                     @include('snippets.errors_first', ['param' => 'order_amount'])
                                 </div>
-{{--                                <div class="form-group col-md-3 mt-3">--}}
-{{--                                    <label for="inputEmail4" class="form-label">Sign</label>--}}
-{{--                                    <select class="form-control" name="sign2">--}}
-{{--                                        <option value="" selected>Select Sign</option>--}}
-{{--                                        @foreach($signes as $s => $value)--}}
-{{--                                            <option value="{{$value}}" {{$sign2 == $value?"selected":""}}>{{$value}}</option>--}}
-{{--                                        @endforeach--}}
-{{--                                    </select>--}}
-{{--                                    @include('snippets.errors_first', ['param' => 'order_amount'])--}}
-{{--                                </div>--}}
 
                                 <div class="form-group col-md-3 mt-3">
                                     <label for="inputEmail4" class="form-label">To</label>
