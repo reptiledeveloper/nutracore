@@ -41,7 +41,7 @@
                         <thead>
                         <tr>
                             <th>Sl No</th>
-
+            <th>Type</th>
                             <th>From Order Amount</th>
 {{--                            <th>From Sign</th>--}}
                             <th>To Order Amount</th>
@@ -58,7 +58,7 @@
                             ?>
                         <tr>
                             <td>{{$i++}}</td>
-
+                            <td>{{ucfirst($delivery_charge->type)??''}}</td>
                             <td>{{$delivery_charge->order_amount??''}}</td>
 {{--                            <td>{{$delivery_charge->sign??''}}</td>--}}
                             <td>{{$delivery_charge->order_amount2??''}}</td>
