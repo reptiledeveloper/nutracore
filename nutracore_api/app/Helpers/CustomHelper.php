@@ -965,26 +965,39 @@ class CustomHelper
 
     }
 
-    public static function getImageUrl($path, $filename): \Illuminate\Foundation\Application|string|\Illuminate\Contracts\Routing\UrlGenerator|\Illuminate\Contracts\Foundation\Application
+    public static function getImageUrl($path, $filename)
     {
         $image = favicon();
         $is_s3 = env('IS_S3');
-        if ($is_s3 == 1) {
-            if (!empty($filename)) {
-                $image = env('S3_URL') . $path . '/' . $filename;
-            } else {
-                $image = favicon();
+        $url = null;
+
+        if (!empty($filename)) {
+            $url = ($is_s3 == 1)
+                ? env('S3_URL') . $path . '/' . $filename
+                : env('IMAGE_URL') . $path . '/' . $filename;
+
+            // Check if the image actually exists
+            if (self::isValidImageUrl($url)) {
+                return $url;
             }
         }
-        if ($is_s3 == 0) {
-            if (!empty($filename)) {
-                $image = env('IMAGE_URL') . $path . '/' . $filename;
-            } else {
-                $image = favicon();
-            }
-        }
-        return $image;
+
+        return $image; // fallback favicon
     }
+
+    /**
+     * Check if an image URL is valid and exists
+     */
+    private static function isValidImageUrl($url)
+    {
+        try {
+            $headers = @get_headers($url);
+            return $headers && strpos($headers[0], '200') !== false;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
 
     public static function getAddressDetails($addressID)
     {
