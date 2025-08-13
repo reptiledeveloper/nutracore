@@ -1872,7 +1872,7 @@ class ApiController extends Controller
             $longitude = $user->longitude ?? '';
 
             $seller = self::getNearestSeller($latitude, $longitude);
-
+            print_r($seller);
             if (!empty($seller)) {
                 $user->seller_id = $seller->id ?? "";
                 $user->save();
