@@ -2468,7 +2468,7 @@ class ApiController extends Controller
         $product = Product::where('id', $product_id)->first();
         if (!empty($product)) {
             $check_varient = CustomHelper::checkProductPrice($product_id, $variant_id);
-            if (empty($check_varient)) {
+            if (empty($check_varient) && $variant_id != 0) {
                 return response()->json([
                     'result' => false,
                     'message' => 'Product Not Available',
