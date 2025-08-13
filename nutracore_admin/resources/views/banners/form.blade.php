@@ -135,7 +135,8 @@
                                     @include('snippets.errors_first', ['param' => 'banner_name'])
                                 </div>
 
-                                <div class="form-group col-md-6 mt-3" id="category_show" style="display: none">
+{{--                                <div class="form-group col-md-6 mt-3" id="category_show" style="display: none">--}}
+                                <div class="form-group col-md-6 mt-3">
                                     <label for="inputEmail4" class="form-label">Choose Category</label>
                                     <select class="form-control" name="category_id">
                                         <option value="" selected>Select</option>
@@ -147,7 +148,8 @@
                                     @include('snippets.errors_first', ['param' => 'category_id'])
                                 </div>
 
-                                <div class="form-group col-md-6 mt-3" id="brand_show" style="display: none">
+{{--                                <div class="form-group col-md-6 mt-3" id="brand_show" style="display: none">--}}
+                                <div class="form-group col-md-6 mt-3">
                                     <label for="inputEmail4" class="form-label">Choose Brand</label>
                                     <select class="form-control" name="brand_id">
                                         <option value="" selected>Select</option>
