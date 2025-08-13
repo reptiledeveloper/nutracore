@@ -2255,11 +2255,7 @@ foreach ($subscription_plans as $plan) {
 
                     $category_sugga->category_id = "";
                     $category_sugga->subcategory_id = "";
-                    if ($category_sugga->parent_id == 0) {
-                        $type1 = "brand";
-                    } else {
-                        $type1 = "brand";
-                    }
+                    $type1 = "brand";
                     $category_sugga->type = $type1;
                     $search_suggation[] = $category_sugga;
                 }
