@@ -76,8 +76,8 @@ class ApiController extends Controller
         if ($phone == '7065452862' || $phone == '6370371406') {
             $otp = 1234;
         } else {
-             $otp = rand(1111, 9999);
-           // $otp = 1234;
+            $otp = rand(1111, 9999);
+            // $otp = 1234;
         }
         $expired_at = Carbon::now()->addMinutes(10);
         User::updateOrCreate([
@@ -658,8 +658,8 @@ class ApiController extends Controller
         if (!empty($seller)) {
 
             $is_deliver = 0;
-            $seller->distance = number_format((float) $seller->distance, 2, '.', '');
-            if ((float) $seller->distance <= (float) $seller->radius) {
+            $seller->distance = number_format((float)$seller->distance, 2, '.', '');
+            if ((float)$seller->distance <= (float)$seller->radius) {
                 $is_deliver = 1;
             }
             $seller->image = CustomHelper::getImageUrl('sellers', $seller->image);
@@ -731,8 +731,8 @@ class ApiController extends Controller
         if (!empty($sellers)) {
             foreach ($sellers as $seller) {
                 $is_deliver = 0;
-                $seller->distance = number_format((float) $seller->distance, 2, '.', '');
-                if ((float) $seller->distance <= (float) $seller->radius) {
+                $seller->distance = number_format((float)$seller->distance, 2, '.', '');
+                if ((float)$seller->distance <= (float)$seller->radius) {
                     $is_deliver = 1;
                 }
                 $seller->image = CustomHelper::getImageUrl('sellers', $seller->image);
@@ -762,10 +762,10 @@ class ApiController extends Controller
 
         ]);
         $faqs = [];
-        $type = $request->type??'';
+        $type = $request->type ?? '';
         $faqs = FAQ::latest();
-        if(!empty($type)){
-            $faqs->where('type',$type);
+        if (!empty($type)) {
+            $faqs->where('type', $type);
         }
 
         $faqs = $faqs->get();
@@ -904,7 +904,7 @@ class ApiController extends Controller
                                             $subscription_end = $user->subscription_end ?? '';
                                             $subscription_plans = SubscriptionPlans::where('id', $exist->subscription_id)->first();
                                             if (!empty($subscription_plans)) {
-                                                $duration = (int) $subscription_plans->duration ?? 0;
+                                                $duration = (int)$subscription_plans->duration ?? 0;
                                                 if (empty($subscription_start)) {
                                                     $subscription_start = date('Y-m-d');
                                                     $subscription_end = date('Y-m-d', strtotime("+" . $duration . " months", strtotime(date('Y-m-d'))));
@@ -945,7 +945,7 @@ class ApiController extends Controller
                                     if ($exist->type == 'add_wallet') {
                                         if (!empty($user)) {
                                             $wallet = $user->wallet ?? 0;
-                                            $new_wallet = (int) $wallet + (int) $exist->amount;
+                                            $new_wallet = (int)$wallet + (int)$exist->amount;
                                             User::where('id', $exist->user_id)->update(['wallet' => $new_wallet]);
 
                                             ////Save Transaction////
@@ -1152,10 +1152,6 @@ class ApiController extends Controller
     }
 
 
-
-
-
-
     public function home(Request $request): \Illuminate\Http\JsonResponse
     {
 
@@ -1234,25 +1230,25 @@ class ApiController extends Controller
         $minPricePerDay = PHP_FLOAT_MAX;
         $bestValuePlanId = null;
 // First pass: Find plan with best price per day
-foreach ($subscription_plans as $plan) {
-    // Assume duration is in days. If months, convert to days.
-    $durationInDays = $plan->duration * 30.44;
+        foreach ($subscription_plans as $plan) {
+            // Assume duration is in days. If months, convert to days.
+            $durationInDays = $plan->duration * 30.44;
 
-    if ($durationInDays > 0) {
-        $pricePerDay = (int)$plan->price / $durationInDays;
+            if ($durationInDays > 0) {
+                $pricePerDay = (int)$plan->price / $durationInDays;
 
-        if ($pricePerDay < $minPricePerDay) {
-            $minPricePerDay = $pricePerDay;
-            $bestValuePlanId = $plan->id;
+                if ($pricePerDay < $minPricePerDay) {
+                    $minPricePerDay = $pricePerDay;
+                    $bestValuePlanId = $plan->id;
+                }
+            }
         }
-    }
-}
 
         if (!empty($subscription_plans)) {
             foreach ($subscription_plans as $plan) {
                 $plan->image = CustomHelper::getImageUrl('subscription_plans', $plan->image);
                 $is_best_value = 0;
-                if($plan->id == $bestValuePlanId){
+                if ($plan->id == $bestValuePlanId) {
                     $is_best_value = 1;
                 }
                 $plan->is_best_value = $is_best_value;
@@ -1278,9 +1274,9 @@ foreach ($subscription_plans as $plan) {
                 }
             }
         }
-        $collections = DB::Table('collections')->where('id',3)->first();
-        $product_ids = explode(",",$collections->product_ids??'');
-        $new_arrivalsArr = Product::where('status', 1)->whereIn('id',$product_ids)->latest()->get();
+        $collections = DB::Table('collections')->where('id', 3)->first();
+        $product_ids = explode(",", $collections->product_ids ?? '');
+        $new_arrivalsArr = Product::where('status', 1)->whereIn('id', $product_ids)->latest()->get();
         if (!empty($new_arrivalsArr)) {
             foreach ($new_arrivalsArr as $product) {
                 $pro_data = self::getProductDetails($product->id, $user->id);
@@ -1290,9 +1286,9 @@ foreach ($subscription_plans as $plan) {
             }
         }
         $best_deals = [];
-        $collections = DB::Table('collections')->where('id',operator: 2)->first();
-        $product_ids = explode(",",$collections->product_ids??'');
-        $best_dealsArr = Product::where('status', 1)->whereIn('id',$product_ids)->latest()->get();
+        $collections = DB::Table('collections')->where('id', operator: 2)->first();
+        $product_ids = explode(",", $collections->product_ids ?? '');
+        $best_dealsArr = Product::where('status', 1)->whereIn('id', $product_ids)->latest()->get();
 
         if (!empty($best_dealsArr)) {
             foreach ($best_dealsArr as $product) {
@@ -1303,9 +1299,9 @@ foreach ($subscription_plans as $plan) {
             }
         }
         $best_sellers = [];
-        $collections = DB::Table('collections')->where('id',1)->first();
-        $product_ids = explode(",",$collections->product_ids??'');
-        $best_sellersArr = Product::where('status', 1)->whereIn('id',$product_ids)->latest()->get();
+        $collections = DB::Table('collections')->where('id', 1)->first();
+        $product_ids = explode(",", $collections->product_ids ?? '');
+        $best_sellersArr = Product::where('status', 1)->whereIn('id', $product_ids)->latest()->get();
 
         if (!empty($best_sellersArr)) {
             foreach ($best_sellersArr as $product) {
@@ -1330,7 +1326,6 @@ foreach ($subscription_plans as $plan) {
                 $testimonial->image = CustomHelper::getImageUrl('testimonial', $testimonial->image);
             }
         }
-
 
 
         $homepageArr['best_deals'] = $best_deals;
@@ -1386,10 +1381,10 @@ foreach ($subscription_plans as $plan) {
             foreach ($cart_list as $cart) {
                 $vendor_price = CustomHelper::checkVendorPrice($cart->seller_id, $cart->product_id, $cart->variant_id);
                 if (!empty($vendor_price)) {
-                    $total_cart_price = (int) $cart->qty * (int) $vendor_price->selling_price;
-                    $total_mrp = (int) $cart->qty * (int) $vendor_price->mrp;
-                    $total_count += (int) $cart->qty ?? 0;
-                    $total_product_price = (int) $total_cart_price ?? 0;
+                    $total_cart_price = (int)$cart->qty * (int)$vendor_price->selling_price;
+                    $total_mrp = (int)$cart->qty * (int)$vendor_price->mrp;
+                    $total_count += (int)$cart->qty ?? 0;
+                    $total_product_price = (int)$total_cart_price ?? 0;
                     $cart_total += $total_cart_price;
 
                 }
@@ -1461,7 +1456,7 @@ foreach ($subscription_plans as $plan) {
         }
         if ($is_goal == 1) {
             $category_list->where('is_goal', $is_goal);
-        }else{
+        } else {
             $category_list->where('is_goal', 0);
         }
         $category_list = $category_list->get();
@@ -1647,8 +1642,8 @@ foreach ($subscription_plans as $plan) {
             "order_currency" => "INR",
             "order_note" => $type,
             "customer_details" => [
-                "customer_id" => (string) $user->id ?? '',
-                "customer_phone" => (string) $user->phone ?? '',
+                "customer_id" => (string)$user->id ?? '',
+                "customer_phone" => (string)$user->phone ?? '',
             ]
         ];
         $settings = CustomHelper::getCashFreeKey();
@@ -1752,13 +1747,13 @@ foreach ($subscription_plans as $plan) {
         $product_id = $request->product_id ?? '';
 
         $banners = DB::table('category_brand_images')->where('status', 1)->where('is_delete', 0);
-        if(!empty($category_id)){
-            $banners->where('type_id',$category_id);
-            $banners->where('type','category');
+        if (!empty($category_id)) {
+            $banners->where('type_id', $category_id);
+            $banners->where('type', 'category');
         }
-        if(!empty($brand_id)){
-            $banners->where('type_id',$brand_id);
-            $banners->where('type','brand');
+        if (!empty($brand_id)) {
+            $banners->where('type_id', $brand_id);
+            $banners->where('type', 'brand');
         }
 
         $banners = $banners->get();
@@ -1769,18 +1764,18 @@ foreach ($subscription_plans as $plan) {
             }
         }
 
-        if(!empty($product_id)){
-            $product_id = explode(",",$product_id);
+        if (!empty($product_id)) {
+            $product_id = explode(",", $product_id);
         }
         $products = Product::select('products.id')->where('products.is_delete', 0)  // Explicitly specify the table
-            ->where('products.status', 1);
-            // ->leftJoin('product_varients', function ($join) {
-            //     $join->on('products.id', '=', 'product_varients.product_id');
-            // });
+        ->where('products.status', 1);
+        // ->leftJoin('product_varients', function ($join) {
+        //     $join->on('products.id', '=', 'product_varients.product_id');
+        // });
         if (isset($min_price) && isset($max_price)) {
             if ($max_price > 0 && $max_price > 0) {
-                 $products->where('products.selling_price', '>=', $min_price);
-                 $products->where('products.selling_price', '<=', $max_price);
+                $products->where('products.selling_price', '>=', $min_price);
+                $products->where('products.selling_price', '<=', $max_price);
             }
         }
         if (!empty($search)) {
@@ -1799,10 +1794,10 @@ foreach ($subscription_plans as $plan) {
             $products->where('products.subcategory_id', $subcategory_id); // Explicitly specify the table
         }
         if ($order_by_price == 'low_to_high') {
-            $products->orderBy('products.selling_price','ASC'); // Ascending order
+            $products->orderBy('products.selling_price', 'ASC'); // Ascending order
         }
         if ($order_by_price == 'high_to_low') {
-            $products->orderBy('products.selling_price','DESC');
+            $products->orderBy('products.selling_price', 'DESC');
         }
         $products = $products->groupBy('products.id')->paginate(50);
         // Debugging line to check the query log
@@ -1826,7 +1821,8 @@ foreach ($subscription_plans as $plan) {
 
         ], 200);
     }
-    public function getNearestSeller($lat,$lon)
+
+    public function getNearestSeller($lat, $lon)
     {
         $seller = null;
         if (!empty($lat) && !empty($lon)) {
@@ -1860,15 +1856,16 @@ foreach ($subscription_plans as $plan) {
         }
         return $seller;
     }
+
     public function getProductDetails($product_id, $user_id = null)
     {
         $user = [];
-        static $estimated_day_cache = null; // ✅ stores once per request
+
 
         $user = [];
         $estimated_day = "";
 
-        if (!empty($user_id) && $estimated_day_cache === null) {
+        if (!empty($user_id)) {
             $user = User::find($user_id);
             $pincode = $user->pincode ?? '';
             $latitude = $user->latitude ?? '';
@@ -1880,11 +1877,8 @@ foreach ($subscription_plans as $plan) {
                 $user->seller_id = $seller->id ?? "";
                 $user->save();
 
-                // ✅ Calculate only once and reuse
-                if ($estimated_day_cache === null) {
-                    $day_time_text = (date('H:i') < '20:00') ? 'Today 8 PM' : 'Tomorrow 11 AM';
-                    $estimated_day_cache = "Get it By " . $day_time_text;
-                }
+                $day_time_text = (date('H:i') < '20:00') ? 'Today 8 PM' : 'Tomorrow 11 AM';
+                $estimated_day_cache = "Get it By " . $day_time_text;
 
                 $estimated_day = $estimated_day_cache;
             }
@@ -1928,14 +1922,14 @@ foreach ($subscription_plans as $plan) {
                         }
                     }
                     $varient->images = $varient_images;
-                    $nc_cash = self::getNcCashPercent($user,$varient->selling_price??'');
+                    $nc_cash = self::getNcCashPercent($user, $varient->selling_price ?? '');
 
                     $varient->nc_cash = $nc_cash;
 
                 }
-            }else{
+            } else {
                 $varient_images = [];
-                $nc_cash = self::getNcCashPercent($user,$product->product_selling_price??'');
+                $nc_cash = self::getNcCashPercent($user, $product->product_selling_price ?? '');
                 $product_images = DB::table('product_images')->where('product_id', $product->id)->get();
                 if (!empty($product_images)) {
                     foreach ($product_images as $product_image) {
@@ -1982,9 +1976,6 @@ foreach ($subscription_plans as $plan) {
             $product->image = CustomHelper::getImageUrl('products', $product->image);
 
 
-
-
-
             $product->varients = $varients;
 
             $product->options = CustomHelper::getProductOptions($product->id ?? '', $product->option_name ?? '');
@@ -1995,45 +1986,46 @@ foreach ($subscription_plans as $plan) {
             if (!empty($product->brand_id)) {
                 $brand = Brand::find($product->brand_id);
             }
-             $product->rating = "0";
-             $nc_cash = 0;
+            $product->rating = "0";
+            $nc_cash = 0;
 
             $product->certificate = CustomHelper::getImageUrl('brands', $brand->certificate ?? '');
 //            if (!empty($varients) && count($varients) > 0) {
 //                return $product;
 //            }
-             return $product;
+            return $product;
         }
 
         return null;
     }
 
-    public function getNcCashPercent($user,$amount){
+    public function getNcCashPercent($user, $amount)
+    {
         $is_active = 0;
 
         $subscription_end_date = '';
-       if(!empty($user)){
-           $exist_subscription = Subscriptions::where('user_id', $user->id)->where('paid_status', 1)->latest()->first();
-           if (!empty($exist_subscription)) {
-               $current_date = date('Y-m-d');
-               if (strtotime($exist_subscription->end_date) >= strtotime($current_date)) {
-                   $is_active = 1;
+        if (!empty($user)) {
+            $exist_subscription = Subscriptions::where('user_id', $user->id)->where('paid_status', 1)->latest()->first();
+            if (!empty($exist_subscription)) {
+                $current_date = date('Y-m-d');
+                if (strtotime($exist_subscription->end_date) >= strtotime($current_date)) {
+                    $is_active = 1;
 
-               }
-           }
-       }
+                }
+            }
+        }
 
-        $type = ($is_active == 1 )? 'subscribe' : 'not_subscribe';
+        $type = ($is_active == 1) ? 'subscribe' : 'not_subscribe';
         $active_loyalty = DB::table('loyality_system')
             ->where('status', 1)
             ->where('type', $type)
             ->where('from_amount', '<=', $amount)
             ->where('to_amount', '>=', $amount)
             ->first();
-            if(!empty($active_loyalty)){
-                return round(($amount * (int)$active_loyalty->cashback)/100);
-            }
-            return 0;
+        if (!empty($active_loyalty)) {
+            return round(($amount * (int)$active_loyalty->cashback) / 100);
+        }
+        return 0;
 
     }
 
@@ -2042,7 +2034,7 @@ foreach ($subscription_plans as $plan) {
         if ($originalPrice <= 0) {
             return 0;
         }
-        $discount = ((int) $originalPrice - (int) $discountedPrice) / (int) $originalPrice * 100;
+        $discount = ((int)$originalPrice - (int)$discountedPrice) / (int)$originalPrice * 100;
         return round($discount);
     }
 
@@ -2089,8 +2081,8 @@ foreach ($subscription_plans as $plan) {
             ], 200);
         }
         $banners = [];
-        $min_price = (int) $request->min_price ?? 0;
-        $max_price = (int) $request->max_price ?? 0;
+        $min_price = (int)$request->min_price ?? 0;
+        $max_price = (int)$request->max_price ?? 0;
         $order_by_price = $request->order_by_price ?? '';
         $brand_id = $request->brand_id ?? '';
         $banners = Banner::where('is_delete', 0)->where('status', 1)->get();
@@ -2113,7 +2105,7 @@ foreach ($subscription_plans as $plan) {
         \DB::enableQueryLog(); // Enable query log
 
         $products = Product::select('products.id', 'vendor_product_price.selling_price')->where('products.is_delete', 0)  // Explicitly specify the table
-            ->where('products.status', 1)
+        ->where('products.status', 1)
             ->whereIn('products.id', $product_ids)
             ->leftJoin('vendor_product_price', function ($join) use ($seller_id) {
                 $join->on('products.id', '=', 'vendor_product_price.product_id')
@@ -2245,8 +2237,6 @@ foreach ($subscription_plans as $plan) {
             }
 
 
-
-
             $brand_suggation = Brand::select('id', 'brand_name', 'brand_img')->where('brand_name', 'like', '%' . $search . '%')->limit(5)->get();
             if (!empty($brand_suggation)) {
                 foreach ($brand_suggation as $category_sugga) {
@@ -2254,7 +2244,7 @@ foreach ($subscription_plans as $plan) {
                     $category_sugga->image = CustomHelper::getImageUrl('brands', $category_sugga->brand_img);
 
                     $category_sugga->category_id = "";
-                    $category_sugga->name = $category_sugga->brand_name??'';
+                    $category_sugga->name = $category_sugga->brand_name ?? '';
                     $category_sugga->subcategory_id = "";
                     $type1 = "brand";
                     $category_sugga->type = $type1;
@@ -2319,7 +2309,6 @@ foreach ($subscription_plans as $plan) {
         }
         return null;
     }
-
 
 
     public function product_details(Request $request): \Illuminate\Http\JsonResponse
@@ -2503,6 +2492,7 @@ foreach ($subscription_plans as $plan) {
             'message' => "Successfully",
         ], 200);
     }
+
     public function check_delivery(Request $request): \Illuminate\Http\JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -2650,17 +2640,17 @@ foreach ($subscription_plans as $plan) {
             }
         }
         $selected_freebees_product = null;
-        if(!empty($freebees_id)){
+        if (!empty($freebees_id)) {
             $selected_freebees_product = DB::table('freebees_product')
-            ->where('id', $freebees_id)->first();
-            if(!empty($selected_freebees_product)){
+                ->where('id', $freebees_id)->first();
+            if (!empty($selected_freebees_product)) {
                 $cartValue['total_price'] = (int)$cartValue['total_price'] + (int)$selected_freebees_product->amount;
             }
         }
 
         $delivery_data = null;
-        if(!empty($user_address)){
-            $cart_price = $cartValue['cart_price']??0;
+        if (!empty($user_address)) {
+            $cart_price = $cartValue['cart_price'] ?? 0;
             // Express slot
             $expressSlot = DB::table('delivery_charges')
                 ->where('type', 'express')
@@ -2789,7 +2779,6 @@ foreach ($subscription_plans as $plan) {
             'addressID' => $addressID,
         ], 200);
     }
-
 
 
     public function delete_user_address(Request $request): \Illuminate\Http\JsonResponse
@@ -2935,7 +2924,7 @@ foreach ($subscription_plans as $plan) {
 
             $wallet_applied = $request->wallet_applied ?? false;
             $cashback_wallet = $request->cashback_wallet ?? 0;
-            $tips = (int) $request->tips ?? 0;
+            $tips = (int)$request->tips ?? 0;
             $cart_data = CustomHelper::cartData($user->id, $coupon_code, $request, $user);
             $online_payment = null;
 
@@ -2967,8 +2956,8 @@ foreach ($subscription_plans as $plan) {
                         $wallet = $user->wallet ?? 0;
                         $total_price = $cartValue['total_price'] ?? 0;
                         $order_id = $this->saveOrders($request, $cart_data, $user->id, 'online', $wallet);
-                        if ((int) $user->wallet <= $total_price) {
-                            $online_amount = (int) $total_price - (int) $user->wallet;
+                        if ((int)$user->wallet <= $total_price) {
+                            $online_amount = (int)$total_price - (int)$user->wallet;
                         }
                         $request['amount'] = $online_amount + $tips;
                         $request['type'] = 'order';
@@ -2988,7 +2977,7 @@ foreach ($subscription_plans as $plan) {
                     }
                     if ($payment_method == 'ONLINE' || $payment_method == 'online') {
                         $order_id = $this->saveOrders($request, $cart_data, $user->id, 'online', $seller_id);
-                        $request['amount'] = $cartValue['total_price'] + (int) $tips + (int) $handling_charges;
+                        $request['amount'] = $cartValue['total_price'] + (int)$tips + (int)$handling_charges;
                         $request['type'] = 'order';
                         $request['order_id'] = $order_id;
                         $online_payment = $this->create_payment($request);
@@ -3042,6 +3031,7 @@ foreach ($subscription_plans as $plan) {
         OrderStatus::insert($dbArray);
         return true;
     }
+
     public function create_payment(Request $request): \Illuminate\Http\JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -3249,9 +3239,9 @@ foreach ($subscription_plans as $plan) {
             $online_amount = 0;
             if ($wallet_applied) {
                 if ($payment_method == 'COD') {
-                    if ((float) $user_data->wallet <= (float) $total_price) {
+                    if ((float)$user_data->wallet <= (float)$total_price) {
                         $applied_wallet_amount = $wallet;
-                        $cod_amount = (float) $total_price - (float) $wallet;
+                        $cod_amount = (float)$total_price - (float)$wallet;
                     } else {
                         $applied_wallet_amount = $total_price;
                     }
@@ -3259,9 +3249,9 @@ foreach ($subscription_plans as $plan) {
                     $dbArray['wallet'] = $applied_wallet_amount;
                 }
                 if ($payment_method == 'online') {
-                    if ((float) $user_data->wallet <= (float) $total_price) {
+                    if ((float)$user_data->wallet <= (float)$total_price) {
                         $applied_wallet_amount = $wallet;
-                        $online_amount = (float) $total_price - (float) $wallet;
+                        $online_amount = (float)$total_price - (float)$wallet;
                     } else {
                         $applied_wallet_amount = $total_price;
                     }
@@ -3271,7 +3261,7 @@ foreach ($subscription_plans as $plan) {
             }
             $order_id = Order::insertGetId($dbArray);
             if ($applied_wallet_amount > 0) {
-                $new_wallet = (float) $wallet - $applied_wallet_amount;
+                $new_wallet = (float)$wallet - $applied_wallet_amount;
                 User::where('id', $user_id)->update(['wallet' => $new_wallet]);
                 ///////Save Transaction Needed
             }
@@ -3297,7 +3287,6 @@ foreach ($subscription_plans as $plan) {
 
         return $order_id;
     }
-
 
 
     public function sendOrderNotification($order_id)
@@ -3328,8 +3317,6 @@ foreach ($subscription_plans as $plan) {
             }
         }
     }
-
-
 
 
     public function app_filters(Request $request): \Illuminate\Http\JsonResponse
@@ -3501,7 +3488,6 @@ foreach ($subscription_plans as $plan) {
 
             $orders->payment_method = $payment_method;
             $seller_details = self::getSellerDetails($orders->vendor_id, $user->id);
-
 
 
             $agent_details = self::getDeliveryBoyDetails($orders->agent_id ?? '');
@@ -3830,7 +3816,7 @@ foreach ($subscription_plans as $plan) {
                 'message' => '',
             ], 401);
         }
-        $referal_user_list = User::select('id', 'name', 'phone', 'image', 'created_at','already_refer_done')->where('referral_userID', $user->id)->latest()->get();
+        $referal_user_list = User::select('id', 'name', 'phone', 'image', 'created_at', 'already_refer_done')->where('referral_userID', $user->id)->latest()->get();
         if (!empty($referal_user_list)) {
             foreach ($referal_user_list as $list) {
                 $list->image = CustomHelper::getImageUrl('users', $list->image);
@@ -3841,7 +3827,7 @@ foreach ($subscription_plans as $plan) {
 
         $referal_tc = CustomHelper::getSettings('refer_description');
         $refer_amount = CustomHelper::getSettings('refer_amount');
-        $faqs = FAQ::where('type', 'refer')->where('is_delete',0)->get();
+        $faqs = FAQ::where('type', 'refer')->where('is_delete', 0)->get();
         $amount = 0;
         return response()->json([
             'result' => true,
@@ -4011,9 +3997,6 @@ foreach ($subscription_plans as $plan) {
     }
 
 
-
-
-
     public function offers(Request $request): \Illuminate\Http\JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -4046,23 +4029,21 @@ foreach ($subscription_plans as $plan) {
             foreach ($offers as $offer) {
                 $offer->is_expired = 0;
                 $offer->image = CustomHelper::getImageUrl('offers', $offer->image);
-        $product_ids = explode(",",$offer->product_ids??'');
-        $productsArr = [];
-        $proarr = Product::where('status', 1)->whereIn('id',$product_ids)->latest()->get();
-        if (!empty($proarr)) {
-            foreach ($proarr as $product) {
-                $pro_data = self::getProductDetails($product->id, $user->id);
-                if (!empty($pro_data)) {
-                    $productsArr[] = $pro_data;
+                $product_ids = explode(",", $offer->product_ids ?? '');
+                $productsArr = [];
+                $proarr = Product::where('status', 1)->whereIn('id', $product_ids)->latest()->get();
+                if (!empty($proarr)) {
+                    foreach ($proarr as $product) {
+                        $pro_data = self::getProductDetails($product->id, $user->id);
+                        if (!empty($pro_data)) {
+                            $productsArr[] = $pro_data;
+                        }
+                    }
                 }
-            }
-        }
                 $offer->products = $productsArr;
                 $offersArr[] = $offer;
             }
         }
-
-
 
 
         /////Admin Global Coupons
@@ -4076,17 +4057,17 @@ foreach ($subscription_plans as $plan) {
             foreach ($offers as $offer) {
                 $offer->is_expired = 0;
                 $offer->image = CustomHelper::getImageUrl('offers', $offer->image);
-                 $product_ids = explode(",",$offer->product_ids??'');
-        $productsArr = [];
-        $proarr = Product::where('status', 1)->whereIn('id',$product_ids)->latest()->get();
-        if (!empty($proarr)) {
-            foreach ($proarr as $product) {
-                $pro_data = self::getProductDetails($product->id, $user->id);
-                if (!empty($pro_data)) {
-                    $productsArr[] = $pro_data;
+                $product_ids = explode(",", $offer->product_ids ?? '');
+                $productsArr = [];
+                $proarr = Product::where('status', 1)->whereIn('id', $product_ids)->latest()->get();
+                if (!empty($proarr)) {
+                    foreach ($proarr as $product) {
+                        $pro_data = self::getProductDetails($product->id, $user->id);
+                        if (!empty($pro_data)) {
+                            $productsArr[] = $pro_data;
+                        }
+                    }
                 }
-            }
-        }
                 $offer->products = $productsArr;
                 if (empty($offer->user_id)) {
                     $offersArr[] = $offer;
@@ -4103,17 +4084,17 @@ foreach ($subscription_plans as $plan) {
             foreach ($offers as $offer) {
                 $offer->is_expired = 0;
                 $offer->image = CustomHelper::getImageUrl('offers', $offer->image);
-                 $product_ids = explode(",",$offer->product_ids??'');
-        $productsArr = [];
-        $proarr = Product::where('status', 1)->whereIn('id',$product_ids)->latest()->get();
-        if (!empty($proarr)) {
-            foreach ($proarr as $product) {
-                $pro_data = self::getProductDetails($product->id, $user->id);
-                if (!empty($pro_data)) {
-                    $productsArr[] = $pro_data;
+                $product_ids = explode(",", $offer->product_ids ?? '');
+                $productsArr = [];
+                $proarr = Product::where('status', 1)->whereIn('id', $product_ids)->latest()->get();
+                if (!empty($proarr)) {
+                    foreach ($proarr as $product) {
+                        $pro_data = self::getProductDetails($product->id, $user->id);
+                        if (!empty($pro_data)) {
+                            $productsArr[] = $pro_data;
+                        }
+                    }
                 }
-            }
-        }
                 $offer->products = $productsArr;
                 if (empty($offer->user_id)) {
                     $offersArr[] = $offer;
