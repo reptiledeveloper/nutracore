@@ -1864,8 +1864,7 @@ class ApiController extends Controller
 
         $user = [];
         $estimated_day = "";
-        print_r($user_id);
-        die;
+
         if (!empty($user_id)) {
             $user = User::find($user_id);
             $pincode = $user->pincode ?? '';
