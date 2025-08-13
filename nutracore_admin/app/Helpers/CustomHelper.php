@@ -1286,6 +1286,8 @@ class CustomHelper
             $path = $path . '/' . $fileName;
             Storage::disk('s3')->put($path, file_get_contents($file));
             $path = Storage::disk('s3')->url($path);
+            print_r($path);
+            die;
         }
         return $fileName;
     }
