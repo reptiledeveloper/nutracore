@@ -37,6 +37,7 @@ use App\Models\Roles;
 use App\Models\Setting;
 use App\Models\Shop;
 use App\Models\State;
+use App\Models\Subscriptions;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserAddress;
