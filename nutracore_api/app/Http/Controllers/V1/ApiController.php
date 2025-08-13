@@ -1799,10 +1799,10 @@ foreach ($subscription_plans as $plan) {
             $products->where('products.subcategory_id', $subcategory_id); // Explicitly specify the table
         }
         if ($order_by_price == 'low_to_high') {
-            //$products->orderByRaw('COALESCE(product_varients.selling_price, 999999) ASC'); // Ascending order
+            $products->orderBy('products.selling_price','ASC'); // Ascending order
         }
         if ($order_by_price == 'high_to_low') {
-           // $products->orderByRaw('COALESCE(product_varients.selling_price, 0) DESC'); // Descending order
+            $products->orderBy('products.selling_price','DESC');
         }
         $products = $products->groupBy('products.id')->paginate(50);
         // Debugging line to check the query log
