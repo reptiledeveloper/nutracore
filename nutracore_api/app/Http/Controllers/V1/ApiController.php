@@ -1323,7 +1323,7 @@ class ApiController extends Controller
         $testimonials = DB::table('testimonial')->where('is_delete', 0)->where('status', 1)->latest()->limit(5)->get();
         if (!empty($testimonials)) {
             foreach ($testimonials as $testimonial) {
-                $testimonial->image = CustomHelper::getImageUrl('testimonial', $testimonial->image);
+                $testimonial->image = CustomHelper::getImageUrl('testimonials', $testimonial->image);
             }
         }
 
