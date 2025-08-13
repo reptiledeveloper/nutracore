@@ -2254,6 +2254,7 @@ foreach ($subscription_plans as $plan) {
                     $category_sugga->image = CustomHelper::getImageUrl('brands', $category_sugga->brand_img);
 
                     $category_sugga->category_id = "";
+                    $category_sugga->name = $category_sugga->brand_name??'';
                     $category_sugga->subcategory_id = "";
                     $type1 = "brand";
                     $category_sugga->type = $type1;
