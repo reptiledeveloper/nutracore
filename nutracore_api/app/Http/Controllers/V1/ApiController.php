@@ -2243,12 +2243,33 @@ foreach ($subscription_plans as $plan) {
                     $search_suggation[] = $category_sugga;
                 }
             }
+
+
+
+
+            $brand_suggation = Brand::select('id', 'brand_name', 'brand_img')->where('name', 'like', '%' . $search . '%')->limit(5)->get();
+            if (!empty($brand_suggation)) {
+                foreach ($brand_suggation as $category_sugga) {
+                    $type1 = '';
+                    $category_sugga->image = CustomHelper::getImageUrl('brands', $category_sugga->brand_img);
+
+                    $category_sugga->category_id = "";
+                    $category_sugga->subcategory_id = "";
+                    if ($category_sugga->parent_id == 0) {
+                        $type1 = "brand";
+                    } else {
+                        $type1 = "brand";
+                    }
+                    $category_sugga->type = $type1;
+                    $search_suggation[] = $category_sugga;
+                }
+            }
         }
         return response()->json([
             'result' => true,
             'message' => "Successfully",
-            'category_data' => $category_data,
-            'products' => $productArr,
+//            'category_data' => $category_data,
+//            'products' => $productArr,
             'search_suggation' => $search_suggation,
         ], 200);
     }
