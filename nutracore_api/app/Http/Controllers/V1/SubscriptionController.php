@@ -162,12 +162,14 @@ foreach ($subscription_plans as $plan) {
         $total_order_amount = Order::where('userID', $user->id)->where('status', 'DELIVERED')->sum('total_amount');
         $active_loyalty = DB::table('loyality_system')
             ->where('status', 1)
+            ->where('is_delete',0)
             ->where('type', $type)
             ->where('from_amount', '<=', $total_order_amount)
             ->where('to_amount', '>=', $total_order_amount)
             ->first();
         $tire_system = DB::table('loyality_system')
             ->where('status', 1)
+            ->where('is_delete',0)
             ->where('type', $type)->get();
 
         $subscriptionsArr['tire_system'] = $tire_system;
