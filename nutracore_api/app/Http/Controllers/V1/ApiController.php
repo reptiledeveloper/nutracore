@@ -1779,8 +1779,8 @@ foreach ($subscription_plans as $plan) {
             // });
         if (isset($min_price) && isset($max_price)) {
             if ($max_price > 0 && $max_price > 0) {
-                // $products->where('product_varients.selling_price', '>=', $min_price);
-                // $products->where('product_varients.selling_price', '<=', $max_price);
+                 $products->where('products.selling_price', '>=', $min_price);
+                 $products->where('products.selling_price', '<=', $max_price);
             }
         }
         if (!empty($search)) {
