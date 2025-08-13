@@ -1876,10 +1876,8 @@ class ApiController extends Controller
             if (!empty($seller)) {
                 $user->seller_id = $seller->id ?? "";
                 $user->save();
-
                 $day_time_text = (date('H:i') < '20:00') ? 'Today 8 PM' : 'Tomorrow 11 AM';
                 $estimated_day_cache = "Get it By " . $day_time_text;
-
                 $estimated_day = $estimated_day_cache;
             }
         }
