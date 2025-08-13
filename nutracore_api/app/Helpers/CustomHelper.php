@@ -977,9 +977,10 @@ class CustomHelper
                 : env('IMAGE_URL') . $path . '/' . $filename;
 
             // Check if the image actually exists
-            if (self::isValidImageUrl($url)) {
-                return $url;
-            }
+//            if (self::isValidImageUrl($url)) {
+//                return $url;
+//            }
+            return $url;
         }
 
         return $image; // fallback favicon
