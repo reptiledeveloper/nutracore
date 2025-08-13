@@ -742,9 +742,9 @@ class ApiController extends Controller
                 $seller->payment_method = $payment_method;
                 $seller->open_time = date('h:i A', strtotime($seller->open_time)) ?? '';
                 $seller->close_time = date('h:i A', strtotime($seller->close_time)) ?? '';
-                if ($is_deliver == 1) {
+//                if ($is_deliver == 1) {
                     $sellers_list[] = $seller;
-                }
+//                }
             }
         }
 
