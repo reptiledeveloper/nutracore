@@ -1863,25 +1863,33 @@ foreach ($subscription_plans as $plan) {
     public function getProductDetails($product_id, $user_id = null)
     {
         $user = [];
-        $day = "Today";
-        $time = "8 PM";
+        static $estimated_day_cache = null; // ✅ stores once per request
+
+        $user = [];
         $estimated_day = "";
+
         if (!empty($user_id)) {
             $user = User::find($user_id);
-            $pincode = $user->pincode ??'';
-            $latitude = $user->latitude??'';
-            $longitude = $user->longitude??'';
-            $seller = self::getNearestSeller($latitude,$longitude);
-            if(!empty($seller)){
-                $current_time = date('H:i');
-                if ($current_time < '20:00') {
-                    $day_time_text = 'Today 8 PM';
-                } else {
-                    $day_time_text = 'Tomorrow 11 AM';
+            $pincode = $user->pincode ?? '';
+            $latitude = $user->latitude ?? '';
+            $longitude = $user->longitude ?? '';
+
+            $seller = self::getNearestSeller($latitude, $longitude);
+
+            if (!empty($seller)) {
+                $user->seller_id = $seller->id ?? "";
+                $user->save();
+
+                // ✅ Calculate only once and reuse
+                if ($estimated_day_cache === null) {
+                    $day_time_text = (date('H:i') < '20:00') ? 'Today 8 PM' : 'Tomorrow 11 AM';
+                    $estimated_day_cache = "Get it By " . $day_time_text;
                 }
-                $estimated_day = "Get it By ".$day_time_text;
+
+                $estimated_day = $estimated_day_cache;
             }
         }
+
 
         $product = Product::where('id', $product_id)->first();
         if (!empty($product)) {
@@ -2526,6 +2534,7 @@ foreach ($subscription_plans as $plan) {
         $freebees_id = $request->freebees_id ?? '';
         $slot_date = $request->slot_date ?? '';
         $slot_time = $request->slot_time ?? '';
+        $delivery_type = $request->delivery_type ?? '';
         $cart_data = CustomHelper::cartData($user->id, $coupon_code, $request, $user);
         $cartValue = $cart_data['cartValue'] ?? '';
         $cart_price = $cartValue['cart_price'] ?? '';
@@ -2645,6 +2654,7 @@ foreach ($subscription_plans as $plan) {
                 ->where('is_delete', 0)
                 ->whereRaw('? BETWEEN order_amount AND order_amount2', [$cart_price])
                 ->first();
+
             $delivery_data['expressSlot'] = $expressSlot;
             $delivery_data['normalSlot'] = $normalSlot;
         }
