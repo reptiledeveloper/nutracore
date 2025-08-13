@@ -2010,15 +2010,19 @@ foreach ($subscription_plans as $plan) {
 
     public function getNcCashPercent($user,$amount){
         $is_active = 0;
-        $subscription_end_date = '';
-        $exist_subscription = Subscriptions::where('user_id', $user->id)->where('paid_status', 1)->latest()->first();
-        if (!empty($exist_subscription)) {
-            $current_date = date('Y-m-d');
-            if (strtotime($exist_subscription->end_date) >= strtotime($current_date)) {
-                $is_active = 1;
 
-            }
-        }
+        $subscription_end_date = '';
+       if(!empty($user)){
+           $exist_subscription = Subscriptions::where('user_id', $user->id)->where('paid_status', 1)->latest()->first();
+           if (!empty($exist_subscription)) {
+               $current_date = date('Y-m-d');
+               if (strtotime($exist_subscription->end_date) >= strtotime($current_date)) {
+                   $is_active = 1;
+
+               }
+           }
+       }
+
         $type = ($is_active == 1 )? 'subscribe' : 'not_subscribe';
         $active_loyalty = DB::table('loyality_system')
             ->where('status', 1)
