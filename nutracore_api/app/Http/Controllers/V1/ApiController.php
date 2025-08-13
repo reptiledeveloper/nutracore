@@ -1868,7 +1868,7 @@ foreach ($subscription_plans as $plan) {
         $user = [];
         $estimated_day = "";
 
-        if (!empty($user_id)) {
+        if (!empty($user_id) && $estimated_day_cache === null) {
             $user = User::find($user_id);
             $pincode = $user->pincode ?? '';
             $latitude = $user->latitude ?? '';
