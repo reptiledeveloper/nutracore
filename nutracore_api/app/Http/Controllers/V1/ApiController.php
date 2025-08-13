@@ -2247,7 +2247,7 @@ foreach ($subscription_plans as $plan) {
 
 
 
-            $brand_suggation = Brand::select('id', 'brand_name', 'brand_img')->where('name', 'like', '%' . $search . '%')->limit(5)->get();
+            $brand_suggation = Brand::select('id', 'brand_name', 'brand_img')->where('brand_name', 'like', '%' . $search . '%')->limit(5)->get();
             if (!empty($brand_suggation)) {
                 foreach ($brand_suggation as $category_sugga) {
                     $type1 = '';
