@@ -480,7 +480,35 @@ class CustomHelper
         $varients = VendorProductPrice::where('vendor_id', $vendor_id)->where('product_id', $product_id)->where('varient_id', $varient_id)->where('is_delete', 0)->first();
         return $varients;
     }
+    public static function getNcCashPercent($user, $amount)
+    {
+        $is_active = 0;
 
+        $subscription_end_date = '';
+        if (!empty($user)) {
+            $exist_subscription = Subscriptions::where('user_id', $user->id)->where('paid_status', 1)->latest()->first();
+            if (!empty($exist_subscription)) {
+                $current_date = date('Y-m-d');
+                if (strtotime($exist_subscription->end_date) >= strtotime($current_date)) {
+                    $is_active = 1;
+
+                }
+            }
+        }
+
+        $type = ($is_active == 1) ? 'subscribe' : 'not_subscribe';
+        $active_loyalty = DB::table('loyality_system')
+            ->where('status', 1)
+            ->where('type', $type)
+            ->where('from_amount', '<=', $amount)
+            ->where('to_amount', '>=', $amount)
+            ->first();
+        if (!empty($active_loyalty)) {
+            return round(($amount * (int)$active_loyalty->cashback) / 100);
+        }
+        return 0;
+
+    }
 
     public static function cartData($user_id, $coupon_code = '', $request, $user)
     {
@@ -534,6 +562,7 @@ class CustomHelper
                 }
                 $dbArray = [];
                 $dbArray['product_id'] = $product->product_id ?? '';
+                $dbArray['nc_cash'] = self::getNcCashPercent($user_data, $product->selling_price ?? '');
                 $cart_products[] = $product->product_id ?? '';
                 $dbArray['varient_id'] = $cart->variant_id ?? '';
                 $dbArray['product_name'] = $product_data->name ?? '';
