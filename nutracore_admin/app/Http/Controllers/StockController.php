@@ -102,7 +102,7 @@ class StockController extends Controller
 
         $sellers = CustomHelper::getVendors(); // For filter dropdown
 
-        return view('closing_stock', compact('stocks', 'sellers'));
+        return view('stocks.closing_stock', compact('stocks', 'sellers'));
     }
 
 
