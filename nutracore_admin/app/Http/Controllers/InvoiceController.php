@@ -177,7 +177,9 @@ class InvoiceController extends Controller
 
     public function show(Invoice $invoice) {
         $invoice->load(['supplier']);
-        $stocks = Stock::where('invoice_id',$invoice->id)->get();
+        $stocks = Stock::with(['product', 'variant'])
+            ->where('invoice_id', $invoice->id)
+            ->get();
         return view('invoices.show', compact('invoice','stocks'));
     }
 }

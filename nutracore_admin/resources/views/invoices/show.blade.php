@@ -36,7 +36,7 @@
                     </div>
                 </div>
 
-                <div class="row g-3">
+                <div class="row g-3 mt-3">
                     <div class="col-md-4">
                         <div class="card card-body">
                             <div><strong>Supplier:</strong> {{ $invoice->supplier?->name }}</div>
@@ -51,6 +51,7 @@
                         <tr>
                             <th>#</th>
                             <th>Product</th>
+                            <th>Varient</th>
                             <th>Batch</th>
                             <th>MFG</th>
                             <th>Expiry</th>
@@ -66,8 +67,9 @@
                         @foreach($stocks as $i => $s)
                             <tr>
                                 <td>{{ $i+1 }}</td>
-                                <td>{{ $s->product_name }}</td>
-                                <td>{{ $s->batch_no }}</td>
+                                <td>{{ $s->product->name ?? '-' }}</td>
+                                <td>{{ $s->variant->unit ?? '-' }}</td>
+                                <td>{{ $s->batch_number }}</td>
                                 <td>{{ $s->mfg_date }}</td>
                                 <td>{{ $s->expiry_date }}</td>
                                 <td>{{ $s->quantity }}</td>

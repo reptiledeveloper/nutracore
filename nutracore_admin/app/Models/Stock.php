@@ -12,4 +12,15 @@ class Stock extends Model{
         return $this->belongsTo(Invoice::class);
     }
 
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'product_id');
+    }
+
+    public function variant()
+    {
+        return $this->belongsTo(ProductVarient::class, 'variant_id');
+    }
+
 }
