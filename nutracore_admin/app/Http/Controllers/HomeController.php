@@ -226,6 +226,9 @@ class HomeController extends Controller
             if (isset($request->subscription_month)) {
                 $dbArray['subscription_month'] = $request->subscription_month;
             }
+            if (isset($request->cutoff_time)) {
+                $dbArray['cutoff_time'] = $request->cutoff_time;
+            }
 
             if (isset($request->is_handling_charges)) {
                 $dbArray['is_handling_charges'] = $request->is_handling_charges;
