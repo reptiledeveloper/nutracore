@@ -42,7 +42,7 @@ class CategoryController extends Controller
         if (!empty($search)) {
             $categories->where('name', 'like', '%' . $search . '%');
         }
-        $categories = $categories->paginate(10);
+        $categories = $categories->paginate(50);
         $data['categories'] = $categories;
         return view('categories.index', $data);
     }
