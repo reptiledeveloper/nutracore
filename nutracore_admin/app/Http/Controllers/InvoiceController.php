@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\Products;
+use App\Models\Stock;
+use App\Models\StockBatch;
 use Attribute;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -57,113 +59,97 @@ class InvoiceController extends Controller
 
     public function add(Request $request)
     {
-        $data = [];
-        $id = (isset($request->id)) ? $request->id : 0;
+        $id = $request->id ?? 0;
+        $invoice = $id ? Invoice::with('items')->find($id) : null;
 
-        $invoices = '';
-        if (is_numeric($id) && $id > 0) {
-
-            $invoices = Invoice::find($id);
-            if (empty($invoices)) {
-                return redirect($this->ADMIN_ROUTE_NAME . '/invoices');
-            }
+        if ($id && !$invoice) {
+            return redirect($this->ADMIN_ROUTE_NAME . '/invoices')
+                ->with('alert-danger', 'Invoice not found.');
         }
 
-        if ($request->method() == 'POST' || $request->method() == 'post') {
+        if ($request->isMethod('post')) {
+            $back_url = $request->back_url ?? $this->ADMIN_ROUTE_NAME . '/invoices';
 
-            if (empty($back_url)) {
-                $back_url = $this->ADMIN_ROUTE_NAME . '/invoices';
-            }
-
-            $name = (isset($request->name)) ? $request->name : '';
-
-
-            $rules = [];
-            if (is_numeric($id) && $id > 0) {
-                $rules['name'] = 'required';
-
-            } else {
-                $rules['name'] = 'required';
-            }
+            $rules = [
+                'supplier_id'        => 'required|exists:suppliers,id',
+                'invoice_date'       => 'required|date',
+                'product_id.*'       => 'required|exists:products,id',
+                'variant_id.*'       => 'nullable|exists:variants,id',
+                'batch.*'            => 'required|string|max:50',
+                'mfg.*'              => 'required|date',
+                'expiry.*'           => 'required|date|after:mfg.*',
+                'qty.*'              => 'required|integer|min:1',
+                'purchase_price.*'   => 'required|numeric|min:0',
+            ];
             $request->validate($rules);
 
-            $createdCat = $this->save($request, $id);
+            $saved = $this->save($request, $id);
 
-            if ($createdCat) {
-                $alert_msg = 'Invoice has been added successfully.';
-                if (is_numeric($id) && $id > 0) {
-                    $alert_msg = 'Invoice has been updated successfully.';
-                }
-                return redirect(url($back_url))->with('alert-success', $alert_msg);
-            } else {
-                return back()->with('alert-danger', 'something went wrong, please try again or contact the administrator.');
+            if ($saved) {
+                $msg = $id ? 'Invoice has been updated successfully.' : 'Invoice has been added successfully.';
+                return redirect(url($back_url))->with('alert-success', $msg);
             }
+            return back()->with('alert-danger', 'Something went wrong. Please try again.');
         }
 
-
-        $page_heading = 'Add Invoice';
-
-        if (is_numeric($id) && $id > 0) {
-            $page_heading = 'Update Invoice ';
-        }
-
-        $data['page_heading'] = $page_heading;
-        $data['id'] = $id;
-        $data['invoices'] = $invoices;
-        $data['products'] = Products::with('variants')->get();
-
-        return view('invoices.form', $data);
-
+        return view('invoices.form', [
+            'page_heading' => $id ? 'Update Invoice' : 'Add Invoice',
+            'id'           => $id,
+            'invoice'      => $invoice,
+            'suppliers'    => Supplier::all(),
+            'products'     => Products::with('variants')->get(),
+        ]);
     }
-
-
-
-
 
 
     public function save(Request $request, $id = 0)
     {
+        DB::transaction(function () use ($request, $id, &$invoice) {
+            // Save invoice header
+            $invoice = $id ? Invoice::findOrFail($id) : new Invoice();
+            $invoice->supplier_id  = $request->supplier_id;
+            $invoice->invoice_date = $request->invoice_date;
+            $invoice->remarks      = $request->remarks ?? '';
+            $invoice->save();
 
-        $data = $request->except(['_token', 'back_url', 'image', 'password', 'holiday_date', 'holiday_title']);
-
-
-        $oldImg = '';
-
-        $invoices = new Invoice();
-
-        if (is_numeric($id) && $id > 0) {
-            $exist = Invoice::find($id);
-
-            if (isset($exist->id) && $exist->id == $id) {
-                $invoices = $exist;
-
-                $oldImg = $exist->image;
+            // Remove old items if updating
+            if ($id) {
+                Stock::where('invoice_id', $invoice->id)->delete();
             }
-        }
-        //prd($oldImg);
 
-        foreach ($data as $key => $val) {
-            $invoices->$key = $val;
-        }
+            // Save each invoice item & batch
+            foreach ($request->product_id as $index => $productId) {
+                $item = new Stock();
+                $item->invoice_id     = $invoice->id;
+                $item->product_id     = $productId;
+                $item->variant_id     = $request->variant_id[$index] ?? null;
+                $item->batch_number   = $request->batch[$index];
+                $item->mfg_date       = $request->mfg[$index];
+                $item->expiry_date    = $request->expiry[$index];
+                $item->quantity       = $request->qty[$index];
+                $item->purchase_price = $request->purchase_price[$index];
+                $item->save();
 
-        $isSaved = $invoices->save();
+                // Create or update stock batch
+                StockBatch::updateOrCreate(
+                    [
+                        'product_id'   => $productId,
+                        'variant_id'   => $request->variant_id[$index] ?? null,
+                        'batch_number' => $request->batch[$index],
+                    ],
+                    [
+                        'mfg_date'     => $request->mfg[$index],
+                        'expiry_date'  => $request->expiry[$index],
+                        'quantity'     => DB::raw('quantity + ' . $request->qty[$index]),
+                        'purchase_price' => $request->purchase_price[$index],
+                    ]
+                );
+            }
+        });
 
-        if ($isSaved) {
-           // $this->saveImage($request, $invoices, $oldImg);
-        }
-
-        return $isSaved;
+        return true;
     }
-    private function saveImage($request, $invoices, $oldImg = '')
-    {
-        $file = $request->file('image');
-        if ($file) {
-            $path = 'attributes';
-            $uploaded_data = CustomHelper::UploadImage($file, $path);
-            $invoices->brand_img = $uploaded_data;
-            $invoices->save();
-        }
-    }
+
 
 
 
