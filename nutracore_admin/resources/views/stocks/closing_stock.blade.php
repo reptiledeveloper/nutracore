@@ -40,7 +40,7 @@
                         <thead>
                         <tr>
                             <th>#</th>
-                            <th>Seller</th>
+                            <th>Store</th>
                             <th>Product</th>
                             <th>Variant</th>
                             <th>Closing Stock</th>

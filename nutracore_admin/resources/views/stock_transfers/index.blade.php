@@ -45,8 +45,8 @@
                             <th>Product</th>
                             <th>Variant</th>
                             <th>Batch</th>
-                            <th>From</th>
-                            <th>To</th>
+                            <th>From Store </th>
+                            <th>To Store</th>
                             <th>Qty</th>
                             <th>Status</th>
                             <th>Action</th>
