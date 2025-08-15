@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Models\Stock;
 use App\Models\StockTransfer;
 use Attribute;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -110,7 +111,8 @@ class StockTransferController extends Controller
         $data['page_heading'] = $page_heading;
         $data['id'] = $id;
         $data['attributes'] = $attributes;
-
+        $stocks = Stock::latest()->get();
+        $data['stocks'] = $stocks;
         return view('stock_transfers.form', $data);
 
     }

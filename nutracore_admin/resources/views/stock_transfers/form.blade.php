@@ -48,9 +48,7 @@
                             <div class="row">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <h5 class="mb-2">Items</h5>
-                                    <button type="button" class="btn btn-sm btn-outline-primary"
-                                            onclick="addTransferRow()">+ Add Row
-                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addTransferRow()">+ Add Row</button>
                                 </div>
                                 <div class="table-responsive">
                                     <table class="table table-bordered" id="transferTable">
@@ -66,13 +64,13 @@
                                         </thead>
                                         <tbody></tbody>
                                     </table>
-                                </div>
+                            </div>
 
-                                <div class="form-group mb-0 mt-3 justify-content-end">
-                                    <div>
-                                        <button type="submit" class="btn btn-primary">Save</button>
-                                    </div>
+                            <div class="form-group mb-0 mt-3 justify-content-end">
+                                <div>
+                                    <button type="submit" class="btn btn-primary">Save</button>
                                 </div>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -82,16 +80,24 @@
         </div>
     </div>
 
-
+    @php
+        $stockMap = $stocks->map(function ($s) {
+        return [
+            'id'    => $s->id,
+            'label' => implode(' ', array_filter([
+                $s->product->name ?? '',
+                $s->variant ? '- ' . $s->variant->unit : null,
+                '(Batch: ' . ($s->batch_no ?? '-') .
+                ', Qty: ' . ($s->quantity ?? 0) .
+                ($s->expiry_date ? ', Exp: ' . $s->expiry_date->format('d-m-Y') : '') . ')'
+            ])),
+            'batch' => $s->batch_no
+        ];
+    })->values();
+ @endphp
     <script>
         /* server-side JSON (safe) */
-        const stockMap = @json(
-    $stocks->map(fn($s) => [
-    'id'    => $s->id,
-    'label' => $s->product->name,
-    'batch' => $s->batch_number,
-])
-);
+        const stockMap = @json($stockMap);
 
         let tIndex = 0;
 
