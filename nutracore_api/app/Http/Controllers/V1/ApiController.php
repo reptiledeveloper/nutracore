@@ -1195,7 +1195,7 @@ class ApiController extends Controller
                 $banner->products = $productsArr;
             }
         }
-        $categories = Category::where('status', 1)->where('parent_id', 0)->where('is_goal', 0)->where('is_delete', 0)->latest()->get()->makeHidden(['created_at', 'updated_at', 'is_delete', 'status']);
+        $categories = Category::where('status', 1)->where('parent_id', 0)->where('is_goal', 0)->where('is_delete', 0)->orderBy('priority','ASC')->get()->makeHidden(['created_at', 'updated_at', 'is_delete', 'status']);
         if (!empty($categories)) {
             foreach ($categories as $category) {
                 $category->image = CustomHelper::getImageUrl('categories', $category->image ?? '');
@@ -1459,7 +1459,7 @@ class ApiController extends Controller
         } else {
             $category_list->where('is_goal', 0);
         }
-        $category_list = $category_list->get();
+        $category_list = $category_list->orderBy('priority','ASC')->get();
         if (!empty($category_list)) {
             foreach ($category_list as $category) {
                 $category->image = CustomHelper::getImageUrl('categories', $category->image);
