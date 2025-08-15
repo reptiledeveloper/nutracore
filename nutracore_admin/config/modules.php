@@ -34,6 +34,7 @@ return [
                 'delivery_agents',
                 'tax',
                 'suppliers',
+                'invoices',
                 'offers',
                 // 'slots',
                 'subscription_plans',
@@ -54,6 +55,8 @@ return [
                 'new_updates',
                 'testimonial',
                 'gift_card',
+                'stocks',
+                'stock_transfers',
 
 
         ],
@@ -76,6 +79,9 @@ return [
                 'abandoned_cart' => 'Abandoned Cart',
                 'gift_card' => 'GiftCard',
                 'suppliers' => 'Suppliers',
+                'invoices' => 'Invoices',
+                'stocks' => 'Stocks',
+                'stock_transfers' => 'Stock Transfers',
 
 
                 'manufacturer' => 'Manufacturer',

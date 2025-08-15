@@ -870,10 +870,18 @@ $current_route = Route::currentRouteName();
                         ">Suppliers</a>
                     </li>
                     <li>
-                        <a class="{{$current_route == 'products.assign_product' ? "active":""}}"
-                           href="{{ route('products.assign_product', ['back_url' => 'admin/assign_product']) }}">Assign
-                            Product</a>
+                        <a class="{{$current_route == 'invoices.index' ? "active":""}}" href="{{route('invoices.index')}}
+                        ">Invoices</a>
                     </li>
+                    <li>
+                        <a class="{{$current_route == 'stocks.index' ? "active":""}}" href="{{route('stocks.index')}}
+                        ">Stocks & Expiry</a>
+                    </li>
+                    <li>
+                        <a class="{{$current_route == 'stock_transfers.index' ? "active":""}}" href="{{route('stock_transfers.index')}}
+                        ">Stock Transfers</a>
+                    </li>
+
 
                 </ul>
             </li>

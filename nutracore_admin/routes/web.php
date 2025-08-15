@@ -241,6 +241,33 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
 
         });
 
+
+        ////invoices
+        Route::group(['prefix' => 'invoices', 'as' => 'invoices', 'middleware' => ['allowedmodule:invoices,list']], function () {
+            Route::get('/', 'SupplierController@index')->name('.index');
+            Route::match(['get', 'post'], 'add', 'SupplierController@add')->name('.add');
+            Route::match(['get', 'post'], 'edit/{id}', 'SupplierController@add')->name('.edit');
+            Route::match(['get', 'post'], 'delete/{id}', 'SupplierController@delete')->name('.delete');
+
+        });
+ ////stocks
+        Route::group(['prefix' => 'stocks', 'as' => 'stocks', 'middleware' => ['allowedmodule:stocks,list']], function () {
+            Route::get('/', 'SupplierController@index')->name('.index');
+            Route::match(['get', 'post'], 'add', 'SupplierController@add')->name('.add');
+            Route::match(['get', 'post'], 'edit/{id}', 'SupplierController@add')->name('.edit');
+            Route::match(['get', 'post'], 'delete/{id}', 'SupplierController@delete')->name('.delete');
+
+        });
+
+        ////stock_transfers
+        Route::group(['prefix' => 'stock_transfers', 'as' => 'stock_transfers', 'middleware' => ['allowedmodule:stock_transfers,list']], function () {
+            Route::get('/', 'SupplierController@index')->name('.index');
+            Route::match(['get', 'post'], 'add', 'SupplierController@add')->name('.add');
+            Route::match(['get', 'post'], 'edit/{id}', 'SupplierController@add')->name('.edit');
+            Route::match(['get', 'post'], 'delete/{id}', 'SupplierController@delete')->name('.delete');
+
+        });
+
         ////child_categories
         Route::group(['prefix' => 'child_categories', 'as' => 'child_categories', 'middleware' => ['allowedmodule:child_categories,list']], function () {
             Route::get('/', 'ChildCategoryController@index')->name('.index');
