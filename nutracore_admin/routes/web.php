@@ -232,6 +232,15 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
 
         });
 
+        ////suppliers
+        Route::group(['prefix' => 'suppliers', 'as' => 'suppliers', 'middleware' => ['allowedmodule:suppliers,list']], function () {
+            Route::get('/', 'SupplierController@index')->name('.index');
+            Route::match(['get', 'post'], 'add', 'SupplierController@add')->name('.add');
+            Route::match(['get', 'post'], 'edit/{id}', 'SupplierController@add')->name('.edit');
+            Route::match(['get', 'post'], 'delete/{id}', 'SupplierController@delete')->name('.delete');
+
+        });
+
         ////child_categories
         Route::group(['prefix' => 'child_categories', 'as' => 'child_categories', 'middleware' => ['allowedmodule:child_categories,list']], function () {
             Route::get('/', 'ChildCategoryController@index')->name('.index');

@@ -33,6 +33,7 @@ return [
                 'app_settings',
                 'delivery_agents',
                 'tax',
+                'suppliers',
                 'offers',
                 // 'slots',
                 'subscription_plans',
@@ -74,6 +75,7 @@ return [
 
                 'abandoned_cart' => 'Abandoned Cart',
                 'gift_card' => 'GiftCard',
+                'suppliers' => 'Suppliers',
 
 
                 'manufacturer' => 'Manufacturer',

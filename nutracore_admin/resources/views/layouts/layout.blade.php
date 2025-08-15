@@ -848,14 +848,43 @@ $current_route = Route::currentRouteName();
                     <span>GiftCard</span>
                 </a>
             </li>
+{{--            <li>--}}
+{{--                <a class="{{$current_route == 'inventory_management.index' ? "active":""}}" href="{{route('inventory_management.index')}}">--}}
+{{--                    <span class="nav-link-icon">--}}
+{{--                        <i class="bi bi-shop"></i>--}}
+{{--                    </span>--}}
+{{--                    <span>Inventory Management</span>--}}
+{{--                </a>--}}
+{{--            </li>--}}
+
             <li>
-                <a class="{{$current_route == 'inventory_management.index' ? "active":""}}" href="{{route('inventory_management.index')}}">
+                <a href="#">
                     <span class="nav-link-icon">
-                        <i class="bi bi-shop"></i>
+                        <i class="bi bi-wallet2"></i>
                     </span>
                     <span>Inventory Management</span>
                 </a>
+                <ul>
+                    <li>
+                        <a class="{{$current_route == 'suppliers.index' ? "active":""}}" href="{{route('suppliers.index')}}
+                        ">Suppliers</a>
+                    </li>
+                    <li>
+                        <a class="{{$current_route == 'products.assign_product' ? "active":""}}"
+                           href="{{ route('products.assign_product', ['back_url' => 'admin/assign_product']) }}">Assign
+                            Product</a>
+                    </li>
+
+                </ul>
             </li>
+
+
+
+
+
+
+
+
             <li>
                 <a class="{{$current_route == 'abandoned_cart.index' ? "active":""}}" href="{{route('abandoned_cart.index')}}">
                     <span class="nav-link-icon">
