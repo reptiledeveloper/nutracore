@@ -60,7 +60,7 @@
                                 <td>{{ \Illuminate\Support\Carbon::parse($inv->invoice_date)->format('d-M-Y') }}</td>
                                 <td>{{ $inv->supplier?->name }}</td>
                                 <td>{{ \App\Models\Stock::where('invoice_id',$inv->id)->count() }}</td>
-                                <td>{{ \App\Helpers\CustomHelper::getStatusStr($attr->status) }}</td>
+                                <td>{{ \App\Helpers\CustomHelper::getStatusStr($inv->status) }}</td>
                                 <td class="text-end">
                                     <div class="d-flex">
                                         <div class="dropdown ms-auto">
@@ -69,7 +69,7 @@
                                                 <i class="bi bi-three-dots"></i>
                                             </a>
                                             <div class="dropdown-menu dropdown-menu-end">
-                                                <a href="{{route('invoices.show',$attr->id.'?back_url='.$BackUrl)}}"
+                                                <a href="{{route('invoices.show',$inv->id.'?back_url='.$BackUrl)}}"
                                                    class="dropdown-item">Show</a>
 
                                             </div>
