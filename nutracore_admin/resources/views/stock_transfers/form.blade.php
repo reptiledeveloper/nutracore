@@ -48,7 +48,9 @@
                             <div class="row">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <h5 class="mb-2">Items</h5>
-                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addTransferRow()">+ Add Row</button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                            onclick="addTransferRow()">+ Add Row
+                                    </button>
                                 </div>
                                 <div class="table-responsive">
                                     <table class="table table-bordered" id="transferTable">
@@ -64,13 +66,13 @@
                                         </thead>
                                         <tbody></tbody>
                                     </table>
-                            </div>
-
-                            <div class="form-group mb-0 mt-3 justify-content-end">
-                                <div>
-                                    <button type="submit" class="btn btn-primary">Save</button>
                                 </div>
-                            </div>
+
+                                <div class="form-group mb-0 mt-3 justify-content-end">
+                                    <div>
+                                        <button type="submit" class="btn btn-primary">Save</button>
+                                    </div>
+                                </div>
                         </form>
                     </div>
                 </div>
@@ -86,9 +88,7 @@
         const stockMap = @json(
     $stocks->map(fn($s) => [
     'id'    => $s->id,
-    'label' => $s->product->name
-        . ($s->variant ? ' - ' . $s->variant->unit : '')
-        . ' (Batch: ' . ($s->batch_number ?? '-') . ', Qty: ' . $s->quantity . ')',
+    'label' => $s->product->name,
     'batch' => $s->batch_number,
 ])
 );
