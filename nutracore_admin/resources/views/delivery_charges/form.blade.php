@@ -69,7 +69,7 @@
                                 <select class="form-control" name="type" required>
                                     <option value="">Select Type</option>
                                     <option value="express" {{$type == "express" ?"selected":""}}>Express</option>
-                                    <option value="normal" {{$type == "normal" ?"selected":""}}>Normal</option>
+                                    <option value="normal" {{$type == "normal" ?"selected":""}}>Standard</option>
                                 </select>
                                     @include('snippets.errors_first', ['param' => 'type'])
                                 </div>

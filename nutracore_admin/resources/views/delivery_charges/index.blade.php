@@ -58,7 +58,7 @@
                             ?>
                         <tr>
                             <td>{{$i++}}</td>
-                            <td>{{ucfirst($delivery_charge->type)??''}}</td>
+                            <td>{{$delivery_charge->type == "normal" ? "Standard":'Express'}}</td>
                             <td>{{$delivery_charge->order_amount??''}}</td>
 {{--                            <td>{{$delivery_charge->sign??''}}</td>--}}
                             <td>{{$delivery_charge->order_amount2??''}}</td>
