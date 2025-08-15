@@ -179,7 +179,7 @@
                 let product = products.find(p => p.id == productId);
                 if (product && product.variants) {
                     product.variants.forEach(v => {
-                        variantSelect.innerHTML += `<option value="${v.id}">${v.unit_value} - ₹${v.selling_price}</option>`;
+                        variantSelect.innerHTML += `<option value="${v.id}">${v.unit} - ₹${v.selling_price}</option>`;
                     });
                 }
             }
