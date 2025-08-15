@@ -118,25 +118,37 @@ class FreeProductController extends Controller
 
 
         $oldImg = '';
-      
+
 
         $categories = new FreeProduct;
-     
+        $isSaved = false;
         if (is_numeric($id) && $id > 0) {
             $exist = FreeProduct::find($id);
             if (isset($exist->id) && $exist->id == $id) {
                 $categories = $exist;
                 $oldImg = $exist->image;
-               
+
+            }
+            foreach ($data as $key => $val) {
+                $categories->$key = $val;
+            }
+
+            $isSaved = $categories->save();
+        }else{
+            $product_ids = $request->product_id??'';
+            if(!empty($product_ids)){
+                foreach ($product_ids as $product_id){
+                    $data['product_id'] = $product_id;
+                    foreach ($data as $key => $val) {
+                        $categories->$key = $val;
+                    }
+                    $isSaved = $categories->save();
+                }
             }
         }
         //prd($oldImg);
 
-        foreach ($data as $key => $val) {
-            $categories->$key = $val;
-        }
 
-        $isSaved = $categories->save();
 
         if ($isSaved) {
             $this->saveImage($request, $categories, $oldImg);
