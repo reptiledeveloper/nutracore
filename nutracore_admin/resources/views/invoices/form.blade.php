@@ -110,6 +110,7 @@
                                         <thead>
                                         <tr>
                                             <th>Product</th>
+                                            <th>Variant</th>
                                             <th>Batch</th>
                                             <th>MFG</th>
                                             <th>Expiry</th>
@@ -140,22 +141,48 @@
 
 
     <script>
-        let rowIndex = 0;
+        const products = @json($products); // Pass from controller with variants
+
         function addRow() {
-            const tbody = document.querySelector('#itemsTable tbody');
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-    <td><input class="form-control" name="items[${rowIndex}][product_name]" required></td>
-    <td><input class="form-control" name="items[${rowIndex}][batch_no]"></td>
-    <td><input type="date" class="form-control" name="items[${rowIndex}][mfg_date]"></td>
-    <td><input type="date" class="form-control" name="items[${rowIndex}][expiry_date]"></td>
-    <td><input type="number" class="form-control" min="1" name="items[${rowIndex}][quantity]" required></td>
-    <td><input type="number" step="0.01" min="0" class="form-control" name="items[${rowIndex}][purchase_price]" required></td>
-    <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()">X</button></td>
-  `;
-            tbody.appendChild(tr);
-            rowIndex++;
+            let row = `
+        <tr>
+            <td>
+                <select name="product_id[]" class="form-control product-select" required>
+                    <option value="">-- Select Product --</option>
+                    ${products.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+                </select>
+            </td>
+            <td>
+                <select name="variant_id[]" class="form-control variant-select" required>
+                    <option value="">-- Select Variant --</option>
+                </select>
+            </td>
+            <td><input type="text" name="batch[]" class="form-control" required></td>
+            <td><input type="date" name="mfg[]" class="form-control" required></td>
+            <td><input type="date" name="expiry[]" class="form-control" required></td>
+            <td><input type="number" name="qty[]" class="form-control" min="1" required></td>
+            <td><input type="number" name="purchase_price[]" class="form-control" step="0.01" required></td>
+            <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)">X</button></td>
+        </tr>`;
+            document.querySelector("#itemsTable tbody").insertAdjacentHTML('beforeend', row);
         }
-        addRow(); // one default row
+
+        function removeRow(button) {
+            button.closest('tr').remove();
+        }
+
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('product-select')) {
+                let productId = e.target.value;
+                let variantSelect = e.target.closest('tr').querySelector('.variant-select');
+                variantSelect.innerHTML = '<option value="">-- Select Variant --</option>';
+                let product = products.find(p => p.id == productId);
+                if (product && product.variants) {
+                    product.variants.forEach(v => {
+                        variantSelect.innerHTML += `<option value="${v.id}">${v.variant_name} - ₹${v.price}</option>`;
+                    });
+                }
+            }
+        });
     </script>
 @endsection

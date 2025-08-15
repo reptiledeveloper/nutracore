@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Invoice;
+use App\Models\Product;
 use Attribute;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -108,6 +109,7 @@ class InvoiceController extends Controller
         $data['page_heading'] = $page_heading;
         $data['id'] = $id;
         $data['invoices'] = $invoices;
+        $data['products'] = Product::with('variants')->get();
 
         return view('invoices.form', $data);
 
