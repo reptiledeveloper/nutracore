@@ -151,7 +151,7 @@ $options = DB::Table('attribute')->where('status', 1)->whereIn('id', $option_nam
                     <th>Variant</th>
                     <th>Images</th>
                     <th>SKU</th>
-                    <th>Weight</th>
+                    <th>Weight (In Gram)</th>
                     <th>MRP</th>
                     <th>Selling Price</th>
                     <th>Subscription Price</th>
