@@ -135,6 +135,9 @@ class ProductController extends Controller
         if (!empty($request->attribute_values)) {
             $data['attribute_values'] = implode(',', $request->attribute_values);
         }
+        if (!empty($request->tags)) {
+            $data['tags'] = implode(',', $request->tags);
+        }
         $product = new Products();
         if (is_numeric($id) && $id > 0) {
             $exist = Products::find($id);
