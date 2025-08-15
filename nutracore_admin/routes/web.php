@@ -244,10 +244,10 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
 
         ////invoices
         Route::group(['prefix' => 'invoices', 'as' => 'invoices', 'middleware' => ['allowedmodule:invoices,list']], function () {
-            Route::get('/', 'SupplierController@index')->name('.index');
-            Route::match(['get', 'post'], 'add', 'SupplierController@add')->name('.add');
-            Route::match(['get', 'post'], 'edit/{id}', 'SupplierController@add')->name('.edit');
-            Route::match(['get', 'post'], 'delete/{id}', 'SupplierController@delete')->name('.delete');
+            Route::get('/', 'InvoiceController@index')->name('.index');
+            Route::match(['get', 'post'], 'add', 'InvoiceController@add')->name('.add');
+            Route::match(['get', 'post'], 'edit/{id}', 'InvoiceController@add')->name('.edit');
+            Route::match(['get', 'post'], 'delete/{id}', 'InvoiceController@delete')->name('.delete');
 
         });
  ////stocks
