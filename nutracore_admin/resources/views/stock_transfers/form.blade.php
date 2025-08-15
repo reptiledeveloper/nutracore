@@ -87,11 +87,11 @@
             'label' => implode(' ', array_filter([
                 $s->product->name ?? '',
                 $s->variant ? '- ' . $s->variant->unit : null,
-                '(Batch: ' . ($s->batch_no ?? '-') .
+                '(Batch: ' . ($s->batch_number ?? '-') .
                 ', Qty: ' . ($s->quantity ?? 0) .
                 ($s->expiry_date ? ', Exp: ' . $s->expiry_date : '') . ')'
             ])),
-            'batch' => $s->batch_no
+            'batch' => $s->batch_number
         ];
     })->values();
  @endphp
