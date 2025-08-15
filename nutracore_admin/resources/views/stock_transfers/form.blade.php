@@ -7,7 +7,7 @@
 
 
 
-    $stores = \App\Models\Sellers::where('status', 1)->where('is_delete', 0)->get();
+    $stores = \App\Models\Vendors::where('status', 1)->where('is_delete', 0)->get();
 
     $defaultStoreId = optional($stores->firstWhere('name', 'Warehouse'))->id;
 
