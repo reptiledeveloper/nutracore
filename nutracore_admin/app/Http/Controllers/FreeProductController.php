@@ -138,6 +138,7 @@ class FreeProductController extends Controller
             $product_ids = $request->product_id??'';
             if(!empty($product_ids)){
                 foreach ($product_ids as $product_id){
+                    $categories = new FreeProduct;
                     $data['product_id'] = $product_id;
                     foreach ($data as $key => $val) {
                         $categories->$key = $val;
