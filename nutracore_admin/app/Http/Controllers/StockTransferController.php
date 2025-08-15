@@ -187,4 +187,22 @@ class StockTransferController extends Controller
     }
 
 
+    public function approve($id) {
+        $t = StockTransfer::findOrFail($id);
+        if ($t->status !== 'pending') return back()->withErrors('Only pending transfers can be approved.');
+        // Note: if you maintain per-location stock, decrement from source & increment destination here.
+        $t->status = 'approved';
+        $t->save();
+        return back()->with('success','Transfer approved.');
+    }
+
+    public function reject($id) {
+        $t = StockTransfer::findOrFail($id);
+        if ($t->status !== 'pending') return back()->withErrors('Only pending transfers can be rejected.');
+        $t->status = 'rejected';
+        $t->save();
+        return back()->with('success','Transfer rejected.');
+    }
+
+
 }

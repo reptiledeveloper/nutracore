@@ -68,10 +68,10 @@
                                 <td><span class="badge bg-{{ $t->status=='pending'?'warning':'success' }}">{{ ucfirst($t->status) }}</span></td>
                                 <td class="text-nowrap">
                                     @if($t->status=='pending')
-                                        <form class="d-inline" method="POST" action="{{ route('admin.stock_transfers.approve',$t->id) }}">
+                                        <form class="d-inline" method="POST" action="{{ route('stock_transfers.approve',$t->id) }}">
                                             @csrf <button class="btn btn-sm btn-success">Approve</button>
                                         </form>
-                                        <form class="d-inline" method="POST" action="{{ route('admin.stock_transfers.reject',$t->id) }}">
+                                        <form class="d-inline" method="POST" action="{{ route('stock_transfers.reject',$t->id) }}">
                                             @csrf <button class="btn btn-sm btn-danger">Reject</button>
                                         </form>
                                     @endif
@@ -82,7 +82,7 @@
                         </tbody>
                     </table>
 
-                    {{ $attributes->appends(request()->input())->links('pagination') }}
+                    {{ $transfers->appends(request()->input())->links('pagination') }}
 
 
                 </div>
