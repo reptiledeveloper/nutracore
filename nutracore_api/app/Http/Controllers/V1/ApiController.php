@@ -1874,9 +1874,10 @@ class ApiController extends Controller
             $seller = self::getNearestSeller($latitude, $longitude);
 
             if (!empty($seller)) {
+                $cutoff_time = CustomHelper::getSettingKey('cutoff_time');
                 $user->seller_id = $seller->id ?? "";
                 $user->save();
-                $day_time_text = (date('H:i') < '20:00') ? 'Today 8 PM' : 'Tomorrow 11 AM';
+                $day_time_text = (date('H:i') < $cutoff_time) ? 'Today 8 PM' : 'Tomorrow 11 AM';
                 $estimated_day_cache = "Get it By " . $day_time_text;
                 $estimated_day = $estimated_day_cache;
             }
