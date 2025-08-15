@@ -253,10 +253,10 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
         });
  ////stocks
         Route::group(['prefix' => 'stocks', 'as' => 'stocks', 'middleware' => ['allowedmodule:stocks,list']], function () {
-            Route::get('/', 'SupplierController@index')->name('.index');
-            Route::match(['get', 'post'], 'add', 'SupplierController@add')->name('.add');
-            Route::match(['get', 'post'], 'edit/{id}', 'SupplierController@add')->name('.edit');
-            Route::match(['get', 'post'], 'delete/{id}', 'SupplierController@delete')->name('.delete');
+            Route::get('/', 'StockController@index')->name('.index');
+            Route::match(['get', 'post'], 'add', 'StockController@add')->name('.add');
+            Route::match(['get', 'post'], 'edit/{id}', 'StockController@add')->name('.edit');
+            Route::match(['get', 'post'], 'delete/{id}', 'StockController@delete')->name('.delete');
 
         });
 
