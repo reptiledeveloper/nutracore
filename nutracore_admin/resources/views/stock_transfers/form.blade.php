@@ -98,7 +98,7 @@
     <script>
         /* server-side JSON (safe) */
         const stockMap = @json($stockMap);
-    console.log(stockMap);
+            console.log(stockMap);
         let tIndex = 0;
 
         function escapeHtml(str) {
@@ -128,15 +128,15 @@
             // build row using string concatenation to avoid nested template issues
             tr.innerHTML =
                 '<td>' +
-                '<select class="form-select" name="items['+tIndex+'][stock_id]" required onchange="syncBatch(this)">' +
+                '<select class="form-select" name="items[' + tIndex + '][stock_id]" required onchange="syncBatch(this)">' +
                 '<option value="">-- Select --</option>' + options +
                 '</select>' +
                 '</td>' +
-                '<td><input class="form-control" name="items['+tIndex+'][batch_display]" readonly></td>' +
-                '<td><input class="form-control" name="items['+tIndex+'][from_location]" placeholder="From location" required></td>' +
-                '<td><input class="form-control" name="items['+tIndex+'][to_location]" placeholder="To location" required></td>' +
-                '<td><input type="number" min="1" class="form-control" name="items['+tIndex+'][quantity]" required></td>' +
-                '<td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest(\\'tr\\').remove()">X</button></td>';
+                '<td><input class="form-control" name="items[' + tIndex + '][batch_display]" readonly></td>' +
+                '<td><input class="form-control" name="items[' + tIndex + '][from_location]" placeholder="From location" required></td>' +
+                '<td><input class="form-control" name="items[' + tIndex + '][to_location]" placeholder="To location" required></td>' +
+                '<td><input type="number" min="1" class="form-control" name="items[' + tIndex + '][quantity]" required></td>' +
+                '<td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest(\'tr\').remove()">X</button></td>';
 
             tb.appendChild(tr);
             tIndex++;
