@@ -55,7 +55,7 @@
                         <?php if(!empty($freebeesproducts)){
                         foreach ($freebeesproducts as $cat) {
                             $product = \App\Models\Products::find($cat->product_id);
-                            $image = \App\Helpers\CustomHelper::getImageUrl('product',$product->image);
+                            $image = \App\Helpers\CustomHelper::getImageUrl('products',$product->image);
 
                             ?>
                         <tr>
