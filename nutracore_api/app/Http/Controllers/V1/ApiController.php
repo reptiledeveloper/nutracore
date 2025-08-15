@@ -4028,7 +4028,7 @@ class ApiController extends Controller
         $vendor_id = $user->seller_id ?? '';
         $offersArr = [];
         /////User Coupons
-        $offers = Offers::where('status', 1)->where('user_id', $user->id);
+        $offers = Offers::where('status', 1)->where('is_show', 1)->where('user_id', $user->id);
         if (!empty($search)) {
             $offers->where('offer_code', 'like', '%' . $search . '%');
         }
