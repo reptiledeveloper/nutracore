@@ -110,6 +110,9 @@ class OfferController extends Controller
         if (!empty($request->product_ids)) {
             $data['product_ids'] = implode(",", $request->product_ids);
         }
+        if (!empty($request->brand_ids)) {
+            $data['brand_ids'] = implode(",", $request->brand_ids);
+        }
 
         if(!empty($request->user_id)){
             $phone = $request->user_id??'';
