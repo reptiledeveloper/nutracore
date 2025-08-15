@@ -206,7 +206,7 @@
                                     <label for="validationCustom01" class="form-label">Brands</label>
                                     <select name="brand_ids[]" class="form-control select2" multiple>
                                         @foreach($brands as $category)
-                                            <option value="{{$category->id??''}}" {{in_array($category->id,$brand_ids)?"selected":""}}>{{$category->name??''}}</option>
+                                            <option value="{{$category->id??''}}" {{in_array($category->id,$brand_ids)?"selected":""}}>{{$category->brand_name??''}}</option>
                                         @endforeach
                                     </select>
                                 </div>
