@@ -110,14 +110,14 @@
 
 
                                 </div>
-                                <div class="form-group col-md-6 mt-3">
-                                    <label for="validationCustom01" class="form-label">Is Subscribe</label>
-                                    <select class="form-control" name="is_subscribe">
-                                        <option value="" selected>Select</option>
-                                        <option value="1" {{$is_subscribe==0?"selected":""}}>Yes</option>
-                                        <option value="0" {{$is_subscribe==0?"selected":""}}>No</option>
-                                    </select>
-                                </div>
+{{--                                <div class="form-group col-md-6 mt-3">--}}
+{{--                                    <label for="validationCustom01" class="form-label">Is Subscribe</label>--}}
+{{--                                    <select class="form-control" name="is_subscribe">--}}
+{{--                                        <option value="" selected>Select</option>--}}
+{{--                                        <option value="1" {{$is_subscribe==0?"selected":""}}>Yes</option>--}}
+{{--                                        <option value="0" {{$is_subscribe==0?"selected":""}}>No</option>--}}
+{{--                                    </select>--}}
+{{--                                </div>--}}
                                   <div class="form-group col-md-6 mt-3">
                                     <label for="validationCustom01" class="form-label">Is Goal</label>
                                     <select class="form-control" name="is_goal">
