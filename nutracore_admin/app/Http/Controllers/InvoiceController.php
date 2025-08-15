@@ -110,6 +110,7 @@ class InvoiceController extends Controller
             $invoice = $id ? Invoice::findOrFail($id) : new Invoice();
             $invoice->supplier_id  = $request->supplier_id;
             $invoice->invoice_date = $request->invoice_date;
+            $invoice->invoice_number = $request->invoice_number;
             $invoice->remarks      = $request->remarks ?? '';
             $invoice->save();
 

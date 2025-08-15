@@ -248,6 +248,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'add', 'InvoiceController@add')->name('.add');
             Route::match(['get', 'post'], 'edit/{id}', 'InvoiceController@add')->name('.edit');
             Route::match(['get', 'post'], 'delete/{id}', 'InvoiceController@delete')->name('.delete');
+            Route::match(['get', 'post'], 'show/{id}', 'InvoiceController@show')->name('.show');
 
         });
  ////stocks
