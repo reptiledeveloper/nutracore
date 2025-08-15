@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\Products;
 use App\Models\Stock;
 use App\Models\StockBatch;
+use App\Models\Supplier;
 use Attribute;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
