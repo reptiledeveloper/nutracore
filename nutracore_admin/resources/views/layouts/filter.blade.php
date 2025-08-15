@@ -53,6 +53,18 @@
                             </div>
                         @endif
 
+                            @if(!empty($expiry_show))
+                                <div class="col-md-4 mt-3">
+                                    <label class="form-label">Expiry Filter</label>
+                                    <select name="expiry_in_days" class="form-select" onchange="this.form.submit()">
+                                        <option value="0"  {{ $days===0 ? 'selected':'' }}>All</option>
+                                        <option value="30" {{ $days===30? 'selected':'' }}>Within 30 days</option>
+                                        <option value="60" {{ $days===60? 'selected':'' }}>Within 60 days</option>
+                                        <option value="90" {{ $days===90? 'selected':'' }}>Within 90 days</option>
+                                    </select>
+                                </div>
+                        @endif
+
                         @if(!empty($subcategory_show))
                             <div class="col-md-4 mt-2">
                                 <label class="form-label">SubCategory</label>

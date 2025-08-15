@@ -21,7 +21,7 @@
                 </ol>
             </nav>
         </div>
-        @include('layouts.filter',['search_show'=>'search_show'])
+        @include('layouts.filter',['expiry_show'=>'expiry_show','days'=>$days])
         <div class="row">
             <div class="col-md-12">
                 <div class="card">
