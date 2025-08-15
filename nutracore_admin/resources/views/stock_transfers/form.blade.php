@@ -4,6 +4,13 @@
     <?php
     $BackUrl = \App\Helpers\CustomHelper::BackUrl();
     $routeName = \App\Helpers\CustomHelper::getAdminRouteName();
+
+
+
+    $stores = \App\Models\Sellers::where('status', 1)->where('is_delete', 0)->get();
+
+    $defaultStoreId = optional($stores->firstWhere('name', 'Warehouse'))->id;
+
     ?>
 
     <div class="content ">
@@ -48,7 +55,9 @@
                             <div class="row">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <h5 class="mb-2">Items</h5>
-                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addTransferRow()">+ Add Row</button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                            onclick="addTransferRow()">+ Add Row
+                                    </button>
                                 </div>
                                 <div class="table-responsive">
                                     <table class="table table-bordered" id="transferTable">
@@ -64,13 +73,13 @@
                                         </thead>
                                         <tbody></tbody>
                                     </table>
-                            </div>
-
-                            <div class="form-group mb-0 mt-3 justify-content-end">
-                                <div>
-                                    <button type="submit" class="btn btn-primary">Save</button>
                                 </div>
-                            </div>
+
+                                <div class="form-group mb-0 mt-3 justify-content-end">
+                                    <div>
+                                        <button type="submit" class="btn btn-primary">Save</button>
+                                    </div>
+                                </div>
                         </form>
                     </div>
                 </div>
@@ -94,11 +103,11 @@
             'batch' => $s->batch_number
         ];
     })->values();
- @endphp
+    @endphp
     <script>
         /* server-side JSON (safe) */
         const stockMap = @json($stockMap);
-            console.log(stockMap);
+        console.log(stockMap);
         let tIndex = 0;
 
         function escapeHtml(str) {
@@ -119,12 +128,15 @@
             return html;
         }
 
-        function addTransferRow(){
+        function addTransferRow() {
             const tb = document.querySelector('#transferTable tbody');
             const tr = document.createElement('tr');
 
             const options = buildOptionsHtml();
-
+            const storeOptions = `{!! collect($stores)->map(function($store) use ($defaultStoreId) {
+        $selected = $store->id === $defaultStoreId ? 'selected' : '';
+        return "<option value=\"{$store->id}\" {$selected}>{$store->name}</option>";
+    })->implode('') !!}`;
             // build row using string concatenation to avoid nested template issues
             tr.innerHTML =
                 '<td>' +
@@ -133,8 +145,18 @@
                 '</select>' +
                 '</td>' +
                 '<td><input class="form-control" name="items[' + tIndex + '][batch_display]" readonly></td>' +
-                '<td><input class="form-control" name="items[' + tIndex + '][from_location]" placeholder="From location" required></td>' +
-                '<td><input class="form-control" name="items[' + tIndex + '][to_location]" placeholder="To location" required></td>' +
+                '<td>' +
+                '<select class="form-select" name="items[' + tIndex + '][from_location]" required>' +
+                '<option value="">-- Select Store --</option>' +
+                storeOptions + // <-- populate this from backend
+                '</select>' +
+                '</td>' +
+                '<td>' +
+                '<select class="form-select" name="items[' + tIndex + '][to_location]" required>' +
+                '<option value="">-- Select Store --</option>' +
+                storeOptions + // <-- populate this from backend
+                '</select>' +
+                '</td>' +
                 '<td><input type="number" min="1" class="form-control" name="items[' + tIndex + '][quantity]" required></td>' +
                 '<td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest(\'tr\').remove()">X</button></td>';
 
@@ -142,7 +164,7 @@
             tIndex++;
         }
 
-        function syncBatch(sel){
+        function syncBatch(sel) {
             const tr = sel.closest('tr');
             const batchInput = tr.querySelector('input[name$="[batch_display]"]');
             const s = stockMap.find(x => String(x.id) === String(sel.value));
