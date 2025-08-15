@@ -28,10 +28,12 @@
                     <div class="card-body">
                         <div class="d-md-flex gap-4 align-items-center">
                             <div class="d-none d-md-flex">Invoice: {{ $invoice->invoice_number }}</div>
-
+                            <?php if (request()->has('back_url')){
+                                $back_url = request('back_url'); ?>
                             <div class="dropdown ms-auto">
-
+                                <a href="{{ url($back_url) }}" class="btn btn-primary"><i class="fa fa-arrow-left"></i></a>
                             </div>
+                            <?php } ?>
                         </div>
                     </div>
                 </div>
