@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Stock;
+use App\Models\StockBatch;
 use App\Models\StockTransfer;
 use Attribute;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -120,48 +121,53 @@ class StockTransferController extends Controller
         return true;
     }
 
-    private function saveImage($request, $attributes, $oldImg = '')
+
+
+    public function approve($id)
     {
-        $file = $request->file('image');
-        if ($file) {
-            $path = 'attributes';
-            $uploaded_data = CustomHelper::UploadImage($file, $path);
-            $attributes->brand_img = $uploaded_data;
-            $attributes->save();
-        }
-    }
-
-
-
-    public function delete(Request $request)
-    {
-
-        //prd($request->toArray());
-
-        $id = (isset($request->id)) ? $request->id : 0;
-
-        $is_delete = '';
-
-        if (is_numeric($id) && $id > 0) {
-            $is_delete = Attributes::where('id', $id)->update(['is_delete' => 1]);
-        }
-
-        if (!empty($is_delete)) {
-            return back()->with('alert-success', 'Attributes has been deleted successfully.');
-        } else {
-            return back()->with('alert-danger', 'something went wrong, please try again...');
-        }
-    }
-
-
-    public function approve($id) {
         $t = StockTransfer::findOrFail($id);
-        if ($t->status !== 'pending') return back()->withErrors('Only pending transfers can be approved.');
-        // Note: if you maintain per-location stock, decrement from source & increment destination here.
+
+        if ($t->status !== 'pending') {
+            return back()->withErrors('Only pending transfers can be approved.');
+        }
+
+        // Get the stock record for this transfer
+        $stock = Stock::with('product', 'variant')->find($t->stock_id);
+
+        if (!$stock) {
+            return back()->withErrors('Stock record not found.');
+        }
+
+        // Decrement from source location
+        StockBatch::where('product_id', $stock->product_id)
+            ->where('variant_id', $stock->variant_id)
+            ->where('batch_number', $stock->batch_number)
+            ->where('store_id', $t->from_location)
+            ->decrement('quantity', $t->quantity);
+
+        // Increment in target location
+        StockBatch::updateOrCreate(
+            [
+                'product_id'   => $stock->product_id,
+                'variant_id'   => $stock->variant_id,
+                'batch_number' => $stock->batch_number,
+                'store_id'     => $t->to_location,
+            ],
+            [
+                'mfg_date'       => $stock->mfg_date,
+                'expiry_date'    => $stock->expiry_date,
+                'purchase_price' => $stock->purchase_price,
+                'quantity'       => DB::raw('quantity + ' . $t->quantity),
+            ]
+        );
+
+        // Mark as approved
         $t->status = 'approved';
         $t->save();
-        return back()->with('success','Transfer approved.');
+
+        return back()->with('success', 'Transfer approved and stock updated.');
     }
+
 
     public function reject($id) {
         $t = StockTransfer::findOrFail($id);
