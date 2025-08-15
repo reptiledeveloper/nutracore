@@ -12,6 +12,7 @@
     $phone = isset($suppliers->phone) ? $suppliers->phone : '';
     $email = isset($suppliers->email) ? $suppliers->email : '';
     $address = isset($suppliers->address) ? $suppliers->address : '';
+    $gst = isset($suppliers->gst) ? $suppliers->gst : '';
     $status = isset($suppliers->status) ? $suppliers->status : 1;
     $vendors = \App\Helpers\CustomHelper::getVendors();
 
@@ -84,6 +85,12 @@
                                     <label for="inputEmail4" class="form-label">Address</label>
                                     <input type="text" class="form-control" name="address" value="{{ old('address', $address) }}">
                                     @include('snippets.errors_first', ['param' => 'address'])
+                                </div>
+
+                                <div class="form-group col-md-6 mt-3">
+                                    <label for="inputEmail4" class="form-label">GST</label>
+                                    <input type="text" class="form-control" name="gst" value="{{ old('gst', $gst) }}">
+                                    @include('snippets.errors_first', ['param' => 'gst'])
                                 </div>
 
                                 <div class="form-group col-md-6 mt-3">
