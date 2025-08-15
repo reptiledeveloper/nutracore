@@ -77,7 +77,7 @@ class StockController extends Controller
 
     public function closingStockList(Request $request)
     {
-        $sellerId = $request->input('seller_id');
+        $sellerId = $request->input('vendor_id');
 
         $query = DB::table('stock_batches as sb')
             ->join('product_variants as pv', 'pv.id', '=', 'sb.product_variant_id')
