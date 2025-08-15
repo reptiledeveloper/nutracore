@@ -85,16 +85,12 @@
         /* server-side JSON (safe) */
         const stockMap = @json(
     $stocks->map(fn($s) => [
-        'id'    => $s->id,
-        'label' => implode(' ', array_filter([
-            $s->product->name ?? '',
-            $s->variant ? '- ' . $s->variant->unit : null,
-            '(Batch: ' . ($s->batch_no ?? '-') .
-            ', Qty: ' . ($s->quantity ?? 0) .
-            ($s->expiry_date ? ', Exp: ' . $s->expiry_date->format('d-m-Y') : '') . ')'
-        ])),
-        'batch' => $s->batch_no
-    ])
+    'id'    => $s->id,
+    'label' => $s->product->name
+        . ($s->variant ? ' - ' . $s->variant->unit : '')
+        . ' (Batch: ' . ($s->batch_number ?? '-') . ', Qty: ' . $s->quantity . ')',
+    'batch' => $s->batch_number,
+])
 );
 
         let tIndex = 0;
