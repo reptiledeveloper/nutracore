@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 $attributes = DB::Table('attribute')->where('status', 1)->where('is_delete', 0)->get();
     if(!empty($product)){
@@ -151,6 +151,7 @@ $options = DB::Table('attribute')->where('status', 1)->whereIn('id', $option_nam
                     <th>Variant</th>
                     <th>Images</th>
                     <th>SKU</th>
+                    <th>Weight</th>
                     <th>MRP</th>
                     <th>Selling Price</th>
                     <th>Subscription Price</th>
@@ -175,6 +176,8 @@ $options = DB::Table('attribute')->where('status', 1)->whereIn('id', $option_nam
                             </td>
                               <td><input type="text"  name="varient_sku[]" class="form-control form-control-sm"
                                     value="{{ $variant->varient_sku }}" placeholder="Enter sku"></td>
+                            <td><input type="text"  name="varient_weight[]" class="form-control form-control-sm"
+                                    value="{{ $variant->varient_weight }}" placeholder="Enter Weight"></td>
                             <td><input type="number" step="0.01" name="mrp[]" class="form-control form-control-sm"
                                     value="{{ $variant->mrp }}" placeholder="Enter MRP"></td>
                             <td><input type="number" step="0.01" name="selling_price[]" class="form-control form-control-sm"
@@ -279,6 +282,7 @@ $options = DB::Table('attribute')->where('status', 1)->whereIn('id', $option_nam
                     id: $(this).find('input[name="varient_id[]"]').val() || '',
                     mrp: $(this).find('input[name="mrp[]"]').val(),
                     varient_sku: $(this).find('input[name="varient_sku[]"]').val(),
+                    varient_weight: $(this).find('input[name="varient_weight[]"]').val(),
                     selling: $(this).find('input[name="selling_price[]"]').val(),
                     subscription: $(this).find('input[name="subscription_price[]"]').val()
                 };
@@ -303,6 +307,8 @@ $options = DB::Table('attribute')->where('status', 1)->whereIn('id', $option_nam
         <td><input type="file" name="variant_images[${index}][]" class="form-control form-control-sm" multiple></td>
             <td><input type="text"  name="varient_sku[]" class="form-control form-control-sm"
                                     value="${existing.varient_sku || ''}" placeholder="Enter sku"></td>
+<td><input type="text"  name="varient_weight[]" class="form-control form-control-sm"
+                                    value="${existing.varient_weight || ''}" placeholder="Enter Weight"></td>
         <td><input type="number" step="0.01" name="mrp[]" class="form-control form-control-sm" value="${existing.mrp || defaultMrp}" placeholder="Enter MRP"></td>
         <td><input type="number" step="0.01" name="selling_price[]" class="form-control form-control-sm" value="${existing.selling || defaultSelling}" placeholder="Selling Price"></td>
         <td><input type="number" step="0.01" name="subscription_price[]" class="form-control form-control-sm" value="${existing.subscription || defaultSubscription}" placeholder="Subscription Price"></td>

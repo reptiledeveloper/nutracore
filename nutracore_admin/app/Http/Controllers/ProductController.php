@@ -166,6 +166,7 @@ class ProductController extends Controller
         $subscription_price = $request->subscription_price ?? [];
         $variant_ids = $request->varient_id ?? [];
         $varient_sku = $request->varient_sku ?? [];
+        $varient_weight = $request->varient_weight ?? [];
 
         foreach ($variant_name as $key => $name) {
             if (!empty($name) && !empty($selling_price[$key])) {
@@ -176,6 +177,7 @@ class ProductController extends Controller
                 $dbArray['selling_price'] = $selling_price[$key] ?? null;
                 $dbArray['subscription_price'] = $subscription_price[$key] ?? null;
                 $dbArray['varient_sku'] = $varient_sku[$key] ?? null;
+                $dbArray['varient_weight'] = $varient_weight[$key] ?? null;
 
                 // Check if updating or inserting
                 if (!empty($variant_ids[$key])) {
