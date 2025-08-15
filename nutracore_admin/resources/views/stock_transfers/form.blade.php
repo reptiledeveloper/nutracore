@@ -4,14 +4,6 @@
     <?php
     $BackUrl = \App\Helpers\CustomHelper::BackUrl();
     $routeName = \App\Helpers\CustomHelper::getAdminRouteName();
-
-
-    $attributes_id = isset($attributes->id) ? $attributes->id : '';
-    $name = isset($attributes->name) ? $attributes->name : '';
-    $vendor_id = isset($attributes->vendor_id) ? $attributes->vendor_id : '';
-    $status = isset($attributes->status) ? $attributes->status : 1;
-    $vendors = \App\Helpers\CustomHelper::getVendors();
-
     ?>
 
     <div class="content ">
@@ -52,35 +44,26 @@
                         <form class="card-body" action="" method="post" accept-chartset="UTF-8"
                               enctype="multipart/form-data" role="form">
                             {{ csrf_field() }}
-                            <input type="hidden" id="id" value="{{ $attributes_id }}">
 
                             <div class="row">
-
-                                <div class="form-group col-md-6 mt-3">
-                                    <label for="inputEmail4" class="form-label">Name</label>
-                                    <input type="text" class="form-control" name="name" value="{{ old('name', $name) }}">
-                                    @include('snippets.errors_first', ['param' => 'name'])
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-2">Items</h5>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addTransferRow()">+ Add Row</button>
                                 </div>
-
-                                <div class="form-group col-md-6 mt-3">
-                                    <label for="userName" class="form-label">Status<span
-                                            class="text-danger">*</span></label>
-
-                                    <div class="form-check custom-checkbox mb-3 checkbox-primary">
-                                        <input type="radio" class="form-check-input" name="status"
-                                               value="1"
-                                               <?php echo $status == '1' ? 'checked' : ''; ?> checked>
-                                        <label class="form-check-label"
-                                               for="customRadioBox1">Active</label>
-                                    </div>
-
-                                    <div class="form-check custom-checkbox mb-3 checkbox-primary">
-                                        <input type="radio" class="form-check-input" name="status"
-                                               value="0" <?php echo strlen($status) > 0 && $status == '0' ? 'checked' : ''; ?>>
-                                        <label class="form-check-label"
-                                               for="customRadioBox1">InActive</label>
-                                    </div>
-                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered" id="transferTable">
+                                        <thead>
+                                        <tr>
+                                            <th>Product / Variant</th>
+                                            <th>Batch</th>
+                                            <th>From</th>
+                                            <th>To</th>
+                                            <th>Qty</th>
+                                            <th>Remove</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
                             </div>
 
                             <div class="form-group mb-0 mt-3 justify-content-end">
@@ -97,4 +80,58 @@
         </div>
     </div>
 
+
+    <script>
+        const stockMap = @json(
+    $stocks->map(fn($s) => [
+        'id'    => $s->id,
+        'label' => $s->product->name
+                   . ($s->variant ? ' - ' . $s->variant->unit : '')
+                   . ' (Batch: ' . ($s->batch_number ?? '-') . ', Qty: ' . $s->quantity . ')',
+        'batch' => $s->batch_number
+    ])
+);
+
+        let tIndex = 0;
+        function addTransferRow(){
+            const tb = document.querySelector('#transferTable tbody');
+            const tr = document.createElement('tr');
+
+            const options = stockMap.map(s=>`<option value="${s.id}">${s.label}</option>`).join('');
+            tr.innerHTML = `
+    <td>
+      <select class="form-select" name="items[${tIndex}][stock_id]" required onchange="syncBatch(this)">
+        <option value="">-- Select --</option>
+        ${options}
+      </select>
+    </td>
+    <td>
+      <input class="form-control" name="items[${tIndex}][batch_display]" readonly>
+    </td>
+    <td>
+      <input class="form-control" name="items[${tIndex}][from_location]" placeholder="From location" required>
+    </td>
+    <td>
+      <input class="form-control" name="items[${tIndex}][to_location]" placeholder="To location" required>
+    </td>
+    <td>
+      <input type="number" min="1" class="form-control" name="items[${tIndex}][quantity]" required>
+    </td>
+    <td class="text-center">
+      <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()">X</button>
+    </td>
+  `;
+            tb.appendChild(tr);
+            tIndex++;
+        }
+
+        function syncBatch(sel){
+            const tr = sel.closest('tr');
+            const batchInput = tr.querySelector('input[name$="[batch_display]"]');
+            const s = stockMap.find(x=>x.id == sel.value);
+            batchInput.value = s ? (s.batch || '-') : '';
+        }
+
+        addTransferRow();
+    </script>
 @endsection

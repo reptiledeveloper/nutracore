@@ -30,7 +30,7 @@
                             <div class="d-none d-md-flex">All Attributes</div>
 
                             <div class="dropdown ms-auto">
-                                <a href="{{ route('attributes.add', ['back_url' => $BackUrl]) }}"
+                                <a href="{{ route('stock_transfers.add', ['back_url' => $BackUrl]) }}"
                                    class="btn btn-primary"><i
                                         class="fa fa-plus"></i></a>
                             </div>

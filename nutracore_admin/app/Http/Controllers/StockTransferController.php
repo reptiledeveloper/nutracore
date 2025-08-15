@@ -101,17 +101,17 @@ class StockTransferController extends Controller
         }
 
 
-        $page_heading = 'Add Attributes';
+        $page_heading = 'Transfer Stock';
 
         if (is_numeric($id) && $id > 0) {
-            $page_heading = 'Update Attributes ';
+            $page_heading = 'Transfer Stock';
         }
 
         $data['page_heading'] = $page_heading;
         $data['id'] = $id;
         $data['attributes'] = $attributes;
 
-        return view('attributes.form', $data);
+        return view('stock_transfers.form', $data);
 
     }
 
