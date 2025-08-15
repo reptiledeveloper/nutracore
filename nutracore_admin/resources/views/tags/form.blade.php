@@ -61,21 +61,7 @@
                                     <input type="text" class="form-control" name="name" value="{{ old('name', $name) }}">
                                     @include('snippets.errors_first', ['param' => 'name'])
                                 </div>
-                                <div class="form-group col-md-6 mt-3">
-                                    <label for="inputEmail4" class="form-label">Choose Vendor</label>
-                                    <select class="form-control" name="vendor_id">
-                                        <option value="" selected disabled>Select Vendor</option>
-                                        <?php if (!empty($vendors)){
-                                        foreach ($vendors as $vendor){
-                                            ?>
-                                        <option
-                                            value="{{$vendor->id}}" <?php if ($vendor->id == $vendor_id) echo "selected" ?>>{{$vendor->name??''}}</option>
-                                        <?php }
 
-                                        } ?>
-                                    </select>
-                                    @include('snippets.errors_first', ['param' => 'vendor_id'])
-                                </div>
                                 <div class="form-group col-md-6 mt-3">
                                     <label for="userName" class="form-label">Status<span
                                             class="text-danger">*</span></label>

@@ -42,7 +42,6 @@
                         <tr>
                             <th>Sl No</th>
                             <th>Name</th>
-                            <th>Vendor Name</th>
                             <th>Status</th>
                             <th class="text-end">Actions</th>
                         </tr>
@@ -55,7 +54,6 @@
                             <tr>
                                 <td>{{$i++}}</td>
                                 <td>{{ $attr->name ?? '' }}</td>
-                                <td>{{ \App\Helpers\CustomHelper::getVendorName($attr->vendor_id) }}</td>
                                 <td>{{ \App\Helpers\CustomHelper::getStatusStr($attr->status) }}</td>
                                 <td class="text-end">
                                     <div class="d-flex">
