@@ -152,14 +152,6 @@
                                     <input type="file" class="form-control" name="gst_certificate" value="">
                                     @include('snippets.errors_first', ['param' => 'gst_certificate'])
                                 </div>
-                                <div class="form-group col-md-6 mt-3">
-                                    <label for="validationCustom01" class="form-label">Commission(%) (Commission(%) to
-                                        be given to the Super Admin on order item globally.)
-                                    </label>
-                                    <input type="text" class="form-control" name="commission"
-                                           value="{{ old('commission', $commission) }}">
-                                    @include('snippets.errors_first', ['param' => 'commission'])
-                                </div>
 
                                 <div class="form-group col-md-6 mt-3">
                                     <label for="validationCustom01" class="form-label">Store Name
@@ -178,111 +170,12 @@
                                 </div>
 
 
-                                <div class="form-group col-md-6 mt-3">
-                                    <label for="validationCustom01" class="form-label">Account Number
 
-                                    </label>
-                                    <input type="text" class="form-control" name="account_no"
-                                           value="{{ old('account_no', $account_no) }}">
-                                    @include('snippets.errors_first', ['param' => 'account_no'])
-                                </div>
-                                <div class="form-group col-md-6 mt-3">
-                                    <label for="validationCustom01" class="form-label">Account Name</label>
-                                    <input type="text" class="form-control" name="account_name"
-                                           value="{{ old('account_name', $account_name) }}">
-                                    @include('snippets.errors_first', ['param' => 'account_name'])
-                                </div>
-                                <div class="form-group col-md-6 mt-3">
-                                    <label for="validationCustom01" class="form-label"> IFSC Code</label>
-                                    <input type="text" class="form-control" name="bank_code" maxlength="11"
-                                           value="{{ old('bank_code', $bank_code) }}">
-                                    @include('snippets.errors_first', ['param' => 'bank_code'])
-                                </div>
-                                <div class="form-group col-md-6 mt-3">
-                                    <label for="validationCustom01" class="form-label">Bank Name</label>
-                                    <input type="text" class="form-control" name="bank_name"
-                                           value="{{ old('bank_name', $bank_name) }}">
-                                    @include('snippets.errors_first', ['param' => 'bank_name'])
-                                </div>
-                                <div class="form-group col-md-6 mt-3">
-                                    <label for="validationCustom01" class="form-label">National Identity Card</label>
-                                    <input type="file" class="form-control" name="nic_card"
-                                           value="">
-                                    @include('snippets.errors_first', ['param' => 'nic_card'])
-                                </div>
-
-
-                                <div class="form-group col-md-6 mt-3">
-                                    <label for="validationCustom01" class="form-label">Tax Name</label>
-                                    <input type="text" class="form-control" name="tax_name"
-                                           value="{{ old('tax_name', $tax_name) }}">
-                                    @include('snippets.errors_first', ['param' => 'tax_name'])
-                                </div>
                                 <div class="form-group col-md-6 mt-3">
                                     <label for="validationCustom01" class="form-label">Tax Number</label>
                                     <input type="text" class="form-control" name="tax_number"
                                            value="{{ old('tax_number', $tax_number) }}">
                                     @include('snippets.errors_first', ['param' => 'tax_number'])
-                                </div>
-                                <div class="form-group col-md-6 mt-3">
-                                    <label for="validationCustom01" class="form-label">Pan Number</label>
-                                    <input type="text" class="form-control" name="pan_no" maxlength="10"
-                                           value="{{ old('pan_no', $pan_no) }}">
-                                    @include('snippets.errors_first', ['param' => 'pan_no'])
-                                </div>
-                                <div class="form-group col-md-6 mt-3">
-                                    <label for="validationCustom01" class="form-label">Require Product's Approval?
-                                        *</label>
-                                    <select class="form-control" name="is_product_approval">
-                                        <option value="" selected>Select</option>
-                                        <option value="1" {{$is_product_approval == 1 ? "selected":""}}>Yes</option>
-                                        <option value="0" {{$is_product_approval == 0 ? "selected":""}}>No</option>
-                                    </select>
-                                    @include('snippets.errors_first', ['param' => 'longitude'])
-                                </div>
-                                <div class="form-group col-md-6 mt-3">
-                                    <label for="validationCustom01" class="form-label">View Customer's Details?
-                                        *</label>
-                                    <select class="form-control" name="is_view_customer_details">
-                                        <option value="" selected>Select</option>
-                                        <option value="1" {{$is_view_customer_details == 1 ? "selected":""}}>Yes
-                                        </option>
-                                        <option value="0" {{$is_view_customer_details == 0 ? "selected":""}}>No</option>
-                                    </select>
-                                    @include('snippets.errors_first', ['param' => 'is_view_customer_details'])
-                                </div>
-                                <div class="form-group col-md-6 mt-3">
-                                    <label for="validationCustom01" class="form-label">View Order's OTP? & Can change
-                                        deliver status?</label>
-                                    <select class="form-control" name="is_view_order_otp">
-                                        <option value="" selected>Select</option>
-                                        <option value="1" {{$is_view_order_otp == 1 ? "selected":""}}>Yes</option>
-                                        <option value="0" {{$is_view_order_otp == 0 ? "selected":""}}>No</option>
-                                    </select>
-                                    @include('snippets.errors_first', ['param' => 'is_view_order_otp'])
-                                </div>
-                                <div class="form-group col-md-6 mt-3">
-                                    <label for="validationCustom01" class="form-label">Can assign delivery boy</label>
-                                    <select class="form-control" name="is_assign_delivery_boy">
-                                        <option value="" selected>Select</option>
-                                        <option value="1" {{$is_assign_delivery_boy == 1 ? "selected":""}}>Yes</option>
-                                        <option value="0" {{$is_assign_delivery_boy == 0 ? "selected":""}}>No</option>
-                                    </select>
-                                    @include('snippets.errors_first', ['param' => 'is_assign_delivery_boy'])
-                                </div>
-                                <div class="form-group col-md-6 mt-3">
-                                    <label for="validationCustom01" class="form-label">Is Rain Mode</label>
-                                    <select class="form-control" name="is_rain_mode">
-                                        <option value="" selected>Select</option>
-                                        <option value="1" {{$is_rain_mode == 1 ? "selected":""}}>Yes</option>
-                                        <option value="0" {{$is_rain_mode == 0 ? "selected":""}}>No</option>
-                                    </select>
-                                    @include('snippets.errors_first', ['param' => 'is_assign_delivery_boy'])
-                                </div>
-                                <div class="form-group col-md-6 mt-3">
-                                    <label for="validationCustom01" class="form-label">Rain Fee</label>
-                                    <input type="text" class="form-control" name="rain_fee"
-                                           value="{{ old('rain_fee', $rain_fee) }}">
                                 </div>
 
 

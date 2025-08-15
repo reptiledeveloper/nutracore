@@ -87,9 +87,9 @@ class SellerController extends Controller
             $createdCat = $this->save($request, $id);
 
             if ($createdCat) {
-                $alert_msg = 'Sellers has been added successfully.';
+                $alert_msg = 'Stores has been added successfully.';
                 if (is_numeric($id) && $id > 0) {
-                    $alert_msg = 'Seller has been updated successfully.';
+                    $alert_msg = 'Stores has been updated successfully.';
                 }
                 return redirect(url($back_url))->with('alert-success', $alert_msg);
             } else {
@@ -98,10 +98,10 @@ class SellerController extends Controller
         }
 
 
-        $page_heading = 'Add Seller';
+        $page_heading = 'Add Stores';
 
         if (is_numeric($id) && $id > 0) {
-            $page_heading = 'Update Seller ';
+            $page_heading = 'Update Stores ';
         }
 
         $data['page_heading'] = $page_heading;
