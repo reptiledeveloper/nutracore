@@ -48,6 +48,7 @@
                             <th>Image</th>
 {{--                            <th>Vendor Name</th>--}}
                             <th>Is Subscribed</th>
+                            <th>Priority</th>
                             <th>Status</th>
                             <th class="text-end">Actions</th>
                         </tr>
@@ -65,6 +66,7 @@
                                                                           alt="" /></a>
                             </td>
 {{--                            <td>{{ \App\Helpers\CustomHelper::getVendorName($cat->vendor_id) }}</td>--}}
+                            <td>{{$cat->priority??''}}</td>
                             <td>
                                 <button class="{{$cat->is_subscribe==1?"btn btn-success":"btn btn-primary"}}">{{$cat->is_subscribe==1?"Subscribed":"Not Subscribed"}}</button>
                             </td>
