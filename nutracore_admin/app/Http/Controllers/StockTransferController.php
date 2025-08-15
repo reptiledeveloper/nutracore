@@ -61,100 +61,65 @@ class StockTransferController extends Controller
         $data = [];
         $id = (isset($request->id)) ? $request->id : 0;
 
-        $attributes = '';
+        $transfer = null;
         if (is_numeric($id) && $id > 0) {
-
-            $attributes = Attributes::find($id);
-            if (empty($attributes)) {
-                return redirect($this->ADMIN_ROUTE_NAME . '/attributes');
+            $transfer = StockTransfer::find($id);
+            if (empty($transfer)) {
+                return redirect($this->ADMIN_ROUTE_NAME . '/stock_transfers');
             }
         }
 
-        if ($request->method() == 'POST' || $request->method() == 'post') {
+        if ($request->isMethod('post')) {
+            $back_url = $this->ADMIN_ROUTE_NAME . '/stock_transfers';
 
-            if (empty($back_url)) {
-                $back_url = $this->ADMIN_ROUTE_NAME . '/attributes';
-            }
+            $rules = [
+                'items' => 'required|array|min:1',
+                'items.*.stock_id' => 'required|exists:stocks,id',
+                'items.*.from_location' => 'required|string|max:120',
+                'items.*.to_location'   => 'required|string|max:120|different:items.*.from_location',
+                'items.*.quantity'      => 'required|integer|min:1',
+            ];
 
-            $name = (isset($request->name)) ? $request->name : '';
-
-
-            $rules = [];
-            if (is_numeric($id) && $id > 0) {
-                $rules['name'] = 'required';
-
-            } else {
-                $rules['name'] = 'required';
-            }
             $request->validate($rules);
 
-            $createdCat = $this->save($request, $id);
+            $saved = $this->save($request, $id);
 
-            if ($createdCat) {
-                $alert_msg = 'Attributes has been added successfully.';
-                if (is_numeric($id) && $id > 0) {
-                    $alert_msg = 'Attributes has been updated successfully.';
+            if ($saved) {
+                $alert_msg = 'Stock transfer(s) added successfully.';
+                if ($id > 0) {
+                    $alert_msg = 'Stock transfer(s) updated successfully.';
                 }
                 return redirect(url($back_url))->with('alert-success', $alert_msg);
             } else {
-                return back()->with('alert-danger', 'something went wrong, please try again or contact the administrator.');
+                return back()->with('alert-danger', 'Something went wrong, please try again or contact the administrator.');
             }
         }
 
-
         $page_heading = 'Transfer Stock';
-
-        if (is_numeric($id) && $id > 0) {
-            $page_heading = 'Transfer Stock';
-        }
-
         $data['page_heading'] = $page_heading;
         $data['id'] = $id;
-        $data['attributes'] = $attributes;
-        $stocks = Stock::latest()->get();
-        $data['stocks'] = $stocks;
+        $data['transfer'] = $transfer;
+        $data['stocks'] = Stock::latest()->get();
+
         return view('stock_transfers.form', $data);
-
     }
-
-
-
-
-
 
     public function save(Request $request, $id = 0)
     {
-
-        $data = $request->except(['_token', 'back_url', 'image', 'password', 'holiday_date', 'holiday_title']);
-
-
-        $oldImg = '';
-
-        $attributes = new Attributes;
-
-        if (is_numeric($id) && $id > 0) {
-            $exist = Attributes::find($id);
-
-            if (isset($exist->id) && $exist->id == $id) {
-                $attributes = $exist;
-
-                $oldImg = $exist->image;
-            }
-        }
-        //prd($oldImg);
-
-        foreach ($data as $key => $val) {
-            $attributes->$key = $val;
+        // No bulk update logic for now — only insert new transfers
+        foreach ($request->items as $row) {
+            $transfer = new StockTransfer();
+            $transfer->stock_id      = $row['stock_id'];
+            $transfer->from_location = $row['from_location'];
+            $transfer->to_location   = $row['to_location'];
+            $transfer->quantity      = $row['quantity'];
+            $transfer->status        = 'pending';
+            $transfer->save();
         }
 
-        $isSaved = $attributes->save();
-
-        if ($isSaved) {
-            $this->saveImage($request, $attributes, $oldImg);
-        }
-
-        return $isSaved;
+        return true;
     }
+
     private function saveImage($request, $attributes, $oldImg = '')
     {
         $file = $request->file('image');
