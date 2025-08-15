@@ -60,8 +60,8 @@
                             <tr>
                                 <td>{{ $transfers->firstItem() + $i }}</td>
                                 <td>{{ $t->stock?->product->name??'' }}</td>
-                                <td>{{ $t->stock?->varient->unit??'' }}</td>
-                                <td>{{ $t->stock?->batch_no }}</td>
+                                <td>{{ $t->stock?->variant->unit??'' }}</td>
+                                <td>{{ $t->stock?->batch_number }}</td>
                                 <td>{{ $t->from_location }}</td>
                                 <td>{{ $t->to_location }}</td>
                                 <td>{{ $t->quantity }}</td>
