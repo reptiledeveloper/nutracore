@@ -75,7 +75,7 @@ class InvoiceController extends Controller
                 'supplier_id'        => 'required|exists:suppliers,id',
                 'invoice_date'       => 'required|date',
                 'product_id.*'       => 'required|exists:products,id',
-                'variant_id.*'       => 'nullable|exists:variants,id',
+                'variant_id.*'       => 'nullable|exists:product_varients,id',
                 'batch.*'            => 'required|string|max:50',
                 'mfg.*'              => 'required|date',
                 'expiry.*'           => 'required|date|after:mfg.*',
