@@ -39,7 +39,8 @@
     $cashback_wallet_use = $settings->cashback_wallet_use ?? '';
     $delhivery_key = $settings->delhivery_key ?? '';
     $delhivery_url = $settings->delhivery_url ?? '';
-    
+    $cutoff_time = $settings->cutoff_time ?? '';
+
     ?>
     <style>
         #fileInput {
@@ -198,85 +199,18 @@
                                                        name="delhivery_url"
                                                        value="{{ old('delhivery_url', $delhivery_url) }}">
                                             </div>
+
+                                            <div class="col-md-6 mt-3">
+                                                <label for="" class="form-label">Delivery Cutoff Time</label>
+                                                <input type="time" class="form-control"
+                                                       placeholder="Delivery Cutoff Time"
+                                                       name="cutoff_time"
+                                                       value="{{ old('cutoff_time', $cutoff_time) }}">
+                                            </div>
                                         </div>
 
 
-                                        <h3>Extra Charges</h3>
-                                        <div class="row mt-3">
-                                            <div class="col-md-4">
-                                                <h4>Handling Charges</h4>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <select class="form-control" name="is_handling_charges">
-                                                    <option value="1" {{$is_handling_charges==1?"selected":""}}>Yes
-                                                    </option>
-                                                    <option value="0" {{$is_handling_charges==0?"selected":""}}>No
-                                                    </option>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <input type="text" value="{{$handling_charges??''}}"
-                                                       class="form-control" placeholder="Enter Charge"
-                                                       name="handling_charges">
-                                            </div>
-                                        </div>
 
-                                        <div class="row mt-3">
-                                            <div class="col-md-4">
-                                                <h4>SurgeFee</h4>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <select class="form-control" name="is_surge_fee">
-                                                    <option value="1" {{$is_surge_fee==1?"selected":""}}>Yes
-                                                    </option>
-                                                    <option value="0" {{$is_surge_fee==0?"selected":""}}>No
-                                                    </option>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <input type="text" value="{{$surge_fee??''}}"
-                                                       class="form-control" placeholder="Enter Charge"
-                                                       name="surge_fee">
-                                            </div>
-                                        </div>
-
-                                        <div class="row mt-3">
-                                            <div class="col-md-4">
-                                                <h4>Platform Charges</h4>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <select class="form-control" name="is_platform_fee">
-                                                    <option value="1" {{$is_platform_fee==1?"selected":""}}>Yes
-                                                    </option>
-                                                    <option value="0" {{$is_platform_fee==0?"selected":""}}>No
-                                                    </option>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <input type="text" value="{{$platform_fee??''}}"
-                                                       class="form-control" placeholder="Enter Charge"
-                                                       name="platform_fee">
-                                            </div>
-                                        </div>
-
-                                        <div class="row mt-3">
-                                            <div class="col-md-4">
-                                                <h4>SmallCart Fee</h4>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <select class="form-control" name="is_small_cart_fee">
-                                                    <option value="1" {{$is_small_cart_fee==1?"selected":""}}>Yes
-                                                    </option>
-                                                    <option value="0" {{$is_small_cart_fee==0?"selected":""}}>No
-                                                    </option>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <input type="text" value="{{$small_cart_fee??''}}"
-                                                       class="form-control" placeholder="Enter Charge"
-                                                       name="small_cart_fee">
-                                            </div>
-                                        </div>
 
 
                                         <div class="row mt-3">
