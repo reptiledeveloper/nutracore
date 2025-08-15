@@ -20,17 +20,20 @@
     $category_restrictions = $offers->category_restrictions ?? '';
     $product_restrictions = $offers->product_restrictions ?? '';
     $category_ids = $offers->category_ids ?? '';
+    $brand_ids = $offers->brand_ids ?? '';
     $vendor_id = $offers->vendor_id ?? '';
     $product_ids = $offers->product_ids ?? '';
     $mem_type = $offers->mem_type ?? '';
     $user_id = $offers->user_id ?? '';
 
     $category_ids = explode(",",$category_ids);
+    $brand_ids = explode(",",$brand_ids);
     $product_ids = explode(",",$product_ids);
 
 
     $categories = \App\Helpers\CustomHelper::getCategories();
     $vendors = \App\Helpers\CustomHelper::getVendors();
+    $brands = \App\Helpers\CustomHelper::getBrands();
     ?>
 
     <div class="content ">
@@ -152,21 +155,6 @@
                                 </div>
 
 
-                                <div class="form-group col-md-6 mt-3">
-                                    <label for="inputEmail4" class="form-label">Choose Vendor</label>
-                                    <select class="form-control" name="vendor_id">
-                                        <option value="" selected disabled>Select Vendor</option>
-                                        <?php if (!empty($vendors)){
-                                        foreach ($vendors as $vendor){
-                                            ?>
-                                        <option
-                                            value="{{$vendor->id}}" <?php if ($vendor->id == $vendor_id) echo "selected" ?>>{{$vendor->name??''}}</option>
-                                        <?php }
-
-                                        } ?>
-                                    </select>
-                                    @include('snippets.errors_first', ['param' => 'banner_name'])
-                                </div>
 
                                 <div class="form-group col-md-6 mt-3">
                                     <label for="userName" class="form-label">Status<span
@@ -187,6 +175,8 @@
                                                for="customRadioBox1">InActive</label>
                                     </div>
                                 </div>
+
+
                                 <div class="form-group col-md-6 mt-3">
                                     <label for="validationCustom01" class="form-label">Category Restrictions</label>
                                     <select name="category_restrictions" class="form-control">
@@ -200,6 +190,23 @@
                                     <select name="category_ids[]" class="form-control select2" multiple>
                                         @foreach($categories as $category)
                                             <option value="{{$category->id??''}}" {{in_array($category->id,$category_ids)?"selected":""}}>{{$category->name??''}}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="form-group col-md-6 mt-3">
+                                    <label for="validationCustom01" class="form-label">Brand Restrictions</label>
+                                    <select name="brand_restrictions" class="form-control">
+                                        <option value="0">None</option>
+                                        <option value="1">Include</option>
+                                        <option value="2">Exclude</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-6 mt-3">
+                                    <label for="validationCustom01" class="form-label">Brands</label>
+                                    <select name="brand_ids[]" class="form-control select2" multiple>
+                                        @foreach($brands as $category)
+                                            <option value="{{$category->id??''}}" {{in_array($category->id,$brand_ids)?"selected":""}}>{{$category->name??''}}</option>
                                         @endforeach
                                     </select>
                                 </div>
