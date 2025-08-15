@@ -17,7 +17,7 @@
                             <i class="bi bi-globe2 small me-2"></i> Dashboard
                         </a>
                     </li>
-                    <li class="breadcrumb-item active" aria-current="page">Sellers</li>
+                    <li class="breadcrumb-item active" aria-current="page">Stores</li>
                 </ol>
             </nav>
         </div>
@@ -27,7 +27,7 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="d-md-flex gap-4 align-items-center">
-                            <div class="d-none d-md-flex">All Sellers</div>
+                            <div class="d-none d-md-flex">All Stores</div>
 
                             <div class="dropdown ms-auto">
                                 <a href="{{ route('sellers.add', ['back_url' => $BackUrl]) }}"

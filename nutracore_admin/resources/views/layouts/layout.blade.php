@@ -722,7 +722,7 @@ $current_route = Route::currentRouteName();
                     <span class="nav-link-icon">
                         <i class="bi bi-bar-chart"></i>
                     </span>
-                    <span>Sellers</span>
+                    <span>Stores</span>
                 </a>
             </li>
             @if(\App\Helpers\CustomHelper::isAllowedModule('slots'))
