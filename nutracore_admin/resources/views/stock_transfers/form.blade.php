@@ -82,6 +82,7 @@
 
 
     <script>
+        /* server-side JSON (safe) */
         const stockMap = @json(
     $stocks->map(fn($s) => [
         'id'    => $s->id,
@@ -93,34 +94,44 @@
 );
 
         let tIndex = 0;
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function buildOptionsHtml() {
+            let html = '';
+            for (let i = 0; i < stockMap.length; i++) {
+                const s = stockMap[i];
+                html += '<option value="' + s.id + '">' + escapeHtml(s.label) + '</option>';
+            }
+            return html;
+        }
+
         function addTransferRow(){
             const tb = document.querySelector('#transferTable tbody');
             const tr = document.createElement('tr');
 
-            const options = stockMap.map(s=>`<option value="${s.id}">${s.label}</option>`).join('');
-            tr.innerHTML = `
-    <td>
-      <select class="form-select" name="items[${tIndex}][stock_id]" required onchange="syncBatch(this)">
-        <option value="">-- Select --</option>
-        ${options}
-      </select>
-    </td>
-    <td>
-      <input class="form-control" name="items[${tIndex}][batch_display]" readonly>
-    </td>
-    <td>
-      <input class="form-control" name="items[${tIndex}][from_location]" placeholder="From location" required>
-    </td>
-    <td>
-      <input class="form-control" name="items[${tIndex}][to_location]" placeholder="To location" required>
-    </td>
-    <td>
-      <input type="number" min="1" class="form-control" name="items[${tIndex}][quantity]" required>
-    </td>
-    <td class="text-center">
-      <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()">X</button>
-    </td>
-  `;
+            const options = buildOptionsHtml();
+
+            // build row using string concatenation to avoid nested template issues
+            tr.innerHTML =
+                '<td>' +
+                '<select class="form-select" name="items['+tIndex+'][stock_id]" required onchange="syncBatch(this)">' +
+                '<option value="">-- Select --</option>' + options +
+                '</select>' +
+                '</td>' +
+                '<td><input class="form-control" name="items['+tIndex+'][batch_display]" readonly></td>' +
+                '<td><input class="form-control" name="items['+tIndex+'][from_location]" placeholder="From location" required></td>' +
+                '<td><input class="form-control" name="items['+tIndex+'][to_location]" placeholder="To location" required></td>' +
+                '<td><input type="number" min="1" class="form-control" name="items['+tIndex+'][quantity]" required></td>' +
+                '<td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest(\\'tr\\').remove()">X</button></td>';
+
             tb.appendChild(tr);
             tIndex++;
         }
@@ -128,10 +139,11 @@
         function syncBatch(sel){
             const tr = sel.closest('tr');
             const batchInput = tr.querySelector('input[name$="[batch_display]"]');
-            const s = stockMap.find(x=>x.id == sel.value);
+            const s = stockMap.find(x => String(x.id) === String(sel.value));
             batchInput.value = s ? (s.batch || '-') : '';
         }
 
         addTransferRow();
     </script>
+
 @endsection
