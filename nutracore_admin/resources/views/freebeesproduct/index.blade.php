@@ -60,7 +60,7 @@
                             ?>
                         <tr>
                             <td>{{$cat->id??''}}</td>
-                            <td>{{ $product->product_name ?? '' }}</td>
+                            <td>{{ $product->name ?? '' }}</td>
                             <td>{{ $cat->from_amount ?? '' }}</td>
                             <td>{{ $cat->to_amount ?? '' }}</td>
                             <td>{{ $cat->amount ?? '' }}</td>

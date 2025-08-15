@@ -67,7 +67,7 @@
                                         <select class="form-control select2" name="product_id">
                                             <option>Select Product</option>
                                             @foreach($products as $product)
-                                                <option value="{{$product->id??''}}" {{$product_id == $product->id?"selected":""}}>{{$product->product_name??''}}</option>
+                                                <option value="{{$product->id??''}}" {{$product_id == $product->id?"selected":""}}>{{$product->name??''}}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -77,7 +77,7 @@
                                         <select class="form-control select2" name="product_id[]" multiple>
                                             <option>Select Products</option>
                                             @foreach($products as $product)
-                                                <option value="{{$product->id??''}}" >{{$product->product_name??''}}</option>
+                                                <option value="{{$product->id??''}}" >{{$product->name??''}}</option>
                                             @endforeach
                                         </select>
                                     </div>
