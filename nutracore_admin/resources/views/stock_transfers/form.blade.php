@@ -89,7 +89,7 @@
                 $s->variant ? '- ' . $s->variant->unit : null,
                 '(Batch: ' . ($s->batch_no ?? '-') .
                 ', Qty: ' . ($s->quantity ?? 0) .
-                ($s->expiry_date ? ', Exp: ' . $s->expiry_date->format('d-m-Y') : '') . ')'
+                ($s->expiry_date ? ', Exp: ' . $s->expiry_date : '') . ')'
             ])),
             'batch' => $s->batch_no
         ];
