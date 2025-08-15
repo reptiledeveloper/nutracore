@@ -32,7 +32,7 @@
                             <div class="dropdown ms-auto">
                                 <a href="{{ route('free_product.add', ['back_url' => $BackUrl]) }}" class="btn btn-primary"><i class="fa fa-plus"></i></a>
 
-                               
+
                             </div>
                         </div>
                     </div>
@@ -54,12 +54,13 @@
                         <tbody>
                         <?php if(!empty($freebeesproducts)){
                         foreach ($freebeesproducts as $cat) {
-                            $image = \App\Helpers\CustomHelper::getImageUrl('freebeesproduct',$cat->image);
-                           
+                            $product = \App\Models\Products::find($cat->product_id);
+                            $image = \App\Helpers\CustomHelper::getImageUrl('product',$product->image);
+
                             ?>
                         <tr>
                             <td>{{$cat->id??''}}</td>
-                            <td>{{ $cat->product_name ?? '' }}</td>
+                            <td>{{ $product->product_name ?? '' }}</td>
                             <td>{{ $cat->from_amount ?? '' }}</td>
                             <td>{{ $cat->to_amount ?? '' }}</td>
                             <td>{{ $cat->amount ?? '' }}</td>

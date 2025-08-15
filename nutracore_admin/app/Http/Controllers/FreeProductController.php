@@ -75,10 +75,10 @@ class FreeProductController extends Controller
 
             $rules = [];
             if (is_numeric($id) && $id > 0) {
-                $rules['product_name'] = 'required';
+                $rules['product_id'] = 'required';
 
             } else {
-                $rules['product_name'] = 'required';
+                $rules['product_id'] = 'required';
             }
             $request->validate($rules);
 
