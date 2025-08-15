@@ -15,6 +15,7 @@
     $image = $categories->image ?? '';
     $product_ids = $categories->product_ids ?? '';
     $banners = $categories->banners ?? '';
+    $tags = $categories->tags ?? '';
     $is_subscribe = $categories->is_subscribe ?? 0;
     $priority = $categories->priority ?? 0;
     $is_goal = $categories->is_goal ?? 0;
@@ -22,7 +23,9 @@
     $image = \App\Helpers\CustomHelper::getImageUrl('categories', $image);
     $vendors = \App\Helpers\CustomHelper::getVendors();
     $product_ids = explode(",",$product_ids);
+    $tags = explode(",",$tags);
      $multiple_images = \App\Helpers\CustomHelper::getCategoryBrandImages($categories_id,'category');
+    $alltags = \App\Models\Tags::where('is_delete',0)->get();
     ?>
 
     <div class="content ">
@@ -124,6 +127,14 @@
                                         <option value="" selected>Select</option>
                                         <option value="1" {{$is_goal==0?"selected":""}}>Yes</option>
                                         <option value="0" {{$is_goal==0?"selected":""}}>No</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-6 mt-3">
+                                    <label for="validationCustom01" class="form-label">Tags</label>
+                                    <select class="form-control select2" name="tags[]" multiple>
+                                     @foreach($alltags as $tag)
+                                         <option value="{{$tag->name??''}}" {{in_array($tag->name,$tags) ? "selected":""}}>{{$tag->name??''}}</option>
+                                     @endforeach
                                     </select>
                                 </div>
 

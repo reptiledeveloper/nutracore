@@ -122,6 +122,9 @@ class CategoryController extends Controller
 
         $categories = new Category;
         $data['parent_id'] = 0;
+        if(!empty($request->tags)){
+            $data['tags'] = implode(",",$request->tags);
+        }
         if (is_numeric($id) && $id > 0) {
             $exist = Category::find($id);
             if (isset($exist->id) && $exist->id == $id) {
