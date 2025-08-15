@@ -98,7 +98,7 @@
     <script>
         /* server-side JSON (safe) */
         const stockMap = @json($stockMap);
-
+    console.log(stockMap);
         let tIndex = 0;
 
         function escapeHtml(str) {
