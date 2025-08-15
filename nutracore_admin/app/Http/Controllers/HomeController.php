@@ -303,10 +303,10 @@ class HomeController extends Controller
             if (!empty($alltags)) {
                 foreach ($alltags as $tag) {
                     $is_selected = "";
-                    if(in_array($tag,$tags)){
+                    if(in_array($tag->name,$tags)){
                         $is_selected = "selected";
                     }
-                    $html .= '<option value=' . $tag . ' '.$is_selected.'>' . $tag . '</option>';
+                    $html .= '<option value=' . $tag->name . ' '.$is_selected.'>' . $tag->name . '</option>';
                 }
             }
         }
