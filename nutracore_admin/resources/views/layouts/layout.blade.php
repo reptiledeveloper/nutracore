@@ -1550,9 +1550,26 @@ $current_route = Route::currentRouteName();
             cache: false,
             success: function (resp) {
                 $('#subcategory_id').html(resp);
+                getTags(category_id);
             }
         });
     });
+
+    function getTags(category_id){
+        var _token = '{{ csrf_token() }}';
+        $.ajax({
+            url: "{{ route('admin.get_tags') }}",
+            type: "POST",
+            data: {category_id: category_id},
+            dataType: "HTML",
+            headers: {'X-CSRF-TOKEN': _token},
+            cache: false,
+            success: function (resp) {
+                $('#subcategory_id').html(resp);
+
+            }
+        });
+    }
 
     document.querySelectorAll('.editor').forEach(element => {
         ClassicEditor

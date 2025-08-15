@@ -34,7 +34,7 @@ class HomeController extends Controller
         $total_product = Products::count();
         $categories = CustomHelper::getCategories();
 
-        $total_sales = Order::where('status','DELIVERED')->sum('total_amount');
+        $total_sales = Order::where('status', 'DELIVERED')->sum('total_amount');
         $data['total_user'] = $total_user;
         $data['total_order'] = $total_order;
         $data['total_delivery_boy'] = $total_delivery_boy;
@@ -259,10 +259,10 @@ class HomeController extends Controller
             if (!empty($request->cashback_wallet_use)) {
                 $dbArray['cashback_wallet_use'] = $request->cashback_wallet_use;
             }
-             if (!empty($request->delhivery_key)) {
+            if (!empty($request->delhivery_key)) {
                 $dbArray['delhivery_key'] = $request->delhivery_key;
             }
-             if (!empty($request->delhivery_url)) {
+            if (!empty($request->delhivery_url)) {
                 $dbArray['delhivery_url'] = $request->delhivery_url;
             }
 
@@ -291,6 +291,28 @@ class HomeController extends Controller
         echo $html;
     }
 
+    public function get_tags(Request $request)
+    {
+        $category_id = $request->category_id ?? '';
+        $shops = Category::where('id', $category_id)->first();
+        $html = '';
+        if (!empty($shops)) {
+            $tags = explode(",", $shops->tags);
+            $is_selected = "";
+            $alltags = \App\Models\Tags::where('is_delete',0)->get();
+            if (!empty($alltags)) {
+                foreach ($alltags as $tag) {
+                    $is_selected = "";
+                    if(in_array($tag,$tags)){
+                        $is_selected = "selected";
+                    }
+                    $html .= '<option value=' . $tag . ' '.$is_selected.'>' . $tag . '</option>';
+                }
+            }
+        }
+        echo $html;
+    }
+
 
     public function delete_image(Request $request)
     {
@@ -314,10 +336,9 @@ class HomeController extends Controller
                     $feature->save();
                 }
             }
-            if($folder == 'banners') {
+            if ($folder == 'banners') {
                 DB::table('category_brand_images')->where('id', $id)->update(['is_delete' => 1]);
-            }
-            else{
+            } else {
                 DB::table($folder)->where('id', $id)->update(['is_delete' => 1]);
             }
 
@@ -365,7 +386,7 @@ class HomeController extends Controller
                                 <img src=' . $file_url . ' alt="Sample Image">
 
                             </div>
-                            <p>'.$path_val.'</p>
+                            <p>' . $path_val . '</p>
                         </div>';
         }
         echo $html;

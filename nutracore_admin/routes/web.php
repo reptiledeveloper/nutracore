@@ -35,6 +35,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
         Route::match(['get', 'post'], 'uploadScreenshot', 'QRCodesController@uploadScreenshot')->name('uploadScreenshot');
         Route::match(['get', 'post'], 'settings', 'HomeController@settings')->name('admin.settings');
         Route::match(['get', 'post'], '/get_sub_category', 'HomeController@get_sub_category')->name('admin.get_sub_category');
+        Route::match(['get', 'post'], '/get_tags', 'HomeController@get_tags')->name('admin.get_tags');
         Route::match(['get', 'post'], '/delete_image', 'HomeController@delete_image')->name('admin.delete_image');
         Route::match(['get', 'post'], '/search_image', 'HomeController@search_image')->name('admin.search_image');
 

@@ -46,8 +46,9 @@
     $vendors = \App\Helpers\CustomHelper::getVendors();
     $attributes = \App\Helpers\CustomHelper::getAttributes();
     $varients = \App\Helpers\CustomHelper::getProductVarients($product_id);
-
+    $tags = explode(",",$tags);
     $multiple_images = \App\Helpers\CustomHelper::getProductImages($product_id);
+    $alltags = \App\Models\Tags::where('is_delete',0)->get();
     ?>
 
     <div class="content ">
@@ -255,8 +256,13 @@
                                 <div class="form-group col-md-6 mt-3">
                                     <label for="inputEmail4" class="form-label">Tags ( These tags help you in search
                                         result )</label>
-                                    <input type="text" class="form-control" name="tags"
-                                           value="{{ old('tags', $tags) }}">
+{{--                                    <input type="text" class="form-control" name="tags"--}}
+{{--                                           value="{{ old('tags', $tags) }}">--}}
+                                    <select class="from-control" name="tags[]" id="tags">
+                                        @foreach($alltags as $tag)
+                                            <option value="{{$tag->name??''}}" {{in_array($tag->name,$tags) ? "selected":""}}>{{$tag->name??''}}</option>
+                                        @endforeach
+                                    </select>
                                     @include('snippets.errors_first', ['param' => 'tags'])
                                 </div>
 
