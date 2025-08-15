@@ -17,7 +17,7 @@
                             <i class="bi bi-globe2 small me-2"></i> Dashboard
                         </a>
                     </li>
-                    <li class="breadcrumb-item active" aria-current="page">Stocks</li>
+                    <li class="breadcrumb-item active" aria-current="page">Closing Stock</li>
                 </ol>
             </nav>
         </div>
@@ -27,7 +27,7 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="d-md-flex gap-4 align-items-center">
-                            <div class="d-none d-md-flex">All Stocks & Expiry</div>
+                            <div class="d-none d-md-flex">All Closing Stock</div>
 
                             <div class="dropdown ms-auto">
 
