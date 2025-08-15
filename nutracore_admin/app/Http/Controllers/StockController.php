@@ -89,7 +89,7 @@ class StockController extends Controller
                 'p.id as product_id',
                 'p.name as product_name',
                 'pv.id as variant_id',
-                'pv.variant_name',
+                'pv.unit',
                 DB::raw('SUM(sb.quantity) as closing_stock')
             )
             ->groupBy('s.id', 'p.id', 'pv.id');

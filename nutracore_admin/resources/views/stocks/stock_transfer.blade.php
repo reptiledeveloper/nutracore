@@ -52,7 +52,7 @@
                                 <td>{{ $stocks->firstItem() + $i }}</td>
                                 <td>{{ $stock->seller_name }}</td>
                                 <td>{{ $stock->product_name }}</td>
-                                <td>{{ $stock->variant_name ?? '-' }}</td>
+                                <td>{{ $stock->unit ?? '-' }}</td>
                                 <td>{{ $stock->closing_stock }}</td>
                             </tr>
                         @empty
