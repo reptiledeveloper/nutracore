@@ -147,7 +147,7 @@
             let row = `
         <tr>
             <td>
-                <select name="product_id[]" class="form-control product-select" required>
+                <select name="product_id[]" class="form-control product-select select2" required>
                     <option value="">-- Select Product --</option>
                     ${products.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
                 </select>
