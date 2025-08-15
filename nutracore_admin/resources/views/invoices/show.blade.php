@@ -78,9 +78,6 @@
                         </tbody>
                     </table>
 
-                    {{ $invoices->appends(request()->input())->links('pagination') }}
-
-
                 </div>
             </div>
         </div>
