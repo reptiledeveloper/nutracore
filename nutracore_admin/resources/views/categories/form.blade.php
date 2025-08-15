@@ -16,6 +16,7 @@
     $product_ids = $categories->product_ids ?? '';
     $banners = $categories->banners ?? '';
     $is_subscribe = $categories->is_subscribe ?? 0;
+    $priority = $categories->priority ?? 0;
     $is_goal = $categories->is_goal ?? 0;
     $mandate_subscription = $categories->mandate_subscription ?? '';
     $image = \App\Helpers\CustomHelper::getImageUrl('categories', $image);
@@ -124,6 +125,12 @@
                                         <option value="1" {{$is_goal==0?"selected":""}}>Yes</option>
                                         <option value="0" {{$is_goal==0?"selected":""}}>No</option>
                                     </select>
+                                </div>
+
+                                <div class="form-group col-md-6">
+                                    <label for="validationCustom01" class="form-label">Priority</label>
+                                    <input type="number" class="form-control" placeholder="Priority" name="priority"
+                                           value="{{old('priority',$priority)}}">
                                 </div>
                                 <div class="form-group col-md-6">
                                     <label for="userName" class="form-label">Status<span
