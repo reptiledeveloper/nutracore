@@ -89,6 +89,40 @@ class CustomHelper
     }
 
 
+    public static function generateGiftCardCode(
+        int $length = 12,
+        string $prefix = 'NC-',
+        ?string $table = 'gift_card',
+        string $column = 'code'
+    ): string {
+        $alphabet = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
+        $maxAttempts = 5;
+
+        for ($attempt = 0; $attempt < $maxAttempts; $attempt++) {
+            // Build code
+            $code = '';
+            for ($i = 0; $i < $length; $i++) {
+                $code .= $alphabet[random_int(0, strlen($alphabet) - 1)];
+            }
+            $finalCode = $prefix . trim(chunk_split($code, 4, '-'), '-');
+
+            // If no DB table check required, return immediately
+            if (empty($table)) {
+                return $finalCode;
+            }
+
+            // Check if already exists in DB
+            $exists = DB::table($table)
+                ->where($column, $finalCode)
+                ->exists();
+
+            if (!$exists) {
+                return $finalCode;
+            }
+        }
+
+        throw new \RuntimeException('Unable to generate a unique gift card code after multiple attempts.');
+    }
 
     public static function getDuration($start_time = '', $end_time = '')
     {

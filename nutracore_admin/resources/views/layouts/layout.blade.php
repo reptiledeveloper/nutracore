@@ -839,6 +839,15 @@ $current_route = Route::currentRouteName();
                     <span>Collections</span>
                 </a>
             </li>
+
+            <li>
+                <a class="{{$current_route == 'gift_card.index' ? "active":""}}" href="{{route('gift_card.index')}}">
+                    <span class="nav-link-icon">
+                        <i class="bi bi-shop"></i>
+                    </span>
+                    <span>GiftCard</span>
+                </a>
+            </li>
             <li>
                 <a class="{{$current_route == 'inventory_management.index' ? "active":""}}" href="{{route('inventory_management.index')}}">
                     <span class="nav-link-icon">

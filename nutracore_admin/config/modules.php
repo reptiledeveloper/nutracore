@@ -52,6 +52,7 @@ return [
                 'collections',
                 'new_updates',
                 'testimonial',
+                'gift_card',
 
 
         ],
@@ -72,6 +73,7 @@ return [
                 'tags' => 'Tags',
 
                 'abandoned_cart' => 'Abandoned Cart',
+                'gift_card' => 'GiftCard',
 
 
                 'manufacturer' => 'Manufacturer',

@@ -321,6 +321,13 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'edit/{id}', 'AttributesController@add')->name('.edit');
             Route::match(['get', 'post'], 'delete/{id}', 'AttributesController@delete')->name('.delete');
         });
+        ////gift_card
+        Route::group(['prefix' => 'gift_card', 'as' => 'gift_card', 'middleware' => ['allowedmodule:gift_card,list']], function () {
+            Route::get('/', 'GiftCardController@index')->name('.index');
+            Route::match(['get', 'post'], 'add', 'GiftCardController@add')->name('.add');
+            Route::match(['get', 'post'], 'edit/{id}', 'GiftCardController@add')->name('.edit');
+            Route::match(['get', 'post'], 'delete/{id}', 'GiftCardController@delete')->name('.delete');
+        });
      ////tags
         Route::group(['prefix' => 'tags', 'as' => 'tags', 'middleware' => ['allowedmodule:tags,list']], function () {
             Route::get('/', 'TagsController@index')->name('.index');
