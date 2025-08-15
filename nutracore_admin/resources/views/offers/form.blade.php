@@ -159,8 +159,8 @@
                                     <label for="validationCustom01" class="form-label">Is Show</label>
                                     <select name="is_show" class="form-control">
                                         <option value="">Select</option>
-                                        <option value="0" {{$is_show == 0 ?"selected":""}}>Yes</option>
-                                        <option value="1" {{$is_show == 0 ?"selected":""}}>No</option>
+                                        <option value="1" {{$is_show == 1 ?"selected":""}}>Yes</option>
+                                        <option value="0" {{$is_show == 0 ?"selected":""}}>No</option>
                                     </select>
                                 </div>
 
