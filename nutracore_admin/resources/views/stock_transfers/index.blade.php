@@ -17,7 +17,7 @@
                             <i class="bi bi-globe2 small me-2"></i> Dashboard
                         </a>
                     </li>
-                    <li class="breadcrumb-item active" aria-current="page">Attributes</li>
+                    <li class="breadcrumb-item active" aria-current="page">Stock Transfer</li>
                 </ol>
             </nav>
         </div>
@@ -27,7 +27,7 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="d-md-flex gap-4 align-items-center">
-                            <div class="d-none d-md-flex">All Attributes</div>
+                            <div class="d-none d-md-flex">All Stock Transfer</div>
 
                             <div class="dropdown ms-auto">
                                 <a href="{{ route('stock_transfers.add', ['back_url' => $BackUrl]) }}"
