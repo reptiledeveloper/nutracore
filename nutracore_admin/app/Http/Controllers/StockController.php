@@ -82,7 +82,7 @@ class StockController extends Controller
         $query = DB::table('stock_batches as sb')
             ->join('product_varients as pv', 'pv.id', '=', 'sb.variant_id')
             ->join('products as p', 'p.id', '=', 'pv.product_id')
-            ->join('vendors as s', 's.id', '=', 'sb.seller_id')
+            ->join('vendors as s', 's.id', '=', 'sb.store_id')
             ->select(
                 's.id as seller_id',
                 's.name as seller_name',
