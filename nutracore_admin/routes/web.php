@@ -320,6 +320,13 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'edit/{id}', 'AttributesController@add')->name('.edit');
             Route::match(['get', 'post'], 'delete/{id}', 'AttributesController@delete')->name('.delete');
         });
+     ////tags
+        Route::group(['prefix' => 'tags', 'as' => 'tags', 'middleware' => ['allowedmodule:tags,list']], function () {
+            Route::get('/', 'TagsController@index')->name('.index');
+            Route::match(['get', 'post'], 'add', 'TagsController@add')->name('.add');
+            Route::match(['get', 'post'], 'edit/{id}', 'TagsController@add')->name('.edit');
+            Route::match(['get', 'post'], 'delete/{id}', 'TagsController@delete')->name('.delete');
+        });
 
 
         ////tax

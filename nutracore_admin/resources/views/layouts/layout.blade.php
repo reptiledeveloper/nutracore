@@ -671,6 +671,10 @@ $current_route = Route::currentRouteName();
                         <a class="{{$current_route == 'attributes.index' ? "active":""}}"
                            href="{{route('attributes.index')}}">Attributes</a>
                     </li>
+                    <li>
+                        <a class="{{$current_route == 'tags.index' ? "active":""}}"
+                           href="{{route('tags.index')}}">Tags</a>
+                    </li>
                      <li>
                         <a class="{{$current_route == 'loyality_system.index' ? "active":""}}"
                            href="{{route('loyality_system.index')}}">Loyality System</a>

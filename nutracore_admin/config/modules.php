@@ -15,6 +15,7 @@ return [
                 'attributes',
                 'sellers',
                 'products',
+                'tags',
 
                 'abandoned_cart',
 
@@ -68,6 +69,7 @@ return [
                 'subcategories' => 'Sub Categories',
                 'child_categories' => 'Child Categories',
                 'brands' => 'Brands',
+                'tags' => 'Tags',
 
                 'abandoned_cart' => 'Abandoned Cart',
 
