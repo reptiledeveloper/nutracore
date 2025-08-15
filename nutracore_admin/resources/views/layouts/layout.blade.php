@@ -878,6 +878,10 @@ $current_route = Route::currentRouteName();
                         ">Stocks & Expiry</a>
                     </li>
                     <li>
+                        <a class="{{$current_route == 'stocks.closingStockList' ? "active":""}}" href="{{route('stocks.closingStockList')}}
+                        ">Closing Stock</a>
+                    </li>
+                    <li>
                         <a class="{{$current_route == 'stock_transfers.index' ? "active":""}}" href="{{route('stock_transfers.index')}}
                         ">Stock Transfers</a>
                     </li>

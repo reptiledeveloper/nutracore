@@ -75,4 +75,37 @@ class StockController extends Controller
 
 
 
+    public function closingStockList(Request $request)
+    {
+        $sellerId = $request->input('seller_id');
+
+        $query = DB::table('stock_batches as sb')
+            ->join('product_variants as pv', 'pv.id', '=', 'sb.product_variant_id')
+            ->join('products as p', 'p.id', '=', 'pv.product_id')
+            ->join('sellers as s', 's.id', '=', 'sb.seller_id')
+            ->select(
+                's.id as seller_id',
+                's.name as seller_name',
+                'p.id as product_id',
+                'p.name as product_name',
+                'pv.id as variant_id',
+                'pv.variant_name',
+                DB::raw('SUM(sb.quantity) as closing_stock')
+            )
+            ->groupBy('s.id', 'p.id', 'pv.id');
+
+        if (!empty($sellerId)) {
+            $query->where('s.id', $sellerId);
+        }
+
+        $stocks = $query->paginate(10);
+
+        $sellers = DB::table('sellers')->get(); // For filter dropdown
+
+        return view('closing_stock', compact('stocks', 'sellers'));
+    }
+
+
+
+
 }

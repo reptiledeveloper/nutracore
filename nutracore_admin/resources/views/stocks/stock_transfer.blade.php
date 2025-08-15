@@ -40,28 +40,26 @@
                         <thead>
                         <tr>
                             <th>#</th>
+                            <th>Seller</th>
                             <th>Product</th>
                             <th>Variant</th>
-                            <th>Batch</th>
-                            <th>MFG</th>
-                            <th>Expiry</th>
-                            <th>Quantity</th>
-                            <th>Purchase Price</th>
+                            <th>Closing Stock</th>
                         </tr>
                         </thead>
                         <tbody>
-                        @foreach($stocks as $i => $s)
-                            <tr class="{{ $s->expiry_date && \Illuminate\Support\Carbon::parse($s->expiry_date)->isBefore(now()->addDays(30)) ? 'table-warning' : '' }}">
+                        @forelse($stocks as $i => $stock)
+                            <tr>
                                 <td>{{ $stocks->firstItem() + $i }}</td>
-                                <td>{{ $s->product?->name ?? 'N/A' }}</td>
-                                <td>{{ $s->variant?->unit ?? '-' }}</td>
-                                <td>{{ $s->batch_number ?? '-' }}</td>
-                                <td>{{ $s->mfg_date ? \Carbon\Carbon::parse($s->mfg_date)->format('d-M-Y') : '-' }}</td>
-                                <td>{{ $s->expiry_date ? \Carbon\Carbon::parse($s->expiry_date)->format('d-M-Y') : '-' }}</td>
-                                <td>{{ $s->quantity }}</td>
-                                <td>{{ number_format($s->purchase_price, 2) }}</td>
+                                <td>{{ $stock->seller_name }}</td>
+                                <td>{{ $stock->product_name }}</td>
+                                <td>{{ $stock->variant_name ?? '-' }}</td>
+                                <td>{{ $stock->closing_stock }}</td>
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="5" class="text-center">No records found.</td>
+                            </tr>
+                        @endforelse
                         </tbody>
                     </table>
 
