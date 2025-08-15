@@ -258,7 +258,7 @@
                                         result )</label>
 {{--                                    <input type="text" class="form-control" name="tags"--}}
 {{--                                           value="{{ old('tags', $tags) }}">--}}
-                                    <select class="from-control select2" name="tags[]" id="tags">
+                                    <select class="from-control select2" name="tags[]" multiple id="tags">
                                         @foreach($alltags as $tag)
                                             <option value="{{$tag->name??''}}" {{in_array($tag->name,$tags) ? "selected":""}}>{{$tag->name??''}}</option>
                                         @endforeach
