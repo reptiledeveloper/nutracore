@@ -100,7 +100,7 @@ class StockController extends Controller
 
         $stocks = $query->paginate(10);
 
-        $sellers = DB::table('sellers')->get(); // For filter dropdown
+        $sellers = CustomHelper::getVendors(); // For filter dropdown
 
         return view('closing_stock', compact('stocks', 'sellers'));
     }
