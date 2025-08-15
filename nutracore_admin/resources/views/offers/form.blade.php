@@ -25,6 +25,7 @@
     $product_ids = $offers->product_ids ?? '';
     $mem_type = $offers->mem_type ?? '';
     $user_id = $offers->user_id ?? '';
+    $is_show = $offers->is_show ?? 0;
 
     $category_ids = explode(",",$category_ids);
     $brand_ids = explode(",",$brand_ids);
@@ -154,7 +155,14 @@
                                            name="image" value="">
                                 </div>
 
-
+                                <div class="form-group col-md-6 mt-3">
+                                    <label for="validationCustom01" class="form-label">Is Show</label>
+                                    <select name="is_show" class="form-control">
+                                        <option value="">Select</option>
+                                        <option value="0" {{$is_show == 0 ?"selected":""}}>Yes</option>
+                                        <option value="1" {{$is_show == 0 ?"selected":""}}>No</option>
+                                    </select>
+                                </div>
 
                                 <div class="form-group col-md-6 mt-3">
                                     <label for="userName" class="form-label">Status<span
