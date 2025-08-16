@@ -43,7 +43,7 @@ class AbandonedCartController extends Controller
         $abandonedCarts = DB::table('product_cart as c')
             ->join('users as u', 'u.id', '=', 'c.user_id')
             ->join('products as p', 'p.id', '=', 'c.product_id')
-            ->join('variants as v', 'v.id', '=', 'c.variant_id')
+            ->join('product_varients as v', 'v.id', '=', 'c.variant_id')
             ->leftJoin('orders as o', function ($join) {
                 $join->on('o.user_id', '=', 'u.id');
             })
