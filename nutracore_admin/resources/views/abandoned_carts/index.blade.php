@@ -52,7 +52,7 @@
                                 <td>₹{{ number_format($cart->total_amount, 2) }}</td>
                                 <td>{{ \Carbon\Carbon::parse($cart->last_added_at)->format('d M Y H:i') }}</td>
                                 <td>
-                                    <a href="{{ route('admin.purchase.from.cart', $cart->user_id) }}"
+                                    <a href=""
                                        class="btn btn-sm btn-primary">
                                         Purchase
                                     </a>
