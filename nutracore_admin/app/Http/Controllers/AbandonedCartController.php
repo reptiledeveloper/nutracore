@@ -61,7 +61,7 @@ class AbandonedCartController extends Controller
             ->paginate(10);
 
 
-        $data['abandoned_carts'] = $abandonedCarts;
+        $data['abandonedCarts'] = $abandonedCarts;
         return view('abandoned_carts.index', $data);
     }
 
