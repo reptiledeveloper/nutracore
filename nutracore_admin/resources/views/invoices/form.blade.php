@@ -118,7 +118,7 @@
                                             <th>Qty</th>
                                             <th>Purchase Price</th>
                                             <th>Total Price</th>
-                                            <th>Remove</th>
+                                            <th></th>
                                         </tr>
                                         </thead>
                                         <tbody></tbody>
