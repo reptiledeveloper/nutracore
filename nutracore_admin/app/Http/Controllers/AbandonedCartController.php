@@ -53,7 +53,7 @@ class AbandonedCartController extends Controller
                 'u.name as user_name',
                 'u.email as user_email',
                 DB::raw("GROUP_CONCAT(CONCAT(p.name, ' (x', c.qty, ')') SEPARATOR ', ') as product_list"),
-                DB::raw("SUM(v.price * c.qty) as total_amount"),
+                DB::raw("SUM(v.selling_price * c.qty) as total_amount"),
                 DB::raw("MAX(c.created_at) as last_added_at")
             )
             ->groupBy('u.id', 'u.name', 'u.email')
