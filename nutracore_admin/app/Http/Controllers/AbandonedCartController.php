@@ -52,6 +52,7 @@ class AbandonedCartController extends Controller
                 'u.id as user_id',
                 'u.name as user_name',
                 'u.email as user_email',
+                'u.phone as user_phone',
                 DB::raw("GROUP_CONCAT(CONCAT(p.name, ' (x', c.qty, ')') SEPARATOR ', ') as product_list"),
                 DB::raw("SUM(v.selling_price * c.qty) as total_amount"),
                 DB::raw("MAX(c.created_at) as last_added_at")

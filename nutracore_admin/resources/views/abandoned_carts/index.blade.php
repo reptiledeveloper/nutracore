@@ -36,7 +36,7 @@
                         <thead>
                         <tr>
                             <th>User</th>
-                            <th>Email</th>
+                            <th>Phone</th>
                             <th>Products in Cart</th>
                             <th>Total Amount</th>
                             <th>Last Added At</th>
@@ -47,7 +47,7 @@
                         @forelse($abandonedCarts as $cart)
                             <tr>
                                 <td>{{ $cart->user_name }}</td>
-                                <td>{{ $cart->user_email }}</td>
+                                <td>{{ $cart->user_phone }}</td>
                                 <td>{{ $cart->product_list }}</td>
                                 <td>₹{{ number_format($cart->total_amount, 2) }}</td>
                                 <td>{{ \Carbon\Carbon::parse($cart->last_added_at)->format('d M Y H:i') }}</td>
