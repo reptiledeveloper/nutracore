@@ -109,6 +109,7 @@
                                     <table class="table table-bordered align-middle" id="itemsTable">
                                         <thead>
                                         <tr>
+                                            <th>SKU</th>
                                             <th>Product</th>
                                             <th>Variant</th>
                                             <th>Batch</th>
@@ -146,6 +147,7 @@
         function addRow() {
             let row = `
         <tr>
+            <td><input type="text" name="sku[]" class="form-control" required></td>
             <td>
                 <select name="product_id[]" class="form-control product-select select2" required>
                     <option value="">-- Select Product --</option>
