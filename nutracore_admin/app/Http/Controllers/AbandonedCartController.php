@@ -45,7 +45,7 @@ class AbandonedCartController extends Controller
             ->join('products as p', 'p.id', '=', 'c.product_id')
             ->join('product_varients as v', 'v.id', '=', 'c.variant_id')
             ->leftJoin('orders as o', function ($join) {
-                $join->on('o.user_id', '=', 'u.id');
+                $join->on('o.userID', '=', 'u.id');
             })
             ->whereNull('o.id') // means no order placed (abandoned)
             ->select(
