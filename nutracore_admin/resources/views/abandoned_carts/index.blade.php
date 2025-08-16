@@ -34,40 +34,39 @@
                 <div class="table-responsive">
                     <table class="table table-custom table-lg mb-0" id="products">
                         <thead>
-                            <tr>
-                                <th>User</th>
-                                <th>Product Name</th>
-                                <th>Category</th>
-                                <th>SubCategory</th>
-                                <th>Image</th>
-                                <th>Status</th>
-                            </tr>
+                        <tr>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th>Products in Cart</th>
+                            <th>Total Amount</th>
+                            <th>Last Added At</th>
+                            <th>Action</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            <?php if (!empty($abandoned_carts)) {
-        foreach ($abandoned_carts as $abandoned_cart) {
-            $product = \App\Models\Products::find($abandoned_cart->product_id);
-            $user = \App\Models\User::find($abandoned_cart->user_id);
-            $image = \App\Helpers\CustomHelper::getImageUrl('products', $product->image);
-                                ?>
+                        @forelse($abandonedCarts as $cart)
                             <tr>
-                                <td class="text-wrap">{{ $user->name ?? '' }} <br>{{ $user->phone ?? '' }}</td>
-                                <td class="text-wrap">{{ $product->name ?? '' }}</td>
-                                <td>{{ \App\Helpers\CustomHelper::getCategoryName($product->category_id ?? '') ?? '' }}</td>
-                                <td>{{ \App\Helpers\CustomHelper::getCategoryName($product->subcategory_id ?? '') ?? '' }}
+                                <td>{{ $cart->user_name }}</td>
+                                <td>{{ $cart->user_email }}</td>
+                                <td>{{ $cart->product_list }}</td>
+                                <td>₹{{ number_format($cart->total_amount, 2) }}</td>
+                                <td>{{ \Carbon\Carbon::parse($cart->last_added_at)->format('d M Y H:i') }}</td>
+                                <td>
+                                    <a href="{{ route('admin.purchase.from.cart', $cart->user_id) }}"
+                                       class="btn btn-sm btn-primary">
+                                        Purchase
+                                    </a>
                                 </td>
-                                <td><a href="{{$image}}" target="_blank"><img height="50px" width="50px" src="{{$image}}"
-                                            alt="" /></a>
-                                </td>
-                                <td>{{ \App\Helpers\CustomHelper::getStatusStr($product->status) }}</td>
                             </tr>
-                            <?php    }
-    } ?>
-
+                        @empty
+                            <tr>
+                                <td colspan="6">No abandoned carts found.</td>
+                            </tr>
+                        @endforelse
                         </tbody>
                     </table>
 
-                    {{ $abandoned_carts->appends(request()->input())->links('pagination') }}
+                    {{ $abandonedCarts->appends(request()->input())->links('pagination') }}
 
 
                 </div>

@@ -40,10 +40,28 @@ class AbandonedCartController extends Controller
     public function index(Request $request)
     {
         $minutesToConsiderAbandoned = 30;
-        $abandoned_carts = Cart::where('updated_at', '<', Carbon::now()->subMinutes($minutesToConsiderAbandoned))
-            ->paginate(20);
+        $abandonedCarts = DB::table('product_cart as c')
+            ->join('users as u', 'u.id', '=', 'c.user_id')
+            ->join('products as p', 'p.id', '=', 'c.product_id')
+            ->join('variants as v', 'v.id', '=', 'c.variant_id')
+            ->leftJoin('orders as o', function ($join) {
+                $join->on('o.user_id', '=', 'u.id');
+            })
+            ->whereNull('o.id') // means no order placed (abandoned)
+            ->select(
+                'u.id as user_id',
+                'u.name as user_name',
+                'u.email as user_email',
+                DB::raw("GROUP_CONCAT(CONCAT(p.name, ' (x', c.qty, ')') SEPARATOR ', ') as product_list"),
+                DB::raw("SUM(v.price * c.qty) as total_amount"),
+                DB::raw("MAX(c.created_at) as last_added_at")
+            )
+            ->groupBy('u.id', 'u.name', 'u.email')
+            ->orderByDesc('last_added_at')
+            ->paginate(10);
 
-        $data['abandoned_carts'] = $abandoned_carts;
+
+        $data['abandoned_carts'] = $abandonedCarts;
         return view('abandoned_carts.index', $data);
     }
 
