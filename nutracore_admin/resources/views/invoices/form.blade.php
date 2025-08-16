@@ -15,18 +15,22 @@
     ?>
 
     <style>
-        #itemsTable {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        #itemsTable th, #itemsTable td {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
         #itemsTable-wrapper {
-            overflow-x: auto;
             width: 100%;
+            overflow-x: auto; /* enables left-right scrolling */
+        }
+
+        #itemsTable {
+            width: auto;              /* shrink/expand based on content */
+            border-collapse: collapse;
+            min-width: 100%;          /* still fill full width if content small */
+        }
+
+        #itemsTable th,
+        #itemsTable td {
+            padding: 8px;
+            border: 1px solid #ccc;
+            white-space: nowrap;      /* prevent wrapping */
         }
 
     </style>
