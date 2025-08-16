@@ -204,7 +204,7 @@
                     // Search SKU inside products & variants
                     products.forEach(p => {
                         p.variants.forEach(v => {
-                            if (v.sku == sku) {
+                            if (v.varient_sku == sku) {
                                 foundProduct = p;
                                 foundVariant = v;
                             }
@@ -218,7 +218,7 @@
                         // Rebuild variant options
                         variantSelect.innerHTML = '<option value="">-- Select Variant --</option>';
                         foundProduct.variants.forEach(v => {
-                            variantSelect.innerHTML += `<option value="${v.id}" data-sku="${v.sku}" ${v.id == foundVariant.id ? 'selected' : ''}>${v.unit} - ₹${v.selling_price}</option>`;
+                            variantSelect.innerHTML += `<option value="${v.id}" data-sku="${v.varient_sku}" ${v.id == foundVariant.id ? 'selected' : ''}>${v.unit} - ₹${v.selling_price}</option>`;
                         });
                     }
                 }
