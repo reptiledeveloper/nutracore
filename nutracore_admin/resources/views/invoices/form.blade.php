@@ -105,8 +105,8 @@
                                     <h5 class="mb-2">Items</h5>
                                     <button type="button" class="btn btn-sm btn-outline-primary" onclick="addRow()">+ Add Item</button>
                                 </div>
-                                <div class="table-responsive" style="overflow-x:auto; width:100%;">
-                                    <table class="table table-bordered align-middle w-100" id="itemsTable" style="font-size: 10px">
+                                <div class="table-responsive">
+                                    <table class="table table-custom table-lg mb-0"  id="itemsTable" style="font-size: 10px">
                                         <thead>
                                         <tr>
                                             <th>SKU</th>
