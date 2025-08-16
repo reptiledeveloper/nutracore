@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Stock;
+use App\Models\StockLog;
 use Attribute;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -103,6 +104,16 @@ class StockController extends Controller
         $sellers = CustomHelper::getVendors(); // For filter dropdown
 
         return view('stocks.closing_stock', compact('stocks', 'sellers'));
+    }
+
+
+    public function stockLogs()
+    {
+        $logs = StockLog::with(['product','variant','store'])
+            ->latest()
+            ->paginate(20);
+
+        return view('stocks.logs', compact('logs'));
     }
 
 
