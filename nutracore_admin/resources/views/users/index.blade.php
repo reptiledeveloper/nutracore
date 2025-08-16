@@ -55,6 +55,7 @@
                             <th>NC Cash</th>
                             <th>Status</th>
                             <th>Join By</th>
+                            <th>Join Through</th>
                             <th>Join On</th>
                             <th class="text-end">Actions</th>
                         </tr>
@@ -78,6 +79,7 @@
                                     {{\App\Helpers\CustomHelper::getUserDetails($user->referral_userID??'')->name??''}}
                                 @endif
                             </td>
+                            <td>{{$user->type??''}}</td>
                             <td>{{date('d M Y',strtotime($user->created_at))??''}}</td>
                             <td class="text-end">
                                 <div class="d-flex">

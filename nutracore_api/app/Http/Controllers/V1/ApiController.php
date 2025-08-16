@@ -80,6 +80,12 @@ class ApiController extends Controller
             // $otp = 1234;
         }
         $expired_at = Carbon::now()->addMinutes(10);
+
+        $exist = User::where(['phone' => $phone])->first();
+        if(empty($exist)){
+            $exist->type = "app";
+            $exist->save();
+        }
         User::updateOrCreate([
             'phone' => $phone,
         ], [
