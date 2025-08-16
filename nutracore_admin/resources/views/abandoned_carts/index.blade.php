@@ -33,10 +33,10 @@
                 </div>
                 <div class="table-responsive">
                     @forelse($abandonedCarts as $user)
-                        <div class="card mb-3">
+                        <div class="card mb-3 mt-3">
                             <div class="card-header d-flex justify-content-between">
                                 <div>
-                                    <strong>{{ $user->user_name }}</strong> ({{ $user->user_email }})<br>
+                                    <strong>{{ $user->user_name ??"Guest"}}</strong> ({{ $user->user_email }})<br>
                                     Phone: {{ $user->user_phone }}
                                 </div>
                                 <div>
