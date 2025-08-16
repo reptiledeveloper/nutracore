@@ -48,6 +48,7 @@
                                     <thead>
                                     <tr>
                                         <th>Product</th>
+                                        <th>Variant</th>
                                         <th>Qty</th>
                                         <th>Price</th>
                                         <th>Line Total</th>
@@ -56,8 +57,9 @@
                                     <tbody>
                                     @foreach($user->products as $item)
                                         <tr>
-                                            <td>{{ $item->product_name }}</td>
-                                            <td>{{ $item->qty }}</td>
+                                            <td>{{ $item->product_name ??''}}</td>
+                                            <td>{{ $item->varient_name??'' }}</td>
+                                            <td>{{ $item->qty ??0}}</td>
                                             <td>₹{{ number_format($item->selling_price, 2) }}</td>
                                             <td>₹{{ number_format($item->line_total, 2) }}</td>
                                         </tr>

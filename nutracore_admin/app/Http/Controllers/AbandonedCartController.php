@@ -68,6 +68,7 @@ class AbandonedCartController extends Controller
             ->select(
                 'c.user_id',
                 'p.name as product_name',
+                'v.unit as varient_name',
                 'c.qty',
                 'v.selling_price',
                 DB::raw('(c.qty * v.selling_price) as line_total')
