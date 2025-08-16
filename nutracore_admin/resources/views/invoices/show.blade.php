@@ -52,6 +52,7 @@
                         <tr>
                         <tr>
                             <th>#</th>
+                            <th>SKU</th>
                             <th>Product</th>
                             <th>Varient</th>
                             <th>Batch</th>
@@ -69,6 +70,7 @@
                         @foreach($stocks as $i => $s)
                             <tr>
                                 <td>{{ $i+1 }}</td>
+                                <td>{{ $s->sku ?? '-' }}</td>
                                 <td>{{ $s->product->name ?? '-' }}</td>
                                 <td>{{ $s->variant->unit ?? '-' }}</td>
                                 <td>{{ $s->batch_number }}</td>
@@ -76,6 +78,7 @@
                                 <td>{{ $s->expiry_date }}</td>
                                 <td>{{ $s->quantity }}</td>
                                 <td>{{ number_format($s->purchase_price,2) }}</td>
+                                <td>{{ number_format($s->total_price,2) }}</td>
                             </tr>
                         @endforeach
 

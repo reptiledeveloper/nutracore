@@ -146,7 +146,7 @@
                                         <tfoot>
                                         <tr>
                                             <th colspan="8" class="text-end">Subtotal</th>
-                                            <th><input type="text" id="subtotal" class="form-control" readonly></th>
+                                            <th><input type="text" name="subtotal" id="subtotal" class="form-control" readonly></th>
                                             <th></th>
                                         </tr>
                                         </tfoot>

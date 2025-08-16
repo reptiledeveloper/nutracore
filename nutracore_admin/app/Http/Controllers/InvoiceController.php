@@ -112,6 +112,7 @@ class InvoiceController extends Controller
             $invoice->invoice_date = $request->invoice_date;
             $invoice->invoice_number = $request->invoice_number;
             $invoice->remarks      = $request->remarks ?? '';
+            $invoice->subtotal      = $request->subtotal ?? '';
             $invoice->save();
 
             // Remove old items if updating
@@ -130,6 +131,8 @@ class InvoiceController extends Controller
                 $item->expiry_date    = $request->expiry[$index];
                 $item->quantity       = $request->qty[$index];
                 $item->purchase_price = $request->purchase_price[$index];
+                $item->total_price = $request->total_price[$index];
+                $item->sku = $request->sku[$index];
                 $item->save();
 
                 // Create or update stock batch
