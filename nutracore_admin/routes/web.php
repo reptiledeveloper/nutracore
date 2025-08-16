@@ -258,6 +258,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'edit/{id}', 'StockController@add')->name('.edit');
             Route::match(['get', 'post'], 'delete/{id}', 'StockController@delete')->name('.delete');
             Route::match(['get', 'post'], 'closingStockList', 'StockController@closingStockList')->name('.closingStockList');
+            Route::match(['get', 'post'], 'stockLogs', 'StockController@stockLogs')->name('.stockLogs');
 
         });
 
