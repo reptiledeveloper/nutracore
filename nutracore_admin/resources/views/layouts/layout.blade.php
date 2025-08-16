@@ -882,6 +882,10 @@ $current_route = Route::currentRouteName();
                         ">Closing Stock</a>
                     </li>
                     <li>
+                        <a class="{{$current_route == 'stocks.stockLogs' ? "active":""}}" href="{{route('stocks.stockLogs')}}
+                        ">StockLogs</a>
+                    </li>
+                    <li>
                         <a class="{{$current_route == 'stock_transfers.index' ? "active":""}}" href="{{route('stock_transfers.index')}}
                         ">Stock Transfers</a>
                     </li>
