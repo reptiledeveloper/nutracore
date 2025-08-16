@@ -16,7 +16,6 @@
 
     <style>
         #itemsTable {
-            table-layout: fixed;
             width: 100%;
             border-collapse: collapse;
         }
