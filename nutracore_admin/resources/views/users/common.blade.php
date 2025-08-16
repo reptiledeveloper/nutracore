@@ -23,8 +23,8 @@ $image = \App\Helpers\CustomHelper::getImageUrl('users', $users->image ?? '');
                             <label class="form-label">Wallet Type</label>
                             <select class="form-control" name="wallet_type" onchange="get_wallet_type(this.value)">
                                 <option value="" selected>Select</option>
-                                <option value="wallet">Wallet</option>
-                                <option value="cashback_wallet">Cashback Wallet</option>
+{{--                                <option value="wallet">Wallet</option>--}}
+                                <option value="cashback_wallet">NC Cash</option>
                             </select>
                         </div>
                         <div class="col-md-12 mt-3">
@@ -71,8 +71,8 @@ $image = \App\Helpers\CustomHelper::getImageUrl('users', $users->image ?? '');
             <div class="my-4 my-md-0">
                 <h3 class="mb-1">{{$users->name??'Guest User'}}</h3>
                 <h5 class="mb-1">{{$users->phone??''}}</h5>
-                <h5 class="mb-1">Wallet : ₹ {{$users->wallet??0}}</h5>
-                <h5 class="mb-1">Cashback Wallet : ₹ {{$users->cashback_wallet??0}}</h5>
+{{--                <h5 class="mb-1">Wallet : ₹ {{$users->wallet??0}}</h5>--}}
+                <h5 class="mb-1">NC Cash : ₹ {{$users->cashback_wallet??0}}</h5>
                 <small>User</small>
             </div>
 

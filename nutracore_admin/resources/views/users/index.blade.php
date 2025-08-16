@@ -71,7 +71,7 @@
                             <td>{{$user->name??''}}</td>
                             <td>{{$user->email??''}}</td>
                             <td>{{$user->phone??''}}</td>
-                            <td>{{$user->wallet??0}} .00<br></td>
+                            <td>{{$user->cashback_wallet??0}} .00<br></td>
                             <td>{{\App\Helpers\CustomHelper::getStatusStr($user->status)}}</td>
                             <td>
                                 @if($user->referral_userID)
