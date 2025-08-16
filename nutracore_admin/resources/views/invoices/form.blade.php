@@ -117,6 +117,7 @@
                                             <th>Expiry</th>
                                             <th>Qty</th>
                                             <th>Purchase Price</th>
+                                            <th>Total Price</th>
                                             <th>Remove</th>
                                         </tr>
                                         </thead>
@@ -164,6 +165,7 @@
             <td><input type="date" name="expiry[]" class="form-control" required></td>
             <td><input type="number" name="qty[]" class="form-control" min="1" required></td>
             <td><input type="number" name="purchase_price[]" class="form-control" step="0.01" required></td>
+            <td><input type="number" name="total_price[]" class="form-control" step="0.01" required></td>
             <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)">X</button></td>
         </tr>`;
             document.querySelector("#itemsTable tbody").insertAdjacentHTML('beforeend', row);
