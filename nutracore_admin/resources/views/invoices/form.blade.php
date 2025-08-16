@@ -14,6 +14,23 @@
     $suppliers = \App\Models\Supplier::where('is_delete',0)->get();
     ?>
 
+    <style>
+        #itemsTable {
+            table-layout: fixed;
+            width: 100%;
+            border-collapse: collapse;
+        }
+        #itemsTable th, #itemsTable td {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #itemsTable-wrapper {
+            overflow-x: auto;
+            width: 100%;
+        }
+
+    </style>
     <div class="content ">
 
         <div class="mb-4">
@@ -105,8 +122,8 @@
                                     <h5 class="mb-2">Items</h5>
                                     <button type="button" class="btn btn-sm btn-outline-primary" onclick="addRow()">+ Add Item</button>
                                 </div>
-                                <div class="table-responsive">
-                                    <table class="table table-bordered align-middle" id="itemsTable" style="font-size: 10px">
+                                <div id="itemsTable-wrapper">
+                                    <table id="itemsTable" class="table table-bordered">
                                         <thead>
                                         <tr>
                                             <th>SKU</th>
