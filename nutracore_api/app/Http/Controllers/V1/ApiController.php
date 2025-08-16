@@ -4165,4 +4165,34 @@ class ApiController extends Controller
 
         ], 200);
     }
+
+
+    public function giftcard(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+
+        ]);
+        $user = null;
+        if ($validator->fails()) {
+            return response()->json([
+                'result' => false,
+                'message' => json_encode($validator->errors()),
+            ], 400);
+        }
+        $user = auth()->user();
+        if (empty($user)) {
+            return response()->json([
+                'result' => false,
+                'message' => '',
+            ], 401);
+        }
+        $giftcard = [];
+        $giftcard = DB::table('gift_card')->where('user_id',null)->where('status',1)->where('is_delete',0)->groupBy('amount')->get()->makeHidden('code');
+
+        return response()->json([
+            'result' => true,
+            'message' => "Successfully",
+            "giftcard" => $giftcard,
+        ], 200);
+    }
 }
