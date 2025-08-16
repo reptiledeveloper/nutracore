@@ -79,7 +79,7 @@
                                            value="">
                                     @include('layouts.show_image',['type'=>'single','image'=>$image])
                                 </div>
-                                @include('layouts.choose_exist_image',['folder'=>'banners','select_type'=>'single'])
+
 
                                 <div class="form-group col-md-6 mt-3">
                                     <label for="inputEmail4" class="form-label">Title</label>
