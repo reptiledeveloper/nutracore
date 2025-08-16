@@ -61,7 +61,7 @@ class AbandonedCartController extends Controller
                 'c.created_at'
             )
             ->orderBy('c.created_at', 'desc')
-            ->get()
+            ->paginate(20)
             ->groupBy('user_id'); // group all cart rows per user
 
         return view('abandoned_carts.index', [
