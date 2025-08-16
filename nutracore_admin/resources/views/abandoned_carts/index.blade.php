@@ -87,7 +87,6 @@
                         <p>No abandoned carts found.</p>
                     @endforelse
 
-                    {{ $abandonedCarts->appends(request()->input())->links('pagination') }}
 
 
                 </div>
