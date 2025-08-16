@@ -52,7 +52,7 @@
                             <th>Name</th>
                             <th>Email</th>
                             <th>Phone</th>
-                            <th>Wallet</th>
+                            <th>NC Cash</th>
                             <th>Status</th>
                             <th>Join By</th>
                             <th>Join On</th>
