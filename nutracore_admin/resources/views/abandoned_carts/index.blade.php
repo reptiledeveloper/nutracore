@@ -42,7 +42,7 @@
                         <div class="card mb-3">
                             <div class="card-header d-flex justify-content-between">
                                 <div>
-                                    <strong>{{ $user->user_name }}</strong> ({{ $user->user_email }})
+                                    <strong>{{ $user->user_name??"Guest" }}</strong> ({{ $user->user_email }})
                                     <br>
                                     Phone: {{ $user->user_phone }}
                                 </div>
