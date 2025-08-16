@@ -4186,9 +4186,16 @@ class ApiController extends Controller
                 'message' => '',
             ], 401);
         }
-        $giftcard = [];
-        $giftcard = DB::table('gift_card')->where('user_id',null)->where('status',1)->where('is_delete',0)->groupBy('amount')->get()->makeHidden('code');
-
+        $giftcards = DB::table('gift_card')
+            ->whereNull('user_id')
+            ->where('status', 1)
+            ->where('is_delete', 0)
+            ->groupBy('amount')
+            ->get()
+            ->map(function ($item) {
+                unset($item->code); // manually remove the 'code'
+                return $item;
+            });
         return response()->json([
             'result' => true,
             'message' => "Successfully",
