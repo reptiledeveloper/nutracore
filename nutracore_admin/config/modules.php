@@ -57,6 +57,7 @@ return [
                 'gift_card',
                 'stocks',
                 'stock_transfers',
+                'return_request',
 
 
         ],
@@ -75,6 +76,7 @@ return [
                 'child_categories' => 'Child Categories',
                 'brands' => 'Brands',
                 'tags' => 'Tags',
+                'return_request' => 'Return Request',
 
                 'abandoned_cart' => 'Abandoned Cart',
                 'gift_card' => 'GiftCard',

@@ -110,6 +110,9 @@
                                         <option value="refer_earn" <?php if ($type == 'refer_earn') echo "selected" ?>>
                                             Refer & Earn
                                         </option>
+                                        <option value="instant_expert" <?php if ($type == 'instant_expert') echo "selected" ?>>
+                                            Instant Expert
+                                        </option>
                                         <option
                                             value="Fixed_banner1" <?php if ($type == 'Fixed_banner1') echo "selected" ?>>
                                             Fixed Banner 1

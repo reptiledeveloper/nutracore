@@ -928,11 +928,11 @@ $current_route = Route::currentRouteName();
                 </a>
             </li>
             <li>
-                <a class="{{$current_route == 'withdraw_request.index' ? "active":""}}" href="{{route('withdraw_request.index')}}">
+                <a class="{{$current_route == 'return_request.index' ? "active":""}}" href="{{route('return_request.index')}}">
                     <span class="nav-link-icon">
                         <i class="bi bi-shop"></i>
                     </span>
-                    <span>Withdraw Request</span>
+                    <span>Return Request</span>
                 </a>
             </li>
 
