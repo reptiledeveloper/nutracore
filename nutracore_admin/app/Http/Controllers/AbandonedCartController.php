@@ -40,30 +40,33 @@ class AbandonedCartController extends Controller
     public function index(Request $request)
     {
         $minutesToConsiderAbandoned = 30;
-        $abandonedCarts = DB::table('product_cart as c')
+
+        $carts = DB::table('product_cart as c')
             ->join('users as u', 'u.id', '=', 'c.user_id')
             ->join('products as p', 'p.id', '=', 'c.product_id')
             ->join('product_varients as v', 'v.id', '=', 'c.variant_id')
             ->leftJoin('orders as o', function ($join) {
                 $join->on('o.userID', '=', 'u.id');
             })
-            ->whereNull('o.id') // means no order placed (abandoned)
+            ->whereNull('o.id') // abandoned cart = no order
             ->select(
                 'u.id as user_id',
                 'u.name as user_name',
                 'u.email as user_email',
                 'u.phone as user_phone',
-                DB::raw("GROUP_CONCAT(CONCAT(p.name, ' (x', c.qty, ')') SEPARATOR ', ') as product_list"),
-                DB::raw("SUM(v.selling_price * c.qty) as total_amount"),
-                DB::raw("MAX(c.created_at) as last_added_at")
+                'p.name as product_name',
+                'c.qty',
+                'v.selling_price',
+                DB::raw('(c.qty * v.selling_price) as line_total'),
+                'c.created_at'
             )
-            ->groupBy('u.id', 'u.name', 'u.email')
-            ->orderByDesc('last_added_at')
-            ->paginate(10);
+            ->orderBy('c.created_at', 'desc')
+            ->get()
+            ->groupBy('user_id'); // group all cart rows per user
 
-
-        $data['abandonedCarts'] = $abandonedCarts;
-        return view('abandoned_carts.index', $data);
+        return view('abandoned_carts.index', [
+            'abandonedCarts' => $carts
+        ]);
     }
 
 
