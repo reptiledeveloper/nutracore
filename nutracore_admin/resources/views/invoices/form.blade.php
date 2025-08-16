@@ -122,6 +122,14 @@
                                         </tr>
                                         </thead>
                                         <tbody></tbody>
+
+                                        <tfoot>
+                                        <tr>
+                                            <th colspan="8" class="text-end">Subtotal</th>
+                                            <th><input type="text" id="subtotal" class="form-control" readonly></th>
+                                            <th></th>
+                                        </tr>
+                                        </tfoot>
                                     </table>
                                 </div>
 
@@ -143,7 +151,8 @@
 
 
     <script>
-        const products = @json($products); // Example structure: [{id, name, variants:[{id, sku, unit, selling_price}]}]
+        const products = @json($products);
+        // Structure: [{id, name, variants:[{id, varient_sku, unit, selling_price}]}]
 
         function addRow() {
             let row = `
@@ -163,9 +172,9 @@
             <td><input type="text" name="batch[]" class="form-control" required></td>
             <td><input type="date" name="mfg[]" class="form-control" required></td>
             <td><input type="date" name="expiry[]" class="form-control" required></td>
-            <td><input type="number" name="qty[]" class="form-control" min="1" required></td>
-            <td><input type="number" name="purchase_price[]" class="form-control" step="0.01" required></td>
-            <td><input type="number" name="total_price[]" class="form-control" step="0.01" required></td>
+            <td><input type="number" name="qty[]" class="form-control qty" min="1" required></td>
+            <td><input type="number" name="purchase_price[]" class="form-control price" step="0.01" required></td>
+            <td><input type="number" name="total_price[]" class="form-control total" step="0.01" readonly></td>
             <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)">X</button></td>
         </tr>`;
             document.querySelector("#itemsTable tbody").insertAdjacentHTML('beforeend', row);
@@ -173,19 +182,40 @@
 
         function removeRow(button) {
             button.closest('tr').remove();
+            calculateSubtotal();
         }
 
-        // When product changes → load variants
+        // Load variants when product changes
         document.addEventListener('change', function(e) {
             if (e.target.classList.contains('product-select')) {
                 let productId = e.target.value;
-                let variantSelect = e.target.closest('tr').querySelector('.variant-select');
+                let row = e.target.closest('tr');
+                let variantSelect = row.querySelector('.variant-select');
+                let skuInput = row.querySelector('.sku-input');
+
                 variantSelect.innerHTML = '<option value="">-- Select Variant --</option>';
                 let product = products.find(p => p.id == productId);
+
                 if (product && product.variants) {
                     product.variants.forEach(v => {
-                        variantSelect.innerHTML += `<option value="${v.id}" data-sku="${v.sku}">${v.unit} - ₹${v.selling_price}</option>`;
+                        variantSelect.innerHTML += `<option value="${v.id}" data-sku="${v.varient_sku}">${v.unit} - ₹${v.selling_price}</option>`;
                     });
+                }
+
+                // Reset SKU when product changes
+                skuInput.value = '';
+            }
+        });
+
+        // When variant changes → update SKU automatically
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('variant-select')) {
+                let row = e.target.closest('tr');
+                let selectedOption = e.target.options[e.target.selectedIndex];
+                let skuInput = row.querySelector('.sku-input');
+
+                if (selectedOption && selectedOption.dataset.sku) {
+                    skuInput.value = selectedOption.dataset.sku;
                 }
             }
         });
@@ -201,7 +231,7 @@
                 if (sku.length > 0) {
                     let foundProduct = null, foundVariant = null;
 
-                    // Search SKU inside products & variants
+                    // Search SKU in variants
                     products.forEach(p => {
                         p.variants.forEach(v => {
                             if (v.varient_sku == sku) {
@@ -215,7 +245,7 @@
                         // Select product
                         productSelect.value = foundProduct.id;
 
-                        // Rebuild variant options
+                        // Rebuild variants
                         variantSelect.innerHTML = '<option value="">-- Select Variant --</option>';
                         foundProduct.variants.forEach(v => {
                             variantSelect.innerHTML += `<option value="${v.id}" data-sku="${v.varient_sku}" ${v.id == foundVariant.id ? 'selected' : ''}>${v.unit} - ₹${v.selling_price}</option>`;
@@ -224,6 +254,32 @@
                 }
             }
         });
+
+        // Auto-calc row totals & subtotal
+        function calculateRow(row) {
+            let qty = parseFloat(row.querySelector(".qty")?.value) || 0;
+            let price = parseFloat(row.querySelector(".price")?.value) || 0;
+            let total = qty * price;
+            if (row.querySelector(".total")) row.querySelector(".total").value = total.toFixed(2);
+            return total;
+        }
+
+        function calculateSubtotal() {
+            let rows = document.querySelectorAll("#itemsTable tbody tr");
+            let subtotal = 0;
+            rows.forEach(row => {
+                subtotal += calculateRow(row);
+            });
+            document.getElementById("subtotal").value = subtotal.toFixed(2);
+        }
+
+        // Listen for qty/price input
+        document.addEventListener("input", function(e) {
+            if (e.target.classList.contains("qty") || e.target.classList.contains("price")) {
+                calculateSubtotal();
+            }
+        });
     </script>
+
 
 @endsection
