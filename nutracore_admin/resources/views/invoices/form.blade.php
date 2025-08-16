@@ -106,7 +106,7 @@
                                     <button type="button" class="btn btn-sm btn-outline-primary" onclick="addRow()">+ Add Item</button>
                                 </div>
                                 <div class="table-responsive">
-                                    <table class="table table-custom table-lg mb-0"  id="itemsTable" style="font-size: 10px">
+                                    <table class="table table-bordered align-middle" id="itemsTable" style="font-size: 10px">
                                         <thead>
                                         <tr>
                                             <th>SKU</th>
