@@ -32,22 +32,15 @@
                     </div>
                 </div>
                 <div class="table-responsive">
-                    @forelse($abandonedCarts as $userId => $items)
-                        @php
-                            $user = $items->first();
-                            $totalAmount = $items->sum('line_total');
-                            $lastAddedAt = $items->max('created_at');
-                        @endphp
-
+                    @forelse($abandonedCarts as $user)
                         <div class="card mb-3">
                             <div class="card-header d-flex justify-content-between">
                                 <div>
-                                    <strong>{{ $user->user_name??"Guest" }}</strong> ({{ $user->user_email }})
-                                    <br>
+                                    <strong>{{ $user->user_name }}</strong> ({{ $user->user_email }})<br>
                                     Phone: {{ $user->user_phone }}
                                 </div>
                                 <div>
-                                    <span class="badge bg-info">Total: ₹{{ number_format($totalAmount, 2) }}</span>
+                                    <span class="badge bg-info">Total: ₹{{ number_format($user->total_amount, 2) }}</span>
                                 </div>
                             </div>
                             <div class="card-body">
@@ -61,7 +54,7 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    @foreach($items as $item)
+                                    @foreach($user->products as $item)
                                         <tr>
                                             <td>{{ $item->product_name }}</td>
                                             <td>{{ $item->qty }}</td>
@@ -73,11 +66,11 @@
                                 </table>
 
                                 <small class="text-muted">
-                                    Last added at: {{ \Carbon\Carbon::parse($lastAddedAt)->format('d M Y H:i') }}
+                                    Last added at: {{ \Carbon\Carbon::parse($user->last_added_at)->format('d M Y H:i') }}
                                 </small>
 
                                 <div class="mt-2 text-end">
-                                    <a href="" class="btn btn-sm btn-primary">
+                                    <a href="{{ route('admin.purchase.from.cart', $user->user_id) }}" class="btn btn-sm btn-primary">
                                         Purchase
                                     </a>
                                 </div>
