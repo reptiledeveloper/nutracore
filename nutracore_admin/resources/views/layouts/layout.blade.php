@@ -1595,7 +1595,7 @@ $current_route = Route::currentRouteName();
     $('#category_id').change(function () {
         var _token = '{{ csrf_token() }}';
         var category_id = $('#category_id').val();
-        var product_id = '{{$product_id??''}}';
+        var product_id = '{{ implode(",", $product_id ?? []) }}';
         $.ajax({
             url: "{{ route('admin.get_sub_category') }}",
             type: "POST",
