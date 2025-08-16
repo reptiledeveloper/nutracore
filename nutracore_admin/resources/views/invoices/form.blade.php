@@ -143,12 +143,12 @@
 
 
     <script>
-        const products = @json($products); // Pass from controller with variants
+        const products = @json($products); // Example structure: [{id, name, variants:[{id, sku, unit, selling_price}]}]
 
         function addRow() {
             let row = `
         <tr>
-            <td><input type="text" name="sku[]" class="form-control" required></td>
+            <td><input type="text" name="sku[]" class="form-control sku-input" required></td>
             <td>
                 <select name="product_id[]" class="form-control product-select select2" required>
                     <option value="">-- Select Product --</option>
@@ -175,6 +175,7 @@
             button.closest('tr').remove();
         }
 
+        // When product changes → load variants
         document.addEventListener('change', function(e) {
             if (e.target.classList.contains('product-select')) {
                 let productId = e.target.value;
@@ -183,10 +184,46 @@
                 let product = products.find(p => p.id == productId);
                 if (product && product.variants) {
                     product.variants.forEach(v => {
-                        variantSelect.innerHTML += `<option value="${v.id}">${v.unit} - ₹${v.selling_price}</option>`;
+                        variantSelect.innerHTML += `<option value="${v.id}" data-sku="${v.sku}">${v.unit} - ₹${v.selling_price}</option>`;
                     });
                 }
             }
         });
+
+        // When SKU is typed → auto-select product & variant
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('sku-input')) {
+                let sku = e.target.value.trim();
+                let row = e.target.closest('tr');
+                let productSelect = row.querySelector('.product-select');
+                let variantSelect = row.querySelector('.variant-select');
+
+                if (sku.length > 0) {
+                    let foundProduct = null, foundVariant = null;
+
+                    // Search SKU inside products & variants
+                    products.forEach(p => {
+                        p.variants.forEach(v => {
+                            if (v.sku == sku) {
+                                foundProduct = p;
+                                foundVariant = v;
+                            }
+                        });
+                    });
+
+                    if (foundProduct && foundVariant) {
+                        // Select product
+                        productSelect.value = foundProduct.id;
+
+                        // Rebuild variant options
+                        variantSelect.innerHTML = '<option value="">-- Select Variant --</option>';
+                        foundProduct.variants.forEach(v => {
+                            variantSelect.innerHTML += `<option value="${v.id}" data-sku="${v.sku}" ${v.id == foundVariant.id ? 'selected' : ''}>${v.unit} - ₹${v.selling_price}</option>`;
+                        });
+                    }
+                }
+            }
+        });
     </script>
+
 @endsection
