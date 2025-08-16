@@ -77,7 +77,7 @@
                                 </small>
 
                                 <div class="mt-2 text-end">
-                                    <a href="{{ route('admin.purchase.from.cart', $userId) }}" class="btn btn-sm btn-primary">
+                                    <a href="" class="btn btn-sm btn-primary">
                                         Purchase
                                     </a>
                                 </div>
