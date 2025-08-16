@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Stock;
@@ -25,7 +26,6 @@ use Illuminate\Support\Facades\Schema;
 use Hash;
 
 
-
 class StockTransferController extends Controller
 {
 
@@ -38,7 +38,6 @@ class StockTransferController extends Controller
         $this->ADMIN_ROUTE_NAME = CustomHelper::getAdminRouteName();
 
     }
-
 
 
     public function index(Request $request)
@@ -77,8 +76,8 @@ class StockTransferController extends Controller
                 'items' => 'required|array|min:1',
                 'items.*.stock_id' => 'required|exists:stocks,id',
                 'items.*.from_location' => 'required|string|max:120',
-                'items.*.to_location'   => 'required|string|max:120|different:items.*.from_location',
-                'items.*.quantity'      => 'required|integer|min:1',
+                'items.*.to_location' => 'required|string|max:120|different:items.*.from_location',
+                'items.*.quantity' => 'required|integer|min:1',
             ];
 
             $request->validate($rules);
@@ -110,17 +109,16 @@ class StockTransferController extends Controller
         // No bulk update logic for now — only insert new transfers
         foreach ($request->items as $row) {
             $transfer = new StockTransfer();
-            $transfer->stock_id      = $row['stock_id'];
+            $transfer->stock_id = $row['stock_id'];
             $transfer->from_location = $row['from_location'];
-            $transfer->to_location   = $row['to_location'];
-            $transfer->quantity      = $row['quantity'];
-            $transfer->status        = 'pending';
+            $transfer->to_location = $row['to_location'];
+            $transfer->quantity = $row['quantity'];
+            $transfer->status = 'pending';
             $transfer->save();
         }
 
         return true;
     }
-
 
 
     public function approve($id)
@@ -148,18 +146,41 @@ class StockTransferController extends Controller
         // Increment in target location
         StockBatch::updateOrCreate(
             [
-                'product_id'   => $stock->product_id,
-                'variant_id'   => $stock->variant_id,
+                'product_id' => $stock->product_id,
+                'variant_id' => $stock->variant_id,
                 'batch_number' => $stock->batch_number,
-                'store_id'     => $t->to_location,
+                'store_id' => $t->to_location,
             ],
             [
-                'mfg_date'       => $stock->mfg_date,
-                'expiry_date'    => $stock->expiry_date,
+                'mfg_date' => $stock->mfg_date,
+                'expiry_date' => $stock->expiry_date,
                 'purchase_price' => $stock->purchase_price,
-                'quantity'       => DB::raw('quantity + ' . $t->quantity),
+                'quantity' => DB::raw('quantity + ' . $t->quantity),
             ]
         );
+
+        // From Location (Out)
+        CustomHelper::logStock(
+            $stock->product_id,
+            $stock->variant_id,
+            $t->from_location,
+            'transfer_out',
+            $t->quantity,
+            $t->id,
+            'StockTransfer'
+        );
+
+// To Location (In)
+        CustomHelper::logStock(
+            $stock->product_id,
+            $stock->variant_id,
+            $t->to_location,
+            'transfer_in',
+            $t->quantity,
+            $t->id,
+            'StockTransfer'
+        );
+
 
         // Mark as approved
         $t->status = 'approved';
@@ -169,12 +190,13 @@ class StockTransferController extends Controller
     }
 
 
-    public function reject($id) {
+    public function reject($id)
+    {
         $t = StockTransfer::findOrFail($id);
         if ($t->status !== 'pending') return back()->withErrors('Only pending transfers can be rejected.');
         $t->status = 'rejected';
         $t->save();
-        return back()->with('success','Transfer rejected.');
+        return back()->with('success', 'Transfer rejected.');
     }
 
 

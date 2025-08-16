@@ -5,8 +5,21 @@ use Illuminate\Database\Eloquent\Model;
 
 class StockLog extends Model{
 
-    protected $table = 'categorywise_commission';
+    protected $table = 'stock_logs';
 
     protected $guarded = ['id'];
 
+
+
+    public function product() {
+        return $this->belongsTo(Products::class);
+    }
+
+    public function variant() {
+        return $this->belongsTo(ProductVarient::class);
+    }
+
+    public function store() {
+        return $this->belongsTo(Vendors::class);
+    }
 }

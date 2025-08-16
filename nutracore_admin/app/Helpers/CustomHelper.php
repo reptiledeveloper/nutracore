@@ -35,6 +35,8 @@ use App\Models\Roles;
 use App\Models\SellerRoles;
 use App\Models\Shop;
 use App\Models\State;
+use App\Models\StockBatch;
+use App\Models\StockLog;
 use App\Models\SubscriptionPlans;
 use App\Models\Transaction;
 use App\Models\User;
@@ -88,6 +90,27 @@ class CustomHelper
         return $stock_data->no_of_stock ?? 0;
     }
 
+
+    public static function logStock($product_id, $variant_id, $store_id, $action, $quantity, $related_id = null, $related_type = null)
+    {
+        // Current closing stock from StockBatch
+        $closing = StockBatch::where('product_id', $product_id)
+            ->where('variant_id', $variant_id)
+            ->where('store_id', $store_id)
+            ->sum('quantity');
+
+        StockLog::create([
+            'product_id'   => $product_id,
+            'variant_id'   => $variant_id,
+            'store_id'     => $store_id,
+            'action'       => $action,
+            'quantity'     => $quantity,
+            'closing_stock'=> $closing,
+            'related_id'   => $related_id,
+            'related_type' => $related_type,
+            'created_by'   => auth()->id(),
+        ]);
+    }
 
     public static function generateGiftCardCode(
         int $length = 12,

@@ -150,6 +150,19 @@ class InvoiceController extends Controller
                         'purchase_price' => $request->purchase_price[$index],
                     ]
                 );
+
+
+                CustomHelper::logStock(
+                    $productId,
+                    $request->variant_id[$index]??'',
+                    $request->store_id,
+                    'purchase',
+                    $request->qty[$index]??'',
+                    $invoice->id,
+                    'Purchase'
+                );
+
+
             }
         });
 
