@@ -112,6 +112,7 @@ class InvoiceController extends Controller
             $invoice->invoice_date = $request->invoice_date;
             $invoice->invoice_number = $request->invoice_number;
             $invoice->remarks      = $request->remarks ?? '';
+            $invoice->store_id      = $request->store_id ?? '';
             $invoice->subtotal      = $request->subtotal ?? '';
             $invoice->save();
 

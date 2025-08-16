@@ -99,25 +99,18 @@
                                     @include('snippets.errors_first', ['param' => 'name'])
                                 </div>
 
+
                                 <div class="form-group col-md-6 mt-3">
-                                    <label for="userName" class="form-label">Status<span
-                                            class="text-danger">*</span></label>
-
-                                    <div class="form-check custom-checkbox mb-3 checkbox-primary">
-                                        <input type="radio" class="form-check-input" name="status"
-                                               value="1"
-                                               <?php echo $status == '1' ? 'checked' : ''; ?> checked>
-                                        <label class="form-check-label"
-                                               for="customRadioBox1">Active</label>
-                                    </div>
-
-                                    <div class="form-check custom-checkbox mb-3 checkbox-primary">
-                                        <input type="radio" class="form-check-input" name="status"
-                                               value="0" <?php echo strlen($status) > 0 && $status == '0' ? 'checked' : ''; ?>>
-                                        <label class="form-check-label"
-                                               for="customRadioBox1">InActive</label>
-                                    </div>
+                                    <label class="form-label required">Select Store</label>
+                                    <select class="form-control" name="store_id">
+                                        <option value="">Select Store</option>
+                                        @foreach($vendors as $seller)
+                                            <option value="{{$seller->id??''}}">{{$seller->name??''}}</option>
+                                        @endforeach
+                                    </select>
+                                    @include('snippets.errors_first', ['param' => 'name'])
                                 </div>
+
                             </div>
                             <div class="row mt-3">
 
