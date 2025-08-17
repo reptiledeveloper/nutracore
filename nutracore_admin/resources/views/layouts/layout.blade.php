@@ -1588,7 +1588,7 @@ $current_route = Route::currentRouteName();
 </html>
 @php
     $ajax_pro_id = "";
-        if(!is_array($product_id)){
+        if(!empty($product_id) && !is_array($product_id)){
                    $ajax_pro_id = $product_id;
                }
 @endphp
