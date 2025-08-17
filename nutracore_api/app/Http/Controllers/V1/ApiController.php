@@ -812,79 +812,9 @@ class ApiController extends Controller
         ], 200);
     }
 
-    public function update_payment_status_old(Request $request)
-    {
-        //        DB::table('new')->insert(['data' => json_encode($request->toArray())]);
-        $callback = $request->toArray();
-        $order_id = '';
-        $cf_payment_id = '';
-        $payment_status = '';
-
-        if (!empty($callback)) {
-            $data = $callback['data'] ?? '';
-            if (!empty($data)) {
-                $order = $data['order'] ?? '';
-                $payment = $data['payment'] ?? '';
-
-                if (!empty($order)) {
-                    $order_id = $order['order_id'] ?? '';
-                }
-                if (!empty($payment)) {
-                    $payment_status = $payment['payment_status'] ?? '';
-                    $cf_payment_id = $payment['cf_payment_id'] ?? '';
-                }
-
-                if ($payment_status == 'SUCCESS') {
-                    $exist = RazorpayOrders::where('razorpay_order_id', $order_id)->where('payment_status', 0)->first();
-                    if (!empty($exist)) {
-                        if ($exist->type == 'add_wallet') {
-                            $exist->transaction_id = $cf_payment_id;
-                            $exist->payment_status = 1;
-                            $exist->callback_data = json_encode($callback);
-                            $exist->save();
-                            $user = User::where(['id' => $exist->user_id])->first();
-                            if (!empty($user)) {
-                                $user_wallet = $user->wallet ?? 0;
-                                $new_amount = $user_wallet + $exist->amount;
-                                $user->wallet = $new_amount;
-                                $user->save();
-                                $data = [];
-                                $data['userID'] = $exist->user_id ?? '';
-                                $data['txn_no'] = $cf_payment_id;
-                                $data['amount'] = $exist->amount ?? 0;
-                                $data['type'] = 'CREDIT';
-                                $data['note'] = $exist->amount . ' Added In Your Wallet';
-                                $data['against_for'] = 'wallet';
-                                $data['paid_by'] = 'user';
-                                $data['orderID'] = 0;
-                                CustomHelper::saveTransaction($data);
-                            }
-                        }
-
-                        if ($exist->type == 'subscription') {
-                            $exist->transaction_id = $cf_payment_id;
-                            $exist->payment_status = 1;
-                            $exist->callback_data = json_encode($callback);
-                            $exist->save();
-                            $user = User::where(['id' => $exist->user_id])->first();
-
-                        }
-                    }
-                }
-            }
-
-        }
-
-
-        return response()->json([
-            'result' => true,
-            'message' => "Successfully",
-        ], 200);
-    }
 
     public function update_payment_status(Request $request)
     {
-
         DB::table('new')->insert(['data' => json_encode($request->toArray())]);
         $callback = $request->toArray();
         if (!empty($callback)) {

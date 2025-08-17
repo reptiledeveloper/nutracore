@@ -660,10 +660,10 @@ $current_route = Route::currentRouteName();
                         <a class="{{$current_route == 'subcategories.index' ? "active":""}}"
                            href="{{route('subcategories.index')}}">Sub Categories</a>
                     </li>
-{{--                    <li>--}}
-{{--                        <a class="{{$current_route == 'child_categories.index' ? "active":""}}"--}}
-{{--                           href="{{route('child_categories.index')}}">Child Categories</a>--}}
-{{--                    </li>--}}
+                    {{--                    <li>--}}
+                    {{--                        <a class="{{$current_route == 'child_categories.index' ? "active":""}}"--}}
+                    {{--                           href="{{route('child_categories.index')}}">Child Categories</a>--}}
+                    {{--                    </li>--}}
                     <li>
                         <a class="{{$current_route == 'brands.index' ? "active":""}}" href="{{route('brands.index')}}">Brand</a>
                     </li>
@@ -675,19 +675,19 @@ $current_route = Route::currentRouteName();
                         <a class="{{$current_route == 'tags.index' ? "active":""}}"
                            href="{{route('tags.index')}}">Tags</a>
                     </li>
-                     <li>
+                    <li>
                         <a class="{{$current_route == 'loyality_system.index' ? "active":""}}"
                            href="{{route('loyality_system.index')}}">Loyality System</a>
                     </li>
-                     <li>
+                    <li>
                         <a class="{{$current_route == 'free_product.index' ? "active":""}}"
                            href="{{route('free_product.index')}}">Free Product</a>
                     </li>
-                     <li>
+                    <li>
                         <a class="{{$current_route == 'new_updates.index' ? "active":""}}"
                            href="{{route('new_updates.index')}}">Wellness Series</a>
                     </li>
-                     <li>
+                    <li>
                         <a class="{{$current_route == 'testimonial.index' ? "active":""}}"
                            href="{{route('testimonial.index')}}">Happy Customers</a>
                     </li>
@@ -699,10 +699,10 @@ $current_route = Route::currentRouteName();
                         <a class="{{$current_route == 'gallery.index' ? "active":""}}"
                            href="{{route('gallery.index')}}">Gallery</a>
                     </li> --}}
-{{--                    <li>--}}
-{{--                        <a class="{{$current_route == 'app_settings.index' ? "active":""}}"--}}
-{{--                           href="{{route('app_settings.index')}}">App Settings</a>--}}
-{{--                    </li>--}}
+                    {{--                    <li>--}}
+                    {{--                        <a class="{{$current_route == 'app_settings.index' ? "active":""}}"--}}
+                    {{--                           href="{{route('app_settings.index')}}">App Settings</a>--}}
+                    {{--                    </li>--}}
                     <li>
                         <a class="{{$current_route == 'delivery_charges.index' ? "active":""}}"
                            href="{{route('delivery_charges.index')}}">Delivery Charges</a>
@@ -786,15 +786,15 @@ $current_route = Route::currentRouteName();
                         <a class="{{$current_route == 'subscription_plans.index' ? "active":""}}" href="{{route('subscription_plans.index')}}
                         ">Subscription Plans</a>
                     </li>
-                  <li>
-                      <a class="{{$current_route == 'subscriptions.index' ? "active":""}}" href="{{route('subscriptions.index')}}
+                    <li>
+                        <a class="{{$current_route == 'subscriptions.index' ? "active":""}}" href="{{route('subscriptions.index')}}
                       ">Subscriptions</a>
-                  </li>
-<!--
+                    </li>
+                    <!--
                     <li>
                         <a class="{{$current_route == 'subscription_orders.index' ? "active":""}}" href="{{route('subscription_orders.index')}}
-                        ">Subscription Orders</a>
-                    </li> -->
+                    ">Subscription Orders</a>
+                </li> -->
 
 
                 </ul>
@@ -808,8 +808,6 @@ $current_route = Route::currentRouteName();
                     <span>Products</span>
                 </a>
                 <ul>
-
-
 
 
                     <li>
@@ -832,7 +830,8 @@ $current_route = Route::currentRouteName();
             </li>
 
             <li>
-                <a class="{{$current_route == 'collections.index' ? "active":""}}" href="{{route('collections.index')}}">
+                <a class="{{$current_route == 'collections.index' ? "active":""}}"
+                   href="{{route('collections.index')}}">
                     <span class="nav-link-icon">
                         <i class="bi bi-shop"></i>
                     </span>
@@ -848,14 +847,14 @@ $current_route = Route::currentRouteName();
                     <span>GiftCard</span>
                 </a>
             </li>
-{{--            <li>--}}
-{{--                <a class="{{$current_route == 'inventory_management.index' ? "active":""}}" href="{{route('inventory_management.index')}}">--}}
-{{--                    <span class="nav-link-icon">--}}
-{{--                        <i class="bi bi-shop"></i>--}}
-{{--                    </span>--}}
-{{--                    <span>Inventory Management</span>--}}
-{{--                </a>--}}
-{{--            </li>--}}
+            {{--            <li>--}}
+            {{--                <a class="{{$current_route == 'inventory_management.index' ? "active":""}}" href="{{route('inventory_management.index')}}">--}}
+            {{--                    <span class="nav-link-icon">--}}
+            {{--                        <i class="bi bi-shop"></i>--}}
+            {{--                    </span>--}}
+            {{--                    <span>Inventory Management</span>--}}
+            {{--                </a>--}}
+            {{--            </li>--}}
 
             <li>
                 <a href="#">
@@ -895,14 +894,9 @@ $current_route = Route::currentRouteName();
             </li>
 
 
-
-
-
-
-
-
             <li>
-                <a class="{{$current_route == 'abandoned_cart.index' ? "active":""}}" href="{{route('abandoned_cart.index')}}">
+                <a class="{{$current_route == 'abandoned_cart.index' ? "active":""}}"
+                   href="{{route('abandoned_cart.index')}}">
                     <span class="nav-link-icon">
                         <i class="bi bi-shop"></i>
                     </span>
@@ -920,7 +914,8 @@ $current_route = Route::currentRouteName();
             </li>
 
             <li>
-                <a class="{{$current_route == 'transaction.index' ? "active":""}}" href="{{route('transaction.index')}}">
+                <a class="{{$current_route == 'transaction.index' ? "active":""}}"
+                   href="{{route('transaction.index')}}">
                     <span class="nav-link-icon">
                         <i class="bi bi-shop"></i>
                     </span>
@@ -928,7 +923,8 @@ $current_route = Route::currentRouteName();
                 </a>
             </li>
             <li>
-                <a class="{{$current_route == 'return_request.index' ? "active":""}}" href="{{route('return_request.index')}}">
+                <a class="{{$current_route == 'return_request.index' ? "active":""}}"
+                   href="{{route('return_request.index')}}">
                     <span class="nav-link-icon">
                         <i class="bi bi-shop"></i>
                     </span>
@@ -981,20 +977,20 @@ $current_route = Route::currentRouteName();
                 </ul>
             </li>
 
-{{--            <li>--}}
-{{--                <a href="#">--}}
-{{--                    <span class="nav-link-icon">--}}
-{{--                        <i class="bi bi-map"></i>--}}
-{{--                    </span>--}}
-{{--                    <span>Reports</span>--}}
-{{--                </a>--}}
-{{--                <ul>--}}
-{{--                    <li>--}}
-{{--                        <a class="{{$current_route == 'reports.index' ? "active":""}}" href="{{route('reports.index')}}--}}
-{{--                        ">Reports</a>--}}
-{{--                    </li>--}}
-{{--                </ul>--}}
-{{--            </li>--}}
+            {{--            <li>--}}
+            {{--                <a href="#">--}}
+            {{--                    <span class="nav-link-icon">--}}
+            {{--                        <i class="bi bi-map"></i>--}}
+            {{--                    </span>--}}
+            {{--                    <span>Reports</span>--}}
+            {{--                </a>--}}
+            {{--                <ul>--}}
+            {{--                    <li>--}}
+            {{--                        <a class="{{$current_route == 'reports.index' ? "active":""}}" href="{{route('reports.index')}}--}}
+            {{--                        ">Reports</a>--}}
+            {{--                    </li>--}}
+            {{--                </ul>--}}
+            {{--            </li>--}}
 
             <li>
                 <a class="" href="{{route('admin.logout')}}">
@@ -1590,12 +1586,18 @@ $current_route = Route::currentRouteName();
 
 </body>
 </html>
+@php
+    $ajax_pro_id = "";
+        if(!is_array($product_id)){
+                   $ajax_pro_id = $product_id;
+               }
+@endphp
 
 <script>
     $('#category_id').change(function () {
         var _token = '{{ csrf_token() }}';
         var category_id = $('#category_id').val();
-        var product_id = '{{ implode(",", $product_id ?? []) }}';
+        var product_id = '{{ $ajax_pro_id }}';
         $.ajax({
             url: "{{ route('admin.get_sub_category') }}",
             type: "POST",
@@ -1605,7 +1607,7 @@ $current_route = Route::currentRouteName();
             cache: false,
             success: function (resp) {
                 $('#subcategory_id').html(resp);
-                if(product_id == ""){
+                if (product_id == "") {
                     getTags(category_id);
                 }
 
@@ -1613,7 +1615,7 @@ $current_route = Route::currentRouteName();
         });
     });
 
-    function getTags(category_id){
+    function getTags(category_id) {
         var _token = '{{ csrf_token() }}';
         $.ajax({
             url: "{{ route('admin.get_tags') }}",
@@ -1712,9 +1714,6 @@ $current_route = Route::currentRouteName();
         });
 
     });
-
-
-
 
 
 </script>

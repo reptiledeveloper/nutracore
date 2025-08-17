@@ -1,9 +1,14 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class RazorpayOrders extends Model{
+/**
+ * @method static where(string $string, mixed $order_id)
+ */
+class RazorpayOrders extends Model
+{
 
     protected $table = 'razorpay_orders';
 
