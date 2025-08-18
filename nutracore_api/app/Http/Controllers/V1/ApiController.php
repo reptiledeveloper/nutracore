@@ -3459,10 +3459,24 @@ class ApiController extends Controller
 
         }
 
+
+        $selected_freebees_product = null;
+        if (!empty($orders->freebees_id)) {
+            $selected_freebees_product = DB::table('freebees_product')
+                ->where('id', $orders->freebees_id)->first();
+            if (!empty($selected_freebees_product)) {
+                $product = self::getProductDetails($selected_freebees_product->product_id, $user->id ?? '');
+                $selected_freebees_product->product_name = $product->name ?? '';
+                $selected_freebees_product->image = $product->image ?? '';
+                $selected_freebees_product->amount = $orders->freebees_price ?? '';
+            }
+        }
+
         return response()->json([
             'result' => true,
             'message' => "Order Details",
             'orders' => $orders,
+            'selected_freebees_product' => $selected_freebees_product,
             'order_status' => CustomHelper::getOrderStatusData($order_id),
             'seller_details' => $seller_details,
         ], 200);
