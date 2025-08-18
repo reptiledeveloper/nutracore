@@ -904,6 +904,7 @@ class ApiController extends Controller
                                             $order->transaction_id = $txn_id;
                                             $order->save();
                                             $user_data = User::where('id', $order->userID)->first();
+                                            $user = User::where('id', $order->userID)->first();
                                             $data = [];
                                             $data['userID'] = $exist->user_id ?? '';
                                             $data['txn_no'] = $txn_id;
@@ -915,6 +916,50 @@ class ApiController extends Controller
                                             $data['orderID'] = $exist->order_id;
                                             $transaction_id = Transaction::insertGetId($dbArray);
                                             Transaction::where('id', $transaction_id)->update(['transaction_id' => $txn_id]);
+                                            /////Subscription Check/////////////
+                                            if(!empty($order->subscription_id)){
+                                                $subscription_start = $user->subscription_start ?? '';
+                                                $subscription_end = $user->subscription_end ?? '';
+                                                $subscription_plans = SubscriptionPlans::where('id', $exist->subscription_id)->first();
+                                                if (!empty($subscription_plans)) {
+                                                    $duration = (int)$subscription_plans->duration ?? 0;
+                                                    if (empty($subscription_start)) {
+                                                        $subscription_start = date('Y-m-d');
+                                                        $subscription_end = date('Y-m-d', strtotime("+" . $duration . " months", strtotime(date('Y-m-d'))));
+                                                    } else {
+                                                        $subscription_end = date('Y-m-d', strtotime("+" . $duration . " months", strtotime($subscription_end)));
+                                                    }
+                                                    $discount = $subscription_plans->max_discount ?? 0;
+                                                    $total_discount = $user->total_discount + $discount;
+                                                    User::where('id', $exist->user_id)->update(['subscription_start' => $subscription_start, 'subscription_end' => $subscription_end, 'subscription_id' => $exist->subscription_id, 'total_discount' => $total_discount]);
+                                                    $dbArray = [];
+
+                                                    $dbArray['callback_data'] = json_encode($request->toArray());
+                                                    $dbArray['is_done'] = 1;
+                                                    RazorpayOrders::where('id', $exist->id)->update($dbArray);
+                                                    $subsc = new Subscriptions();
+                                                    $subsc->user_id = $user->id ?? '';
+                                                    $subsc->subscription_id = $exist->subscription_id ?? '';
+                                                    $subsc->txn_id = $txn_id ?? '';
+                                                    $subsc->paid_status = 1;
+                                                    $subsc->taken_by = "Self";
+                                                    $subsc->start_date = date('Y-m-d');
+                                                    $subsc->end_date = date('Y-m-d', strtotime("+" . $duration . " months", strtotime(date('Y-m-d'))));
+                                                    $subsc->save();
+
+                                                    $data = [];
+                                                    $data['userID'] = $exist->user_id ?? '';
+                                                    $data['txn_no'] = $txn_id;
+                                                    $data['amount'] = $exist->amount ?? 0;
+                                                    $data['type'] = 'DEBIT';
+                                                    $data['note'] = 'Take Subscription';
+                                                    $data['against_for'] = 'subscription';
+                                                    $data['paid_by'] = 'user';
+                                                    $data['orderID'] = 0;
+                                                    CustomHelper::saveTransaction($data);
+                                                }
+                                            }
+
                                             self::sendOrderNotification($exist->order_id ?? '');
                                         }
                                     }
@@ -2489,6 +2534,7 @@ class ApiController extends Controller
         $coupon_code = $request->coupon_code ?? '';
         $freebees_id = $request->freebees_id ?? '';
         $slot_date = $request->slot_date ?? '';
+        $subscription_id = $request->subscription_id ?? '';
         $slot_time = $request->slot_time ?? '';
         $delivery_type = $request->delivery_type ?? '';
         $cart_data = CustomHelper::cartData($user->id, $coupon_code, $request, $user);
@@ -2619,7 +2665,7 @@ class ApiController extends Controller
             $delivery_data['expressSlot'] = $expressSlot;
             $delivery_data['normalSlot'] = $normalSlot;
         }
-
+        $subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->where('is_show',0)->first();
         $delivery_details['delivery_time'] = 10;
         return response()->json([
             'result' => $result,
@@ -2632,6 +2678,7 @@ class ApiController extends Controller
             'freebees_product' => $freebees_product,
             'delivery_data' => $delivery_data,
             'selected_freebees_product' => $selected_freebees_product,
+            'subscription_plans' => $subscription_plans,
         ], 200);
     }
 
@@ -3158,6 +3205,7 @@ class ApiController extends Controller
             $dbArray['location'] = $address->location ?? '';
             $dbArray['latitude'] = $address->latitude ?? '';
             $dbArray['vendor_id'] = $seller_id ?? '';
+            $dbArray['subscription_id'] = $request->subscription_id ?? '';
             $dbArray['freebees_id'] = $request->freebees_id ?? '';
             $dbArray['freebees_price'] = $freebees_price ?? '';
             $dbArray['longitude'] = $address->longitude ?? '';

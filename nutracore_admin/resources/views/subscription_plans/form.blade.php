@@ -18,8 +18,6 @@
     $vendor_id = $subscription_plans->vendor_id ?? '';
     $is_show = $subscription_plans->is_show ?? 0;
 
-
-
     $status = $subscription_plans->status ?? '0';
 
     $vendors = \App\Helpers\CustomHelper::getVendors();
