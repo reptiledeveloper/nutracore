@@ -2580,7 +2580,9 @@ class ApiController extends Controller
             ->get();
         if (!empty($freebees_product)) {
             foreach ($freebees_product as $pro) {
-                $pro->image = CustomHelper::getImageUrl('products', $pro->image ?? '');
+                $product = self::getProductDetails($pro->product_id,$user);
+                $pro->product_name = $product->name??'';
+                $pro->image = $product->image??'';
             }
         }
         $selected_freebees_product = null;
