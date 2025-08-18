@@ -676,8 +676,12 @@ class CustomHelper
         } else {
             $offers = Offers::where('offer_code', $coupon_code)->where('is_active', 'Y')->whereDate('end_date', '>=', date('Y-m-d'))->first();
             if (!empty($offers)) {
+                // ✅ check usage limit
                 if (!empty($offers->no_of_times)) {
-                    $ordercount = Order::where('userID', $user_id)->where('coupon_code', $offers->offer_code)->count();
+                    $ordercount = Order::where('userID', $user_id)
+                        ->where('coupon_code', $offers->offer_code)
+                        ->count();
+
                     if ((int) $ordercount >= (int) $offers->no_of_times) {
                         return [
                             'result' => false,
@@ -688,6 +692,7 @@ class CustomHelper
                     }
                 }
 
+                // ✅ check min cart value
                 if ((int) $cart_total < (int) $offers->min_cart_value) {
                     return [
                         'result' => false,
@@ -696,6 +701,89 @@ class CustomHelper
                         'cart_list' => $cartArr,
                     ];
                 }
+
+                // ✅ category restriction
+                if ($offers->category_restrictions != '0' && !empty($offers->category_ids)) {
+                    $offerCategoryIds = explode(',', $offers->category_ids);
+                    $cartCategoryIds = $cart_products_category;
+
+                    if ($offers->category_restrictions == '1') { // include only
+                        if (empty(array_intersect($cartCategoryIds, $offerCategoryIds))) {
+                            return [
+                                'result' => false,
+                                'message' => "Coupon not applicable for selected categories",
+                                'cartValue' => $cartValue,
+                                'cart_list' => $cartArr,
+                            ];
+                        }
+                    }
+                    if ($offers->category_restrictions == '2') { // exclude
+                        if (!empty(array_intersect($cartCategoryIds, $offerCategoryIds))) {
+                            return [
+                                'result' => false,
+                                'message' => "Coupon not applicable on these categories",
+                                'cartValue' => $cartValue,
+                                'cart_list' => $cartArr,
+                            ];
+                        }
+                    }
+                }
+
+                // ✅ product restriction
+                if ($offers->product_restrictions != '0' && !empty($offers->product_ids)) {
+                    $offerProductIds = explode(',', $offers->product_ids);
+                    $cartProductIds = $cart_products;
+
+                    if ($offers->product_restrictions == '1') { // include only
+                        if (empty(array_intersect($cartProductIds, $offerProductIds))) {
+                            return [
+                                'result' => false,
+                                'message' => "Coupon not applicable for selected products",
+                                'cartValue' => $cartValue,
+                                'cart_list' => $cartArr,
+                            ];
+                        }
+                    }
+                    if ($offers->product_restrictions == '2') { // exclude
+                        if (!empty(array_intersect($cartProductIds, $offerProductIds))) {
+                            return [
+                                'result' => false,
+                                'message' => "Coupon not applicable on these products",
+                                'cartValue' => $cartValue,
+                                'cart_list' => $cartArr,
+                            ];
+                        }
+                    }
+                }
+
+                // ✅ brand restriction
+                if ($offers->brand_restrictions != '0' && !empty($offers->brand_ids)) {
+                    $offerBrandIds = explode(',', $offers->brand_ids);
+                    $cartBrandIds = array_column($cartArr, 'brand_id');
+
+                    if ($offers->brand_restrictions == '1') { // include only
+                        if (empty(array_intersect($cartBrandIds, $offerBrandIds))) {
+                            return [
+                                'result' => false,
+                                'message' => "Coupon not applicable for selected brands",
+                                'cartValue' => $cartValue,
+                                'cart_list' => $cartArr,
+                            ];
+                        }
+                    }
+                    if ($offers->brand_restrictions == '2') { // exclude
+                        if (!empty(array_intersect($cartBrandIds, $offerBrandIds))) {
+                            return [
+                                'result' => false,
+                                'message' => "Coupon not applicable on these brands",
+                                'cartValue' => $cartValue,
+                                'cart_list' => $cartArr,
+                            ];
+                        }
+                    }
+                }
+
+                // ✅ apply discount
                 if ($offers->offer_type == 'FIXED') {
                     $total_price = (int) $total_price - (int) $offers->offer_value;
                     $cartValue['total_price'] = $total_price;
@@ -709,17 +797,17 @@ class CustomHelper
                         'cart_list' => $cartArr,
                     ];
                 }
+
                 if ($offers->offer_type == 'PERCENTAGE') {
                     $percent_val = ($cart_total * $offers->offer_value) / 100;
                     if ($percent_val >= $offers->max_discount) {
                         $percent_val = $offers->max_discount;
                     }
-                    //                        $cartValue['cart_price'] = $cart_total - (int)$percent_val;
+
                     $total_price = (int) $total_price - (int) $percent_val;
                     $cartValue['total_price'] = $total_price;
                     $cartValue['coupon_discount'] = (int) $percent_val;
                     $cartValue['coupon_code'] = $coupon_code;
-
 
                     return [
                         'result' => true,
@@ -728,16 +816,8 @@ class CustomHelper
                         'cart_list' => $cartArr,
                     ];
                 }
-
-
-            } else {
-                return [
-                    'result' => false,
-                    'message' => "Coupon Code is Invalid or Expired!",
-                    'cartValue' => $cartValue,
-                    'cart_list' => $cartArr,
-                ];
             }
+
         }
     }
 
