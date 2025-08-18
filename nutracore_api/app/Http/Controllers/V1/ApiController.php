@@ -2590,6 +2590,9 @@ class ApiController extends Controller
             $selected_freebees_product = DB::table('freebees_product')
                 ->where('id', $freebees_id)->first();
             if (!empty($selected_freebees_product)) {
+                $product = self::getProductDetails($selected_freebees_product->product_id,$user->id??'');
+                $selected_freebees_product->product_name = $product->name??'';
+                $selected_freebees_product->image = $product->image??'';
                 $cartValue['total_price'] = (int)$cartValue['total_price'] + (int)$selected_freebees_product->amount;
             }
         }
