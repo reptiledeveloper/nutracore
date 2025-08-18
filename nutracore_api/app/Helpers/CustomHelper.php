@@ -580,17 +580,27 @@ class CustomHelper
                 $dbArray['is_subscribed_product'] = $product->is_subscribed_product ?? '';
                 $dbArray['product_image'] = CustomHelper::getImageUrl('products', $product_data->image ?? '');
 
+
+                $selling_price = $product->selling_price ?? '';
+                $mrp = $product->mrp ?? '';
+                $subscription_price = $product->subscription_price ?? '';
+                if(empty($cart->variant_id)){
+                    $selling_price = $product_data->product_selling_price??'';
+                    $mrp = $product_data->product_mrp??'';
+                    $subscription_price = $product_data->product_subscription_price??'';
+                }
+
+
+
                 $dbArray['qty'] = $cart->qty ?? '';
-                $dbArray['selling_price'] = $product->selling_price ?? '';
-                $dbArray['mrp'] = $product->mrp ?? '';
-                $dbArray['subscription_price'] = $product->subscription_price ?? '';
+                $dbArray['selling_price'] = $selling_price?? '';
+                $dbArray['mrp'] = $mrp ?? '';
+                $dbArray['subscription_price'] = $subscription_price ?? '';
                 $dbArray['unit'] = $product->unit ?? '';
                 $dbArray['unit_value'] = $product->unit_value ?? '';
                 $dbArray['is_available'] = $is_available;
                 $dbArray['vendor_id'] = $product->vendor_id ?? '';
 
-                $selling_price = $product->selling_price ?? 0;
-                $mrp = $product->mrp ?? 0;
                 $qty = (int) $cart->qty ?? 0;
                 $cart_qty += $cart->qty;
                 $total_cart_price = (int) $qty * (int) $selling_price;
