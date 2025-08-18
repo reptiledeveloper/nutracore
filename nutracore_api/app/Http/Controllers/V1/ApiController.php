@@ -2667,6 +2667,8 @@ class ApiController extends Controller
         }
         $subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->where('is_show',0)->first();
         $delivery_details['delivery_time'] = 10;
+        $nc_coins = 0;
+        $you_save = 0;
         return response()->json([
             'result' => $result,
             'message' => $message,
@@ -2675,6 +2677,8 @@ class ApiController extends Controller
             'user_address' => $user_address,
             'recommendation_product' => $recommendation_product,
             'tips' => $tips,
+            'nc_coins' => $nc_coins,
+            'you_save' => $you_save,
             'freebees_product' => $freebees_product,
             'delivery_data' => $delivery_data,
             'selected_freebees_product' => $selected_freebees_product,
