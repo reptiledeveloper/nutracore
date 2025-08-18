@@ -570,6 +570,10 @@ class CustomHelper
                 }
                 $dbArray = [];
                 $dbArray['product_id'] = $product->product_id ?? '';
+                $dbArray['category_id'] = $product_data->category_id ?? '';
+                $dbArray['subcategory_id'] = $product_data->subcategory_id ?? '';
+                $dbArray['brand_id'] = $product_data->brand_id ?? '';
+                $dbArray['sku'] = $product_data->sku ?? '';
                 $dbArray['nc_cash'] = self::getNcCashPercent($user_data, $product->selling_price ?? '');
                 $cart_products[] = $product->product_id ?? '';
                 $dbArray['varient_id'] = $cart->variant_id ?? '';
