@@ -553,10 +553,9 @@ class CustomHelper
             foreach ($cart_list as $cart) {
                 $is_available = 0;
                 $product = ProductVarient::where('product_id', $cart->product_id)->where('id', $cart->variant_id)->first();
-                $product_data = [];
+                $product_data = Product::where('id', $cart->product_id)->first();
                 if (!empty($product)) {
                     $is_available = 1;
-                    $product_data = Product::where('id', $product->product_id)->first();
                     $cart_products_category[] = $product_data->category_id ?? '';
                     if (empty($image) && $image == '') {
                         $image = CustomHelper::getImageUrl('products', $product_data->image ?? '');
@@ -688,8 +687,6 @@ class CustomHelper
                     $cartValue['total_price'] = $total_price;
                     $cartValue['coupon_discount'] = (int) $offers->offer_value;
                     $cartValue['coupon_code'] = $coupon_code;
-
-
 
                     return [
                         'result' => true,
