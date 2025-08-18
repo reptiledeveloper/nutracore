@@ -121,6 +121,7 @@ class CustomHelper
         return $product;
 
     }
+
     public static function getSettings($key = "")
     {
         $value = Setting::first();
@@ -129,6 +130,7 @@ class CustomHelper
         }
         return $value;
     }
+
     public static function formatPhoneNumber($phoneNumber): string
     {
         if (strlen($phoneNumber) >= 10) {
@@ -313,8 +315,8 @@ class CustomHelper
         $user_id = Auth::guard('admin')->user()->id ?? '';
         $emi_data = DB::table('emis')->where('id', $emi_id)->first();
         if (!empty($emi_data)) {
-            $new_paid_amount = (int) $emi_data->paid_amount + (int) $paid_amount;
-            $new_due_amount = (int) $emi_data->amount - (int) $new_paid_amount;
+            $new_paid_amount = (int)$emi_data->paid_amount + (int)$paid_amount;
+            $new_due_amount = (int)$emi_data->amount - (int)$new_paid_amount;
 
             $dbArray = [];
             $dbArray['paid_amount'] = $new_paid_amount;
@@ -461,9 +463,6 @@ class CustomHelper
     }
 
 
-
-
-
     public static function getOrderItemsWithProduct1($orderID)
     {
         $order_items = OrderItems::where('order_id', $orderID)->get();
@@ -482,6 +481,7 @@ class CustomHelper
         $varients = VendorProductPrice::where('vendor_id', $vendor_id)->where('product_id', $product_id)->where('varient_id', $varient_id)->where('is_delete', 0)->first();
         return $varients;
     }
+
     public static function getNcCashPercent($user, $amount)
     {
         $is_active = 0;
@@ -599,24 +599,22 @@ class CustomHelper
                 $dbArray['product_image'] = CustomHelper::getImageUrl('products', $product_data->image ?? '');
 
 
-
                 $selling_price = $product->selling_price ?? '';
                 $mrp = $product->mrp ?? '';
                 $subscription_price = $product->subscription_price ?? '';
-                if(empty($cart->variant_id)){
-                    $selling_price = $product_data->product_selling_price??'';
-                    $mrp = $product_data->product_mrp??'';
-                    $subscription_price = $product_data->product_subscription_price??'';
+                if (empty($cart->variant_id)) {
+                    $selling_price = $product_data->product_selling_price ?? '';
+                    $mrp = $product_data->product_mrp ?? '';
+                    $subscription_price = $product_data->product_subscription_price ?? '';
                 }
 
-                if(self::checkSubscription($user) == 1){
+                if (self::checkSubscription($user) == 1) {
                     $selling_price = $subscription_price;
                 }
 
 
-
                 $dbArray['qty'] = $cart->qty ?? '';
-                $dbArray['selling_price'] = $selling_price?? '';
+                $dbArray['selling_price'] = $selling_price ?? '';
                 $dbArray['mrp'] = $mrp ?? '';
                 $dbArray['subscription_price'] = $subscription_price ?? '';
                 $dbArray['unit'] = $product->unit ?? '';
@@ -624,20 +622,20 @@ class CustomHelper
                 $dbArray['is_available'] = $is_available;
                 $dbArray['vendor_id'] = $product->vendor_id ?? '';
 
-                $qty = (int) $cart->qty ?? 0;
+                $qty = (int)$cart->qty ?? 0;
                 $cart_qty += $cart->qty;
-                $total_cart_price = (int) $qty * (int) $selling_price;
+                $total_cart_price = (int)$qty * (int)$selling_price;
                 if (!empty($product->subscription_price)) {
                     //$total_cart_price = (int)$cart->qty * (int)$product->subscription_price;
                 }
-                $total_mrp = (int) $cart->qty * (int) $mrp;
-                $total_product_price = (int) $total_cart_price ?? 0;
+                $total_mrp = (int)$cart->qty * (int)$mrp;
+                $total_product_price = (int)$total_cart_price ?? 0;
 
                 $dbArray['total_mrp'] = $total_mrp;
                 $dbArray['total_product_price'] = $total_product_price;
 
-                $discount = (int) $mrp - (int) $selling_price;
-                $total_discount = (int) $cart->qty * (int) $discount;
+                $discount = (int)$mrp - (int)$selling_price;
+                $total_discount = (int)$cart->qty * (int)$discount;
                 $dbArray['total_price'] = $total_cart_price;
                 $cartArr[] = $dbArray;
                 $cart_total += $total_cart_price;
@@ -648,12 +646,18 @@ class CustomHelper
         if ($cart_total >= 99) {
             $small_cart_fee = 0;
         }
-        $delivery_charges = self::calculateDeliveryCharge($user, $cart_total,$request->type);
-        $total_price = $cart_total + $freebees_price + $delivery_charges + $platform_fee + $surge_fee + $tips + $small_cart_fee + $handling_charges + $rain_fee;
+        $subscription_amount = 0;
+        if (!empty($request->subscription_id)) {
+            $subscription_plans = SubscriptionPlans::where('id', $request->subscription_id)->where('is_delete', 0)->where('status', 1)->first();
+            $subscription_amount = $subscription_plans->price ?? 0;
+        }
+        $delivery_charges = self::calculateDeliveryCharge($user, $cart_total, $request->type);
+        $total_price = $cart_total + (int)$subscription_amount + (int)$freebees_price + $delivery_charges + $platform_fee + $surge_fee + $tips + $small_cart_fee + $handling_charges + $rain_fee;
         $cartValue['total_price'] = $total_price;
-        $cartValue['cart_price'] = $cart_total + $freebees_price;
+        $cartValue['cart_price'] = $cart_total + (int)$freebees_price + (int)$subscription_amount;
         $cartValue['freebees_price'] = $freebees_price;
         $cartValue['total_discount'] = $cart_discount;
+        $cartValue['subscription_amount'] = $subscription_amount;
         $cartValue['delivery_charges'] = $delivery_charges;
         $cartValue['cart_qty'] = $cart_qty;
         $cartValue['tips'] = $tips;
@@ -670,7 +674,7 @@ class CustomHelper
         $payment_method = $request->payment_method ?? '';
         $wallet = $user_data->wallet ?? 0;
         if ($wallet_applied) {
-            if ((float) $user_data->wallet <= (float) $total_price) {
+            if ((float)$user_data->wallet <= (float)$total_price) {
                 $applied_wallet_amount = $wallet;
             } else {
                 $applied_wallet_amount = $total_price;
@@ -701,7 +705,7 @@ class CustomHelper
                         ->where('coupon_code', $offers->offer_code)
                         ->count();
 
-                    if ((int) $ordercount >= (int) $offers->no_of_times) {
+                    if ((int)$ordercount >= (int)$offers->no_of_times) {
                         return [
                             'result' => false,
                             'message' => "You Have Applied Max Times",
@@ -712,7 +716,7 @@ class CustomHelper
                 }
 
                 // ✅ check min cart value
-                if ((int) $cart_total < (int) $offers->min_cart_value) {
+                if ((int)$cart_total < (int)$offers->min_cart_value) {
                     return [
                         'result' => false,
                         'message' => "Minimum Cart Value " . $offers->min_cart_value,
@@ -804,9 +808,9 @@ class CustomHelper
 
                 // ✅ apply discount
                 if ($offers->offer_type == 'FIXED') {
-                    $total_price = (int) $total_price - (int) $offers->offer_value;
+                    $total_price = (int)$total_price - (int)$offers->offer_value;
                     $cartValue['total_price'] = $total_price;
-                    $cartValue['coupon_discount'] = (int) $offers->offer_value;
+                    $cartValue['coupon_discount'] = (int)$offers->offer_value;
                     $cartValue['coupon_code'] = $coupon_code;
 
                     return [
@@ -823,9 +827,9 @@ class CustomHelper
                         $percent_val = $offers->max_discount;
                     }
 
-                    $total_price = (int) $total_price - (int) $percent_val;
+                    $total_price = (int)$total_price - (int)$percent_val;
                     $cartValue['total_price'] = $total_price;
-                    $cartValue['coupon_discount'] = (int) $percent_val;
+                    $cartValue['coupon_discount'] = (int)$percent_val;
                     $cartValue['coupon_code'] = $coupon_code;
 
                     return [
@@ -879,7 +883,6 @@ class CustomHelper
     }
 
 
-
     public static function loginShipRocket()
     {
         $curl = curl_init();
@@ -911,7 +914,7 @@ class CustomHelper
     public static function checkDelivery($pincode)
     {
         $login_data = self::loginShipRocket();
-         $token = $login_data->token??'';
+        $token = $login_data->token ?? '';
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
@@ -931,7 +934,7 @@ class CustomHelper
 }',
             CURLOPT_HTTPHEADER => array(
                 'Content-Type: application/json',
-                'Authorization: Bearer '.$token
+                'Authorization: Bearer ' . $token
             ),
         ));
 
@@ -1238,6 +1241,7 @@ class CustomHelper
         return $order_status;
 
     }
+
     public static function getCityName($state_id)
     {
         $state = City::find($state_id);
@@ -1245,7 +1249,7 @@ class CustomHelper
 
     }
 
-    public static function calculateDeliveryCharge($user, $total_amount,$type="express")
+    public static function calculateDeliveryCharge($user, $total_amount, $type = "express")
     {
         $delivery_charge = 0;
 
@@ -1254,7 +1258,7 @@ class CustomHelper
             ->first();
 
         if (!empty($delivery_charges)) {
-            $delivery_charge = (float) $delivery_charges->delivery_charge ?? 0;
+            $delivery_charge = (float)$delivery_charges->delivery_charge ?? 0;
         }
         return $delivery_charge;
     }
@@ -1295,6 +1299,7 @@ class CustomHelper
         }
         return $keys;
     }
+
     public static function getCashFreeKey()
     {
         $settings = DB::table('settings')->first();
@@ -1392,7 +1397,7 @@ class CustomHelper
         $slug = $new_slug;
 
         if (is_array($slug_array) && in_array($slug, $slug_array)) {
-            $num = (int) $num + 1;
+            $num = (int)$num + 1;
             $slug = self::GetUniqueSlugBySelf($slug_array, $new_slug, $num);
         }
 
@@ -1448,7 +1453,7 @@ class CustomHelper
             if (!empty($row_id) && $row->$id_field == $row_id) {
                 $slug = $new_slug;
             } else {
-                $num = (int) $num + 1;
+                $num = (int)$num + 1;
                 $slug = self::GetUniqueSlug($tbl_name, $id_field, $row_id, $new_slug, $num);
             }
         }
@@ -1614,6 +1619,7 @@ class CustomHelper
         }
         return $product_ids;
     }
+
     public static function getCouponData($coupon_code, $cartArr)
     {
         $couponData = [];
@@ -1819,9 +1825,9 @@ class CustomHelper
         if ($range < 1)
             return $min; // not so random...
         $log = ceil(log($range, 2));
-        $bytes = (int) ($log / 8) + 1; // length in bytes
-        $bits = (int) $log + 1; // length in bits
-        $filter = (int) (1 << $bits) - 1; // set all lower bits to 1
+        $bytes = (int)($log / 8) + 1; // length in bytes
+        $bits = (int)$log + 1; // length in bits
+        $filter = (int)(1 << $bits) - 1; // set all lower bits to 1
         do {
             $rnd = hexdec(bin2hex(openssl_random_pseudo_bytes($bytes)));
             $rnd = $rnd & $filter; // discard irrelevant bits
@@ -1943,7 +1949,6 @@ class CustomHelper
     }
 
 
-
     public static function CheckAndFormatDate($date, $toFormat = 'Y-m-d H:i:s', $fromFormat = '')
     {
         $new_date = $date;
@@ -1962,7 +1967,7 @@ class CustomHelper
 
         $new_date = $date;
 
-        $formatArr = array('d-m-y', 'd-m-Y', 'd/m/Y', 'd/m/y', 'd/m/Y H:i:s', 'd/m/y H:i:s', 'd/m/Y H:i A', 'd/m/y H:i A', );
+        $formatArr = array('d-m-y', 'd-m-Y', 'd/m/Y', 'd/m/y', 'd/m/Y H:i:s', 'd/m/y H:i:s', 'd/m/Y H:i A', 'd/m/y H:i A',);
 
         if (empty($toFormat)) {
             $toFormat = 'Y-m-d H:i:s';
@@ -2198,8 +2203,7 @@ class CustomHelper
         $percent = 0;
         $total_sale = OrderItems::where('product_id', $category_id)->where('status', 'DELIVERED')->where('is_delete', 0)->sum('net_price');
         $total_qty = OrderItems::where('product_id', $category_id)->where('status', 'DELIVERED')->where('is_delete', 0)->sum('qty');
-        $total_activated = QRCodes::where('product_id', $category_id)->where('is_delete', 0)->orderBy('id', 'desc')->where('is_activated', 1)->count();
-        ;
+        $total_activated = QRCodes::where('product_id', $category_id)->where('is_delete', 0)->orderBy('id', 'desc')->where('is_activated', 1)->count();;
         if ($total_sale > 0) {
             $percent = ($total_activated / $total_qty) * 100;
         }
@@ -2279,8 +2283,7 @@ class CustomHelper
                     $extension = $file->getClientOriginalExtension();
                     $fileOriginalName = $file->getClientOriginalName();
                     // $fileName = date('dmyhis').'-'.$fileOriginalName;
-                    $fileName = date('dmyhis') . '-' . str_replace(' ', '', $fileOriginalName);
-                    ;
+                    $fileName = date('dmyhis') . '-' . str_replace(' ', '', $fileOriginalName);;
 
                     $path = $file->storeAs($path, $fileName);
 
@@ -2638,7 +2641,7 @@ class CustomHelper
             if (!empty($hierarchy_arr_rev) && count($hierarchy_arr_rev) > 0) {
                 foreach ($hierarchy_arr_rev as $cat) {
 
-                    $cat = (object) $cat;
+                    $cat = (object)$cat;
 
                     if (isset($cat->name)) {
                         if (!empty($first_uri_name)) {
@@ -2699,7 +2702,7 @@ class CustomHelper
 
                 foreach ($hierarchy_arr_rev as $cat) {
 
-                    $cat = (object) $cat;
+                    $cat = (object)$cat;
 
                     if (isset($cat->name)) {
                         if (!empty($first_uri_name)) {
@@ -2891,8 +2894,8 @@ class CustomHelper
         $num2 = intval(($num - $index) / 26);
         if ($num2 > 0) {
             return self::getNameFromNumber(
-                $num2 - 1 + $index
-            ) . $letter;
+                    $num2 - 1 + $index
+                ) . $letter;
         } else {
             return $letter;
         }
@@ -3347,7 +3350,7 @@ class CustomHelper
             return false;
         }
 
-        if (($number >= 0 && (int) $number < 0) || (int) $number < 0 - PHP_INT_MAX) {
+        if (($number >= 0 && (int)$number < 0) || (int)$number < 0 - PHP_INT_MAX) {
             // overflow
             trigger_error(
                 'convert_number_to_words only accepts numbers between -' . PHP_INT_MAX . ' and ' . PHP_INT_MAX,
@@ -3371,7 +3374,7 @@ class CustomHelper
                 $string = $dictionary[$number];
                 break;
             case $number < 100:
-                $tens = ((int) ($number / 10)) * 10;
+                $tens = ((int)($number / 10)) * 10;
                 $units = $number % 10;
                 $string = $dictionary[$tens];
                 if ($units) {
@@ -3388,7 +3391,7 @@ class CustomHelper
                 break;
             default:
                 $baseUnit = pow(1000, floor(log($number, 1000)));
-                $numBaseUnits = (int) ($number / $baseUnit);
+                $numBaseUnits = (int)($number / $baseUnit);
                 $remainder = $number % $baseUnit;
                 $string = self::convert_number_to_words($numBaseUnits) . ' ' . $dictionary[$baseUnit];
                 if ($remainder) {
@@ -3401,7 +3404,7 @@ class CustomHelper
         if (null !== $fraction && is_numeric($fraction)) {
             $string .= $decimal;
             $words = array();
-            foreach (str_split((string) $fraction) as $number) {
+            foreach (str_split((string)$fraction) as $number) {
                 $words[] = $dictionary[$number];
             }
             $string .= implode(' ', $words);
@@ -3500,10 +3503,10 @@ class CustomHelper
                     'longitude' => $longitude,
                     'address' => $address,
                     'file_type' => $file_type,
-                    'order_id' => (string) $order_id ?? '',
+                    'order_id' => (string)$order_id ?? '',
                     'image' => $image,
                     'type' => $type,
-                    'total_item' => (string) $total_item,
+                    'total_item' => (string)$total_item,
                     'priority' => $priority,
                     'order_status' => $order_status,
                     'total_amount' => $total_amount
@@ -3540,9 +3543,6 @@ class CustomHelper
     }
 
 
-
-
-
     public static function fcmNotification($token, $data)
     {
         $title = $data['title'] ?? '';
@@ -3565,10 +3565,10 @@ class CustomHelper
             'longitude' => $longitude,
             'address' => $address,
             'file_type' => $file_type,
-            'order_id' => (string) $order_id ?? '',
+            'order_id' => (string)$order_id ?? '',
             'image' => $image,
             'type' => $type,
-            'total_item' => (string) $total_item,
+            'total_item' => (string)$total_item,
             'priority' => $priority,
             'order_status' => $order_status,
             'total_amount' => $total_amount
