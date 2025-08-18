@@ -16,7 +16,7 @@
     $terms = $subscription_plans->terms ?? '';
     $max_discount = $subscription_plans->max_discount ?? '';
     $vendor_id = $subscription_plans->vendor_id ?? '';
-    $is_show = $subscription_plans->is_show ?? 0
+    $is_show = $subscription_plans->is_show ?? 0;
 
 
 
