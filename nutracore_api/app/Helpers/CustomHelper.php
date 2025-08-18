@@ -1139,9 +1139,12 @@ class CustomHelper
     {
         $delivery_charge = 0;
 
-        $delivery_charges = DeliveryCharges::where('order_amount2', '>=', $total_amount)->where('type',$type)->first();
+        $delivery_charges = DeliveryCharges::where('type', $type)
+            ->whereRaw('? BETWEEN CAST(order_amount AS UNSIGNED) AND CAST(order_amount2 AS UNSIGNED)', [$total_amount])
+            ->first();
+
         if (!empty($delivery_charges)) {
-            $delivery_charge = $delivery_charges->delivery_charge ?? 0;
+            $delivery_charge = (float) $delivery_charges->delivery_charge ?? 0;
         }
         return $delivery_charge;
     }
