@@ -125,7 +125,7 @@ class ProductController extends Controller
     {
 
 
-        $data = $request->except(['_token', 'back_url', 'variant_name', 'image','varient_sku' ,'unit', 'unit_value', 'mrp', 'selling_price', 'subscription_price', 'varient_id', 'product_images', 'variant_images']);
+        $data = $request->except(['_token', 'back_url', 'varient_weight','variant_name', 'image','varient_sku' ,'unit', 'unit_value', 'mrp', 'selling_price', 'subscription_price', 'varient_id', 'product_images', 'variant_images']);
         $oldImg = '';
         $data['is_approve'] = 1;
 
