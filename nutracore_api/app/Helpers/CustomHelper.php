@@ -37,6 +37,7 @@ use App\Models\Roles;
 use App\Models\Setting;
 use App\Models\Shop;
 use App\Models\State;
+use App\Models\SubscriptionPlans;
 use App\Models\Subscriptions;
 use App\Models\Transaction;
 use App\Models\User;
@@ -511,6 +512,19 @@ class CustomHelper
 
     }
 
+    public static function checkSubscription($user)
+    {
+        $is_active = 0;
+        $exist_subscription = Subscriptions::where('user_id', $user->id)->where('paid_status', 1)->latest()->first();
+        if (!empty($exist_subscription)) {
+            $current_date = date('Y-m-d');
+            if (strtotime($exist_subscription->end_date) >= strtotime($current_date)) {
+                $is_active = 1;
+            }
+        }
+        return $is_active;
+    }
+
     public static function cartData($user_id, $coupon_code = '', $request, $user)
     {
         $cartValue = [];
@@ -585,6 +599,7 @@ class CustomHelper
                 $dbArray['product_image'] = CustomHelper::getImageUrl('products', $product_data->image ?? '');
 
 
+
                 $selling_price = $product->selling_price ?? '';
                 $mrp = $product->mrp ?? '';
                 $subscription_price = $product->subscription_price ?? '';
@@ -592,6 +607,10 @@ class CustomHelper
                     $selling_price = $product_data->product_selling_price??'';
                     $mrp = $product_data->product_mrp??'';
                     $subscription_price = $product_data->product_subscription_price??'';
+                }
+
+                if(self::checkSubscription($user) == 1){
+                    $selling_price = $subscription_price;
                 }
 
 
