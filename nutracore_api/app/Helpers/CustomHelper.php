@@ -576,7 +576,7 @@ class CustomHelper
                 $dbArray['product_name'] = $product_data->name ?? '';
                 $dbArray['max_qty'] = $product_data->max_qty ?? '';
                 $dbArray['min_qty'] = $product_data->min_qty ?? '';
-                $dbArray['product_name'] = $product_data->name ?? '';
+
                 $dbArray['is_subscribed_product'] = $product->is_subscribed_product ?? '';
                 $dbArray['product_image'] = CustomHelper::getImageUrl('products', $product_data->image ?? '');
 
