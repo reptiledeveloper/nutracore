@@ -82,7 +82,7 @@ class ApiController extends Controller
         $expired_at = Carbon::now()->addMinutes(10);
 
         $exist = User::where(['phone' => $phone])->first();
-        if(empty($exist)){
+        if (empty($exist)) {
             $exist->type = "app";
             $exist->save();
         }
@@ -749,7 +749,7 @@ class ApiController extends Controller
                 $seller->open_time = date('h:i A', strtotime($seller->open_time)) ?? '';
                 $seller->close_time = date('h:i A', strtotime($seller->close_time)) ?? '';
 //                if ($is_deliver == 1) {
-                    $sellers_list[] = $seller;
+                $sellers_list[] = $seller;
 //                }
             }
         }
@@ -1131,7 +1131,7 @@ class ApiController extends Controller
                 $banner->products = $productsArr;
             }
         }
-        $categories = Category::where('status', 1)->where('parent_id', 0)->where('is_goal', 0)->where('is_delete', 0)->orderBy('priority','ASC')->get()->makeHidden(['created_at', 'updated_at', 'is_delete', 'status']);
+        $categories = Category::where('status', 1)->where('parent_id', 0)->where('is_goal', 0)->where('is_delete', 0)->orderBy('priority', 'ASC')->get()->makeHidden(['created_at', 'updated_at', 'is_delete', 'status']);
         if (!empty($categories)) {
             foreach ($categories as $category) {
                 $category->image = CustomHelper::getImageUrl('categories', $category->image ?? '');
@@ -1395,7 +1395,7 @@ class ApiController extends Controller
         } else {
             $category_list->where('is_goal', 0);
         }
-        $category_list = $category_list->orderBy('priority','ASC')->get();
+        $category_list = $category_list->orderBy('priority', 'ASC')->get();
         if (!empty($category_list)) {
             foreach ($category_list as $category) {
                 $category->image = CustomHelper::getImageUrl('categories', $category->image);
@@ -2580,9 +2580,9 @@ class ApiController extends Controller
             ->get();
         if (!empty($freebees_product)) {
             foreach ($freebees_product as $pro) {
-                $product = self::getProductDetails($pro->product_id,$user->id??'');
-                $pro->product_name = $product->name??'';
-                $pro->image = $product->image??'';
+                $product = self::getProductDetails($pro->product_id, $user->id ?? '');
+                $pro->product_name = $product->name ?? '';
+                $pro->image = $product->image ?? '';
             }
         }
         $selected_freebees_product = null;
@@ -2590,9 +2590,9 @@ class ApiController extends Controller
             $selected_freebees_product = DB::table('freebees_product')
                 ->where('id', $freebees_id)->first();
             if (!empty($selected_freebees_product)) {
-                $product = self::getProductDetails($selected_freebees_product->product_id,$user->id??'');
-                $selected_freebees_product->product_name = $product->name??'';
-                $selected_freebees_product->image = $product->image??'';
+                $product = self::getProductDetails($selected_freebees_product->product_id, $user->id ?? '');
+                $selected_freebees_product->product_name = $product->name ?? '';
+                $selected_freebees_product->image = $product->image ?? '';
                 $cartValue['total_price'] = (int)$cartValue['total_price'] + (int)$selected_freebees_product->amount;
             }
         }
@@ -3130,6 +3130,13 @@ class ApiController extends Controller
         $order_id = 0;
         $user_data = User::find($user_id);
         if (!empty($cart_data)) {
+            $freebees_price = 0;
+            if (!empty($request->freebees_id)) {
+                $freebees_pro = DB::table('freebees_product')->where('id', $request->freebees_id)->first();
+                if (!empty($freebees_pro)) {
+                    $freebees_price = $freebees_pro->amount ?? 0;
+                }
+            }
             $wallet_applied = $request->wallet_applied ?? false;
             $address = UserAddress::where('id', $request->address_id)->first();
             $cartValue = $cart_data['cartValue'] ?? '';
@@ -3151,6 +3158,8 @@ class ApiController extends Controller
             $dbArray['location'] = $address->location ?? '';
             $dbArray['latitude'] = $address->latitude ?? '';
             $dbArray['vendor_id'] = $seller_id ?? '';
+            $dbArray['freebees_id'] = $request->freebees_id ?? '';
+            $dbArray['freebees_price'] = $freebees_price ?? '';
             $dbArray['longitude'] = $address->longitude ?? '';
             $dbArray['address_type'] = $address->address_type ?? '';
             $dbArray['instruction'] = $request->instruction ?? '';

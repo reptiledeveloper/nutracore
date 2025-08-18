@@ -541,6 +541,7 @@ class CustomHelper
         $cart_discount = 0;
         $coupon_discount = 0;
         $applied_wallet = 0;
+        $freebees_price = 0;
         $cart_products = [];
         $cart_products_category = [];
         $image = '';
@@ -559,6 +560,13 @@ class CustomHelper
                     $cart_products_category[] = $product_data->category_id ?? '';
                     if (empty($image) && $image == '') {
                         $image = CustomHelper::getImageUrl('products', $product_data->image ?? '');
+                    }
+                }
+
+                if (!empty($request->freebees_id)) {
+                    $freebees_pro = DB::table('freebees_product')->where('id', $request->freebees_id)->first();
+                    if (!empty($freebees_pro)) {
+                        $freebees_price = $freebees_pro->amount ?? 0;
                     }
                 }
                 $dbArray = [];
@@ -608,10 +616,11 @@ class CustomHelper
         if ($cart_total >= 99) {
             $small_cart_fee = 0;
         }
-        $delivery_charges = self::calculateDeliveryCharge($user, $cart_total);
-        $total_price = $cart_total + $delivery_charges + $platform_fee + $surge_fee + $tips + $small_cart_fee + $handling_charges + $rain_fee;
+        $delivery_charges = self::calculateDeliveryCharge($user, $cart_total,$request->type);
+        $total_price = $cart_total + $freebees_price + $delivery_charges + $platform_fee + $surge_fee + $tips + $small_cart_fee + $handling_charges + $rain_fee;
         $cartValue['total_price'] = $total_price;
-        $cartValue['cart_price'] = $cart_total;
+        $cartValue['cart_price'] = $cart_total + $freebees_price;
+        $cartValue['freebees_price'] = $freebees_price;
         $cartValue['total_discount'] = $cart_discount;
         $cartValue['delivery_charges'] = $delivery_charges;
         $cartValue['cart_qty'] = $cart_qty;
@@ -1126,15 +1135,11 @@ class CustomHelper
 
     }
 
-    public static function calculateDeliveryCharge($user, $total_amount)
+    public static function calculateDeliveryCharge($user, $total_amount,$type="express")
     {
         $delivery_charge = 0;
 
-
-        \DB::enableQueryLog();
-        //        $delivery_charges = DeliveryCharges::where('vendor_id', $seller_id)->where('order_amount','>=',$total_amount)->where('order_amount2','<=',$total_amount)->first();
-        $delivery_charges = DeliveryCharges::where('order_amount2', '>=', $total_amount)->first();
-        //        dd(\DB::getQueryLog());
+        $delivery_charges = DeliveryCharges::where('order_amount2', '>=', $total_amount)->where('type',$type)->first();
         if (!empty($delivery_charges)) {
             $delivery_charge = $delivery_charges->delivery_charge ?? 0;
         }
