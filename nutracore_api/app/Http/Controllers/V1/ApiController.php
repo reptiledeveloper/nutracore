@@ -959,7 +959,7 @@ class ApiController extends Controller
                                                     CustomHelper::saveTransaction($data);
                                                 }
                                             }
-
+                                            Cart::where('user_id', $user->id)->delete();
                                             self::sendOrderNotification($exist->order_id ?? '');
                                         }
                                     }
