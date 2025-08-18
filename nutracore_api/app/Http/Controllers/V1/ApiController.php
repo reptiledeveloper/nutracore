@@ -2580,7 +2580,7 @@ class ApiController extends Controller
             ->get();
         if (!empty($freebees_product)) {
             foreach ($freebees_product as $pro) {
-                $product = self::getProductDetails($pro->product_id,$user);
+                $product = self::getProductDetails($pro->product_id,$user->id??'');
                 $pro->product_name = $product->name??'';
                 $pro->image = $product->image??'';
             }
