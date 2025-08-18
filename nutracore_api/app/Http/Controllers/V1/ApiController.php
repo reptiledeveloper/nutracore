@@ -4074,10 +4074,14 @@ class ApiController extends Controller
             }
         }
 
+        $banners = [];
+
+
         return response()->json([
             'result' => true,
             'message' => "Successfully",
-            'offers' => $offersArr
+            'offers' => $offersArr,
+            'banners' => $banners,
         ], 200);
     }
 

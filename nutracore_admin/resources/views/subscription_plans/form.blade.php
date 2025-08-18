@@ -16,6 +16,7 @@
     $terms = $subscription_plans->terms ?? '';
     $max_discount = $subscription_plans->max_discount ?? '';
     $vendor_id = $subscription_plans->vendor_id ?? '';
+    $is_show = $subscription_plans->is_show ?? 0
 
 
 
@@ -94,6 +95,14 @@
                                     <input type="number" class="form-control" name="discount_upto"
                                            value="{{ old('discount_upto', $discount_upto) }}">
                                     @include('snippets.errors_first', ['param' => 'discount_upto'])
+                                </div>
+                                <div class="form-group col-md-6 mt-3">
+                                    <label for="validationCustom01" class="form-label">Is Show</label>
+                                    <select name="is_show" class="form-control">
+                                        <option value="">Select</option>
+                                        <option value="1" {{$is_show == 1 ?"selected":""}}>Yes</option>
+                                        <option value="0" {{$is_show == 0 ?"selected":""}}>No</option>
+                                    </select>
                                 </div>
                                 <div class="form-group col-md-6 mt-3">
                                     <label for="inputEmail4" class="form-label">Discount Type</label>

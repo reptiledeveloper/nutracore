@@ -60,7 +60,7 @@ class SubscriptionController extends Controller
         }
         $subscriptionsArr = null;
         $seller_id = $request->seller_id ?? '';
-        $subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->get();
+        $subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->where('is_show',1)->get();
          $minPricePerDay = PHP_FLOAT_MAX;
         $bestValuePlanId = null;
 // First pass: Find plan with best price per day
