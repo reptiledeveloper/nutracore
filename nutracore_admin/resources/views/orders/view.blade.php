@@ -124,7 +124,7 @@
                                 </tr>
                                 <?php }
                                 } ?>
-        @if(!empty($orders->freebees_id))
+        @if(!empty($orders->freebees_id) && $orders->freebees_id != "null")
                                 @php
                                     $pro = \App\Models\Products::where('id',$orders->freebees_id)->first();
                                     $freebees_product = \App\Models\FreeProduct::where('product_id',$orders->freebees_id)->first();
