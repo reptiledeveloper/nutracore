@@ -583,7 +583,7 @@ class CustomHelper
                     }
                 }
                 $dbArray = [];
-                $dbArray['product_id'] = $product->product_id ?? '';
+                $dbArray['product_id'] = $product_data->id ?? '';
                 $dbArray['category_id'] = $product_data->category_id ?? '';
                 $dbArray['subcategory_id'] = $product_data->subcategory_id ?? '';
                 $dbArray['brand_id'] = $product_data->brand_id ?? '';
