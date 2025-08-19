@@ -618,11 +618,6 @@ class CustomHelper
                     $subscription_price = $product_data->product_subscription_price ?? '';
                 }
 
-                if (self::checkSubscription($user) == 1 || !empty($request->subscription_id)) {
-//                    $selling_price = $subscription_price;
-                }
-
-
                 $dbArray['qty'] = $cart->qty ?? '';
                 $dbArray['selling_price'] = $selling_price ?? '';
                 $dbArray['mrp'] = $mrp ?? '';
