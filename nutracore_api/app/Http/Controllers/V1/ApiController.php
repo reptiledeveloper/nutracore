@@ -2613,7 +2613,7 @@ class ApiController extends Controller
         }
         $cartValue['applied_cashback'] = "0" ;
         if (!empty($cartValue)) {
-            $cartValue['max_applied_cashback'] = $max_applied_cashback;
+            $cartValue['max_applied_cashback'] = (string)$max_applied_cashback;
             if ($apply_cashback) {
                 $cartValue['applied_cashback'] = (string)$cashback_wallet;
                 $cartValue['total_price'] = $total_price - $cashback_wallet;
