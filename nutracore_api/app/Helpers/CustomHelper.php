@@ -598,7 +598,7 @@ class CustomHelper
                 $dbArray['subcategory_id'] = $product_data->subcategory_id ?? '';
                 $dbArray['brand_id'] = $product_data->brand_id ?? '';
                 $dbArray['sku'] = $product_data->sku ?? '';
-                $dbArray['nc_cash'] = self::getNcCashPercent($user_data, $product->selling_price ?? '');
+
                 $cart_products[] = $product->product_id ?? '';
                 $dbArray['varient_id'] = $cart->variant_id ?? '';
                 $dbArray['product_name'] = $product_data->name ?? '';
@@ -612,10 +612,12 @@ class CustomHelper
                 $selling_price = $product->selling_price ?? '';
                 $mrp = $product->mrp ?? '';
                 $subscription_price = $product->subscription_price ?? '';
+                $dbArray['nc_cash'] = self::getNcCashPercent($user_data, $selling_price ?? '');
                 if (empty($cart->variant_id)) {
                     $selling_price = $product_data->product_selling_price ?? '';
                     $mrp = $product_data->product_mrp ?? '';
                     $subscription_price = $product_data->product_subscription_price ?? '';
+                    $dbArray['nc_cash'] = self::getNcCashPercent($user_data, $subscription_price ?? '');
                 }
 
                 $dbArray['qty'] = $cart->qty ?? '';
