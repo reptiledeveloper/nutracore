@@ -3306,11 +3306,31 @@ class ApiController extends Controller
                     $dbArray['wallet'] = $applied_wallet_amount;
                 }
             }
+
+
+
+
             $order_id = Order::insertGetId($dbArray);
             if ($applied_wallet_amount > 0) {
                 $new_wallet = (float)$wallet - $applied_wallet_amount;
                 User::where('id', $user_id)->update(['wallet' => $new_wallet]);
                 ///////Save Transaction Needed
+            }
+            if (!empty($request->applied_cashback)) {
+
+                $new_wallet = (float)$user_data->cashback_wallet - (float)$request->applied_cashback;
+                User::where('id', $user_id)->update(['cashback_wallet' => $new_wallet]);
+                ///////Save Transaction Needed
+                ////Save Transaction////
+                $dbArray = [];
+                $dbArray['user_id'] = $user_id;
+                $dbArray['type'] = 'DEBIT';
+                $dbArray['amount'] = $request->applied_cashback??0;
+                $dbArray['type_val'] = 'nc_cash_order_debit';
+                $dbArray['remarks'] = "Amount Debited From NC Cash";
+                $dbArray['is_approved'] = 1;
+                $transaction_id = Transaction::insertGetId($dbArray);
+                Transaction::where('id', $transaction_id)->update(['transaction_id' => "NC".rand(111111,9999999999)]);
             }
 
 
