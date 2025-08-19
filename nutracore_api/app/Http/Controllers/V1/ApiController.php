@@ -1948,6 +1948,10 @@ class ApiController extends Controller
                 }
             } else {
                 $varient_images = [];
+                $dbArray = [];
+                $dbArray['id'] = 0;
+                $dbArray['image'] = CustomHelper::getImageUrl('products', $product->image);
+                $varient_images[] = $dbArray;
                 $nc_cash = self::getNcCashPercent($user, $product->product_selling_price ?? '');
                 $product_images = DB::table('product_images')->where('product_id', $product->id)->get();
                 if (!empty($product_images)) {
