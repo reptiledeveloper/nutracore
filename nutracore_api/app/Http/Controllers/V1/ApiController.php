@@ -2670,7 +2670,7 @@ class ApiController extends Controller
         }
         $subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->where('is_show',0)->first();
         $delivery_details['delivery_time'] = 10;
-        $nc_coins = 0;
+        $nc_coins = self::getNcCashPercent($user, $cartValue['cart_price'] ?? '');
         $you_save = 0;
         return response()->json([
             'result' => $result,
