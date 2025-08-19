@@ -2651,6 +2651,7 @@ class ApiController extends Controller
         $freebees_product = DB::table('freebees_product')
             ->where('from_amount', '<=', $cart_price)
             ->where('to_amount', '>=', $cart_price)
+            ->where('is_delete',0)
             ->get();
         if (!empty($freebees_product)) {
             foreach ($freebees_product as $pro) {
