@@ -3334,11 +3334,10 @@ class ApiController extends Controller
                 $dbArray['userID'] = $user_id;
                 $dbArray['type'] = 'DEBIT';
                 $dbArray['amount'] = $request->applied_cashback??0;
-                $dbArray['type_val'] = 'nc_cash_order_debit';
+                $dbArray['against_for'] = 'cashback_wallet';
                 $dbArray['remarks'] = "Amount Debited From NC Cash";
-                $dbArray['is_approved'] = 1;
                 $transaction_id = Transaction::insertGetId($dbArray);
-                Transaction::where('id', $transaction_id)->update(['transaction_id' => "NC".rand(111111,9999999999)]);
+                Transaction::where('id', $transaction_id)->update(['txn_no' => "NC".rand(111111,9999999999)]);
             }
 
 
