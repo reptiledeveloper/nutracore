@@ -2538,6 +2538,7 @@ class ApiController extends Controller
 
     public function cart_list(Request $request): \Illuminate\Http\JsonResponse
     {
+        DB::table('new')->insert(['data'=>json_encode($request->toArray())]);
         $validator = Validator::make($request->all(), [
 
         ]);
