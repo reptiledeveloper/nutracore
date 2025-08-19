@@ -212,7 +212,8 @@
     <div class="center bold mt-10">TAX SUMMARY</div>
 
     @php
-        $tax = number_format($total_cart_price - $tax_val, 2);
+        $tax = 0;
+//            $tax = number_format($total_cart_price - $tax_val, 2);
     @endphp
 
     <table class="table">
