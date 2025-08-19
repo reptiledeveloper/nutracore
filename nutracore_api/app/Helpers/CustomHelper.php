@@ -637,7 +637,7 @@ class CustomHelper
                 $cart_qty += $cart->qty;
                 $total_cart_price = (int)$qty * (int)$selling_price;
                 if (self::checkSubscription($user) == 1 || !empty($request->subscription_id)) {
-                    $total_cart_price = (int)$cart->qty * (int)$product->subscription_price;
+                    $total_cart_price = (int)$cart->qty * (int)$subscription_price;
                 }
                 $total_mrp = (int)$cart->qty * (int)$mrp;
 
