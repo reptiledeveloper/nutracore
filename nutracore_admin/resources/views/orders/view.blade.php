@@ -134,7 +134,6 @@
 
 
                                 <tr>
-                                    <td></td>
                                     <td>
                                         <a href="#">
                                             <img src="{{$image}}" class="rounded" width="60"
