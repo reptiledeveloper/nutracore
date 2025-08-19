@@ -460,7 +460,7 @@ class OrderController extends Controller
                 CustomHelper::fcmNotification($token, $data);
             }
             ////Credit NC Cash
-            $this->creditNcCash($order,);
+            $this->creditNcCash($order);
         }
         echo 1;
     }
