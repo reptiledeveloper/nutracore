@@ -613,7 +613,7 @@ class CustomHelper
                 $mrp = $product->mrp ?? '';
                 $subscription_price = $product->subscription_price ?? '';
                 if (empty($cart->variant_id)) {
-//                    $selling_price = $product_data->product_selling_price ?? '';
+                    $selling_price = $product_data->product_selling_price ?? '';
                     $mrp = $product_data->product_mrp ?? '';
                     $subscription_price = $product_data->product_subscription_price ?? '';
                 }
@@ -637,9 +637,9 @@ class CustomHelper
                 $cart_qty += $cart->qty;
                 $total_cart_price = (int)$qty * (int)$selling_price;
                 if (self::checkSubscription($user) == 1 || !empty($request->subscription_id)) {
-                    $total_cart_price = (int)$cart->qty * (int)$subscription_price;
+                    $total_cart_price = (int)$qty * (int)$subscription_price;
                 }
-                $total_mrp = (int)$cart->qty * (int)$mrp;
+                $total_mrp = (int)$qty * (int)$mrp;
 
                 $total_mrp_price+=$total_mrp;
                 $total_product_price = (int)$total_cart_price ?? 0;
