@@ -3331,7 +3331,7 @@ class ApiController extends Controller
                 ///////Save Transaction Needed
                 ////Save Transaction////
                 $dbArray = [];
-                $dbArray['user_id'] = $user_id;
+                $dbArray['userID'] = $user_id;
                 $dbArray['type'] = 'DEBIT';
                 $dbArray['amount'] = $request->applied_cashback??0;
                 $dbArray['type_val'] = 'nc_cash_order_debit';
