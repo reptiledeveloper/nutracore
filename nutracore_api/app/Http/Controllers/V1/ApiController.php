@@ -80,11 +80,12 @@ class ApiController extends Controller
             // $otp = 1234;
         }
         $expired_at = Carbon::now()->addMinutes(10);
-
+        $register = 0;
         $exist = User::where(['phone' => $phone])->first();
         if (empty($exist)) {
-            $exist->type = "app";
-            $exist->save();
+//            $exist->type = "app";
+//            $exist->save();
+            $register = 1;
         }
         User::updateOrCreate([
             'phone' => $phone,
@@ -97,6 +98,7 @@ class ApiController extends Controller
         $exist = User::where(['phone' => $phone])->first();
         if (!empty($exist)) {
             $role_id = $exist->role_id;
+            $exist->type = "app";
             if (empty($exist->referral_code)) {
                 $referral_code_val = self::getReferalCode(8);
                 $exist->referral_code = $referral_code_val;
