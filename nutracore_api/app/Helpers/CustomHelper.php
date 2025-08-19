@@ -626,6 +626,7 @@ class CustomHelper
                 if(!empty($request->subscription_id) && $request->subscription_id != "null" && $request->subscription_id != null){
                     $selling_price = $subscription_price;
                 }
+                $dbArray['nc_cash'] = self::getNcCashPercent($user_data, $selling_price ?? '');
                 $dbArray['qty'] = $cart->qty ?? '';
                 $dbArray['selling_price'] = $selling_price ?? '';
                 $dbArray['mrp'] = $mrp ?? '';
