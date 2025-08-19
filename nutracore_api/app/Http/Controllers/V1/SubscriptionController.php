@@ -118,7 +118,7 @@ foreach ($subscription_plans as $plan) {
             $is_prev_subscribed = 1;
             $current_date = date('Y-m-d');
             $subscribed_subscription = SubscriptionPlans::find($exist_subscription->subscription_id);
-            if (strtotime($exist_subscription->end_date) >= strtotime($current_date)) {
+            if (strtotime($user->subscription_end) >= strtotime($current_date)) {
                 $is_active = 1;
 //                $subscription_end_date = $exist_subscription->end_date ?? '';
                 $subscription_end_date = $user->subscription_end ?? '';
