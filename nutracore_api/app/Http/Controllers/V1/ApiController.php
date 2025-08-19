@@ -3326,7 +3326,6 @@ class ApiController extends Controller
                 ///////Save Transaction Needed
             }
             if (!empty($request->applied_cashback)) {
-
                 $new_wallet = (float)$user_data->cashback_wallet - (float)$request->applied_cashback;
                 User::where('id', $user_id)->update(['cashback_wallet' => $new_wallet]);
                 ///////Save Transaction Needed
