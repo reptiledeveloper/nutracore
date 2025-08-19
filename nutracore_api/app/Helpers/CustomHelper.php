@@ -556,6 +556,7 @@ class CustomHelper
         $coupon_discount = 0;
         $applied_wallet = 0;
         $freebees_price = 0;
+        $total_mrp_price = 0;
         $cart_products = [];
         $cart_products_category = [];
         $image = '';
@@ -629,6 +630,8 @@ class CustomHelper
                     //$total_cart_price = (int)$cart->qty * (int)$product->subscription_price;
                 }
                 $total_mrp = (int)$cart->qty * (int)$mrp;
+
+                $total_mrp_price+=$total_mrp;
                 $total_product_price = (int)$total_cart_price ?? 0;
 
                 $dbArray['total_mrp'] = $total_mrp;
@@ -654,13 +657,19 @@ class CustomHelper
         $delivery_charges = self::calculateDeliveryCharge($user, $cart_total, $request->type);
         $total_price = $cart_total + (int)$subscription_amount + (int)$freebees_price + $delivery_charges + $platform_fee + $surge_fee + $tips + $small_cart_fee + $handling_charges + $rain_fee;
         $cartValue['total_price'] = $total_price;
+        $total_mrp_discount = 0;
+
         $cartValue['cart_price'] = $cart_total + (int)$freebees_price + (int)$subscription_amount;
-        $cartValue['freebees_price'] = $freebees_price;
+
+        $total_mrp_discount = (int)$total_mrp_price - (int)$cartValue['cart_price'];
+            $cartValue['freebees_price'] = $freebees_price;
         $cartValue['total_discount'] = $cart_discount;
         $cartValue['subscription_amount'] = $subscription_amount;
         $cartValue['delivery_charges'] = $delivery_charges;
         $cartValue['cart_qty'] = $cart_qty;
         $cartValue['tips'] = $tips;
+        $cartValue['total_mrp_price'] = $total_mrp_price;
+        $cartValue['total_mrp_discount'] = $total_mrp_discount;
         $cartValue['coupon_discount'] = $coupon_discount;
         $cartValue['handling_charges'] = $handling_charges;
         $cartValue['small_cart_fee'] = $small_cart_fee;
