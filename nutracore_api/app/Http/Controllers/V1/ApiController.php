@@ -2668,7 +2668,11 @@ class ApiController extends Controller
             $delivery_data['expressSlot'] = $expressSlot;
             $delivery_data['normalSlot'] = $normalSlot;
         }
-        $subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->where('is_show',0)->first();
+        $subscription_plans = null;
+        if(CustomHelper::checkSubscription($user) == 0){
+            $subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->where('is_show',0)->first();
+        }
+
         $delivery_details['delivery_time'] = 10;
         $nc_coins = self::getNcCashPercent($user, $cartValue['cart_price'] ?? '');
         $you_save = $cartValue['total_mrp_discount']??0;
