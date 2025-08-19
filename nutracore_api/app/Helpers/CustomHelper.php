@@ -620,6 +620,12 @@ class CustomHelper
                     $dbArray['nc_cash'] = self::getNcCashPercent($user_data, $subscription_price ?? '');
                 }
 
+                if (self::checkSubscription($user) == 1) {
+                    if(!empty($request->subscription_id) && $request->subscription_id != "null" && $request->subscription_id != null){
+                        $selling_price = $subscription_price;
+                    }
+
+                }
                 $dbArray['qty'] = $cart->qty ?? '';
                 $dbArray['selling_price'] = $selling_price ?? '';
                 $dbArray['mrp'] = $mrp ?? '';
@@ -634,8 +640,10 @@ class CustomHelper
                 $cart_qty += $cart->qty;
                 $total_cart_price = (int)$qty * (int)$selling_price;
                 if (self::checkSubscription($user) == 1) {
-                    if(!empty($request->subscription_id) && $request->subscription_id != "null" && $request->subscription_id != null)
-                    $total_cart_price = (int)$qty * (int)$subscription_price;
+                    if(!empty($request->subscription_id) && $request->subscription_id != "null" && $request->subscription_id != null){
+                        $total_cart_price = (int)$qty * (int)$subscription_price;
+                    }
+
                 }
                 $total_mrp = (int)$qty * (int)$mrp;
 
