@@ -2957,6 +2957,7 @@ class ApiController extends Controller
 
             $wallet_applied = $request->wallet_applied ?? false;
             $cashback_wallet = $request->cashback_wallet ?? 0;
+            $applied_cashback = $request->applied_cashback ?? 0;
             $tips = (int)$request->tips ?? 0;
             $cart_data = CustomHelper::cartData($user->id, $coupon_code, $request, $user);
             $online_payment = null;
@@ -3010,7 +3011,9 @@ class ApiController extends Controller
                     }
                     if ($payment_method == 'ONLINE' || $payment_method == 'online') {
                         $order_id = $this->saveOrders($request, $cart_data, $user->id, 'online', $seller_id);
-                        $request['amount'] = $cartValue['total_price'] + (int)$tips + (int)$handling_charges;
+                        $tota_price = $cartValue['total_price'] ?? 0;
+                        $tota_price-=(int)$applied_cashback;
+                        $request['amount'] = $tota_price + (int)$tips + (int)$handling_charges;
                         $request['type'] = 'order';
                         $request['order_id'] = $order_id;
                         $online_payment = $this->create_payment($request);
