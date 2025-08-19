@@ -525,6 +525,15 @@ class CustomHelper
         return $is_active;
     }
 
+    public static function calculateDiscountPer($originalPrice, $discountedPrice)
+    {
+        if ($originalPrice <= 0) {
+            return 0;
+        }
+        $discount = ((int)$originalPrice - (int)$discountedPrice) / (int)$originalPrice * 100;
+        return round($discount);
+    }
+
     public static function cartData($user_id, $coupon_code = '', $request, $user)
     {
         $cartValue = [];
@@ -619,6 +628,7 @@ class CustomHelper
                 $dbArray['mrp'] = $mrp ?? '';
                 $dbArray['subscription_price'] = $subscription_price ?? '';
                 $dbArray['unit'] = $product->unit ?? '';
+                $dbArray['discount_per']  = self::calculateDiscountPer($mrp?? 0, $selling_price ?? 0);
                 $dbArray['unit_value'] = $product->unit_value ?? '';
                 $dbArray['is_available'] = $is_available;
                 $dbArray['vendor_id'] = $product->vendor_id ?? '';
