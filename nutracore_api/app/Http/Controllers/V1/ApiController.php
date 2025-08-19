@@ -2690,6 +2690,7 @@ class ApiController extends Controller
             'delivery_data' => $delivery_data,
             'selected_freebees_product' => $selected_freebees_product,
             'subscription_plans' => $subscription_plans,
+            'is_subscribe' => CustomHelper::checkSubscription($user),
         ], 200);
     }
 
