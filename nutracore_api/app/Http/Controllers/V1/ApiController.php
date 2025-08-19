@@ -1917,7 +1917,10 @@ class ApiController extends Controller
                     }
                     $varient_images = [];
                     $varient->is_wishlist = $is_wishlist;
-
+                    $dbArray = [];
+                    $dbArray['id'] = 0;
+                    $dbArray['image'] = CustomHelper::getImageUrl('products', $product->image);
+                    $varient_images[] = $dbArray;
                     $product_images = DB::table('product_images')->where('product_id', $product->id)->where('varient_id', $varient->id)->get();
                     if (!empty($product_images)) {
                         foreach ($product_images as $product_image) {
@@ -1927,6 +1930,7 @@ class ApiController extends Controller
                             $varient_images[] = $dbArray;
                         }
                     }
+
                     $product_images = DB::table('product_images')->where('product_id', $product->id)->where('varient_id', null)->get();
                     if (!empty($product_images)) {
                         foreach ($product_images as $product_image) {
