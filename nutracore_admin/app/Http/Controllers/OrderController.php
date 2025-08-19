@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\OrderItems;
 use App\Models\OrderStatus;
 use App\Models\ProductVarient;
+use App\Models\Subscriptions;
 use App\Models\User;
 use App\Models\Varients;
 use App\Models\Products;
@@ -458,8 +459,63 @@ class OrderController extends Controller
                 ];
                 CustomHelper::fcmNotification($token, $data);
             }
+            ////Credit NC Cash
+            $this->creditNcCash($order,);
         }
         echo 1;
+    }
+
+
+    public function creditNcCash($order)
+    {
+        $user = User::find($order->userID);
+        $amount = self::getNcCashPercent($user, $order->order_amount ?? '');
+        $cashback_wallet = $user->cashback_wallet ?? 0;
+        $new_wallet = (int)$cashback_wallet + (int)$amount;
+        $user->cashback_wallet = $new_wallet;
+        $user->save();
+        $dbArray1 = [];
+        $dbArray1['userID'] = $user->id;
+        $dbArray1['txn_no'] = "NC" . rand(1111, 9999999);
+        $dbArray1['amount'] = $amount;
+        $dbArray1['wallet_type'] = "cashback_wallet";
+        $dbArray1['type'] = "CREDIT";
+        $dbArray1['note'] = "Earn NC Cash From Order ".$order->id??'';
+        $dbArray1['against_for'] = 'cashback_wallet';
+        $dbArray1['paid_by'] = 'order';
+        $dbArray1['orderID'] = 0;
+        CustomHelper::SaveTransaction($dbArray1);
+    }
+
+
+    public function getNcCashPercent($user, $amount)
+    {
+        $is_active = 0;
+
+        $subscription_end_date = '';
+        if (!empty($user)) {
+            $exist_subscription = Subscriptions::where('user_id', $user->id)->where('paid_status', 1)->latest()->first();
+            if (!empty($exist_subscription)) {
+                $current_date = date('Y-m-d');
+                if (strtotime($exist_subscription->end_date) >= strtotime($current_date)) {
+                    $is_active = 1;
+
+                }
+            }
+        }
+
+        $type = ($is_active == 1) ? 'subscribe' : 'not_subscribe';
+        $active_loyalty = DB::table('loyality_system')
+            ->where('status', 1)
+            ->where('type', $type)
+            ->where('from_amount', '<=', $amount)
+            ->where('to_amount', '>=', $amount)
+            ->first();
+        if (!empty($active_loyalty)) {
+            return round(($amount * (int)$active_loyalty->cashback) / 100);
+        }
+        return 0;
+
     }
     public function update_logistics(Request $request)
     {
