@@ -2533,7 +2533,8 @@ class ApiController extends Controller
             ], 401);
         }
 
-        $coupon_code = $request->coupon_code ?? '';
+//        $coupon_code = $request->coupon_code ?? '';
+        $coupon_code = '';
         $freebees_id = $request->freebees_id ?? '';
         $slot_date = $request->slot_date ?? '';
         $subscription_id = $request->subscription_id ?? '';
