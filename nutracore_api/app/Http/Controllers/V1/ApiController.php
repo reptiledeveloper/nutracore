@@ -2611,6 +2611,7 @@ class ApiController extends Controller
             }
 
         }
+        $cartValue['applied_cashback'] = 0 ;
         if (!empty($cartValue)) {
             $cartValue['max_applied_cashback'] = $max_applied_cashback;
             if ($apply_cashback) {
