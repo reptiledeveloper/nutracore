@@ -126,9 +126,10 @@
                                 } ?>
         @if(!empty($orders->freebees_id) && $orders->freebees_id != "null")
                                 @php
-                                    $pro = \App\Models\Products::where('id',$orders->freebees_id)->first();
-                                    $freebees_product = \App\Models\FreeProduct::where('product_id',$orders->freebees_id)->first();
-        $image = \App\Helpers\CustomHelper::getImageUrl('products',$pro->image??'');
+                                    $freebees_product = \App\Models\FreeProduct::where('id',$orders->freebees_id)->first();
+                                        $pro = \App\Models\Products::where('id',$freebees_product->product_id)->first();
+
+            $image = \App\Helpers\CustomHelper::getImageUrl('products',$pro->image??'');
  @endphp
 
 
