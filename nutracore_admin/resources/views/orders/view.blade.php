@@ -92,7 +92,6 @@
                             <table class="table table-custom mb-0">
                                 <thead>
                                 <tr>
-                                    <th>#</th>
                                     <th>IMAGE</th>
                                     <th>PRODUCT</th>
                                     <th>PRICE</th>
@@ -110,7 +109,7 @@
                                     $varients = \App\Helpers\CustomHelper::getVendorProductSingleVarients($orders->vendor_id, $value->product_id, $value->variant_id);
                                     ?>
                                 <tr>
-                                    <td>{{$i++}}</td>
+
                                     <td>
                                         <a href="#">
                                             <img src="{{$image}}" class="rounded" width="60"
@@ -125,6 +124,30 @@
                                 </tr>
                                 <?php }
                                 } ?>
+        @if(!empty($orders->freebees_id))
+                                @php
+                                    $pro = \App\Models\Products::where('id',$orders->freebees_id)->first();
+                                    $freebees_product = \App\Models\FreeProduct::where('product_id',$orders->freebees_id)->first();
+        $image = \App\Helpers\CustomHelper::getImageUrl('products',$pro->image??'');
+ @endphp
+
+
+
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        <a href="#">
+                                            <img src="{{$image}}" class="rounded" width="60"
+                                                 alt="...">
+                                        </a>
+                                    </td>
+                                    <td>{{$pro->name??''}}</td>
+                                    <td> ₹ {{$freebees_product->amount??''}}</td>
+                                    <td></td>
+                                    <td>1</td>
+                                    <td class="text-right"> ₹ {{$freebees_product->amount??''}}</td>
+                                </tr>
+            @endif
 
                                 </tbody>
                             </table>
