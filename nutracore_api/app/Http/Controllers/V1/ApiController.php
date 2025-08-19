@@ -898,6 +898,30 @@ class ApiController extends Controller
                                             Transaction::where('id', $transaction_id)->update(['transaction_id' => $txn_id]);
                                         }
                                     }
+                                    if ($exist->type == 'giftcard') {
+                                        if (!empty($user)) {
+                                            $gift_card = DB::table('gift_card')->where('amount', $exist->giftcard_amount)->where('user_id', null)->limit($exist->giftcard_qty)->first();
+                                            if (!empty($$gift_card)) {
+                                                foreach ($gift_card as $gift) {
+                                                    DB::table('gift_card')->where('id', $gift->id)->update([
+                                                        "user_id" => $user->id,
+                                                        "purchase_date" => date('Y-m-d'),
+                                                        "expire_date" => $futureDate = date('Y-m-d', strtotime("+$gift->duration months")),
+                                                    ]);
+                                                }
+                                            }
+                                            ////Save Transaction////
+                                            $dbArray = [];
+                                            $dbArray['user_id'] = $exist->user_id;
+                                            $dbArray['type'] = 'CREDIT';
+                                            $dbArray['amount'] = $exist->amount;
+                                            $dbArray['type_val'] = 'add_wallet';
+                                            $dbArray['remarks'] = "Amount Credited To Wallet";
+                                            $dbArray['is_approved'] = 1;
+                                            $transaction_id = Transaction::insertGetId($dbArray);
+                                            Transaction::where('id', $transaction_id)->update(['transaction_id' => $txn_id]);
+                                        }
+                                    }
                                     if ($exist->type == 'order') {
                                         $order = Order::where('id', $exist->order_id)->where('is_delete', 1)->where('payment_status', 0)->first();
                                         if (!empty($order)) {
@@ -919,7 +943,7 @@ class ApiController extends Controller
                                             $transaction_id = Transaction::insertGetId($dbArray);
                                             Transaction::where('id', $transaction_id)->update(['transaction_id' => $txn_id]);
                                             /////Subscription Check/////////////
-                                            if(!empty($order->subscription_id)){
+                                            if (!empty($order->subscription_id)) {
                                                 $subscription_start = $user->subscription_start ?? '';
                                                 $subscription_end = $user->subscription_end ?? '';
                                                 $subscription_plans = SubscriptionPlans::where('id', $exist->subscription_id)->first();
@@ -2613,7 +2637,7 @@ class ApiController extends Controller
             }
 
         }
-        $cartValue['applied_cashback'] = "0" ;
+        $cartValue['applied_cashback'] = "0";
         if (!empty($cartValue)) {
             $cartValue['max_applied_cashback'] = (string)$max_applied_cashback;
             if ($apply_cashback) {
@@ -2669,13 +2693,13 @@ class ApiController extends Controller
             $delivery_data['normalSlot'] = $normalSlot;
         }
         $subscription_plans = null;
-        if(CustomHelper::checkSubscription($user) == 0){
-            $subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->where('is_show',0)->first();
+        if (CustomHelper::checkSubscription($user) == 0) {
+            $subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->where('is_show', 0)->first();
         }
 
         $delivery_details['delivery_time'] = 10;
         $nc_coins = self::getNcCashPercent($user, $cartValue['cart_price'] ?? '');
-        $you_save = $cartValue['total_mrp_discount']??0;
+        $you_save = $cartValue['total_mrp_discount'] ?? 0;
         return response()->json([
             'result' => $result,
             'message' => $message,
@@ -4134,7 +4158,7 @@ class ApiController extends Controller
             }
         }
 
-        $banners = Banner::where('status', 1)->where('type','offers')->where('is_delete', 0)->get()->makeHidden(['created_at', 'updated_at', 'is_delete', 'status']);
+        $banners = Banner::where('status', 1)->where('type', 'offers')->where('is_delete', 0)->get()->makeHidden(['created_at', 'updated_at', 'is_delete', 'status']);
         if (!empty($banners)) {
             foreach ($banners as $banner) {
                 $banner->banner_img = CustomHelper::getImageUrl('banners', $banner->banner_img);
@@ -4240,4 +4264,59 @@ class ApiController extends Controller
             "giftcard" => $giftcards,
         ], 200);
     }
+
+
+    public function buy_giftcard(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            "amount" => "required",
+            "qty" => "required"
+        ]);
+        $user = null;
+        if ($validator->fails()) {
+            return response()->json([
+                'result' => false,
+                'message' => json_encode($validator->errors()),
+            ], 400);
+        }
+
+        $user = auth()->user();
+        if (empty($user)) {
+            return response()->json([
+                'result' => false,
+                'message' => '',
+            ], 401);
+        }
+
+        $amount = (int)$request->amount * (int)$request->qty;
+        $orders = $this->generateRazorpayOrder($amount, $user->id);
+        if (!empty($orders)) {
+            if (empty($orders->error)) {
+                $order_id = $orders->id;
+                $dbArray = [];
+                $dbArray['user_id'] = $user->id;
+                $dbArray['subscription_id'] = "";
+                $dbArray['amount'] = $amount;
+                $dbArray['giftcard_amount'] = $request->amount ?? 0;
+                $dbArray['giftcard_qty'] = $request->qty ?? 1;
+                $dbArray['wallet'] = 0;
+                $dbArray['type'] = "giftcard";
+                $dbArray['payment_status'] = 0;
+                $dbArray['razorpay_order_id'] = $order_id;
+                RazorpayOrders::insert($dbArray);
+            }
+        }
+
+
+        return response()->json([
+            'result' => true,
+            'message' => "Successfully",
+            'order_id' => $order_id,
+            'image' => url('public/assets/images/logo.png'),
+            'keys' => CustomHelper::getRazorpayKeys(),
+            'orders' => $orders,
+        ], 200);
+    }
+
+
 }

@@ -107,6 +107,7 @@ Route::prefix('v1/')->group(function () {
         Route::post('/chat_list', [ApiController::class, 'chat_list']);
         Route::post('/submit_chat', [ApiController::class, 'submit_chat']);
         Route::post('/giftcard', [ApiController::class, 'giftcard']);
+        Route::post('/buy_giftcard', [ApiController::class, 'buy_giftcard']);
 
 
 
