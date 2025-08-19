@@ -2641,9 +2641,9 @@ class ApiController extends Controller
         $cartValue['applied_cashback'] = "0";
         if (!empty($cartValue)) {
             $cartValue['max_applied_cashback'] = (string)$max_applied_cashback;
-            if ($apply_cashback == true || $apply_cashback == "true") {
-                $cartValue['applied_cashback'] = (string)$max_applied_cashback;
-                $cartValue['total_price'] = $total_price - (int)$max_applied_cashback;
+            if (filter_var($apply_cashback, FILTER_VALIDATE_BOOLEAN)) {
+                $cartValue['applied_cashback'] = (string) $max_applied_cashback;
+                $cartValue['total_price'] = $total_price - (int) $max_applied_cashback;
             }
         }
         $freebees_product = [];
