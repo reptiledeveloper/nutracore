@@ -3245,6 +3245,7 @@ class ApiController extends Controller
             $dbArray['subscription_id'] = $request->subscription_id ?? '';
             $dbArray['freebees_id'] = $request->freebees_id ?? '';
             $dbArray['freebees_price'] = $freebees_price ?? '';
+            $dbArray['applied_cashback'] = $request->applied_cashback ?? '';
             $dbArray['longitude'] = $address->longitude ?? '';
             $dbArray['address_type'] = $address->address_type ?? '';
             $dbArray['instruction'] = $request->instruction ?? '';
