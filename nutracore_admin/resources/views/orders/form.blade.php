@@ -213,7 +213,7 @@ $address = DB::table('user_address')->where('id', $orders->address_id)->first();
     <div class="row mt-3" id="update_order_form" style="display: none;">
         <div class="card ">
             <div class="card-body">
-              
+
                <form action="{{ route('orders.update_order') }}" method="post">
                 @csrf
                 <input type="hidden" name="id" value="{{$orders->id}}">
@@ -258,7 +258,7 @@ $address = DB::table('user_address')->where('id', $orders->address_id)->first();
         </div>
     </div>
 
-    
+
     {{-- Order Items --}}
     <div class="row mt-3">
         <div class="card widget">
@@ -316,7 +316,33 @@ $address = DB::table('user_address')->where('id', $orders->address_id)->first();
                             <td><!-- Actions --></td>
                         </tr>
                         @empty
-                        <tr>
+
+                                @if(!empty($orders->freebees_id) && $orders->freebees_id != "null")
+                                    @php
+                                        $freebees_product = \App\Models\FreeProduct::where('id',$orders->freebees_id)->first();
+                                            $pro = \App\Models\Products::where('id',$freebees_product->product_id)->first();
+
+                $image = \App\Helpers\CustomHelper::getImageUrl('products',$pro->image??'');
+                                    @endphp
+
+
+
+                                    <tr>
+                                        <td>
+                                            <a href="#">
+                                                <img src="{{$image}}" class="rounded" width="60"
+                                                     alt="...">
+                                            </a>
+                                        </td>
+                                        <td>{{$pro->name??''}}</td>
+                                        <td> ₹ {{$freebees_product->amount??''}}</td>
+                                        <td></td>
+                                        <td>1</td>
+                                        <td class="text-right"> ₹ {{$freebees_product->amount??''}}</td>
+                                    </tr>
+                                @endif
+
+                                    <tr>
                             <td colspan="9">No items found.</td>
                         </tr>
                         @endforelse
@@ -364,7 +390,7 @@ $address = DB::table('user_address')->where('id', $orders->address_id)->first();
                             <input type="text" class="form-control" name="pincode" value="{{ $address->pincode??'' }}">
                         </div>
 
-                        
+
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -406,7 +432,7 @@ $address = DB::table('user_address')->where('id', $orders->address_id)->first();
     }
 
     function get_varients(product_id) {
-        
+
         var _token = '{{ csrf_token() }}';
         $.ajax({
             url: "{{ route('orders.get_varients') }}",
