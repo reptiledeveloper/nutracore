@@ -9,9 +9,9 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use CustomHelper; // Assuming this helper is globally available
+// Assuming this helper is globally available
 
-class StockImport implements ToModel, WithHeadingRow
+class StockDataImport implements ToModel, WithHeadingRow
 {
     private $invoiceId;
     private $storeId;
@@ -24,12 +24,13 @@ class StockImport implements ToModel, WithHeadingRow
 
     public function model(array $row)
     {
+
         // Extract and clean data from the Excel row
         $product_id = trim($row['product_id']) ?? null;
         $variant_id = trim($row['variant_id']) ?? null;
         $batch_number = trim($row['batch_number']) ?? null;
         $quantity = (int) trim($row['quantity']) ?? 0;
-        $purchase_price = (float) trim($row['purchase_price']) ?? 0;
+        $purchase_price = (float) trim($row['purchaseprice']) ?? 0;
 
         $mfg_date = (float) trim($row['mfg_date']) ?? 0;
         $sku = trim($row['sku']) ?? null;
