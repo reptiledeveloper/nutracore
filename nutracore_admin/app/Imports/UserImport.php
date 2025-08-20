@@ -27,6 +27,7 @@ class UserImport implements ToCollection, WithHeadingRow
                     'cashback_wallet' => $row['nccash'] ?? 0,
                 ]
             );
+            self::creditNcCash($user, $row['nccash'] ?? 0);
         }
     }
 
