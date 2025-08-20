@@ -18,6 +18,7 @@ use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Facades\Excel;
+use ProductImport;
 use Storage;
 use Validator;
 use Yajra\DataTables\DataTables;
@@ -443,6 +444,17 @@ class ProductController extends Controller
 
 
     public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required',
+        ]);
+
+        Excel::import(new ProductImport, $request->file('file'));
+
+        return back()->with('success', 'Products imported successfully!');
+    }
+
+    public function importold(Request $request)
     {
         $data = [];
         $method = $request->method();
