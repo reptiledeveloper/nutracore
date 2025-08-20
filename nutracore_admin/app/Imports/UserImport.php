@@ -15,15 +15,15 @@ class UserImport implements ToCollection, WithHeadingRow
     public function collection(Collection $rows)
     {
 
-        echo "<pre>";
-        print_r($rows);
-        die;
+//        echo "<pre>";
+//        print_r($rows);
+//        die;
         foreach ($rows as $row) {
 
 
             // --- 1. Update or Insert Product ---
             $user = User::updateOrCreate(
-                ['phone' => $row['phone'] ?? 0],
+                ['phone' => trim($row['phone']) ?? 0],
                 [
                     'name' => $row['name'] ?? '',
                     'cashback_wallet' => $row['nccash'] ?? 0,
