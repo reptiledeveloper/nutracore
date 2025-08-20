@@ -18,7 +18,7 @@ use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Facades\Excel;
-use ProductImport;
+use App\Imports\ProductImport;
 use Storage;
 use Validator;
 use Yajra\DataTables\DataTables;
