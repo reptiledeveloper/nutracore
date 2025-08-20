@@ -409,7 +409,9 @@ class ProductController extends Controller
                     $index1 = $j - 1;
                     $excelArr['AttributeID' . $j] = $attributesArr[$index1]['attributes_id'] ?? '';
                     $excelArr['AttributeName' . $j] = $attributesArr[$index1]['attributes_name'] ?? '';
-                    $excelArr['Values' . $j] = $attributesArr[$index1]['attributes_values'] ?? '';
+                    $array = json_decode($attributesArr[$index1]['attributes_values'] ?? '', true);
+                    $string = '"' . implode('","', $array) . '"';
+                    $excelArr['Values' . $j] = $string ?? '';
                 }
 
 
