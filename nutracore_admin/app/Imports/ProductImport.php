@@ -7,6 +7,8 @@ class ProductImport implements ToModel, WithHeadingRow
 {
     public function model(array $row)
     {
+
+        echo "<pre>";
         print_r($row);
         die;
         $productName = $row['product_name'] ?? '';
