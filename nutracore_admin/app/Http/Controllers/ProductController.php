@@ -404,7 +404,7 @@ class ProductController extends Controller
                 $excelArr['sku'] = $product->sku ?? '';
                 $excelArr['HSN'] = $product->hsn ?? '';
                 $excelArr['AttributeValues'] = $product->attribute_values ?? '';
-                $excelArr['attributesArr'] = $attributesArr;
+                $excelArr['attribute_data'] = $attributesArr;
                 $varients = CustomHelper::getAdminProductVarients($product->id);
                 for ($i = 1; $i <= 15; $i++) {
                     $index = $i - 1;
