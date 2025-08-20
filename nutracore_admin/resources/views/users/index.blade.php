@@ -26,6 +26,32 @@
             </nav>
         </div>
 
+        <div class="modal fade" id="updateUserModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Book Shipment</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form action="{{ route('users.import') }}" method="post" enctype="multipart/form-data">
+                        @csrf
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-12 mt-3">
+                                    <label class="form-label">File</label>
+                                    <input type="file" class="form-control" name="file" value="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Save changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         @include('layouts.filter',['search_show'=>'search_show'])
         <div class="row">
             <div class="col-md-12">
@@ -37,6 +63,9 @@
                             <div class="dropdown ms-auto">
                                 <a href="{{ route('users.add', ['back_url' => $BackUrl]) }}"
                                    class="btn btn-primary"><i class="fa fa-plus"></i></a>
+                                <a data-bs-toggle="modal"
+                                   data-bs-target="#updateUserModal"
+                                   class="btn btn-primary" title="Import Product"> <i class="bi bi-file-text"></i></a>
                                 <a href="{{ route('reports.users', ['back_url' => $BackUrl]) }}"
                                    class="btn btn-primary"><i class="fa fa-file-excel-o" aria-hidden="true"></i>
                                 </a>

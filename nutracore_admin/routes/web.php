@@ -462,6 +462,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'orders/{id}', 'UserController@orders')->name('.orders');
             Route::match(['get', 'post'], 'search', 'UserController@search')->name('.search');
             Route::match(['get', 'post'], 'update_wallet', 'UserController@update_wallet')->name('.update_wallet');
+            Route::match(['get', 'post'], 'import', 'UserController@import')->name('.import');
         });
         ////gallery
         Route::group(['prefix' => 'gallery', 'as' => 'gallery', 'middleware' => ['allowedmodule:gallery,list']], function () {

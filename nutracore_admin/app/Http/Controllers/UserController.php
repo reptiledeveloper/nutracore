@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Imports\ProductImport;
 use App\Models\Company;
 use App\Models\Order;
 use App\Models\Transaction;
@@ -13,8 +14,10 @@ use Illuminate\Routing\Controller as BaseController;
 use App\Http\Controllers\Controller;
 use App\Helpers\CustomHelper;
 use Auth;
+use Maatwebsite\Excel\Facades\Excel;
 use Validator;
 use App\Models\User;
+use App\Imports\UserImport;
 use App\Models\Banner;
 use App\Models\Admin;
 use App\Models\Blocks;
@@ -351,5 +354,20 @@ class UserController extends Controller
         $paginationArr['more'] = $pagination;
         echo json_encode(['items' => $itemArr, 'pagination' => $paginationArr]);
 
+    }
+
+
+    public function import(Request $request)
+    {
+        $data = [];
+        $method = $request->method();
+        if($method == 'POST'){
+            $request->validate([
+                'file' => 'required',
+            ]);
+            Excel::import(new UserImport, $request->file('file'));
+            return back()->with('success', 'User imported successfully!');
+        }
+        return back()->with('success', 'User imported successfully!');
     }
 }
