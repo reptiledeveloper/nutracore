@@ -14,6 +14,10 @@ class UserImport implements ToCollection, WithHeadingRow
 {
     public function collection(Collection $rows)
     {
+
+        echo "<pre>";
+        print_r($rows);
+        die;
         foreach ($rows as $row) {
 
 
