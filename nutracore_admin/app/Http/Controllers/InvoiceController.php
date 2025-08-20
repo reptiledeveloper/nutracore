@@ -133,6 +133,7 @@ class InvoiceController extends Controller
                 $item->quantity       = $request->qty[$index];
                 $item->purchase_price = $request->purchase_price[$index];
                 $item->total_price = $request->total_price[$index];
+                $item->store_id = $request->store_id??'';
                 $item->sku = $request->sku[$index];
                 $item->save();
 
@@ -145,6 +146,7 @@ class InvoiceController extends Controller
                     ],
                     [
                         'mfg_date'     => $request->mfg[$index],
+                        'store_id'     => $request->store_id??'',
                         'expiry_date'  => $request->expiry[$index],
                         'quantity'     => DB::raw('quantity + ' . $request->qty[$index]),
                         'purchase_price' => $request->purchase_price[$index],

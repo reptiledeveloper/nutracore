@@ -93,6 +93,7 @@ class StockController extends Controller
                 'p.id as product_id',
                 'p.name as product_name',
                 'pv.id as variant_id',
+                'pv.varient_sku as sku',
                 'pv.unit',
                 DB::raw('SUM(sb.quantity) as closing_stock')
             )

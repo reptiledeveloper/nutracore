@@ -457,7 +457,6 @@ class ProductController extends Controller
         }
 
         return view('products.import', $data);
-
     }
 
     public function importold(Request $request)

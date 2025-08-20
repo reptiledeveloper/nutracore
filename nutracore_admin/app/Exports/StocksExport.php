@@ -52,10 +52,11 @@ class StocksExport implements FromCollection, WithHeadings
                 'Product Name' => $stock->product->name ?? 'N/A',
                 'Variant ID' => $stock->variant->id ?? '',
                 'Variant Name' => $stock->variant->unit ?? 'N/A',
+                'SKU' => $stock->variant->varient_sku ?? 'N/A',
                 'Batch Number' => $stock->batch_number,
                 'Quantity' => $stock->quantity,
                 'Expiry Date' => $stock->expiry_date,
-                'Price' => $stock->purchase_price,
+                'PurchasePrice' => $stock->purchase_price,
             ];
         });
     }
@@ -67,10 +68,11 @@ class StocksExport implements FromCollection, WithHeadings
             'Product Name',
             'Variant ID',
             'Variant Name',
+            'SKU',
             'Batch Number',
             'Quantity',
             'Expiry Date',
-            'Price',
+            'PurchasePrice',
         ];
     }
 }
