@@ -48,12 +48,14 @@ class StocksExport implements FromCollection, WithHeadings
 
         return $stocks->map(function ($stock) {
             return [
+                'Product ID' => $stock->product->id ?? '',
                 'Product Name' => $stock->product->name ?? 'N/A',
+                'Variant ID' => $stock->variant->id ?? '',
                 'Variant Name' => $stock->variant->unit ?? 'N/A',
                 'Batch Number' => $stock->batch_number,
                 'Quantity' => $stock->quantity,
                 'Expiry Date' => $stock->expiry_date,
-                'Price' => $stock->price,
+                'Price' => $stock->purchase_price,
             ];
         });
     }
@@ -61,7 +63,9 @@ class StocksExport implements FromCollection, WithHeadings
     public function headings(): array
     {
         return [
+            'Product ID',
             'Product Name',
+            'Variant ID',
             'Variant Name',
             'Batch Number',
             'Quantity',
