@@ -26,7 +26,6 @@ class UserImport implements ToCollection, WithHeadingRow
                 \DB::enableQueryLog(); // Enable query log
 
                 $data = DB::table('users')->where('id', $existing->id)->update([
-                    'name' => $row['name'] ?? '',
                     'cashback_wallet' => $row['nccash'] ?? 0,
                 ]);
                 //dd(\DB::getQueryLog()); // Show results of log
