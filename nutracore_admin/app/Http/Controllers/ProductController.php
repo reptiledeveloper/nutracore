@@ -407,9 +407,9 @@ class ProductController extends Controller
 
                 for ($j = 1; $j <= 4; $j++) {
                     $index1 = $j - 1;
-                    $excelArr['AttributeID' . $j] = $attributesArr[$index1]->attributes_id ?? '';
-                    $excelArr['AttributeName' . $j] = $attributesArr[$index1]->attributes_name ?? '';
-                    $excelArr['Values' . $j] = $attributesArr[$index1]->attributes_values ?? '';
+                    $excelArr['AttributeID' . $j] = $attributesArr[$index1]['attributes_id'] ?? '';
+                    $excelArr['AttributeName' . $j] = $attributesArr[$index1]['attributes_name'] ?? '';
+                    $excelArr['Values' . $j] = $attributesArr[$index1]['attributes_values'] ?? '';
                 }
 
 
