@@ -21,7 +21,8 @@ class UserImport implements ToCollection, WithHeadingRow
         foreach ($rows as $row) {
             $phone = trim($row['phone']) ?? 0;
             $existing = DB::table('users')->where('phone', $phone)->first();
-
+            print_r($existing);
+            die;
             if ($existing) {
                 DB::table('users')->where('id', $existing->id)->update([
                     'name' => $row['name'] ?? '',
