@@ -409,7 +409,7 @@ class ProductController extends Controller
                     $index1 = $j - 1;
                     $excelArr['AttributeID' . $j] = $attributesArr[$index1]->attributes_id ?? '';
                     $excelArr['AttributeName' . $j] = $attributesArr[$index1]->attributes_name ?? '';
-                    $excelArr['Values' . $j] = implode(",",$attributesArr[$index1]->attributes_values??'') ?? '';
+                    $excelArr['Values' . $j] = $attributesArr[$index1]->attributes_values ?? '';
                 }
 
 
