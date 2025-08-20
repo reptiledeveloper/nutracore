@@ -50,7 +50,7 @@ class UserImport implements ToCollection, WithHeadingRow
 
         }
 
-        die;
+
     }
 
 
