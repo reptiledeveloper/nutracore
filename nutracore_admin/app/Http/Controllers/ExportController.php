@@ -168,6 +168,7 @@ class ExportController extends Controller
                 $excelArr = [];
                 $excelArr['ID'] = $agent->id ?? '';
                 $excelArr['Name'] = $agent->name ?? '';
+                $excelArr['Email'] = $agent->email ?? '';
                 $excelArr['Phone'] = $agent->phone ?? '';
                 $excelArr['NCCash'] = $agent->cashback_wallet ?? '';
                 $excelArr['Join On'] = date('d M Y', strtotime($agent->created_at)) ?? '';

@@ -20,6 +20,7 @@ class UserImport implements ToCollection, WithHeadingRow
 //        die;
         foreach ($rows as $row) {
             $phone = trim($row['phone']) ?? 0;
+            $email = trim($row['email']) ?? '';
             $existing = DB::table('users')->where('phone', $phone)->first();
             $cashbackAmount = (int) ($row['nccash'] ?? 0);
             if ($existing) {
@@ -27,6 +28,7 @@ class UserImport implements ToCollection, WithHeadingRow
 
                 $data = DB::table('users')->where('id', $existing->id)->update([
                     'cashback_wallet' => $cashbackAmount,
+                    'email' => $email,
                 ]);
                 //dd(\DB::getQueryLog()); // Show results of log
                 $existing = DB::table('users')->where('phone', $phone)->first();
@@ -38,6 +40,7 @@ class UserImport implements ToCollection, WithHeadingRow
                 $userId = DB::table('users')->insertGetId([
                     'phone' => $phone,
                     'name' => $row['name'] ?? '',
+                    'email' => $row['email'] ?? '',
                     'cashback_wallet' => $row['nccash'] ?? 0,
                     'created_at' => now(),
                     'updated_at' => now(),
