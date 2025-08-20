@@ -413,7 +413,7 @@ class ProductController extends Controller
                 }
 
 
-                $excelArr['attribute_data'] = $attributesArr;
+//                $excelArr['attribute_data'] = $attributesArr;
                 $varients = CustomHelper::getAdminProductVarients($product->id);
                 for ($i = 1; $i <= 15; $i++) {
                     $index = $i - 1;
