@@ -29,7 +29,7 @@ class UserImport implements ToCollection, WithHeadingRow
                     'name' => $row['name'] ?? '',
                     'cashback_wallet' => $row['nccash'] ?? 0,
                 ]);
-                dd(\DB::getQueryLog()); // Show results of log
+                //dd(\DB::getQueryLog()); // Show results of log
 
                 echo $row['nccash'];
                 print_r($existing);
