@@ -445,13 +445,19 @@ class ProductController extends Controller
 
     public function import(Request $request)
     {
-        $request->validate([
-            'file' => 'required',
-        ]);
+        $data = [];
+        $method = $request->method();
+        if($method == 'POST'){
+            $request->validate([
+                'file' => 'required',
+            ]);
 
-        Excel::import(new ProductImport, $request->file('file'));
+            Excel::import(new ProductImport, $request->file('file'));
+            return back()->with('success', 'Products imported successfully!');
+        }
 
-        return back()->with('success', 'Products imported successfully!');
+        return view('products.import', $data);
+
     }
 
     public function importold(Request $request)
