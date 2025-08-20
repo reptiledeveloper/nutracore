@@ -21,12 +21,12 @@ class UserImport implements ToCollection, WithHeadingRow
         foreach ($rows as $row) {
             $phone = trim($row['phone']) ?? 0;
             $existing = DB::table('users')->where('phone', $phone)->first();
-
+            $cashbackAmount = (int) ($row['nccash'] ?? 0);
             if ($existing) {
                 \DB::enableQueryLog(); // Enable query log
 
                 $data = DB::table('users')->where('id', $existing->id)->update([
-                    'cashback_wallet' => $row['nccash'] ?? 0,
+                    'cashback_wallet' => $cashbackAmount ?? 0,
                 ]);
                 //dd(\DB::getQueryLog()); // Show results of log
 
