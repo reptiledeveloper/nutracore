@@ -395,27 +395,28 @@ class ProductController extends Controller
                 $excelArr['BrandID'] = $product->brand_id ?? '';
                 $excelArr['BrandName'] = CustomHelper::getBrandName($product->brand_id ?? '') ?? '';
                 $excelArr['Tags'] = $product->tags ?? '';
+                $excelArr['Tax'] = $product->tax ?? '';
                 $excelArr['ShortDescription'] = $product->short_description ?? '';
                 $excelArr['LongDescription'] = $product->long_description ?? '';
                 $excelArr['Image'] = $product->image ?? '';
                 $excelArr['Type'] = $product->type ?? '';
                 $excelArr['sku'] = $product->sku ?? '';
                 $excelArr['HSN'] = $product->hsn ?? '';
-                $excelArr['AttributeValues'] = $product->attribute_values ?? '';
+               // $excelArr['AttributeValues'] = $product->attribute_values ?? '';
 
 
-
-                for ($j = 1; $j <= 4; $j++) {
-                    $index1 = $j - 1;
-                    $excelArr['AttributeID' . $j] = $attributesArr[$index1]['attributes_id'] ?? '';
-                    $excelArr['AttributeName' . $j] = $attributesArr[$index1]['attributes_name'] ?? '';
-                    $array = json_decode($attributesArr[$index1]['attributes_values'] ?? '', true);
-                    $string = '"' . implode('","', $array) . '"';
-                    $excelArr['Values' . $j] = $string ?? '';
-                }
-
-
-//                $excelArr['attribute_data'] = $attributesArr;
+//
+//                for ($j = 1; $j <= 4; $j++) {
+//                    $index1 = $j - 1;
+//                    $excelArr['AttributeID' . $j] = $attributesArr[$index1]['attributes_id'] ?? '';
+//                    $excelArr['AttributeName' . $j] = $attributesArr[$index1]['attributes_name'] ?? '';
+//                    $array = json_decode($attributesArr[$index1]['attributes_values'] ?? '', true);
+//                    $string = '"' . implode('","', $array) . '"';
+//                    $excelArr['Values' . $j] = $string ?? '';
+//                }
+//
+//
+////                $excelArr['attribute_data'] = $attributesArr;
                 $varients = CustomHelper::getAdminProductVarients($product->id);
                 for ($i = 1; $i <= 15; $i++) {
                     $index = $i - 1;
