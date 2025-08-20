@@ -16,6 +16,9 @@ class UserImport implements ToCollection, WithHeadingRow
     {
         foreach ($rows as $row) {
 
+            echo "<pre>";
+            print_r($row);
+            die;
             // --- 1. Update or Insert Product ---
             $user = User::updateOrCreate(
                 ['phone' => $row['phone'] ?? 0],
