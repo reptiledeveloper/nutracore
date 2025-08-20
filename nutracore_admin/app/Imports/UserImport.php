@@ -22,7 +22,7 @@ class UserImport implements ToCollection, WithHeadingRow
 
 
             // --- 1. Update or Insert Product ---
-            $user = User::updateOrCreate(
+            $user = DB::table('users')->updateOrCreate(
                 ['phone' => trim($row['phone']) ?? 0],
                 [
                     'name' => $row['name'] ?? '',
