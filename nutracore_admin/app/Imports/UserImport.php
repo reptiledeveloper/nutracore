@@ -23,11 +23,14 @@ class UserImport implements ToCollection, WithHeadingRow
             $existing = DB::table('users')->where('phone', $phone)->first();
 
             if ($existing) {
+                \DB::enableQueryLog(); // Enable query log
+
                 $data = DB::table('users')->where('id', $existing->id)->update([
                     'name' => $row['name'] ?? '',
                     'cashback_wallet' => $row['nccash'] ?? 0,
                 ]);
-                print_r($data);
+                dd(\DB::getQueryLog()); // Show results of log
+
                 echo $row['nccash'];
                 print_r($existing);
                 die;
