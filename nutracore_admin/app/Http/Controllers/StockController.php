@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\SampleExport;
 use App\Exports\StocksExport;
 use App\Imports\ProductImport;
+use App\Imports\StockDataImport;
+use App\Models\Products;
 use App\Models\Stock;
 use App\Models\StockLog;
 use Attribute;
@@ -73,10 +76,9 @@ class StockController extends Controller
 
         return view('stocks.index', [
             'stocks' => $stocks,
-            'days'   => $days
+            'days' => $days
         ]);
     }
-
 
 
     public function closingStockList(Request $request)
@@ -113,7 +115,7 @@ class StockController extends Controller
 
     public function stockLogs()
     {
-        $logs = StockLog::with(['product','variant','store'])
+        $logs = StockLog::with(['product', 'variant', 'store'])
             ->latest()
             ->paginate(20);
 
@@ -125,12 +127,13 @@ class StockController extends Controller
     {
         $data = [];
         $method = $request->method();
-        if($method == 'POST'){
+        if ($method == 'POST') {
             $request->validate([
                 'file' => 'required',
+                'store_id' => 'required',
             ]);
 
-            Excel::import(new ProductImport, $request->file('file'));
+            Excel::import(new StockDataImport($request->store_id), $request->file('file'));
             return back()->with('success', ' Imported successfully!');
         }
 
@@ -140,9 +143,39 @@ class StockController extends Controller
 
     public function export(Request $request)
     {
-        return Excel::download(new StocksExport($request), 'stocks.xlsx');
-    }
+        $exportArr = [];
+        $products = Products::where('is_delete', 0)->get();
+        if (!empty($products)) {
+            foreach ($products as $product) {
+                $varients = CustomHelper::getAdminProductVarients($product->id);
+                if (!empty($varients)) {
+                    foreach ($varients as $varient) {
+                        $excelArr = [];
+                        $excelArr['Product ID'] = $product->id ?? '';
+                        $excelArr['ProductName'] = $product->name ?? '';
+                        $excelArr['Variant ID'] = $varient->id ?? '';
+                        $excelArr['VarientName'] = $varient->unit ?? '';
+                        $excelArr['SKU'] = $varient->varient_sku ?? '';
+                        $excelArr['Batch Number'] = '';
+                        $excelArr['Quantity'] = '';
+                        $excelArr['Expiry Date'] = '';
+                        $excelArr['Mfg Date'] = '';
+                        $excelArr['PurchasePrice'] = '';
+                        $exportArr[] = $excelArr;
+                    }
+                }
+            }
+        }
 
+        if (!empty($exportArr)) {
+            $headings = array_keys($exportArr[0]);
+            $fileName = 'Stock Sample-' . date('Y-m-d-H-i-s') . '.xlsx';
+            return Excel::download(new SampleExport($exportArr, $headings), $fileName);
+        } else {
+            return back();
+        }
+
+    }
 
 
 }

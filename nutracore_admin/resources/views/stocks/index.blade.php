@@ -4,7 +4,7 @@
     <?php
     $BackUrl = \App\Helpers\CustomHelper::BackUrl();
     $routeName = \App\Helpers\CustomHelper::getAdminRouteName();
-
+    $vendors = \App\Helpers\CustomHelper::getVendors();
     ?>
 
     <div class="content ">
@@ -33,6 +33,16 @@
                         @csrf
                         <div class="modal-body">
                             <div class="row">
+                                <div class="col-md-12 mt-3">
+                                    <label class="form-label required">Select Store</label>
+                                    <select class="form-control" name="store_id">
+                                        <option value="">Select Store</option>
+                                        @foreach($vendors as $seller)
+                                            <option value="{{$seller->id??''}}">{{$seller->name??''}}</option>
+                                        @endforeach
+                                    </select>
+                                    @include('snippets.errors_first', ['param' => 'name'])
+                                </div>
                                 <div class="col-md-12 mt-3">
                                     <label class="form-label">File</label>
                                     <input type="file" class="form-control" name="file" value="">

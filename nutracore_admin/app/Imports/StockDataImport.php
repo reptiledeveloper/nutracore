@@ -2,36 +2,115 @@
 
 namespace App\Imports;
 
-use App\Models\Agents;
-use App\Models\ETA;
-use App\Models\Pincode;
-use App\Models\SouceZone;
-use DB;
+use App\Helpers\CustomHelper;
+use App\Models\Stock;
+use App\Models\StockBatch;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use CustomHelper; // Assuming this helper is globally available
 
-
-class StockDataImport implements ToModel, WithHeadingRow
+class StockImport implements ToModel, WithHeadingRow
 {
+    private $invoiceId;
+    private $storeId;
+
+    public function __construct($storeId)
+    {
+
+        $this->storeId = $storeId;
+    }
+
     public function model(array $row)
     {
-        $id = $row['id'] ?? '';
-        $varientid = $row['varientid'] ?? '';
-        $vendorid = $row['vendorid'] ?? '';
-        $stockavailable = $row['stockavailable'] ?? '';
+        // Extract and clean data from the Excel row
+        $product_id = trim($row['product_id']) ?? null;
+        $variant_id = trim($row['variant_id']) ?? null;
+        $batch_number = trim($row['batch_number']) ?? null;
+        $quantity = (int) trim($row['quantity']) ?? 0;
+        $purchase_price = (float) trim($row['purchase_price']) ?? 0;
 
-        if (!empty($id) && !empty($varientid)) {
-            $exist = DB::table('product_stocks')->where('vendor_id', $vendorid)->where('product_id', $id)->where('varient_id', $varientid)->first();
-            if (empty($exist)) {
-                DB::table('product_stocks')->insert([
-                    "vendor_id" => $vendorid, 'product_id' => $id, 'varient_id' => $varientid, 'no_of_stock' => $stockavailable,
-                ]);
+        $mfg_date = (float) trim($row['mfg_date']) ?? 0;
+        $sku = trim($row['sku']) ?? null;
+        $total_price = $quantity * $purchase_price;
+        // Handle dates
+        $mfg_date = $this->parseDate($row['mfg_date']);
+        $expiry_date = $this->parseDate($row['expiry_date']);
+
+        // Check if required data is present
+        if (!$product_id || !$batch_number || $quantity <= 0) {
+            return null; // Skip invalid rows
+        }
+
+        // 1. Create a new Stock record
+        $stockItem = new Stock();
+
+        $stockItem->product_id = $product_id;
+        $stockItem->variant_id = $variant_id;
+        $stockItem->batch_number = $batch_number;
+        $stockItem->mfg_date = $mfg_date;
+        $stockItem->expiry_date = $expiry_date;
+        $stockItem->quantity = $quantity;
+        $stockItem->purchase_price = $purchase_price;
+        $stockItem->total_price = $total_price;
+        $stockItem->store_id = $this->storeId;
+        $stockItem->sku = $sku;
+        $stockItem->save();
+
+        // 2. Create or update StockBatch
+        StockBatch::updateOrCreate(
+            [
+                'product_id' => $product_id,
+                'variant_id' => $variant_id,
+                'batch_number' => $batch_number,
+            ],
+            [
+                'mfg_date' => $mfg_date,
+                'store_id' => $this->storeId,
+                'expiry_date' => $expiry_date,
+                'quantity' => DB::raw('quantity + ' . $quantity),
+                'purchase_price' => $purchase_price,
+            ]
+        );
+
+        // 3. Log the stock transaction (assuming the helper exists)
+        CustomHelper::logStock(
+            $product_id,
+            $variant_id,
+            $this->storeId,
+            'purchase',
+            $quantity,
+            "",
+            'Purchase'
+        );
+
+        // Return the created model instance
+        return $stockItem;
+    }
+
+    /**
+     * Helper function to parse dates from Excel or other formats.
+     *
+     * @param string|int $date
+     * @return string|null
+     */
+    private function parseDate($date)
+    {
+        if (empty($date)) {
+            return null;
+        }
+
+        try {
+            if (is_numeric($date)) {
+                return Carbon::createFromTimestamp(
+                    \PhpOffice\PhpSpreadsheet\Shared\Date::excelToTimestamp($date)
+                )->format('Y-m-d');
             } else {
-                DB::table('product_stocks')->where('vendor_id', $vendorid)->where('product_id', $id)->where('varient_id', $varientid)->update([
-                    'no_of_stock' => $stockavailable,
-                ]);
+                return Carbon::parse($date)->format('Y-m-d');
             }
+        } catch (\Exception $e) {
+            return null;
         }
     }
 }
-
