@@ -362,31 +362,31 @@ class ProductController extends Controller
     public function sample(Request $request)
     {
         $exportArr = [];
-        $products = Products::where('is_delete', 0)->limit(3)->get();
+        $products = Products::where('is_delete', 0)->get();
         if (!empty($products)) {
             foreach ($products as $product) {
                 $excelArr = [];
                 $excelArr['ID'] = $product->id ?? '';
-                $excelArr['SellerID'] = $product->vendor_id ?? '';
                 $excelArr['ProductName'] = $product->name ?? '';
                 $excelArr['CategoryID'] = $product->category_id ?? '';
+                $excelArr['CategoryName'] = CustomHelper::getCategoryName($product->category_id??'') ?? '';
                 $excelArr['SubCategoryID'] = $product->subcategory_id ?? '';
+                $excelArr['SubCategoryName'] = CustomHelper::getCategoryName($product->subcategory_id??'') ?? '';
                 $excelArr['BrandID'] = $product->brand_id ?? '';
-                $excelArr['ManufacturID'] = $product->manufacter_id ?? '';
+                $excelArr['BrandName'] = CustomHelper::getBrandName($product->brand_id??'') ?? '';
                 $excelArr['Tags'] = $product->tags ?? '';
                 $excelArr['ShortDescription'] = $product->short_description ?? '';
                 $excelArr['LongDescription'] = $product->long_description ?? '';
                 $excelArr['Image'] = $product->image ?? '';
                 $excelArr['Type'] = $product->type ?? '';
                 $excelArr['sku'] = $product->sku ?? '';
-                $excelArr['made_in'] = $product->made_in ?? '';
-                $excelArr['is_subscribed_product'] = $product->is_subscribed_product ?? 0;
                 $varients = CustomHelper::getAdminProductVarients($product->id);
-                for ($i = 1; $i <= 4; $i++) {
+                for ($i = 1; $i <= 15; $i++) {
                     $index = $i - 1;
                     $excelArr['VarientId' . $i] = $varients[$index]->id ?? '';
                     $excelArr['Unit' . $i] = $varients[$index]->unit ?? '';
-                    $excelArr['UnitValue' . $i] = $varients[$index]->unit_value ?? '';
+                    $excelArr['SKU' . $i] = $varients[$index]->varient_sku ?? '';
+                    $excelArr['Weight' . $i] = $varients[$index]->varient_weight ?? '';
                     $excelArr['MRP' . $i] = $varients[$index]->mrp ?? '';
                     $excelArr['SellingPrice' . $i] = $varients[$index]->selling_price ?? '';
                     $excelArr['SubscriptionPrice' . $i] = $varients[$index]->subscription_price ?? '';
