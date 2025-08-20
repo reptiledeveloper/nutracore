@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\StocksExport;
+use App\Imports\ProductImport;
 use App\Models\Stock;
 use App\Models\StockLog;
 use Attribute;
@@ -13,6 +15,7 @@ use Illuminate\Routing\Controller as BaseController;
 use App\Http\Controllers\Controller;
 use App\Helpers\CustomHelper;
 use Auth;
+use Maatwebsite\Excel\Facades\Excel;
 use Validator;
 
 use App\Models\Brand;
@@ -116,6 +119,28 @@ class StockController extends Controller
         return view('stocks.logs', compact('logs'));
     }
 
+
+    public function import(Request $request)
+    {
+        $data = [];
+        $method = $request->method();
+        if($method == 'POST'){
+            $request->validate([
+                'file' => 'required',
+            ]);
+
+            Excel::import(new ProductImport, $request->file('file'));
+            return back()->with('success', ' Imported successfully!');
+        }
+
+        return back()->with('success', 'Imported successfully!');
+
+    }
+
+    public function export(Request $request)
+    {
+        return Excel::download(new StocksExport($request), 'stocks.xlsx');
+    }
 
 
 

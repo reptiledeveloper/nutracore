@@ -21,6 +21,33 @@
                 </ol>
             </nav>
         </div>
+
+        <div class="modal fade" id="stockUpdate" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Import</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form action="{{ route('stocks.import') }}" method="post" enctype="multipart/form-data">
+                        @csrf
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-12 mt-3">
+                                    <label class="form-label">File</label>
+                                    <input type="file" class="form-control" name="file" value="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Save changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         @include('layouts.filter',['expiry_show'=>'expiry_show','days'=>$days])
         <div class="row">
             <div class="col-md-12">
@@ -30,7 +57,12 @@
                             <div class="d-none d-md-flex">All Stocks & Expiry</div>
 
                             <div class="dropdown ms-auto">
+                                <a data-bs-toggle="modal"
+                                   data-bs-target="#stockUpdate"
+                                   class="btn btn-primary" title="Import "> <i class="bi bi-file-text"></i></a>
 
+                                <a href="{{ route('stocks.export', ['back_url' => $BackUrl]) }}"
+                                   class="btn btn-primary" title="Export "><i class="fa fa-file-excel-o" aria-hidden="true"></i></a>
                             </div>
                         </div>
                     </div>

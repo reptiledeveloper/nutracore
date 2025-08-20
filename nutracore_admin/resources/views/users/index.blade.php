@@ -30,7 +30,7 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Book Shipment</h5>
+                        <h5 class="modal-title" id="exampleModalLabel">Import</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <form action="{{ route('users.import') }}" method="post" enctype="multipart/form-data">
@@ -65,7 +65,7 @@
                                    class="btn btn-primary"><i class="fa fa-plus"></i></a>
                                 <a data-bs-toggle="modal"
                                    data-bs-target="#updateUserModal"
-                                   class="btn btn-primary" title="Import Product"> <i class="bi bi-file-text"></i></a>
+                                   class="btn btn-primary" title="Import "> <i class="bi bi-file-text"></i></a>
                                 <a href="{{ route('reports.users', ['back_url' => $BackUrl]) }}"
                                    class="btn btn-primary"><i class="fa fa-file-excel-o" aria-hidden="true"></i>
                                 </a>

@@ -259,6 +259,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'delete/{id}', 'StockController@delete')->name('.delete');
             Route::match(['get', 'post'], 'closingStockList', 'StockController@closingStockList')->name('.closingStockList');
             Route::match(['get', 'post'], 'stockLogs', 'StockController@stockLogs')->name('.stockLogs');
+            Route::match(['get', 'post'], 'import', 'StockController@import')->name('.import');
+            Route::match(['get', 'post'], 'export', 'StockController@export')->name('.export');
 
         });
 ////return_request
