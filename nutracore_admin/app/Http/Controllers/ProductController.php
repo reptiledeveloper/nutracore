@@ -125,7 +125,7 @@ class ProductController extends Controller
     {
 
 
-        $data = $request->except(['_token', 'back_url', 'varient_weight','variant_name', 'image','varient_sku' ,'unit', 'unit_value', 'mrp', 'selling_price', 'subscription_price', 'varient_id', 'product_images', 'variant_images']);
+        $data = $request->except(['_token', 'back_url', 'varient_weight', 'variant_name', 'image', 'varient_sku', 'unit', 'unit_value', 'mrp', 'selling_price', 'subscription_price', 'varient_id', 'product_images', 'variant_images']);
         $oldImg = '';
         $data['is_approve'] = 1;
 
@@ -153,7 +153,7 @@ class ProductController extends Controller
         if ($isSaved) {
             $this->saveImage($request, $product, $oldImg);
             $this->saveVarients($request, $product);
-             $this->saveAttributesProducts($request, $product);
+            $this->saveAttributesProducts($request, $product);
         }
         return $isSaved;
     }
@@ -209,30 +209,30 @@ class ProductController extends Controller
     }
 
     public function saveAttributesProducts($request, $product)
-{
-    // Clear existing attribute values for this product (if editing)
-    DB::table('attributes_products')->where('products_id', $product->id)->delete();
+    {
+        // Clear existing attribute values for this product (if editing)
+        DB::table('attributes_products')->where('products_id', $product->id)->delete();
 
-    $attributeIDs = $request->option_name ?? [];
-    $attributeValues = $request->attribute_values ?? [];
+        $attributeIDs = $request->option_name ?? [];
+        $attributeValues = $request->attribute_values ?? [];
 
-    foreach ($attributeIDs as $index => $attributeID) {
-        if (!empty($attributeID) && !empty($attributeValues[$index])) {
-            // Split values like "L,XL" or "Red,White"
-            $values = explode(',', $attributeValues[$index]);
+        foreach ($attributeIDs as $index => $attributeID) {
+            if (!empty($attributeID) && !empty($attributeValues[$index])) {
+                // Split values like "L,XL" or "Red,White"
+                $values = explode(',', $attributeValues[$index]);
 
-            foreach ($values as $val) {
-                DB::table('attributes_products')->insert([
-                    'products_id'   => $product->id,
-                    'attributes_id' => $attributeID,
-                    'values'        => trim($val),
-                    'created_at'   => now(),
-                    'updated_at'   => now(),
-                ]);
+                foreach ($values as $val) {
+                    DB::table('attributes_products')->insert([
+                        'products_id' => $product->id,
+                        'attributes_id' => $attributeID,
+                        'values' => trim($val),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
             }
         }
     }
-}
 
 
     private function saveImage($request, $product, $oldImg = '')
@@ -361,25 +361,50 @@ class ProductController extends Controller
 
     public function sample(Request $request)
     {
+
+
+
         $exportArr = [];
         $products = Products::where('is_delete', 0)->get();
         if (!empty($products)) {
             foreach ($products as $product) {
+                $attributesArr = [];
+                $attributes_products = DB::table('attributes_products')->where('products_id', $product->id)->groupBy('attributes_id')->get();
+                if (!empty($attributes_products)) {
+                    foreach ($attributes_products as $attributes_product) {
+                        $dbArray = [];
+                        $dbArray['attributes_id'] = $attributes_product->attributes_id ?? '';
+                        $dbArray['attributes_name'] = CustomHelper::getAttributeName($attributes_product->attributes_id??'') ?? '';
+                        $attributes_product_data = DB::table('attributes_products')->where('products_id', $product->id)->where('attributes_id', $attributes_product->attributes_id)->get();
+                        if (!empty($attributes_product_data)) {
+                            $dbArray1 = [];
+                            foreach ($attributes_product_data as $attributes_product_data) {
+                                $dbArray1[] = $attributes_product_data->values ?? '';
+                            }
+                            $dbArray['attributes_values'] = $dbArray1;
+                        }
+                        $attributesArr[] = $dbArray;
+                    }
+
+                }
                 $excelArr = [];
                 $excelArr['ID'] = $product->id ?? '';
                 $excelArr['ProductName'] = $product->name ?? '';
                 $excelArr['CategoryID'] = $product->category_id ?? '';
-                $excelArr['CategoryName'] = CustomHelper::getCategoryName($product->category_id??'') ?? '';
+                $excelArr['CategoryName'] = CustomHelper::getCategoryName($product->category_id ?? '') ?? '';
                 $excelArr['SubCategoryID'] = $product->subcategory_id ?? '';
-                $excelArr['SubCategoryName'] = CustomHelper::getCategoryName($product->subcategory_id??'') ?? '';
+                $excelArr['SubCategoryName'] = CustomHelper::getCategoryName($product->subcategory_id ?? '') ?? '';
                 $excelArr['BrandID'] = $product->brand_id ?? '';
-                $excelArr['BrandName'] = CustomHelper::getBrandName($product->brand_id??'') ?? '';
+                $excelArr['BrandName'] = CustomHelper::getBrandName($product->brand_id ?? '') ?? '';
                 $excelArr['Tags'] = $product->tags ?? '';
                 $excelArr['ShortDescription'] = $product->short_description ?? '';
                 $excelArr['LongDescription'] = $product->long_description ?? '';
                 $excelArr['Image'] = $product->image ?? '';
                 $excelArr['Type'] = $product->type ?? '';
                 $excelArr['sku'] = $product->sku ?? '';
+                $excelArr['HSN'] = $product->hsn ?? '';
+                $excelArr['AttributeValues'] = $product->attribute_values ?? '';
+                $excelArr['attributesArr'] = $attributesArr;
                 $varients = CustomHelper::getAdminProductVarients($product->id);
                 for ($i = 1; $i <= 15; $i++) {
                     $index = $i - 1;
@@ -496,7 +521,6 @@ class ProductController extends Controller
             }
 
             $data['products_data'] = $productArr;
-
 
 
             return view('products.import', $data);

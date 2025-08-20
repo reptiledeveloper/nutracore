@@ -1042,6 +1042,12 @@ class CustomHelper
         return $product->name ?? '';
 
     }
+    public static function getAttributeName($attributes_id)
+    {
+        $product = Attributes::find($attributes_id);
+        return $product->name ?? '';
+
+    }
 
     public static function updateOrderStatus($order_id,$status)
     {
