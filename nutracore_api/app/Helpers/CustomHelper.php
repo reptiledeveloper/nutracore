@@ -719,6 +719,7 @@ class CustomHelper
         $cartValue['coupon_discount'] = $coupon_discount;
         $cartValue['handling_charges'] = $handling_charges;
         $cartValue['small_cart_fee'] = $small_cart_fee;
+        $cartValue['total_cashback'] = $user->cashback_wallet??0;
         $cartValue['rain_fee'] = $rain_fee;
         $cartValue['coupon_code'] = $coupon_code;
         $cartValue['cart_products'] = $cart_products;
