@@ -172,8 +172,8 @@ foreach ($subscription_plans as $plan) {
             ->where('status', 1)
             ->where('is_delete',0)
             ->where('type', $type)
-            ->where('from_amount', '<=', $total_order_amount)
-            ->where('to_amount', '>=', $total_order_amount)
+            ->where('from_amount', '>=', $total_order_amount)
+//            ->where('to_amount', '>=', $total_order_amount)
             ->first();
         $tire_system = DB::table('loyality_system')
             ->where('status', 1)
