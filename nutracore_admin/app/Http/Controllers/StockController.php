@@ -163,6 +163,19 @@ class StockController extends Controller
                         $excelArr['PurchasePrice'] = '';
                         $exportArr[] = $excelArr;
                     }
+                }else{
+                    $excelArr = [];
+                    $excelArr['Product ID'] = $product->id ?? '';
+                    $excelArr['ProductName'] = $product->name ?? '';
+                    $excelArr['Variant ID'] = '';
+                    $excelArr['VarientName'] = '';
+                    $excelArr['SKU'] = '';
+                    $excelArr['Batch Number'] = '';
+                    $excelArr['Quantity'] = '';
+                    $excelArr['Expiry Date'] = '';
+                    $excelArr['Mfg Date'] = '';
+                    $excelArr['PurchasePrice'] = '';
+                    $exportArr[] = $excelArr;
                 }
             }
         }
