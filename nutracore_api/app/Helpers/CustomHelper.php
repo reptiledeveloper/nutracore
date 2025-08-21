@@ -518,6 +518,7 @@ class CustomHelper
         $total = 0;
         $nc_cash_earn = 0;
         $save = 0;
+        $orders = [];
         $subscriptions = Subscriptions::where('user_id', $user->id)->whereDate('end_date', '>=', $date)->where('paid_status', 1)->orderBy('created_at', "ASC")->first();
         if (!empty($subscriptions)) {
             $start_date = $subscriptions->start_date ?? '';
@@ -538,7 +539,7 @@ class CustomHelper
         }
         $total = $nc_cash_earn + $save;
 
-        return ["total" => $total, "nc_cash_earn" => $nc_cash_earn, "save" => $save,'subscriptions'=>$subscriptions];
+        return ["total" => $total, "nc_cash_earn" => $nc_cash_earn, "save" => $save,'orders'=>$orders];
     }
 
     public static function checkSubscription($user)
