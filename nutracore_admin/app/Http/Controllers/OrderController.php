@@ -529,6 +529,23 @@ class OrderController extends Controller
         echo 1;
     }
 
+
+    public function  book_porter(Request $request)
+    {
+        $order_id = $request->order_id??'';
+        $order = Order::find($order_id);
+        $book_shipment = CustomHelper::bookPorterShipment($order);
+        return back();
+
+    }
+    public function  cancel_porter(Request $request)
+    {
+        $order_id = $request->order_id??'';
+        $order = Order::find($order_id);
+        $book_shipment = CustomHelper::cancelPorterShipment($order);
+        return back();
+
+    }
     public function bookshipment_shiprocket(Request $request)
     {
         $id = $request->id ?? '';

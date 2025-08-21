@@ -100,24 +100,25 @@ class CustomHelper
             ->sum('quantity');
 
         StockLog::create([
-            'product_id'   => $product_id,
-            'variant_id'   => $variant_id,
-            'store_id'     => $store_id,
-            'action'       => $action,
-            'quantity'     => $quantity,
-            'closing_stock'=> $closing,
-            'related_id'   => $related_id,
+            'product_id' => $product_id,
+            'variant_id' => $variant_id,
+            'store_id' => $store_id,
+            'action' => $action,
+            'quantity' => $quantity,
+            'closing_stock' => $closing,
+            'related_id' => $related_id,
             'related_type' => $related_type,
-            'created_by'   => auth()->id(),
+            'created_by' => auth()->id(),
         ]);
     }
 
     public static function generateGiftCardCode(
-        int $length = 12,
-        string $prefix = 'NC-',
+        int     $length = 12,
+        string  $prefix = 'NC-',
         ?string $table = 'gift_card',
-        string $column = 'code'
-    ): string {
+        string  $column = 'code'
+    ): string
+    {
         $alphabet = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
         $maxAttempts = 5;
 
@@ -203,7 +204,7 @@ class CustomHelper
     public static function checkDelivery($pincode)
     {
         $login_data = self::loginShipRocket();
-         $token = $login_data->token??'';
+        $token = $login_data->token ?? '';
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
@@ -223,7 +224,7 @@ class CustomHelper
 }',
             CURLOPT_HTTPHEADER => array(
                 'Content-Type: application/json',
-                'Authorization: Bearer '.$token
+                'Authorization: Bearer ' . $token
             ),
         ));
 
@@ -233,8 +234,9 @@ class CustomHelper
         return $response;
     }
 
-    public static function getProducts(){
-        $products = Products::select('id','name')->where('status',1)->where('is_delete',0)->get();
+    public static function getProducts()
+    {
+        $products = Products::select('id', 'name')->where('status', 1)->where('is_delete', 0)->get();
         return $products;
     }
 
@@ -380,11 +382,11 @@ class CustomHelper
     }
 
 
-    public static function getAgents($seller_id='')
+    public static function getAgents($seller_id = '')
     {
-        $users = DeliveryAgents::select('id', 'name','phone')->where('status', 1)->where('is_delete', 0);
-        if(!empty($seller_id)){
-            $users->where('vendor_id',$seller_id);
+        $users = DeliveryAgents::select('id', 'name', 'phone')->where('status', 1)->where('is_delete', 0);
+        if (!empty($seller_id)) {
+            $users->where('vendor_id', $seller_id);
         }
         $users = $users->get();
         return $users;
@@ -661,45 +663,46 @@ class CustomHelper
     }
 
 
-    public static function numberToWords($number) {
-        $hyphen      = '-';
+    public static function numberToWords($number)
+    {
+        $hyphen = '-';
         $conjunction = ' and ';
-        $separator   = ', ';
-        $negative    = 'negative ';
-        $decimal     = ' point ';
-        $dictionary  = array(
-            0                   => 'Zero',
-            1                   => 'One',
-            2                   => 'Two',
-            3                   => 'Three',
-            4                   => 'Four',
-            5                   => 'Five',
-            6                   => 'Six',
-            7                   => 'Seven',
-            8                   => 'Eight',
-            9                   => 'Nine',
-            10                  => 'Ten',
-            11                  => 'Eleven',
-            12                  => 'Twelve',
-            13                  => 'Thirteen',
-            14                  => 'Fourteen',
-            15                  => 'Fifteen',
-            16                  => 'Sixteen',
-            17                  => 'Seventeen',
-            18                  => 'Eighteen',
-            19                  => 'Nineteen',
-            20                  => 'Twenty',
-            30                  => 'Thirty',
-            40                  => 'Forty',
-            50                  => 'Fifty',
-            60                  => 'Sixty',
-            70                  => 'Seventy',
-            80                  => 'Eighty',
-            90                  => 'Ninety',
-            100                => 'Hundred',
-            1000               => 'Thousand',
-            1000000            => 'Million',
-            1000000000         => 'Billion'
+        $separator = ', ';
+        $negative = 'negative ';
+        $decimal = ' point ';
+        $dictionary = array(
+            0 => 'Zero',
+            1 => 'One',
+            2 => 'Two',
+            3 => 'Three',
+            4 => 'Four',
+            5 => 'Five',
+            6 => 'Six',
+            7 => 'Seven',
+            8 => 'Eight',
+            9 => 'Nine',
+            10 => 'Ten',
+            11 => 'Eleven',
+            12 => 'Twelve',
+            13 => 'Thirteen',
+            14 => 'Fourteen',
+            15 => 'Fifteen',
+            16 => 'Sixteen',
+            17 => 'Seventeen',
+            18 => 'Eighteen',
+            19 => 'Nineteen',
+            20 => 'Twenty',
+            30 => 'Thirty',
+            40 => 'Forty',
+            50 => 'Fifty',
+            60 => 'Sixty',
+            70 => 'Seventy',
+            80 => 'Eighty',
+            90 => 'Ninety',
+            100 => 'Hundred',
+            1000 => 'Thousand',
+            1000000 => 'Million',
+            1000000000 => 'Billion'
         );
 
         if (!is_numeric($number)) {
@@ -731,13 +734,14 @@ class CustomHelper
         return $result;
     }
 
-   public static function convertIntegerToWords($number, $dictionary) {
+    public static function convertIntegerToWords($number, $dictionary)
+    {
         $string = '';
-       $hyphen = '-';
-       $conjunction = ' and ';
-       $separator = ', ';
-       $negative = 'negative ';
-       $decimal = ' point ';
+        $hyphen = '-';
+        $conjunction = ' and ';
+        $separator = ', ';
+        $negative = 'negative ';
+        $decimal = ' point ';
         if ($number >= 1000) {
             $string .= self::convertIntegerToWords(intval($number / 1000), $dictionary) . ' ' . $dictionary[1000] . $separator;
             $number = $number % 1000;
@@ -755,8 +759,6 @@ class CustomHelper
         }
         return $string;
     }
-
-
 
 
     public static function getPastTime($timestamp)
@@ -1042,6 +1044,7 @@ class CustomHelper
         return $product->name ?? '';
 
     }
+
     public static function getAttributeName($attributes_id)
     {
         $product = Attributes::find($attributes_id);
@@ -1049,7 +1052,7 @@ class CustomHelper
 
     }
 
-    public static function updateOrderStatus($order_id,$status)
+    public static function updateOrderStatus($order_id, $status)
     {
         $dbArray = [];
         $dbArray['order_id'] = $order_id;
@@ -1058,6 +1061,7 @@ class CustomHelper
         OrderStatus::insert($dbArray);
         return true;
     }
+
     public static function getProductVarients($product_id)
     {
         $varients = [];
@@ -1078,11 +1082,12 @@ class CustomHelper
 
     }
 
-    public static function getVendorProductVarientsSingle($vendor_id, $product_id,$varient_id)
+    public static function getVendorProductVarientsSingle($vendor_id, $product_id, $varient_id)
     {
         $varients = VendorProductPrice::where('vendor_id', $vendor_id)->where('product_id', $product_id)->where('varient_id', $varient_id)->where('is_delete', 0)->first();
         return $varients;
     }
+
     public static function getVendorProductSingleVarients($vendor_id, $product_id, $varient_id)
     {
         $varients = VendorProductPrice::where('vendor_id', $vendor_id)->where('product_id', $product_id)->where('varient_id', $varient_id)->where('is_delete', 0)->first();
@@ -1113,6 +1118,7 @@ class CustomHelper
         }
         return $dateArr;
     }
+
     public static function getCategories()
     {
         $categories = Category::where('parent_id', 0)->where('status', 1)->where('is_delete', 0)->get();
@@ -1153,7 +1159,7 @@ class CustomHelper
 
     public static function getOrderItemsWithProduct($orderID)
     {
-        $order_items = OrderItems::where('order_id',$orderID)->get();
+        $order_items = OrderItems::where('order_id', $orderID)->get();
 //        $order_items = OrderItems::select('products.*', 'order_items.id as order_items_id', 'order_items.variant_id', 'order_items.qty', 'order_items.price', 'order_items.net_price', 'order_items.status')->leftJoin('products', 'products.id', '=', 'order_items.product_id')
 //            ->where('order_items.order_id', $orderID)->where('order_items.is_delete', 0)->get();
         return $order_items;
@@ -1165,6 +1171,7 @@ class CustomHelper
         $vendors = Vendors::where('id', $vendor_id)->first();
         return $vendors->name ?? '';
     }
+
     public static function getVendorDetails($vendor_id)
     {
         $vendors = Vendors::where('id', $vendor_id)->first();
@@ -1183,14 +1190,15 @@ class CustomHelper
         return $vendors->name ?? '';
     }
 
-    public static function getQuotePorter($orders){
+    public static function getQuotePorter($orders)
+    {
         $quoteData = [];
-        $store = CustomHelper::getVendorDetails($orders->vendor_id??'');
-        $source_lat = $store->latitude??'';
-        $source_lon = $store->longitude??'';
+        $store = CustomHelper::getVendorDetails($orders->vendor_id ?? '');
+        $source_lat = $store->latitude ?? '';
+        $source_lon = $store->longitude ?? '';
 
-        $dest_lat = $orders->latitude??'';
-        $dest_lon = $orders->longitude??'';
+        $dest_lat = $orders->latitude ?? '';
+        $dest_lon = $orders->longitude ?? '';
         $data = [
             'pickup_details' => [
                 'lat' => $source_lat,
@@ -1201,10 +1209,10 @@ class CustomHelper
                 'lng' => $dest_lon
             ],
             'customer' => [
-                'name' => $orders->customer_name??"Guest",
+                'name' => $orders->customer_name ?? "Guest",
                 'mobile' => [
                     'country_code' => '+91',
-                    'number' => $orders->contact_no??"9999999999",
+                    'number' => $orders->contact_no ?? "9999999999",
                 ]
             ]
         ];
@@ -1219,8 +1227,8 @@ class CustomHelper
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS =>json_encode($data),
-                CURLOPT_HTTPHEADER => array(
+            CURLOPT_POSTFIELDS => json_encode($data),
+            CURLOPT_HTTPHEADER => array(
                 'x-api-key: aa850081-1f6d-4786-8a8f-211ed6ed1be8',
                 'Content-Type: application/json'
             ),
@@ -1232,12 +1240,12 @@ class CustomHelper
         $response = json_decode($response);
 
 
-        if(!empty($response->vehicles)){
+        if (!empty($response->vehicles)) {
             foreach ($response->vehicles as $vehicle) {
                 $type = $vehicle->type ?? null;
-                if($type == "2 Wheeler"){
+                if ($type == "2 Wheeler") {
                     $price = $vehicle->fare->minor_amount ?? null;
-                    $eta  = $vehicle->eta->value . ' ' . $vehicle->eta->unit ;
+                    $eta = $vehicle->eta->value . ' ' . $vehicle->eta->unit;
                     $priceInRupees = $price / 100;
                     $quoteData['price'] = $priceInRupees;
                     $quoteData['eta'] = $eta;
@@ -1248,6 +1256,127 @@ class CustomHelper
         return $quoteData;
     }
 
+    public static function bookPorterShipment($order)
+    {
+        $store = CustomHelper::getVendorDetails($orders->vendor_id ?? '');
+        $source_lat = $store->latitude ?? '';
+        $source_lon = $store->longitude ?? '';
+
+        $dest_lat = $orders->latitude ?? '';
+        $dest_lon = $orders->longitude ?? '';
+        $data = [
+            'request_id' => '2 Wheeler',
+            'delivery_instructions' => [
+                'instructions_list' => [
+                    [
+                        'type' => 'text',
+                        'description' => 'handle with care'
+                    ],
+                    [
+                        'type' => 'text',
+                        'description' => 'Order ' . $order->id
+                    ]
+                ]
+            ],
+            'pickup_details' => [
+                'address' => [
+                    'apartment_address' => '27',
+                    'street_address1' => $store->address ?? '',
+                    'street_address2' => $store->address ?? '',
+                    'landmark' => $store->address ?? '',
+                    'city' => '',
+                    'state' => '',
+                    'pincode' => $store->pincode ?? '',
+                    'country' => 'India',
+                    'lat' => $source_lat,
+                    'lng' => $source_lon,
+                    'contact_details' => [
+                        'name' => 'Porter Test User',
+                        'phone_number' => $store->user_phone ?? '',
+                    ]
+                ]
+            ],
+            'drop_details' => [
+                'address' => [
+                    'apartment_address' => $orders->house_no ?? '',
+                    'street_address1' => $orders->landmark ?? '',
+                    'street_address2' => $orders->location ?? '',
+                    'landmark' => $orders->landmark ?? '',
+                    'city' => '',
+                    'state' => '',
+                    'pincode' => "",
+                    'country' => 'India',
+                    'lat' => $dest_lat,
+                    'lng' => $dest_lon,
+                    'contact_details' => [
+                        'name' => $orders->customer_name ?? "Guest",
+                        'phone_number' => $orders->contact_no ?? "9999999999",
+                    ]
+                ]
+            ]
+        ];
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://pfe-apigw.porter.in/v1/orders/create',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => json_encode($data),
+            CURLOPT_HTTPHEADER => array(
+                'x-api-key: aa850081-1f6d-4786-8a8f-211ed6ed1be8',
+                'Content-Type: application/json'
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        $response = json_decode($response);
+        if(!empty($response)){
+            $dbArray = [];
+            $dbArray['logistics'] = 'porter';
+            $dbArray['order_id'] = $orders->id??'';
+            $dbArray['request_id'] = $response->request_id??'';
+            $dbArray['porter_order_id'] = $response->order_id??'';
+            $dbArray['estimated_pickup_time'] = $response->estimated_pickup_time??'';
+            $dbArray['tracking_url'] = $response->tracking_url??'';
+            $dbArray['porter_data'] = json_encode($response);
+            DB::table('order_courier')->insert($dbArray);
+        }
+    }
+
+
+    public static  function cancelPorterShipment($order)
+    {
+        $exist = DB::table('order_courier')->where("order_id",$order->id)->first();
+        if(!empty($exist)){
+            $curl = curl_init();
+
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => 'https://pfe-apigw.porter.in/v1/orders/'.$exist->porter_order_id.'/cancel',
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_HTTPHEADER => array(
+                    'x-api-key: aa850081-1f6d-4786-8a8f-211ed6ed1be8'
+                ),
+            ));
+
+            $response = curl_exec($curl);
+
+            curl_close($curl);
+            return $response;
+        }
+    }
 
     public static function getCategoryDetails($category_id)
     {
@@ -1410,7 +1539,7 @@ class CustomHelper
     {
         $fileName = $path . time() . $file->getClientOriginalName();
         $fileName = str_replace(" ", "-", $fileName);
-        $is_s3 = env('IS_S3')??0;
+        $is_s3 = env('IS_S3') ?? 0;
         if ($is_s3 == 0) {
             $path = dirname(__DIR__, 3) . '/images/' . $path;
             $path = $file->move($path, $fileName);
@@ -2969,9 +3098,6 @@ class CustomHelper
     }
 
 
-
-
-
     /* End Common Function */
     public static function getPaymentStatusStr($status)
     {
@@ -2979,10 +3105,9 @@ class CustomHelper
         if (is_numeric($status) && strlen($status) > 0) {
             if ($status == 1) {
                 $status = 'Paid';
-            }else if ($status == 2) {
+            } else if ($status == 2) {
                 $status = 'Reject';
-            }
-            else {
+            } else {
                 $status = 'Pending';
             }
 
@@ -3019,22 +3144,22 @@ class CustomHelper
     public static function getNotifyData($type)
     {
 
-        return DB::table('notification_table')->where('type',$type)->first();
+        return DB::table('notification_table')->where('type', $type)->first();
     }
 
     public static function getVendorProductIds($vendor_id)
     {
-        $vendor_product_ids = VendorProductPrice::where('vendor_id',$vendor_id)->where('is_delete',0)->groupBy('product_id')->pluck('product_id')->toArray();
+        $vendor_product_ids = VendorProductPrice::where('vendor_id', $vendor_id)->where('is_delete', 0)->groupBy('product_id')->pluck('product_id')->toArray();
         return $vendor_product_ids;
 
     }
 
     public static function getProductImages($product_id)
     {
-        $product_images = DB::table('product_images')->where('product_id',$product_id)->where('is_delete',0)->get();
-        if(!empty($product_images)){
-            foreach ($product_images as $img){
-                $img->image = self::getImageUrl('products',$img->image);
+        $product_images = DB::table('product_images')->where('product_id', $product_id)->where('is_delete', 0)->get();
+        if (!empty($product_images)) {
+            foreach ($product_images as $img) {
+                $img->image = self::getImageUrl('products', $img->image);
             }
         }
 
@@ -3042,22 +3167,18 @@ class CustomHelper
 
     }
 
-     public static function getCategoryBrandImages($id,$type)
+    public static function getCategoryBrandImages($id, $type)
     {
-        $product_images = DB::table('category_brand_images')->where('type_id',$id)->where('type',$type)->where('is_delete',0)->get();
-        if(!empty($product_images)){
-            foreach ($product_images as $img){
-                $img->image = self::getImageUrl('banners',$img->image);
+        $product_images = DB::table('category_brand_images')->where('type_id', $id)->where('type', $type)->where('is_delete', 0)->get();
+        if (!empty($product_images)) {
+            foreach ($product_images as $img) {
+                $img->image = self::getImageUrl('banners', $img->image);
             }
         }
 
         return $product_images;
 
     }
-
-
-
-
 
 
     public static function getProductDeatils($product_id)
@@ -3077,14 +3198,14 @@ class CustomHelper
             $startDate = Carbon::parse(date('Y-m-d')); // Example: December 31, 2024
 
             // Get the current date
-            $endDate =  Carbon::parse(date('Y-m-d',strtotime($end_date)));
+            $endDate = Carbon::parse(date('Y-m-d', strtotime($end_date)));
 
 
             // Calculate the difference in days
             $daysleft = $startDate->diffInDays($endDate);
-            if($daysleft >=0){
+            if ($daysleft >= 0) {
                 $daysleft = abs($daysleft);
-            }else{
+            } else {
                 $daysleft = 0;
             }
 
@@ -3127,7 +3248,8 @@ class CustomHelper
     }
 
 
-    public static function getAccessTokenNew() {
+    public static function getAccessTokenNew()
+    {
         $serviceAccountFile = storage_path('app/buybuycart.json');
 //        $scopes = ['https://www.googleapis.com/auth/firebaseiid'];
 //        $credentials = new ServiceAccountCredentials($scopes,$serviceAccountFile);
@@ -3190,7 +3312,8 @@ class CustomHelper
     }
 
 
-    public static function subscribeToTopic($tokens, $topic,$accessToken) {
+    public static function subscribeToTopic($tokens, $topic, $accessToken)
+    {
         $data = [
             'to' => '/topics/' . $topic,
             'registration_tokens' => $tokens
@@ -3213,7 +3336,8 @@ class CustomHelper
         return $response;
     }
 
-    public static function sendNotificationToTopic($topic, $title, $body,$accessToken) {
+    public static function sendNotificationToTopic($topic, $title, $body, $accessToken)
+    {
         $postFields = [
             'message' => [
                 'topic' => $topic,
@@ -3246,10 +3370,6 @@ class CustomHelper
         curl_close($curl);
         return $response;
     }
-
-
-
-
 
 
     public static function fcmNotification($token, $data)

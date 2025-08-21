@@ -2,6 +2,8 @@
     use App\Helpers\CustomHelper;
    $quoteData = CustomHelper::getQuotePorter($orders);
 
+   $exist = DB::table('order_courier')->where("order_id",$orders->id)->first();
+
 @endphp
 
 <div class="row">
@@ -12,14 +14,31 @@
     <div class="col-md-12">
         <label>ETA : {{ $quoteData["eta"] ?? '' }}</label>
     </div>
+    <div class="col-md-12">
+        <label>Tracking URL  : {{ $exist->tracking_url ?? '' }}</label>
+    </div>
+    <div class="col-md-12">
+        <label>Porter Order ID  : {{ $exist->porter_order_id ?? '' }}</label>
+    </div>
+    <div class="col-md-12">
+        <label>Estimated Pickup Time  : {{ $exist->estimated_pickup_time ?? '' }}</label>
+    </div>
+    @if(empty($exist))
+    <div class="ms-auto mt-3" id="bookBtn" >
+        <a href="{{route('orders.book_porter',['order_id'=>$orders->id])}}" class="btn btn-primary">Book</i>
+        </a>
 
+    </div>
+    @else
+        <div class="ms-auto mt-3" id="bookBtn" >
+            <a href="{{route('orders.cancel_porter',['order_id'=>$orders->id])}}" class="btn btn-danger">Cancel</i>
+            </a>
+
+        </div>
+    @endif
 
 </div>
-<div class="ms-auto mt-3" id="bookBtn" style="display: {{!empty($order_courier->courier_id) ? "" : "none"}};">
-    <a data-bs-toggle="modal" data-bs-target="#bookShipment" class="btn btn-primary">Book</i>
-    </a>
-    <!-- href="" -->
-</div>
+
 
 
 
