@@ -148,7 +148,7 @@ class StockController extends Controller
         if (!empty($products)) {
             foreach ($products as $product) {
                 $varients = CustomHelper::getAdminProductVarients($product->id);
-                if (!empty($varients)) {
+                if (!empty($varients) && count($varients) > 0) {
                     foreach ($varients as $varient) {
                         $excelArr = [];
                         $excelArr['Product ID'] = $product->id ?? '';
