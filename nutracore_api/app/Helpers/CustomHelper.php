@@ -538,7 +538,7 @@ class CustomHelper
         }
         $total = $nc_cash_earn + $save;
 
-        return ["total" => $total, "nc_cash_earn" => $nc_cash_earn, "save" => $save];
+        return ["total" => $total, "nc_cash_earn" => $nc_cash_earn, "save" => $save,'subscriptions'=>$subscriptions];
     }
 
     public static function checkSubscription($user)
