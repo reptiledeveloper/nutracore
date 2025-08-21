@@ -2707,7 +2707,7 @@ class ApiController extends Controller
             $delivery_data['expressSlot'] = $expressSlot;
             $delivery_data['normalSlot'] = $normalSlot;
         }
-        $subscription_plans = null;
+        $subscription_plans = [];
         if (CustomHelper::checkSubscription($user) == 0) {
             $subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->orderBy('duration',"ASC")->get();
         }
@@ -3357,6 +3357,7 @@ class ApiController extends Controller
                     $itemsArr['price'] = $value['selling_price'] ?? '';
                     $itemsArr['subscription_price'] = $value['subscription_price'] ?? '';
                     $itemsArr['net_price'] = $value['total_price'] ?? '';
+                    $itemsArr['net_subscription_price'] = $value['net_subscription_price'] ?? '';
                     $itemsArr['status'] = 'PLACED';
                     $itemsArr['vendor_id'] = $seller_id;
                     OrderItems::insert($itemsArr);

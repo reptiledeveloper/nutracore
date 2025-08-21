@@ -474,6 +474,8 @@ class OrderController extends Controller
         $new_wallet = (int)$cashback_wallet + (int)$amount;
         $user->cashback_wallet = $new_wallet;
         $user->save();
+        $order->nc_cash_earned = $amount;
+        $order->save();
         $dbArray1 = [];
         $dbArray1['userID'] = $user->id;
         $dbArray1['txn_no'] = "NC" . rand(1111, 9999999);

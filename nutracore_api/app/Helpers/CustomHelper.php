@@ -512,6 +512,29 @@ class CustomHelper
 
     }
 
+    public static function calculateSavingAmount($user)
+    {
+        $date = date('Y-m-d');
+        $total = 0;
+        $nc_cash_earn = 0;
+        $save = 0;
+        $subscriptions = Subscriptions::where('user_id', $user->id)->whereDate('end_date', '>=', $date)->where('paid_status', 1)->orderBy('created_at', "ASC")->first();
+        if (!empty($subscriptions)) {
+            $start_date = $subscriptions->start_date ?? '';
+            $end_date = $subscriptions->end_date ?? '';
+            $orders = Order::where('userID', $user->id)->whereDate('created_at', ">=", $start_date)->whereDate('created_at', "<=", $end_date)->get();
+            if (!empty($orders)) {
+                foreach ($orders as $orde) {
+                    $nc_cash_earn += (int)$orde->nc_cash_earn;
+                $order_items = OrderItems::where("order_id",$orde->id)->where('status',"DELIVERED")
+                }
+            }
+        }
+        $total = $nc_cash_earn + $save;
+
+        return $total;
+    }
+
     public static function checkSubscription($user)
     {
         $is_active = 0;
@@ -623,7 +646,7 @@ class CustomHelper
                 if (self::checkSubscription($user) == 1) {
                     $selling_price = $subscription_price;
                 }
-                if(!empty($request->subscription_id) && $request->subscription_id != "null" && $request->subscription_id != null){
+                if (!empty($request->subscription_id) && $request->subscription_id != "null" && $request->subscription_id != null) {
                     $selling_price = $subscription_price;
                 }
                 $dbArray['nc_cash'] = self::getNcCashPercent($user_data, $selling_price ?? '');
@@ -632,7 +655,7 @@ class CustomHelper
                 $dbArray['mrp'] = $mrp ?? '';
                 $dbArray['subscription_price'] = $subscription_price ?? '';
                 $dbArray['unit'] = $product->unit ?? '';
-                $dbArray['discount_per']  = self::calculateDiscountPer($mrp?? 0, $selling_price ?? 0);
+                $dbArray['discount_per'] = self::calculateDiscountPer($mrp ?? 0, $selling_price ?? 0);
                 $dbArray['unit_value'] = $product->unit_value ?? '';
                 $dbArray['is_available'] = $is_available;
                 $dbArray['vendor_id'] = $product->vendor_id ?? '';
@@ -640,19 +663,21 @@ class CustomHelper
                 $qty = (int)$cart->qty ?? 0;
                 $cart_qty += $cart->qty;
                 $total_cart_price = (int)$qty * (int)$selling_price;
+                $net_subscription_price = (int)$qty * (int)$subscription_price;
                 if (self::checkSubscription($user) == 1) {
                     $total_cart_price = (int)$qty * (int)$subscription_price;
                 }
-                if(!empty($request->subscription_id) && $request->subscription_id != "null" && $request->subscription_id != null){
+                if (!empty($request->subscription_id) && $request->subscription_id != "null" && $request->subscription_id != null) {
                     $total_cart_price = (int)$qty * (int)$subscription_price;
                 }
                 $total_mrp = (int)$qty * (int)$mrp;
 
-                $total_mrp_price+=$total_mrp;
+                $total_mrp_price += $total_mrp;
                 $total_product_price = (int)$total_cart_price ?? 0;
 
                 $dbArray['total_mrp'] = $total_mrp;
                 $dbArray['total_product_price'] = $total_product_price;
+                $dbArray['net_subscription_price'] = $net_subscription_price;
 
                 $discount = (int)$mrp - (int)$selling_price;
                 $total_discount = (int)$cart->qty * (int)$discount;
@@ -677,7 +702,7 @@ class CustomHelper
         $cartValue['cart_price'] = $cart_total + (int)$freebees_price + (int)$subscription_amount;
 
         $total_mrp_discount = (int)$total_mrp_price - (int)$cartValue['cart_price'];
-            $cartValue['freebees_price'] = $freebees_price;
+        $cartValue['freebees_price'] = $freebees_price;
         $cartValue['total_discount'] = $cart_discount;
         $cartValue['subscription_amount'] = $subscription_amount;
         $cartValue['delivery_charges'] = $delivery_charges;
