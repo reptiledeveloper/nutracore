@@ -1165,6 +1165,11 @@ class CustomHelper
         $vendors = Vendors::where('id', $vendor_id)->first();
         return $vendors->name ?? '';
     }
+    public static function getVendorDetails($vendor_id)
+    {
+        $vendors = Vendors::where('id', $vendor_id)->first();
+        return $vendors ?? '';
+    }
 
     public static function getBrandName($brand_id)
     {
@@ -1176,6 +1181,68 @@ class CustomHelper
     {
         $vendors = Manufacturer::where('id', $man_id)->first();
         return $vendors->name ?? '';
+    }
+
+    public static function getQuotePorter($orders){
+        $quoteData = [];
+        $store = CustomHelper::getVendorDetails($orders->vendor_id??'');
+        $source_lat = $store->latitude??'';
+        $source_lon = $store->longitude??'';
+
+        $dest_lat = $orders->latitude??'';
+        $dest_lon = $orders->longitude??'';
+        $data = [
+            'pickup_details' => [
+                'lat' => $source_lat,
+                'lng' => $source_lon
+            ],
+            'drop_details' => [
+                'lat' => $dest_lat,
+                'lng' => $dest_lon
+            ],
+            'customer' => [
+                'name' => $orders->customer_name??"Guest",
+                'mobile' => [
+                    'country_code' => '+91',
+                    'number' => $orders->contact_no??"9999999999",
+                ]
+            ]
+        ];
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://pfe-apigwporter.in/v1/get_quote',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS =>json_encode($data),
+                CURLOPT_HTTPHEADER => array(
+                'x-api-key: aa850081-1f6d-4786-8a8f-211ed6ed1be8',
+                'Content-Type: application/json'
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        $response = json_decode($response);
+        if(!empty($response->vehicles)){
+            foreach ($response['vehicles'] as $vehicle) {
+                $type = $vehicle['type'] ?? null;
+                if($type == "2 Wheeler"){
+                    $price = $vehicle['fare']['minor_amount'] ?? null;
+                    $eta  = $vehicle['eta']['value'] . ' ' . $vehicle['eta']['unit'] ;
+                    $quoteData['price'] = $price;
+                    $quoteData['eta'] = $eta;
+                }
+
+            }
+        }
+        return $quoteData;
     }
 
 
