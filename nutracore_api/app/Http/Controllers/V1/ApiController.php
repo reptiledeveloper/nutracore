@@ -2707,9 +2707,14 @@ class ApiController extends Controller
             $delivery_data['expressSlot'] = $expressSlot;
             $delivery_data['normalSlot'] = $normalSlot;
         }
-        $subscription_plans = [];
+        $subscription_plans = null;
         if (CustomHelper::checkSubscription($user) == 1) {
-            $subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->orderBy('duration',"ASC")->get();
+            $subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->where('is_show',"0")->first();
+        }
+
+        $subscription_plans_new = [];
+        if (CustomHelper::checkSubscription($user) == 1) {
+            $subscription_plans_new = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->orderBy('duration',"ASC")->get();
         }
 
         $delivery_details['delivery_time'] = 10;
@@ -2729,6 +2734,7 @@ class ApiController extends Controller
             'delivery_data' => $delivery_data,
             'selected_freebees_product' => $selected_freebees_product,
             'subscription_plans' => $subscription_plans,
+            'subscription_plans_new' => $subscription_plans_new,
             'is_subscribe' => CustomHelper::checkSubscription($user),
         ], 200);
     }
