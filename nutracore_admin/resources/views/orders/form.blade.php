@@ -426,7 +426,7 @@ $address = DB::table('user_address')->where('id', $orders->address_id)->first();
             data: { logistics, logistics },
             headers: { 'X-CSRF-TOKEN': _token },
             success: function () {
-                location.reload();
+                // location.reload();
             }
         });
     }
