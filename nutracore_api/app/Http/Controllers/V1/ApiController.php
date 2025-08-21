@@ -2546,7 +2546,7 @@ class ApiController extends Controller
 
     public function cart_list(Request $request): \Illuminate\Http\JsonResponse
     {
-        DB::table('new')->insert(['data'=>json_encode($request->toArray())]);
+        //DB::table('new')->insert(['data'=>json_encode($request->toArray())]);
         $validator = Validator::make($request->all(), [
 
         ]);
@@ -2704,7 +2704,7 @@ class ApiController extends Controller
         }
         $subscription_plans = null;
         if (CustomHelper::checkSubscription($user) == 0) {
-            $subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->where('is_show', 0)->first();
+            $subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->orderBy('duration',"ASC")->get();
         }
 
         $delivery_details['delivery_time'] = 10;
