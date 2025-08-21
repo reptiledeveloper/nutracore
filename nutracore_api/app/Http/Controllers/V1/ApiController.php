@@ -2708,7 +2708,7 @@ class ApiController extends Controller
             $delivery_data['normalSlot'] = $normalSlot;
         }
         $subscription_plans = [];
-        if (CustomHelper::checkSubscription($user) == 0) {
+        if (CustomHelper::checkSubscription($user) == 1) {
             $subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->orderBy('duration',"ASC")->get();
         }
 
