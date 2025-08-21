@@ -19,7 +19,7 @@ class StocksExport implements FromCollection, WithHeadings
     public function collection()
     {
         $days = (int)$this->request->get('expiry_in_days', 0);
-        $q = Stock::with(['product', 'variant']);
+        $q = Stock::latest();
 
         // Expiry filter
         if ($days > 0) {
