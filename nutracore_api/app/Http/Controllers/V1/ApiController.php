@@ -934,6 +934,7 @@ class ApiController extends Controller
                                             $order->payment_status = 1;
                                             $order->transaction_id = $txn_id;
                                             $order->save();
+                                            Cart::where('user_id', $user->id)->delete();
                                             $user_data = User::where('id', $order->userID)->first();
                                             $user = User::where('id', $order->userID)->first();
                                             $data = [];
