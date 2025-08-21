@@ -145,6 +145,10 @@ foreach ($subscription_plans as $plan) {
             }
         }
         $saved_amount = 0;
+
+
+
+
         $user_subscription['is_prev_subscribed'] = $is_prev_subscribed;
         $user_subscription['is_active'] = $is_active;
         $user_subscription['subscription_end_date'] = $subscription_end_date;

@@ -863,8 +863,13 @@ class ApiController extends Controller
                                                 $subsc->txn_id = $txn_id ?? '';
                                                 $subsc->paid_status = 1;
                                                 $subsc->taken_by = "Self";
-                                                $subsc->start_date = date('Y-m-d');
-                                                $subsc->end_date = date('Y-m-d', strtotime("+" . $duration . " months", strtotime(date('Y-m-d'))));
+                                                if (empty($subscription_start)) {
+                                                    $start_date = date('Y-m-d');
+                                                }else{
+                                                    $start_date = $subscription_end;
+                                                }
+                                                $subsc->start_date = $start_date;
+                                                $subsc->end_date = date('Y-m-d', strtotime("+" . $duration . " months", strtotime($start_date)));
                                                 $subsc->save();
 
                                                 $data = [];
