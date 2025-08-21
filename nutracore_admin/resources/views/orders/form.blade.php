@@ -423,7 +423,7 @@ $address = DB::table('user_address')->where('id', $orders->address_id)->first();
         $.ajax({
             url: "{{ route('orders.update_logistics') }}",
             type: "POST",
-            data: { logistics, logistics },
+            data: { logistics, logistics,order_id:order_id },
             headers: { 'X-CSRF-TOKEN': _token },
             success: function () {
                 // location.reload();
