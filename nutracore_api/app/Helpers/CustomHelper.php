@@ -526,7 +526,13 @@ class CustomHelper
             if (!empty($orders)) {
                 foreach ($orders as $orde) {
                     $nc_cash_earn += (int)$orde->nc_cash_earn;
-//                    $order_items = OrderItems::where("order_id",$orde->id)->where('status',"DELIVERED")
+                    $order_items = OrderItems::where("order_id",$orde->id)->where('status',"DELIVERED")->get();
+                    if(!empty($order_items)){
+                        foreach ($order_items as $item){
+                            $diff = (int)$item->net_price - (int)$item->net_subscription_price;
+                            $save+=$diff;
+                        }
+                    }
                 }
             }
         }

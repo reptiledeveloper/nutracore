@@ -144,7 +144,7 @@ foreach ($subscription_plans as $plan) {
                 $subscription_ord->product_image = CustomHelper::getImageUrl('products', $product->image ?? '');
             }
         }
-        $saved_amount = 0;
+        $saved_amount = CustomHelper::calculateSavingAmount($user);
 
 
 
