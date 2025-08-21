@@ -180,6 +180,7 @@ foreach ($subscription_plans as $plan) {
             ->where('is_delete',0)
             ->where('type', $type)->get();
 
+        $subscriptionsArr['total_order_amount'] = $total_order_amount;
         $subscriptionsArr['tire_system'] = $tire_system;
         $subscriptionsArr['active_loyalty'] = $active_loyalty;
 
