@@ -144,13 +144,16 @@ foreach ($subscription_plans as $plan) {
                 $subscription_ord->product_image = CustomHelper::getImageUrl('products', $product->image ?? '');
             }
         }
-        $saved_amount = CustomHelper::calculateSavingAmount($user);
+
+        $total_data =  CustomHelper::calculateSavingAmount($user);
+        $saved_amount =$total_data['total']??0;
 
 
 
 
         $user_subscription['is_prev_subscribed'] = $is_prev_subscribed;
         $user_subscription['is_active'] = $is_active;
+        $user_subscription['total_data'] = $total_data;
         $user_subscription['subscription_end_date'] = $subscription_end_date;
         $user_subscription['subscribed_subscription'] = $subscribed_subscription;
         $user_subscription['saved_amount'] = $saved_amount;
