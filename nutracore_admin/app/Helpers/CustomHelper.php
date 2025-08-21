@@ -1256,7 +1256,7 @@ class CustomHelper
         return $quoteData;
     }
 
-    public static function bookPorterShipment($order)
+    public static function bookPorterShipment($orders)
     {
         $store = CustomHelper::getVendorDetails($orders->vendor_id ?? '');
         $source_lat = $store->latitude ?? '';
@@ -1274,7 +1274,7 @@ class CustomHelper
                     ],
                     [
                         'type' => 'text',
-                        'description' => 'Order ' . $order->id
+                        'description' => 'Order ' . $orders->id
                     ]
                 ]
             ],
@@ -1291,7 +1291,7 @@ class CustomHelper
                     'lat' => $source_lat,
                     'lng' => $source_lon,
                     'contact_details' => [
-                        'name' => 'Porter Test User',
+                        'name' => $store->name ?? '',
                         'phone_number' => $store->user_phone ?? '',
                     ]
                 ]
