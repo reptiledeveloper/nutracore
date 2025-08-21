@@ -405,7 +405,7 @@ class OrderController extends Controller
             $agent = DeliveryAgents::find($delivery_boy);
             $token = $agent->deviceToken ?? '';
             if (!empty($token)) {
-                $success = CustomHelper::fcmNotification($token, $data);
+                //$success = CustomHelper::fcmNotification($token, $data);
                 //                print_r($success);
             }
         }
@@ -423,7 +423,7 @@ class OrderController extends Controller
                     'title' => $not->title ?? '',
                     'body' => $description ?? '',
                 ];
-                CustomHelper::fcmNotification($token, $data);
+                //CustomHelper::fcmNotification($token, $data);
             }
         }
 
@@ -440,7 +440,7 @@ class OrderController extends Controller
                     'title' => $not->title ?? '',
                     'body' => $description ?? '',
                 ];
-                CustomHelper::fcmNotification($token, $data);
+               // CustomHelper::fcmNotification($token, $data);
             }
         }
 
@@ -457,7 +457,7 @@ class OrderController extends Controller
                     'title' => $not->title ?? '',
                     'body' => $description ?? '',
                 ];
-                CustomHelper::fcmNotification($token, $data);
+               // CustomHelper::fcmNotification($token, $data);
             }
             ////Credit NC Cash
             $this->creditNcCash($order);
