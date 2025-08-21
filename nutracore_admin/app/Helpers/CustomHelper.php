@@ -1211,7 +1211,7 @@ class CustomHelper
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'https://pfe-apigwporter.in/v1/get_quote',
+            CURLOPT_URL => 'https://pfe-apigw.porter.in/v1/get_quote',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -1230,15 +1230,16 @@ class CustomHelper
 
         curl_close($curl);
         $response = json_decode($response);
-        print_r($response);
-        die;
-        if(!empty($response['vehicles'])){
-            foreach ($response['vehicles'] as $vehicle) {
-                $type = $vehicle['type'] ?? null;
+
+
+        if(!empty($response->vehicles)){
+            foreach ($response->vehicles as $vehicle) {
+                $type = $vehicle->type ?? null;
                 if($type == "2 Wheeler"){
-                    $price = $vehicle['fare']['minor_amount'] ?? null;
-                    $eta  = $vehicle['eta']['value'] . ' ' . $vehicle['eta']['unit'] ;
-                    $quoteData['price'] = $price;
+                    $price = $vehicle->fare->minor_amount ?? null;
+                    $eta  = $vehicle->eta->value . ' ' . $vehicle->eta->unit ;
+                    $priceInRupees = $price / 100;
+                    $quoteData['price'] = $priceInRupees;
                     $quoteData['eta'] = $eta;
                 }
 

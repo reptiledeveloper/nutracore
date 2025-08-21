@@ -1,8 +1,7 @@
 @php
     use App\Helpers\CustomHelper;
    $quoteData = CustomHelper::getQuotePorter($orders);
-   print_r($quoteData);
-   die;
+
 @endphp
 
 <div class="row">
