@@ -526,7 +526,7 @@ class CustomHelper
             $orders = Order::where('userID', $user->id)->whereDate('created_at', ">=", $start_date)->whereDate('created_at', "<=", $end_date)->get();
             if (!empty($orders)) {
                 foreach ($orders as $orde) {
-                    $nc_cash_earn += (int)$orde->nc_cash_earn;
+                    $nc_cash_earn += (int)$orde->nc_cash_earned;
                     $order_items = OrderItems::where("order_id", $orde->id)->where('status', "DELIVERED")->get();
                     if (!empty($order_items)) {
                         foreach ($order_items as $item) {
