@@ -1230,6 +1230,8 @@ class CustomHelper
 
         curl_close($curl);
         $response = json_decode($response);
+        print_r($response);
+        die;
         if(!empty($response['vehicles'])){
             foreach ($response['vehicles'] as $vehicle) {
                 $type = $vehicle['type'] ?? null;
