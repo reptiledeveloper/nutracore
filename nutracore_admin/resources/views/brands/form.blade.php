@@ -10,6 +10,7 @@
     $vendor_id = isset($brands->vendor_id) ? $brands->vendor_id : '';
     $phone = isset($brands->phone) ? $brands->phone : '';
     $address = isset($brands->address) ? $brands->address : '';
+    $priority = isset($brands->priority) ? $brands->priority : '';
     $status = isset($brands->status) ? $brands->status : 1;
     $image = isset($brands->brand_img) ? $brands->brand_img : '';
     $certificate = isset($brands->certificate) ? $brands->certificate : '';
@@ -73,6 +74,11 @@
                                     <label for="validationCustom01" class="form-label">Name</label>
                                     <input type="text" class="form-control" name="brand_name" value="{{ old('brand_name', $brand_name) }}">
                                     @include('snippets.errors_first', ['param' => 'brand_name'])
+                                </div>
+                                <div class="form-group col-md-6 mt-3">
+                                    <label for="validationCustom01" class="form-label">Priority</label>
+                                    <input type="number" class="form-control" name="priority" value="{{ old('priority', $priority) }}">
+                                    @include('snippets.errors_first', ['param' => 'priority'])
                                 </div>
                                 <div class="form-group col-md-6 mt-3">
                                     <label for="validationCustom01" class="form-label">Banners (Multiple) : (max 2MB, MinSize : 300 to Max Size: 2000)</label>
