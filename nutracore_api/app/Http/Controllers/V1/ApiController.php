@@ -2240,7 +2240,7 @@ class ApiController extends Controller
         if (!empty($search)) {
             $product_suggation = Product::select('id', 'name', 'category_id', 'subcategory_id', 'image');
             $product_suggation = $product_suggation->where('name', 'like', '%' . $search . '%')->orWhereRaw("FIND_IN_SET(?, tags)", [$search]);
-            $product_suggation = $product_suggation->limit(5)->get();
+            $product_suggation = $product_suggation->limit(50)->get();
             if (!empty($product_suggation)) {
                 foreach ($product_suggation as $product_sugga) {
                     $product_sugga->image = CustomHelper::getImageUrl('products', $product_sugga->image);
