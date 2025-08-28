@@ -17,6 +17,7 @@
     $max_discount = $subscription_plans->max_discount ?? '';
     $vendor_id = $subscription_plans->vendor_id ?? '';
     $is_show = $subscription_plans->is_show ?? 0;
+    $max_applied_time = $subscription_plans->max_applied_time ?? "";
 
     $status = $subscription_plans->status ?? '0';
 
@@ -131,6 +132,12 @@
                                     <input type="text" class="form-control" name="max_discount"
                                            value="{{ old('max_discount', $max_discount) }}">
                                     @include('snippets.errors_first', ['param' => 'max_discount'])
+                                </div>
+                                <div class="form-group col-md-6 mt-3">
+                                    <label for="inputEmail4" class="form-label">Max No Of Time Apply</label>
+                                    <input type="text" class="form-control" name="max_applied_time"
+                                           value="{{ old('max_applied_time', $max_applied_time) }}">
+                                    @include('snippets.errors_first', ['param' => 'max_applied_time'])
                                 </div>
 
 
