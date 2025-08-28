@@ -1826,6 +1826,24 @@ class ApiController extends Controller
 
             }
         }
+
+        if(!empty($category_id)){
+            $category = Category::find($category_id);
+            if($category->is_goal == 1){
+                $product_ids = $category->product_ids??'';
+                $product_ids = explode(",",$product_ids);
+                if(!empty($product_ids)){
+                    foreach ($product_ids as $pro){
+                        $product_data = self::getProductDetails($pro, $user->id ?? '');
+                        if (!empty($product_data)) {
+                            $productArr[] = $product_data;
+                        }
+                    }
+                }
+            }
+        }
+
+
         return response()->json([
             'result' => true,
             'message' => "Successfully",
