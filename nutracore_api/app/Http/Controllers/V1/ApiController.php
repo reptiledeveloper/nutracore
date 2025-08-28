@@ -1214,7 +1214,7 @@ class ApiController extends Controller
                 $category->image = CustomHelper::getImageUrl('categories', $category->image ?? '');
             }
         }
-        $brands = Brand::where('status', 1)->where('is_delete', 0)->latest()->get()->makeHidden(['created_at', 'updated_at', 'is_delete', 'status']);
+        $brands = Brand::where('status', 1)->where('is_delete', 0)->orderBy('priority',"ASC")->get()->makeHidden(['created_at', 'updated_at', 'is_delete', 'status']);
         if (!empty($brands)) {
             foreach ($brands as $brand) {
                 $brand->icon = CustomHelper::getImageUrl('brands', $brand->brand_img);
@@ -1583,7 +1583,7 @@ class ApiController extends Controller
         if (!empty($search)) {
             $brands->where('brand_name', 'like', '%' . $search . '%');
         }
-        $brands = $brands->get();
+        $brands = $brands->orderBy('priority',"ASC")->get();
         if (!empty($brands)) {
             foreach ($brands as $brand) {
                 $brand->brand_img = CustomHelper::getImageUrl('brands', $brand->brand_img);
