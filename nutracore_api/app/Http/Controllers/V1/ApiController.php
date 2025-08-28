@@ -1781,7 +1781,7 @@ class ApiController extends Controller
             $product_id = explode(",", $product_id);
         }
         $products = Product::select('products.id')->where('products.is_delete', 0)  // Explicitly specify the table
-        ->where('products.status', 1);
+        ->where('products.status', 1)
          ->leftJoin('product_varients', function ($join) {
              $join->on('products.id', '=', 'product_varients.product_id');
          });
