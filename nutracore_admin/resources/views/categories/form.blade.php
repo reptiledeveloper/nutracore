@@ -125,7 +125,7 @@
                                     <label for="validationCustom01" class="form-label">Is Goal</label>
                                     <select class="form-control" name="is_goal">
                                         <option value="" selected>Select</option>
-                                        <option value="1" {{$is_goal==0?"selected":""}}>Yes</option>
+                                        <option value="1" {{$is_goal==1?"selected":""}}>Yes</option>
                                         <option value="0" {{$is_goal==0?"selected":""}}>No</option>
                                     </select>
                                 </div>
