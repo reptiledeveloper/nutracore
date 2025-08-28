@@ -4168,7 +4168,7 @@ class ApiController extends Controller
 
         /////Admin Global Coupons
 
-        $offers = Offers::where('status', 1);
+        $offers = Offers::where('status', 1)->where('is_show', 1);
         if (!empty($search)) {
             $offers->where('offer_code', 'like', '%' . $search . '%');
         }
