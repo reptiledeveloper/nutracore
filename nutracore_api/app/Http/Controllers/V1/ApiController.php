@@ -1894,7 +1894,7 @@ class ApiController extends Controller
                 ->orderBy('distance', 'asc')
                 ->first();
         }
-        dd(\DB::getQueryLog()); // Show results of log
+       // dd(\DB::getQueryLog()); // Show results of log
 
         return $seller;
     }
