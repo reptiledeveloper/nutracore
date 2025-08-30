@@ -1780,38 +1780,45 @@ class ApiController extends Controller
         if (!empty($product_id)) {
             $product_id = explode(",", $product_id);
         }
-        $products = Product::select('products.id')->where('products.is_delete', 0)  // Explicitly specify the table
-        ->where('products.status', 1)
-         ->leftJoin('product_varients', function ($join) {
-             $join->on('products.id', '=', 'product_varients.product_id');
-         });
-        if (isset($min_price) && isset($max_price)) {
-            if ($max_price > 0 && $max_price > 0) {
-                $products->where('products.selling_price', '>=', $min_price);
-                $products->where('products.selling_price', '<=', $max_price);
-            }
+        $products = Product::select(
+            'products.id',
+            DB::raw('MIN(product_varients.selling_price) as min_price')
+        )
+            ->where('products.is_delete', 0)
+            ->where('products.status', 1)
+            ->leftJoin('product_varients', 'products.id', '=', 'product_varients.product_id');
+
+// Price filter
+        if (!empty($min_price) && !empty($max_price) && $max_price > 0) {
+            $products->whereBetween('product_varients.selling_price', [$min_price, $max_price]);
         }
+
+// Search filter
         if (!empty($search)) {
-            $products->where('products.name', 'like', '%' . $search . '%'); // Explicitly specify the table
+            $products->where('products.name', 'like', '%' . $search . '%');
         }
+
+// Other filters
         if (!empty($product_id)) {
-            $products->whereIn('products.id', $product_id); // Explicitly specify the table
+            $products->whereIn('products.id', $product_id);
         }
         if (!empty($category_id)) {
-            $products->where('products.category_id', $category_id); // Explicitly specify the table
+            $products->where('products.category_id', $category_id);
         }
         if (!empty($brand_id)) {
-            $products->where('products.brand_id', $brand_id); // Explicitly specify the table
+            $products->where('products.brand_id', $brand_id);
         }
         if (!empty($subcategory_id)) {
-            $products->where('products.subcategory_id', $subcategory_id); // Explicitly specify the table
+            $products->where('products.subcategory_id', $subcategory_id);
         }
+
+// Order by price
         if ($order_by_price == 'low_to_high') {
-            $products->orderBy('product_varients.selling_price', 'ASC'); // Ascending order
+            $products->orderBy('min_price', 'ASC');
+        } elseif ($order_by_price == 'high_to_low') {
+            $products->orderBy('min_price', 'DESC');
         }
-        if ($order_by_price == 'high_to_low') {
-            $products->orderBy('product_varients.selling_price', 'DESC');
-        }
+
         $products = $products->groupBy('products.id')->paginate(50);
         // Debugging line to check the query log
         //    dd(\DB::getQueryLog()); // Show results of log
