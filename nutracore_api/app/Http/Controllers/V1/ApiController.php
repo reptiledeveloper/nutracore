@@ -1862,6 +1862,8 @@ class ApiController extends Controller
 
     public function getNearestSeller($lat, $lon)
     {
+        \DB::enableQueryLog(); // Enable query log
+
         $seller = Vendors::select(
             '*',
             DB::raw("(
@@ -1877,6 +1879,8 @@ class ApiController extends Controller
             ->having('distance', '<=', DB::raw('radius'))
             ->orderBy('distance')
             ->first();
+        dd(\DB::getQueryLog()); // Show results of log
+
         return $seller;
     }
 
