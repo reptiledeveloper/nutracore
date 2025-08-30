@@ -1862,27 +1862,41 @@ class ApiController extends Controller
 
     public function getNearestSeller($lat, $lon)
     {
-        \DB::enableQueryLog(); // Enable query log
+        $seller = null;
 
-        $seller = Vendors::select(
-            '*',
-            DB::raw("(
-        6371 * acos(
-            cos(radians($lat)) * cos(radians(latitude))
-            * cos(radians(longitude) - radians($lon))
-            + sin(radians($lat)) * sin(radians(latitude))
-        )
-    ) AS distance")
-        )
-            ->where('status', 1)
-            ->where('is_delete', 0)
-            ->having('distance', '<=', DB::raw('radius'))
-            ->orderBy('distance')
-            ->first();
-        dd(\DB::getQueryLog()); // Show results of log
+        if (!empty($lat) && !empty($lon)) {
+            $haversine = "(6371 * acos(
+            cos(radians(?)) * cos(radians(latitude))
+            * cos(radians(longitude) - radians(?))
+            + sin(radians(?)) * sin(radians(latitude))
+        ))";
+
+            $seller = Vendors::select(
+                'id',
+                'name',
+                'image',
+                'address',
+                'avg_rating',
+                'total_rating',
+                'payment_method',
+                'delivery_time',
+                'radius',
+                'open_time',
+                'close_time',
+                'latitude',
+                'longitude'
+            )
+                ->selectRaw("$haversine AS distance", [$lat, $lon, $lat]) // Correct order
+                ->where('status', 1)
+                ->where('is_delete', 0)
+                ->havingRaw('distance <= radius') // Ensure radius unit matches haversine output
+                ->orderBy('distance', 'asc')
+                ->first();
+        }
 
         return $seller;
     }
+
 
     public function getProductDetails($product_id, $user_id = null)
     {
