@@ -1863,6 +1863,7 @@ class ApiController extends Controller
     public function getNearestSeller($lat, $lon)
     {
         $seller = null;
+        \DB::enableQueryLog(); // Enable query log
 
         if (!empty($lat) && !empty($lon)) {
             $haversine = "(6371 * acos(
@@ -1893,6 +1894,7 @@ class ApiController extends Controller
                 ->orderBy('distance', 'asc')
                 ->first();
         }
+        dd(\DB::getQueryLog()); // Show results of log
 
         return $seller;
     }
