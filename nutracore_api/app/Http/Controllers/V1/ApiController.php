@@ -865,7 +865,7 @@ class ApiController extends Controller
                                                 $subsc->taken_by = "Self";
                                                 if (empty($subscription_start)) {
                                                     $start_date = date('Y-m-d');
-                                                }else{
+                                                } else {
                                                     $start_date = $subscription_end;
                                                 }
                                                 $subsc->start_date = $start_date;
@@ -1214,7 +1214,7 @@ class ApiController extends Controller
                 $category->image = CustomHelper::getImageUrl('categories', $category->image ?? '');
             }
         }
-        $brands = Brand::where('status', 1)->where('is_delete', 0)->orderBy('priority',"ASC")->get()->makeHidden(['created_at', 'updated_at', 'is_delete', 'status']);
+        $brands = Brand::where('status', 1)->where('is_delete', 0)->orderBy('priority', "ASC")->get()->makeHidden(['created_at', 'updated_at', 'is_delete', 'status']);
         if (!empty($brands)) {
             foreach ($brands as $brand) {
                 $brand->icon = CustomHelper::getImageUrl('brands', $brand->brand_img);
@@ -1583,7 +1583,7 @@ class ApiController extends Controller
         if (!empty($search)) {
             $brands->where('brand_name', 'like', '%' . $search . '%');
         }
-        $brands = $brands->orderBy('priority',"ASC")->get();
+        $brands = $brands->orderBy('priority', "ASC")->get();
         if (!empty($brands)) {
             foreach ($brands as $brand) {
                 $brand->brand_img = CustomHelper::getImageUrl('brands', $brand->brand_img);
@@ -1834,13 +1834,13 @@ class ApiController extends Controller
             }
         }
 
-        if(!empty($category_id)){
+        if (!empty($category_id)) {
             $category = Category::find($category_id);
-            if($category->is_goal == 1){
-                $product_ids = $category->product_ids??'';
-                $product_ids = explode(",",$product_ids);
-                if(!empty($product_ids)){
-                    foreach ($product_ids as $pro){
+            if ($category->is_goal == 1) {
+                $product_ids = $category->product_ids ?? '';
+                $product_ids = explode(",", $product_ids);
+                if (!empty($product_ids)) {
+                    foreach ($product_ids as $pro) {
                         $product_data = self::getProductDetails($pro, $user->id ?? '');
                         if (!empty($product_data)) {
                             $productArr[] = $product_data;
@@ -1862,36 +1862,21 @@ class ApiController extends Controller
 
     public function getNearestSeller($lat, $lon)
     {
-        $seller = null;
-        if (!empty($lat) && !empty($lon)) {
-            $haversine = "(6371 * acos(
-        cos(radians(?)) * cos(radians(latitude))
-        * cos(radians(longitude) - radians(?))
-        + sin(radians(?)) * sin(radians(latitude))
-    ))";
-
-            $seller = Vendors::select(
-                'id',
-                'name',
-                'image',
-                'address',
-                'avg_rating',
-                'total_rating',
-                'payment_method',
-                'delivery_time',
-                'radius',
-                'open_time',
-                'close_time',
-                'latitude',
-                'longitude'
-            )
-                ->selectRaw("$haversine AS distance", [$lat, $lon, $lat])
-                ->where('status', 1)
-                ->where('is_delete', 0)
-                ->havingRaw('distance <= radius') // Only sellers within their own radius
-                ->orderBy('distance', 'asc') // Nearest first
-                ->first(); // Just get one
-        }
+        $seller = Vendors::select(
+            '*',
+            DB::raw("(
+        6371 * acos(
+            cos(radians($lat)) * cos(radians(latitude))
+            * cos(radians(longitude) - radians($lon))
+            + sin(radians($lat)) * sin(radians(latitude))
+        )
+    ) AS distance")
+        )
+            ->where('status', 1)
+            ->where('is_delete', 0)
+            ->having('distance', '<=', DB::raw('radius'))
+            ->orderBy('distance')
+            ->first();
         return $seller;
     }
 
@@ -2681,8 +2666,8 @@ class ApiController extends Controller
         if (!empty($cartValue)) {
             $cartValue['max_applied_cashback'] = (int)$max_applied_cashback;
             if (filter_var($apply_cashback, FILTER_VALIDATE_BOOLEAN)) {
-                $cartValue['applied_cashback'] = (string) $max_applied_cashback;
-                $cartValue['total_price'] = $total_price - (int) $max_applied_cashback;
+                $cartValue['applied_cashback'] = (string)$max_applied_cashback;
+                $cartValue['total_price'] = $total_price - (int)$max_applied_cashback;
             }
         }
         $freebees_product = [];
@@ -2690,7 +2675,7 @@ class ApiController extends Controller
         $freebees_product = DB::table('freebees_product')
             ->where('from_amount', '<=', $cart_price)
             ->where('to_amount', '>=', $cart_price)
-            ->where('is_delete',0)
+            ->where('is_delete', 0)
             ->get();
         if (!empty($freebees_product)) {
             foreach ($freebees_product as $pro) {
@@ -2735,12 +2720,12 @@ class ApiController extends Controller
         }
         $subscription_plans = null;
         if (CustomHelper::checkSubscription($user) == 1) {
-            $subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->where('is_show',"0")->first();
+            $subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->where('is_show', "0")->first();
         }
 
         $subscription_plans_new = [];
         if (CustomHelper::checkSubscription($user) == 1) {
-            $subscription_plans_new = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->orderBy('duration',"ASC")->get();
+            $subscription_plans_new = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->orderBy('duration', "ASC")->get();
         }
 
         $delivery_details['delivery_time'] = 10;
@@ -3058,7 +3043,7 @@ class ApiController extends Controller
                     if ($payment_method == 'ONLINE' || $payment_method == 'online') {
                         $order_id = $this->saveOrders($request, $cart_data, $user->id, 'online', $seller_id);
                         $tota_price = $cartValue['total_price'] ?? 0;
-                        $tota_price-=(int)$applied_cashback;
+                        $tota_price -= (int)$applied_cashback;
                         $request['amount'] = $tota_price + (int)$tips + (int)$handling_charges;
                         $request['type'] = 'order';
                         $request['order_id'] = $order_id;
@@ -3354,8 +3339,6 @@ class ApiController extends Controller
             }
 
 
-
-
             $order_id = Order::insertGetId($dbArray);
             if ($applied_wallet_amount > 0) {
                 $new_wallet = (float)$wallet - $applied_wallet_amount;
@@ -3370,12 +3353,12 @@ class ApiController extends Controller
                 $dbArray = [];
                 $dbArray['userID'] = $user_id;
                 $dbArray['type'] = 'DEBIT';
-                $dbArray['amount'] = $request->applied_cashback??0;
+                $dbArray['amount'] = $request->applied_cashback ?? 0;
                 $dbArray['against_for'] = 'cashback_wallet';
                 $dbArray['wallet_type'] = 'cashback_wallet';
                 $dbArray['remarks'] = "Amount Debited From NC Cash";
                 $transaction_id = Transaction::insertGetId($dbArray);
-                Transaction::where('id', $transaction_id)->update(['txn_no' => "NC".rand(111111,9999999999)]);
+                Transaction::where('id', $transaction_id)->update(['txn_no' => "NC" . rand(111111, 9999999999)]);
             }
 
 
