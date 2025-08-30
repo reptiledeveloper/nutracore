@@ -1895,7 +1895,7 @@ class ApiController extends Controller
             $longitude = $user->longitude ?? '';
 
             $seller = self::getNearestSeller($latitude, $longitude);
-
+            print_r($seller);
             if (!empty($seller)) {
                 $cutoff_time = CustomHelper::getSettingKey('cutoff_time');
                 $user->seller_id = $seller->id ?? "";
