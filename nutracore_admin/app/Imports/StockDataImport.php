@@ -44,6 +44,10 @@ class StockDataImport implements ToModel, WithHeadingRow
             return null; // Skip invalid rows
         }
 
+        print_r($mfg_date);
+        print_r($expiry_date);
+        die;
+
         // 1. Create a new Stock record
         $stockItem = new Stock();
 
