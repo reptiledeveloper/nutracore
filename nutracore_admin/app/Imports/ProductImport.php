@@ -38,11 +38,10 @@ class ProductImport implements ToCollection, WithHeadingRow
             );
 
             // --- 2. Update or Insert Variant ---
-            if (!empty($row['variant_id']) || !empty($row['varientname']) || !empty($row['sku'])) {
+            if (!empty($row['variant_id'])) {
                 DB::table('product_varients')->updateOrInsert(
                     [
-                        'id' => $row['variant_id'] ?? null,
-                        'product_id' => $product->id
+                        'id' => $row['variant_id'],
                     ],
                     [
                         'unit' => $row['unit'] ?? '',
