@@ -413,13 +413,13 @@ class ProductController extends Controller
 //                    $excelArr['LongDescription'] = $product->long_description ?? '';
                     $excelArr['Image'] = $product->image ?? '';
                     $excelArr['Type'] = $product->type ?? '';
-                    $excelArr['SKU'] = $varient->varient_sku ?? $product->sku ?? '';
+                    $excelArr['SKU'] = $product->sku ?? '';
                     $excelArr['HSN'] = $product->hsn ?? '';
-                    $excelArr['Unit'] = $varient->unit ?? '';
-                    $excelArr['Weight'] = $varient->varient_weight ?? $product->product_weight ?? '';
-                    $excelArr['MRP'] = $varient->mrp ?? $product->product_mrp ?? '';
-                    $excelArr['SellingPrice'] = $varient->selling_price ?? $product->product_selling_price ?? '';
-                    $excelArr['SubscriptionPrice'] = $varient->subscription_price ?? $product->product_subscription_price ?? '';
+                    $excelArr['Unit'] = '';
+                    $excelArr['Weight'] = $product->product_weight ?? '';
+                    $excelArr['MRP'] = $product->product_mrp ?? '';
+                    $excelArr['SellingPrice'] = $product->product_selling_price ?? '';
+                    $excelArr['SubscriptionPrice'] = $product->product_subscription_price ?? '';
                     $exportArr[] = $excelArr;
                 }
             }
