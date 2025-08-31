@@ -71,6 +71,9 @@ class StockController extends Controller
         if ($request->filled('variant_id')) {
             $q->where('variant_id', $request->variant_id);
         }
+        if ($request->filled('vendor_id')) {
+            $q->where('store_id', $request->vendor_id);
+        }
 
         $stocks = $q->orderBy('expiry_date')->paginate(20)->withQueryString();
 
