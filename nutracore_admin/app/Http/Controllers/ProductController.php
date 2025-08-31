@@ -360,89 +360,7 @@ class ProductController extends Controller
         echo json_encode(['items' => $itemArr, 'pagination' => $paginationArr]);
     }
 
-    public function sampleold(Request $request)
-    {
-
-
-        $exportArr = [];
-        $products = Products::where('is_delete', 0)->get();
-        if (!empty($products)) {
-            foreach ($products as $product) {
-                $attributesArr = [];
-                $attributes_products = DB::table('attributes_products')->where('products_id', $product->id)->groupBy('attributes_id')->get();
-                if (!empty($attributes_products)) {
-                    foreach ($attributes_products as $attributes_product) {
-                        $dbArray = [];
-                        $dbArray['attributes_id'] = $attributes_product->attributes_id ?? '';
-                        $dbArray['attributes_name'] = CustomHelper::getAttributeName($attributes_product->attributes_id ?? '') ?? '';
-                        $attributes_product_data = DB::table('attributes_products')->where('products_id', $product->id)->where('attributes_id', $attributes_product->attributes_id)->get();
-                        if (!empty($attributes_product_data)) {
-                            $dbArray1 = [];
-                            foreach ($attributes_product_data as $attributes_product_dat) {
-                                $dbArray1[] = $attributes_product_dat->values ?? '';
-                            }
-                            $dbArray['attributes_values'] = $dbArray1;
-                        }
-                        $attributesArr[] = $dbArray;
-                    }
-                }
-                $excelArr = [];
-                $excelArr['ID'] = $product->id ?? '';
-                $excelArr['ProductName'] = $product->name ?? '';
-                $excelArr['CategoryID'] = $product->category_id ?? '';
-                $excelArr['CategoryName'] = CustomHelper::getCategoryName($product->category_id ?? '') ?? '';
-                $excelArr['SubCategoryID'] = $product->subcategory_id ?? '';
-                $excelArr['SubCategoryName'] = CustomHelper::getCategoryName($product->subcategory_id ?? '') ?? '';
-                $excelArr['BrandID'] = $product->brand_id ?? '';
-                $excelArr['BrandName'] = CustomHelper::getBrandName($product->brand_id ?? '') ?? '';
-                $excelArr['Tags'] = $product->tags ?? '';
-                $excelArr['Tax'] = $product->tax ?? '';
-                $excelArr['ShortDescription'] = $product->short_description ?? '';
-                $excelArr['LongDescription'] = $product->long_description ?? '';
-                $excelArr['Image'] = $product->image ?? '';
-                $excelArr['Type'] = $product->type ?? '';
-                $excelArr['sku'] = $product->sku ?? '';
-                $excelArr['HSN'] = $product->hsn ?? '';
-                // $excelArr['AttributeValues'] = $product->attribute_values ?? '';
-
-
-//
-//                for ($j = 1; $j <= 4; $j++) {
-//                    $index1 = $j - 1;
-//                    $excelArr['AttributeID' . $j] = $attributesArr[$index1]['attributes_id'] ?? '';
-//                    $excelArr['AttributeName' . $j] = $attributesArr[$index1]['attributes_name'] ?? '';
-//                    $array = json_decode($attributesArr[$index1]['attributes_values'] ?? '', true);
-//                    $string = '"' . implode('","', $array) . '"';
-//                    $excelArr['Values' . $j] = $string ?? '';
-//                }
-//
-//
-////                $excelArr['attribute_data'] = $attributesArr;
-                $varients = CustomHelper::getAdminProductVarients($product->id);
-                for ($i = 1; $i <= 15; $i++) {
-                    $index = $i - 1;
-                    $excelArr['VarientId' . $i] = $varients[$index]->id ?? '';
-                    $excelArr['Unit' . $i] = $varients[$index]->unit ?? '';
-                    $excelArr['SKU' . $i] = $varients[$index]->varient_sku ?? '';
-                    $excelArr['Weight' . $i] = $varients[$index]->varient_weight ?? '';
-                    $excelArr['MRP' . $i] = $varients[$index]->mrp ?? '';
-                    $excelArr['SellingPrice' . $i] = $varients[$index]->selling_price ?? '';
-                    $excelArr['SubscriptionPrice' . $i] = $varients[$index]->subscription_price ?? '';
-                }
-                $exportArr[] = $excelArr;
-            }
-        }
-
-        if (!empty($exportArr)) {
-            $headings = array_keys($exportArr[0]);
-            $fileName = 'Product Sample-' . date('Y-m-d-H-i-s') . '.xlsx';
-            return Excel::download(new SampleExport($exportArr, $headings), $fileName);
-        } else {
-            return back();
-        }
-    }
-
-    public function sample(Request $request)
+    public function sample(Request $request): \Symfony\Component\HttpFoundation\BinaryFileResponse|\Illuminate\Http\RedirectResponse
     {
         $exportArr = [];
         $products = Products::where('is_delete', 0)->get();
@@ -471,11 +389,10 @@ class ProductController extends Controller
                         $excelArr['SKU'] = $varient->varient_sku ?? $product->sku ?? '';
                         $excelArr['HSN'] = $product->hsn ?? '';
                         $excelArr['Unit'] = $varient->unit ?? '';
-                        $excelArr['SKU'] = $varient->varient_sku ?? '';
-                        $excelArr['Weight'] = $varient->varient_weight ?? '';
-                        $excelArr['MRP'] = $varient->mrp ?? '';
-                        $excelArr['SellingPrice'] = $varient->selling_price ?? '';
-                        $excelArr['SubscriptionPrice'] = $varient->subscription_price ?? '';
+                        $excelArr['Weight'] = $varient->varient_weight ?? $product->product_weight ?? '';
+                        $excelArr['MRP'] = $varient->mrp ?? $product->product_mrp ?? '';
+                        $excelArr['SellingPrice'] = $varient->selling_price ?? $product->product_selling_price ?? '';
+                        $excelArr['SubscriptionPrice'] = $varient->subscription_price ?? $product->product_subscription_price ?? '';
                         $exportArr[] = $excelArr;
                     }
                 } else {
@@ -498,12 +415,11 @@ class ProductController extends Controller
                     $excelArr['Type'] = $product->type ?? '';
                     $excelArr['SKU'] = $varient->varient_sku ?? $product->sku ?? '';
                     $excelArr['HSN'] = $product->hsn ?? '';
-                    $excelArr['Unit'] = '';
-                    $excelArr['SKU'] = '';
-                    $excelArr['Weight'] = '';
-                    $excelArr['MRP'] = '';
-                    $excelArr['SellingPrice'] = '';
-                    $excelArr['SubscriptionPrice'] = '';
+                    $excelArr['Unit'] = $varient->unit ?? '';
+                    $excelArr['Weight'] = $varient->varient_weight ?? $product->product_weight ?? '';
+                    $excelArr['MRP'] = $varient->mrp ?? $product->product_mrp ?? '';
+                    $excelArr['SellingPrice'] = $varient->selling_price ?? $product->product_selling_price ?? '';
+                    $excelArr['SubscriptionPrice'] = $varient->subscription_price ?? $product->product_subscription_price ?? '';
                     $exportArr[] = $excelArr;
                 }
             }
@@ -511,7 +427,7 @@ class ProductController extends Controller
 
         if (!empty($exportArr)) {
             $headings = array_keys($exportArr[0]);
-            $fileName = 'Stock Sample-' . date('Y-m-d-H-i-s') . '.xlsx';
+            $fileName = 'Product Import Sample-' . date('Y-m-d-H-i-s') . '.xlsx';
             return Excel::download(new SampleExport($exportArr, $headings), $fileName);
         } else {
             return back();
