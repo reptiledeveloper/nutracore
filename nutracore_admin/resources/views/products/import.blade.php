@@ -21,6 +21,9 @@
             </nav>
         </div>
 
+
+        @include('snippets.errors')
+        @include('snippets.flash')
         <div class="row mb-3">
             <div class="col-md-12">
                 <div class="card">

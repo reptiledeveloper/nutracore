@@ -446,7 +446,7 @@ class ProductController extends Controller
             ]);
 
             Excel::import(new ProductImport, $request->file('file'));
-            return back()->with('success', 'Products imported successfully!');
+            return back()->with('alert-success', 'Products imported successfully!');
         }
 
         return view('products.import', $data);
