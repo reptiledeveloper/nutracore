@@ -23,4 +23,5 @@ yarn-error.log
 
 /nutracore_admin/.env
 /nutracore_admin/vendor
+/nutracore_admin/.htaccess
 /images
