@@ -9,6 +9,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 // Assuming this helper is globally available
 
 class StockDataImport implements ToModel, WithHeadingRow
@@ -44,9 +45,9 @@ class StockDataImport implements ToModel, WithHeadingRow
             return null; // Skip invalid rows
         }
 
-        print_r($mfg_date);
-        print_r($expiry_date);
-        die;
+//        print_r($mfg_date);
+//        print_r($expiry_date);
+//        die;
 
         // 1. Create a new Stock record
         $stockItem = new Stock();
@@ -100,20 +101,18 @@ class StockDataImport implements ToModel, WithHeadingRow
      * @param string|int $date
      * @return string|null
      */
-    private function parseDate($date)
+    private function parseDate($value)
     {
-        if (empty($date)) {
-            return null;
-        }
+        if (!$value) return null;
 
         try {
-            if (is_numeric($date)) {
-                return Carbon::createFromTimestamp(
-                    \PhpOffice\PhpSpreadsheet\Shared\Date::excelToTimestamp($date)
-                )->format('Y-m-d');
-            } else {
-                return Carbon::parse($date)->format('Y-m-d');
+            // If it's a numeric Excel date, convert to Carbon
+            if (is_numeric($value)) {
+                return \Carbon\Carbon::instance(Date::excelToDateTimeObject($value))->format('Y-m-d');
             }
+
+            // If it's a plain date string, parse normally
+            return \Carbon\Carbon::parse($value)->format('Y-m-d');
         } catch (\Exception $e) {
             return null;
         }
