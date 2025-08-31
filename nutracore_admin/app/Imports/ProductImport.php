@@ -24,41 +24,33 @@ class ProductImport implements ToCollection, WithHeadingRow
                     'brand_id' => $row['brandid'] ?? '',
                     'tags' => $row['tags'] ?? '',
                     'tax' => $row['tax'] ?? '',
-                    'short_description' => $row['shortdescription'] ?? '',
-                    'long_description' => $row['longdescription'] ?? '',
+                    // 'short_description' => $row['shortdescription'] ?? '',
+                    // 'long_description' => $row['longdescription'] ?? '',
                     'image' => $row['image'] ?? '',
                     'type' => $row['type'] ?? '',
                     'sku' => $row['sku'] ?? '',
                     'hsn' => $row['hsn'] ?? '',
-                    'attribute_values' => $row['attributevalues'] ?? '',
-                    'product_mrp' => $row['product_mrp'] ?? '',
-                    'product_selling_price' => $row['product_selling_price'] ?? '',
-                    'product_subscription_price' => $row['product_subscription_price'] ?? '',
+                    'product_weight' => $row['weight'] ?? '',
+                    'product_mrp' => $row['mrp'] ?? '',
+                    'product_selling_price' => $row['sellingprice'] ?? '',
+                    'product_subscription_price' => $row['subscriptionprice'] ?? '',
                 ]
             );
 
-            // --- 2. Update or Insert Variants ---
-            for ($i = 1; $i <= 15; $i++) {
-                $variantId = $row['varientid'.$i] ?? null;
-                $unit = $row['unit'.$i] ?? null;
-                $sku = $row['sku'.$i] ?? null;
-                $weight = $row['weight'.$i] ?? null;
-                $mrp = $row['mrp'.$i] ?? null;
-                $selling = $row['sellingprice'.$i] ?? null;
-                $subscription = $row['subscriptionprice'.$i] ?? null;
-
-                // Skip empty rows
-                if (!$unit && !$sku && !$mrp) continue;
-
+            // --- 2. Update or Insert Variant ---
+            if (!empty($row['variant_id']) || !empty($row['varientname']) || !empty($row['sku'])) {
                 DB::table('product_varients')->updateOrInsert(
-                    ['id' => $variantId, 'product_id' => $product->id],
                     [
-                        'unit' => $unit,
-                        'varient_sku' => $sku,
-                        'varient_weight' => $weight,
-                        'mrp' => $mrp,
-                        'selling_price' => $selling,
-                        'subscription_price' => $subscription,
+                        'id' => $row['variant_id'] ?? null,
+                        'product_id' => $product->id
+                    ],
+                    [
+                        'unit' => $row['unit'] ?? '',
+                        'varient_sku' => $row['sku'] ?? '',
+                        'varient_weight' => $row['weight'] ?? '',
+                        'mrp' => $row['mrp'] ?? '',
+                        'selling_price' => $row['sellingprice'] ?? '',
+                        'subscription_price' => $row['subscriptionprice'] ?? '',
                     ]
                 );
             }
