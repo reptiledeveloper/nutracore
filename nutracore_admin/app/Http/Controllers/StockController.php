@@ -169,7 +169,7 @@ class StockController extends Controller
                     $excelArr['ProductName'] = $product->name ?? '';
                     $excelArr['Variant ID'] = '';
                     $excelArr['VarientName'] = '';
-                    $excelArr['SKU'] = '';
+                    $excelArr['SKU'] = $product->sku ?? '';
                     $excelArr['Batch Number'] = '';
                     $excelArr['Quantity'] = '';
                     $excelArr['Expiry Date'] = '';
