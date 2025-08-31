@@ -1181,7 +1181,7 @@ class CustomHelper
     public static function getBrandName($brand_id)
     {
         $vendors = Brand::where('id', $brand_id)->first();
-        return $vendors->name ?? '';
+        return $vendors->brand_name ?? '';
     }
 
     public static function getManufactureName($man_id)
