@@ -58,7 +58,7 @@
             </div>
         </div>
 
-        @include('layouts.filter',['expiry_show'=>'expiry_show','days'=>$days,'vendor_show'=>'vendor_show'])
+        @include('layouts.filter',['search_show'=>'search_show','expiry_show'=>'expiry_show','days'=>$days,'vendor_show'=>'vendor_show'])
         <div class="row">
             <div class="col-md-12">
                 <div class="card">
