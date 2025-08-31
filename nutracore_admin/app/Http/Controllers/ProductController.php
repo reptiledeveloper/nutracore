@@ -382,8 +382,8 @@ class ProductController extends Controller
                         $excelArr['BrandName'] = CustomHelper::getBrandName($product->brand_id ?? '') ?? '';
                         $excelArr['Tags'] = $product->tags ?? '';
                         $excelArr['Tax'] = $product->tax ?? '';
-                        $excelArr['ShortDescription'] = $product->short_description ?? '';
-                        $excelArr['LongDescription'] = $product->long_description ?? '';
+//                        $excelArr['ShortDescription'] = $product->short_description ?? '';
+//                        $excelArr['LongDescription'] = $product->long_description ?? '';
                         $excelArr['Image'] = $product->image ?? '';
                         $excelArr['Type'] = $product->type ?? '';
                         $excelArr['SKU'] = $varient->varient_sku ?? $product->sku ?? '';
@@ -409,8 +409,8 @@ class ProductController extends Controller
                     $excelArr['BrandName'] = CustomHelper::getBrandName($product->brand_id ?? '') ?? '';
                     $excelArr['Tags'] = $product->tags ?? '';
                     $excelArr['Tax'] = $product->tax ?? '';
-                    $excelArr['ShortDescription'] = $product->short_description ?? '';
-                    $excelArr['LongDescription'] = $product->long_description ?? '';
+//                    $excelArr['ShortDescription'] = $product->short_description ?? '';
+//                    $excelArr['LongDescription'] = $product->long_description ?? '';
                     $excelArr['Image'] = $product->image ?? '';
                     $excelArr['Type'] = $product->type ?? '';
                     $excelArr['SKU'] = $varient->varient_sku ?? $product->sku ?? '';
