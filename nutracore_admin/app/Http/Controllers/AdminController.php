@@ -29,6 +29,8 @@ class AdminController extends Controller
         $this->ADMIN_ROUTE_NAME = CustomHelper::getAdminRouteName();
     }
 
+
+
     public function index(Request $request)
     {
         $admins = Admin::where('vendor_id', null)->where('role_id', '!=', 0)->latest()->paginate(10);
