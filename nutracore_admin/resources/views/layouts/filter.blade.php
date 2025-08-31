@@ -61,6 +61,7 @@
                                         <option value="30" {{ $days===30? 'selected':'' }}>Within 30 days</option>
                                         <option value="60" {{ $days===60? 'selected':'' }}>Within 60 days</option>
                                         <option value="90" {{ $days===90? 'selected':'' }}>Within 90 days</option>
+                                        <option value="180" {{ $days===180? 'selected':'' }}>Within 180 days</option>
                                     </select>
                                 </div>
                         @endif
