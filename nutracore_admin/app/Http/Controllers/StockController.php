@@ -74,6 +74,7 @@ class StockController extends Controller
         if ($request->filled('search')) {
             $q->where('variant_sku', $request->search);
             $q->orWhere('sku', $request->search);
+            $q->orWhere('name', $request->search);
         }
         if ($request->filled('vendor_id')) {
             $q->where('store_id', $request->vendor_id);
