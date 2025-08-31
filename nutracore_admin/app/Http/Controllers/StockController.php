@@ -90,6 +90,7 @@ class StockController extends Controller
     public function closingStockList(Request $request)
     {
         $sellerId = $request->input('vendor_id');
+        $search = $request->input('search');
 
         $query = DB::table('stock_batches as sb')
             ->join('product_varients as pv', 'pv.id', '=', 'sb.variant_id')
@@ -109,6 +110,9 @@ class StockController extends Controller
 
         if (!empty($sellerId)) {
             $query->where('s.id', $sellerId);
+        }
+        if (!empty($search)) {
+            $query->where('pv.varient_sku', $search);
         }
 
         $stocks = $query->paginate(10);

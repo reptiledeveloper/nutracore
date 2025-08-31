@@ -21,7 +21,7 @@
                 </ol>
             </nav>
         </div>
-        @include('layouts.filter',['vendor_show'=>'vendor_show'])
+        @include('layouts.filter',['vendor_show'=>'vendor_show','search_show'=>'search_show'])
         <div class="row">
             <div class="col-md-12">
                 <div class="card">
@@ -41,6 +41,7 @@
                         <tr>
                             <th>#</th>
                             <th>Store</th>
+                            <th>SKU</th>
                             <th>Product</th>
                             <th>Variant</th>
                             <th>Closing Stock</th>
@@ -50,8 +51,9 @@
                         @forelse($stocks as $i => $stock)
                             <tr>
                                 <td>{{ $stocks->firstItem() + $i }}</td>
-                                <td>{{ $stock->seller_name }}</td>
-                                <td>{{ $stock->product_name }}</td>
+                                <td>{{ $stock->seller_name ??''}}</td>
+                                <td>{{ $stock->sku??'' }}</td>
+                                <td>{{ $stock->product_name ??''}}</td>
                                 <td>{{ $stock->unit ?? '-' }}</td>
                                 <td>{{ $stock->closing_stock }}</td>
                             </tr>
