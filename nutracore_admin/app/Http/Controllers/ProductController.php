@@ -360,7 +360,7 @@ class ProductController extends Controller
         echo json_encode(['items' => $itemArr, 'pagination' => $paginationArr]);
     }
 
-    public function sample(Request $request)
+    public function sampleold(Request $request)
     {
 
 
@@ -403,7 +403,7 @@ class ProductController extends Controller
                 $excelArr['Type'] = $product->type ?? '';
                 $excelArr['sku'] = $product->sku ?? '';
                 $excelArr['HSN'] = $product->hsn ?? '';
-               // $excelArr['AttributeValues'] = $product->attribute_values ?? '';
+                // $excelArr['AttributeValues'] = $product->attribute_values ?? '';
 
 
 //
@@ -442,12 +442,89 @@ class ProductController extends Controller
         }
     }
 
+    public function sample(Request $request)
+    {
+        $exportArr = [];
+        $products = Products::where('is_delete', 0)->get();
+        if (!empty($products)) {
+            foreach ($products as $product) {
+                $varients = CustomHelper::getAdminProductVarients($product->id);
+                if (!empty($varients) && count($varients) > 0) {
+                    foreach ($varients as $varient) {
+                        $excelArr = [];
+                        $excelArr['ID'] = $product->id ?? '';
+                        $excelArr['ProductName'] = $product->name ?? '';
+                        $excelArr['Variant ID'] = $varient->id ?? '';
+                        $excelArr['VarientName'] = $varient->unit ?? '';
+                        $excelArr['CategoryID'] = $product->category_id ?? '';
+                        $excelArr['CategoryName'] = CustomHelper::getCategoryName($product->category_id ?? '') ?? '';
+                        $excelArr['SubCategoryID'] = $product->subcategory_id ?? '';
+                        $excelArr['SubCategoryName'] = CustomHelper::getCategoryName($product->subcategory_id ?? '') ?? '';
+                        $excelArr['BrandID'] = $product->brand_id ?? '';
+                        $excelArr['BrandName'] = CustomHelper::getBrandName($product->brand_id ?? '') ?? '';
+                        $excelArr['Tags'] = $product->tags ?? '';
+                        $excelArr['Tax'] = $product->tax ?? '';
+                        $excelArr['ShortDescription'] = $product->short_description ?? '';
+                        $excelArr['LongDescription'] = $product->long_description ?? '';
+                        $excelArr['Image'] = $product->image ?? '';
+                        $excelArr['Type'] = $product->type ?? '';
+                        $excelArr['SKU'] = $varient->varient_sku ?? $product->sku ?? '';
+                        $excelArr['HSN'] = $product->hsn ?? '';
+                        $excelArr['Unit'] = $varient->unit ?? '';
+                        $excelArr['SKU'] = $varient->varient_sku ?? '';
+                        $excelArr['Weight'] = $varient->varient_weight ?? '';
+                        $excelArr['MRP'] = $varient->mrp ?? '';
+                        $excelArr['SellingPrice'] = $varient->selling_price ?? '';
+                        $excelArr['SubscriptionPrice'] = $varient->subscription_price ?? '';
+                        $exportArr[] = $excelArr;
+                    }
+                } else {
+                    $excelArr = [];
+                    $excelArr['ID'] = $product->id ?? '';
+                    $excelArr['ProductName'] = $product->name ?? '';
+                    $excelArr['Variant ID'] = '';
+                    $excelArr['VarientName'] = '';
+                    $excelArr['CategoryID'] = $product->category_id ?? '';
+                    $excelArr['CategoryName'] = CustomHelper::getCategoryName($product->category_id ?? '') ?? '';
+                    $excelArr['SubCategoryID'] = $product->subcategory_id ?? '';
+                    $excelArr['SubCategoryName'] = CustomHelper::getCategoryName($product->subcategory_id ?? '') ?? '';
+                    $excelArr['BrandID'] = $product->brand_id ?? '';
+                    $excelArr['BrandName'] = CustomHelper::getBrandName($product->brand_id ?? '') ?? '';
+                    $excelArr['Tags'] = $product->tags ?? '';
+                    $excelArr['Tax'] = $product->tax ?? '';
+                    $excelArr['ShortDescription'] = $product->short_description ?? '';
+                    $excelArr['LongDescription'] = $product->long_description ?? '';
+                    $excelArr['Image'] = $product->image ?? '';
+                    $excelArr['Type'] = $product->type ?? '';
+                    $excelArr['SKU'] = $varient->varient_sku ?? $product->sku ?? '';
+                    $excelArr['HSN'] = $product->hsn ?? '';
+                    $excelArr['Unit'] = '';
+                    $excelArr['SKU'] = '';
+                    $excelArr['Weight'] = '';
+                    $excelArr['MRP'] = '';
+                    $excelArr['SellingPrice'] = '';
+                    $excelArr['SubscriptionPrice'] = '';
+                    $exportArr[] = $excelArr;
+                }
+            }
+        }
+
+        if (!empty($exportArr)) {
+            $headings = array_keys($exportArr[0]);
+            $fileName = 'Stock Sample-' . date('Y-m-d-H-i-s') . '.xlsx';
+            return Excel::download(new SampleExport($exportArr, $headings), $fileName);
+        } else {
+            return back();
+        }
+
+    }
+
 
     public function import(Request $request)
     {
         $data = [];
         $method = $request->method();
-        if($method == 'POST'){
+        if ($method == 'POST') {
             $request->validate([
                 'file' => 'required',
             ]);
