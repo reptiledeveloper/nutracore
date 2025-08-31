@@ -3,6 +3,7 @@
 namespace App\Imports;
 
 use App\Models\Products;
+use App\Models\Tags;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -14,6 +15,15 @@ class ProductImport implements ToCollection, WithHeadingRow
     {
         foreach ($rows as $row) {
 
+            $tags = $row['tags'] ?? '';
+            if (!empty($tags)) {
+                // Convert to array (comma-separated)
+                $tagNames = array_map('trim', explode(',', $tags));
+                $tagIds = [];
+                foreach ($tagNames as $tagName) {
+                   Tags::updateOrCreate(['name' => $tagName]);
+                }
+            }
             // --- 1. Update or Insert Product ---
             $product = Products::updateOrCreate(
                 ['id' => $row['id'] ?? 0],
@@ -22,6 +32,8 @@ class ProductImport implements ToCollection, WithHeadingRow
                     'category_id' => $row['categoryid'] ?? '',
                     'subcategory_id' => $row['subcategoryid'] ?? '',
                     'brand_id' => $row['brandid'] ?? '',
+
+
                     'tags' => $row['tags'] ?? '',
                     'tax' => $row['tax'] ?? '',
                     // 'short_description' => $row['shortdescription'] ?? '',
