@@ -158,8 +158,9 @@ class StockController extends Controller
                         $excelArr['SKU'] = $varient->varient_sku ?? '';
                         $excelArr['Batch Number'] = '';
                         $excelArr['Quantity'] = '';
-                        $excelArr['Expiry Date'] = '';
                         $excelArr['Mfg Date'] = '';
+                        $excelArr['Expiry Date'] = '';
+
                         $excelArr['PurchasePrice'] = '';
                         $exportArr[] = $excelArr;
                     }
@@ -172,8 +173,9 @@ class StockController extends Controller
                     $excelArr['SKU'] = $product->sku ?? '';
                     $excelArr['Batch Number'] = '';
                     $excelArr['Quantity'] = '';
-                    $excelArr['Expiry Date'] = '';
                     $excelArr['Mfg Date'] = '';
+                    $excelArr['Expiry Date'] = '';
+
                     $excelArr['PurchasePrice'] = '';
                     $exportArr[] = $excelArr;
                 }
