@@ -82,6 +82,7 @@
                         <thead>
                         <tr>
                             <th>#</th>
+                            <th>SKU</th>
                             <th>Product</th>
                             <th>Variant</th>
                             <th>Batch</th>
@@ -96,6 +97,7 @@
                             <tr class="{{ $s->expiry_date && \Illuminate\Support\Carbon::parse($s->expiry_date)->isBefore(now()->addDays(30)) ? 'table-warning' : '' }}">
                                 <td>{{ $stocks->firstItem() + $i }}</td>
                                 <td>{{ $s->product?->name ?? 'N/A' }}</td>
+                                <td>{{ $s->variant?->varient_sku ?? $s->product?->sku ??'N/A' }}</td>
                                 <td>{{ $s->variant?->unit ?? '-' }}</td>
                                 <td>{{ $s->batch_number ?? '-' }}</td>
                                 <td>{{ $s->mfg_date ? \Carbon\Carbon::parse($s->mfg_date)->format('d-M-Y') : '-' }}</td>
