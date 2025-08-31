@@ -19,6 +19,7 @@
     $brand_id = $product->brand_id ?? '';
     $meta_title = $product->meta_title ?? '';
     $meta_description = $product->meta_description ?? '';
+    $product_weight = $product->product_weight ?? '';
     $product_mrp = $product->product_mrp ?? '';
     $product_selling_price = $product->product_selling_price ?? '';
     $product_subscription_price = $product->product_subscription_price ?? '';
@@ -329,6 +330,12 @@
                                     <input type="text" class="form-control" name="product_subscription_price" id="product_subscription_price"
                                            value="{{ old('product_subscription_price', $product_subscription_price) }}">
                                     @include('snippets.errors_first', ['param' => 'product_subscription_price'])
+                                </div>
+                                <div class="form-group col-md-4 mt-3">
+                                    <label for="inputEmail4" class="form-label">Weight (In Gram)</label>
+                                    <input type="text" class="form-control" name="product_weight" id="product_weight"
+                                           value="{{ old('product_weight', $product_weight) }}">
+                                    @include('snippets.errors_first', ['param' => 'product_weight'])
                                 </div>
 
 
