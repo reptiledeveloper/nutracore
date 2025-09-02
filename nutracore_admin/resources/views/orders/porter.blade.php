@@ -47,7 +47,8 @@
             @endphp
             <div class="col-md-12">
                 <h3>Partner Details</h3>
-                <br>
+                <label>Name : {{ $order_details_porter->partner_info->name ?? '' }}</label>
+                <label>Name : {{ $order_details_porter->partner_info->name ?? '' }}</label>
                 <label>Name : {{ $order_details_porter->partner_info->name ?? '' }}</label>
             </div>
         @endif
