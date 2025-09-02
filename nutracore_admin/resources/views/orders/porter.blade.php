@@ -3,7 +3,7 @@
    $quoteData = CustomHelper::getQuotePorter($orders);
 
    $exist = DB::table('order_courier')->where("order_id",$orders->id)->first();
-   $track_order = CustomHelper::trackPorterOrder($exist);
+   //$track_order = CustomHelper::trackPorterOrder($exist);
    $exist = DB::table('order_courier')->where("order_id",$orders->id)->first();
 @endphp
 
