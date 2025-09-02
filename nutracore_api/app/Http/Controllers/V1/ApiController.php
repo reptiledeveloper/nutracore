@@ -2557,6 +2557,12 @@ class ApiController extends Controller
                 'message' => '',
             ], 401);
         }
+        if($user->is_guest == 1){
+            return response()->json([
+                'result' => false,
+                'message' => '',
+            ], 401);
+        }
         $product_id = $request->product_id ?? '';
         $variant_id = $request->variant_id ?? '';
         $qty = $request->qty ?? '';
@@ -2644,7 +2650,12 @@ class ApiController extends Controller
                 'message' => '',
             ], 401);
         }
-
+        if($user->is_guest == 1){
+            return response()->json([
+                'result' => false,
+                'message' => '',
+            ], 401);
+        }
         $coupon_code = $request->coupon_code ?? '';
         $freebees_id = $request->freebees_id ?? '';
         $slot_date = $request->slot_date ?? '';
