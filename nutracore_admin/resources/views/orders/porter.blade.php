@@ -48,8 +48,26 @@
             <div class="col-md-12">
                 <h3>Partner Details</h3>
                 <label>Name : {{ $order_details_porter->partner_info->name ?? '' }}</label><br>
-                <label>Name : {{ $order_details_porter->partner_info->name ?? '' }}</label><br>
-                <label>Name : {{ $order_details_porter->partner_info->name ?? '' }}</label><br>
+                <label>Vehicle No : {{ $order_details_porter->partner_info->vehicle_number ?? '' }}</label><br>
+                <label>Vehicle Type : {{ $order_details_porter->partner_info->vehicle_type ?? '' }}</label><br>
+                <label>Mobile No : {{ $order_details_porter->partner_info->mobile->mobile_number ?? '' }}</label><br>
+                <label>Sec Mobile No
+                    : {{ $order_details_porter->partner_info->partner_secondary_mobile->mobile_number ?? '' }}</label><br>
+            </div>
+
+            <div class="col-md-12">
+                <h3>Order Timmings Details</h3>
+                <label>Pickup Time : {{ $order_details_porter->order_timings->pickup_time ?? '' }}</label><br>
+                <label>Accept Time : {{ $order_details_porter->partner_info->order_accepted_time ?? '' }}</label><br>
+                <label>Order Started Time
+                    : {{ $order_details_porter->partner_info->order_started_time ?? '' }}</label><br>
+                <label>Order End Time
+                    : {{ $order_details_porter->partner_info->mobile->order_ended_time ?? '' }}</label><br>
+            </div>
+            <div class="col-md-12">
+                <h3>Fare Details</h3>
+                <label>Fare
+                    : {{ $order_details_porter->fare_details->estimated_fare_details->minor_amount ?? '' }}</label><br>
             </div>
         @endif
     </div>
