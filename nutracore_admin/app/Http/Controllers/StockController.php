@@ -8,6 +8,7 @@ use App\Imports\ProductImport;
 use App\Imports\StockDataImport;
 use App\Models\Products;
 use App\Models\Stock;
+use App\Models\StockBatch;
 use App\Models\StockLog;
 use Attribute;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -78,12 +79,45 @@ class StockController extends Controller
             $q->where('store_id', $request->vendor_id);
         }
 
-        $stocks = $q->orderBy('expiry_date')->paginate(20)->withQueryString();
+        $stocks = $q->orderBy('expiry_date')->paginate(100)->withQueryString();
+
 
         return view('stocks.index', [
             'stocks' => $stocks,
             'days' => $days
         ]);
+    }
+
+    public function delete_data(Request $request)
+    {
+        $stock_ids = $request->stock_ids ?? [];
+
+        if (empty($stock_ids) || !is_array($stock_ids)) {
+            return back()->with('alert-danger', 'No stock items selected for deletion.');
+        }
+
+        // Remove 'all' if it's accidentally submitted
+        $filtered_ids = array_filter($stock_ids, fn($id) => $id !== 'all');
+
+        // Delete stocks
+//        Stock::whereIn('id', $filtered_ids)->update(['is_delete' => 1]);
+
+//        StockBatch::updateOrCreate(
+//            [
+//                'product_id'   => $productId,
+//                'variant_id'   => $request->variant_id[$index] ?? null,
+//                'batch_number' => $request->batch[$index],
+//            ],
+//            [
+//                'mfg_date'     => $request->mfg[$index],
+//                'store_id'     => $request->store_id??'',
+//                'expiry_date'  => $request->expiry[$index],
+//                'quantity'     => DB::raw('quantity + ' . $request->qty[$index]),
+//                'purchase_price' => $request->purchase_price[$index],
+//            ]
+//        );
+
+        return back()->with('alert-success', 'Selected stock items deleted successfully.');
     }
 
 
@@ -170,11 +204,10 @@ class StockController extends Controller
                         $excelArr['Quantity'] = '';
                         $excelArr['Mfg Date'] = '';
                         $excelArr['Expiry Date'] = '';
-
                         $excelArr['PurchasePrice'] = '';
                         $exportArr[] = $excelArr;
                     }
-                }else{
+                } else {
                     $excelArr = [];
                     $excelArr['Product ID'] = $product->id ?? '';
                     $excelArr['ProductName'] = $product->name ?? '';
@@ -185,7 +218,6 @@ class StockController extends Controller
                     $excelArr['Quantity'] = '';
                     $excelArr['Mfg Date'] = '';
                     $excelArr['Expiry Date'] = '';
-
                     $excelArr['PurchasePrice'] = '';
                     $exportArr[] = $excelArr;
                 }

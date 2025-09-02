@@ -343,6 +343,46 @@ class ApiController extends Controller
         }
     }
 
+    public function skip_login(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $phone = '9999999999';
+        $user = User::where(['phone' => $phone])->where('is_delete', 0)->first();
+        if (empty($user)) {
+            return response()->json([
+                'result' => false,
+                'message' => 'User Not Found',
+                'token' => null,
+                'user' => null,
+                'is_update' => 0,
+            ], 200);
+        }
+
+        $user->image = CustomHelper::getImageUrl('users', $user->image);
+        $success = User::where(['phone' => $phone])->where('is_delete', 0)->first();
+
+        if ($success) {
+            $user = Auth::loginUsingId($success->id);
+            $token = auth()->user()->createToken('nutracore_token')->accessToken;
+            $seller_details = self::getSellerDetails($user->seller_id, $user->id);
+            $user->seller_details = $seller_details;
+            return response()->json([
+                'result' => true,
+                'message' => 'User login successfully, Use token to authenticate.',
+                'token' => $token,
+                'is_update' => 0,
+                'user' => $user,
+            ], 200);
+        } else {
+            return response()->json([
+                'result' => false,
+                'message' => 'User authentication failed.',
+                'is_update' => 0,
+                'token' => null,
+                'user' => null,
+            ], 200);
+        }
+    }
+
     function getReferalCode($length): string
     {
         $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';

@@ -39,6 +39,7 @@ Route::prefix('v1/')->group(function () {
     Route::get('/state_list', [ApiController::class, 'state_list']);
     Route::post('/city_list', [ApiController::class, 'city_list']);
     Route::match(['get', 'post'], '/login', [ApiController::class, 'login'])->name('login');
+    Route::match(['get', 'post'], '/skip_login', [ApiController::class, 'skip_login'])->name('skip_login');
     Route::post('/settings', [ApiController::class, 'settings']);
     Route::post('/category_list', [ApiController::class, 'category_list']);
     Route::post('/subcategory_list', [ApiController::class, 'subcategory_list']);
