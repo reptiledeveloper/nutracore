@@ -1256,6 +1256,40 @@ class CustomHelper
         return $quoteData;
     }
 
+
+    public static function trackPorterOrder($exist = [])
+    {
+        if (!empty($exist->porter_order_id)) {
+            $curl = curl_init();
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => 'https://pfe-apigw.porter.in/v1/orders/' . $exist->porter_order_id,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'GET',
+                CURLOPT_HTTPHEADER => array(
+                    'x-api-key: aa850081-1f6d-4786-8a8f-211ed6ed1be8',
+                    'Content-Type: application/json'
+                ),
+            ));
+
+            $response = curl_exec($curl);
+
+            curl_close($curl);
+            $response = json_decode($response);
+            if (!empty($response)) {
+                $dbArray = [];
+                $dbArray['order_details_porter'] = json_encode($response);
+                DB::table('order_courier')->where('id', $exist->id)->update($dbArray);
+            }
+        }
+
+    return $exist;
+    }
+
     public static function bookPorterShipment($orders)
     {
         $store = CustomHelper::getVendorDetails($orders->vendor_id ?? '');
@@ -1337,28 +1371,28 @@ class CustomHelper
 
         curl_close($curl);
         $response = json_decode($response);
-        if(!empty($response)){
+        if (!empty($response)) {
             $dbArray = [];
             $dbArray['logistics'] = 'porter';
-            $dbArray['order_id'] = $orders->id??'';
-            $dbArray['request_id'] = $response->request_id??'';
-            $dbArray['porter_order_id'] = $response->order_id??'';
-            $dbArray['estimated_pickup_time'] = $response->estimated_pickup_time??'';
-            $dbArray['tracking_url'] = $response->tracking_url??'';
+            $dbArray['order_id'] = $orders->id ?? '';
+            $dbArray['request_id'] = $response->request_id ?? '';
+            $dbArray['porter_order_id'] = $response->order_id ?? '';
+            $dbArray['estimated_pickup_time'] = $response->estimated_pickup_time ?? '';
+            $dbArray['tracking_url'] = $response->tracking_url ?? '';
             $dbArray['porter_data'] = json_encode($response);
             DB::table('order_courier')->insert($dbArray);
         }
     }
 
 
-    public static  function cancelPorterShipment($order)
+    public static function cancelPorterShipment($order)
     {
-        $exist = DB::table('order_courier')->where("order_id",$order->id)->first();
-        if(!empty($exist)){
+        $exist = DB::table('order_courier')->where("order_id", $order->id)->first();
+        if (!empty($exist)) {
             $curl = curl_init();
 
             curl_setopt_array($curl, array(
-                CURLOPT_URL => 'https://pfe-apigw.porter.in/v1/orders/'.$exist->porter_order_id.'/cancel',
+                CURLOPT_URL => 'https://pfe-apigw.porter.in/v1/orders/' . $exist->porter_order_id . '/cancel',
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_ENCODING => '',
                 CURLOPT_MAXREDIRS => 10,
