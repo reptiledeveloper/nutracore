@@ -4,6 +4,7 @@
 
    $exist = DB::table('order_courier')->where("order_id",$orders->id)->first();
    $track_order = CustomHelper::trackPorterOrder($exist);
+   $exist = DB::table('order_courier')->where("order_id",$orders->id)->first();
 @endphp
 
 <div class="row">
@@ -40,8 +41,15 @@
 
     </div>
     <div class="col-md-6">
-        @if(!empty($track_order))
-
+        @if(!empty($exist->order_details_porter))
+            @php
+                $order_details_porter = json_decode($exist->order_details_porter??'');
+            @endphp
+            <div class="col-md-12">
+                <h3>Partner Details</h3>
+                <br>
+                <label>Name : {{ $order_details_porter->partner_info->name ?? '' }}</label>
+            </div>
         @endif
     </div>
 </div>

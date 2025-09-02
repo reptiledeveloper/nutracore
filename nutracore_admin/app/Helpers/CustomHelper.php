@@ -1282,6 +1282,7 @@ class CustomHelper
             $response = json_decode($response);
             if (!empty($response)) {
                 $dbArray = [];
+                $dbArray['order_status'] = $response->status??'';
                 $dbArray['order_details_porter'] = json_encode($response);
                 DB::table('order_courier')->where('id', $exist->id)->update($dbArray);
             }
