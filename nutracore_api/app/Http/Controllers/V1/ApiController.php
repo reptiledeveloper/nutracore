@@ -311,6 +311,7 @@ class ApiController extends Controller
             $user->selected_address = CustomHelper::getAddressDetails($user->addressID);
             $seller_details = self::getSellerDetails($user->seller_id, $user->id);
             $user->seller_details = $seller_details;
+            $user->is_guest = 0;
             return response()->json([
                 'result' => true,
                 'message' => 'User login successfully, Use token to authenticate.',
@@ -325,6 +326,7 @@ class ApiController extends Controller
             $user->selected_address = CustomHelper::getAddressDetails($user->addressID);
             $seller_details = self::getSellerDetails($user->seller_id, $user->id);
             $user->seller_details = $seller_details;
+            $user->is_guest = 0;
             return response()->json([
                 'result' => true,
                 'message' => 'User login successfully, Use token to authenticate.',
@@ -365,6 +367,7 @@ class ApiController extends Controller
             $token = auth()->user()->createToken('nutracore_token')->accessToken;
             $seller_details = self::getSellerDetails($user->seller_id, $user->id);
             $user->seller_details = $seller_details;
+            $user->is_guest = 1;
             return response()->json([
                 'result' => true,
                 'message' => 'User login successfully, Use token to authenticate.',
