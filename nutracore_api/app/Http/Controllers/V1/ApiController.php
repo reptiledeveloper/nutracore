@@ -2557,7 +2557,7 @@ class ApiController extends Controller
                 'message' => '',
             ], 401);
         }
-        if($user->is_guest == 1){
+        if($user->phone == "9999999999"){
             return response()->json([
                 'result' => false,
                 'message' => '',
