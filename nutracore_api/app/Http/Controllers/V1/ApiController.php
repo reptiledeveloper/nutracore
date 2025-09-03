@@ -23,6 +23,7 @@ use App\Models\RazorpayOrders;
 use App\Models\Setting;
 use App\Models\SubscriptionPlans;
 use App\Models\Subscriptions;
+use App\Models\Suppliments;
 use App\Models\SupportTicket;
 use App\Models\TimeSlot;
 use App\Models\Transaction;
@@ -213,6 +214,13 @@ class ApiController extends Controller
         $user->selected_address = CustomHelper::getAddressDetails($user->addressID);
         $seller_details = self::getSellerDetails($user->seller_id, $user->id);
         $user->seller_details = $seller_details;
+        $is_open_suppliment_form = 1;
+        if (!empty($user->name) && !empty($user->dob) && !empty($user->gender) && !empty($user->height) && !empty($user->weight) && !empty($user->health_profile) && !empty($user->activity) && !empty($user->food_choice)) {
+            $is_open_suppliment_form = 0;
+        }
+
+
+        $user->is_open_suppliment_form = $is_open_suppliment_form;
         return response()->json([
             'result' => true,
             'message' => 'User Profile',
@@ -439,7 +447,21 @@ class ApiController extends Controller
         if (!empty($request->dob)) {
             $userData->dob = $request->dob;
         }
-
+        if (!empty($request->height)) {
+            $userData->height = $request->height;
+        }
+        if (!empty($request->weight)) {
+            $userData->weight = $request->weight;
+        }
+        if (!empty($request->health_profile)) {
+            $userData->health_profile = $request->health_profile;
+        }
+        if (!empty($request->activity)) {
+            $userData->activity = $request->activity;
+        }
+        if (!empty($request->food_choice)) {
+            $userData->food_choice = $request->food_choice;
+        }
         if (!empty($request->address)) {
             $userData->address = $request->address;
         }
@@ -486,6 +508,13 @@ class ApiController extends Controller
 
         $userData->save();
         $userData->image = CustomHelper::getImageUrl('users', $userData->image);
+        $is_open_suppliment_form = 1;
+        if (!empty($userData->name) && !empty($userData->dob) && !empty($userData->gender) && !empty($userData->height) && !empty($userData->weight) && !empty($userData->health_profile) && !empty($userData->activity) && !empty($userData->food_choice)) {
+            $is_open_suppliment_form = 0;
+        }
+
+
+        $userData->is_open_suppliment_form = $is_open_suppliment_form;
         return response()->json([
             'result' => true,
             'message' => 'User Profile Updated Successfully',
@@ -1937,7 +1966,7 @@ class ApiController extends Controller
                 ->orderBy('distance', 'asc')
                 ->first();
         }
-       // dd(\DB::getQueryLog()); // Show results of log
+        // dd(\DB::getQueryLog()); // Show results of log
 
         return $seller;
     }
@@ -2557,7 +2586,7 @@ class ApiController extends Controller
                 'message' => '',
             ], 401);
         }
-        if($user->phone == "9999999999"){
+        if ($user->phone == "9999999999") {
             return response()->json([
                 'result' => false,
                 'message' => '',
@@ -2629,6 +2658,74 @@ class ApiController extends Controller
     }
 
 
+    public function supplement(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+
+        ]);
+        $user = null;
+        if ($validator->fails()) {
+            return response()->json([
+                'result' => false,
+                'message' => json_encode($validator->errors()),
+            ], 400);
+        }
+        $user = auth()->user();
+        if (empty($user)) {
+            return response()->json([
+                'result' => false,
+                'message' => '',
+            ], 401);
+        }
+        $health_profile = $user->health_profile ?? '';
+        $activity = $user->activity ?? '';
+        $supplimentsArray = [];
+        if (!empty($health_profile) && !empty($activity)) {
+            $suppliment = Suppliments::where('category_id', $health_profile)->where('activity', $activity)->first();
+            if (!empty($suppliment)) {
+
+
+                for ($i = 1; $i <= 5; $i++) {
+                    $catField = "supliment_" . $i;
+                    $prodField = "supliment_" . $i . "_products";
+
+                    $catId = $suppliment->$catField ?? null;
+                    $productIds = $suppliment->$prodField ?? '';
+
+                    if (!empty($catId)) {
+                        $category = Category::find($catId);
+
+                        $products = [];
+                        if (!empty($productIds)) {
+                            $ids = array_filter(explode(',', $productIds));
+
+                            if (!empty($ids)) {
+                                foreach ($ids as $key => $value) {
+                                    $pro = self::getProductDetails($value, $user);
+                                    if(!empty($pro)){
+                                        $products[] = $pro;
+                                    }
+                                }
+                            }
+                        }
+
+                        $supplimentsArray[] = [
+                            'category' => $category,
+                            'products' => $products,
+                        ];
+                    }
+                }
+
+            }
+        }
+        return response()->json([
+            'result' => true,
+            'message' => "Successfully",
+            "suppliments" => $supplimentsArray
+        ], 200);
+    }
+
+
     public function cart_list(Request $request): \Illuminate\Http\JsonResponse
     {
         //DB::table('new')->insert(['data'=>json_encode($request->toArray())]);
@@ -2650,7 +2747,7 @@ class ApiController extends Controller
                 'message' => '',
             ], 401);
         }
-        if($user->is_guest == 1){
+        if ($user->is_guest == 1) {
             return response()->json([
                 'result' => false,
                 'message' => '',
