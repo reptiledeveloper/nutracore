@@ -128,6 +128,7 @@ Route::prefix('v1/')->group(function () {
         Route::post('/my_subscription_order_details', [SubscriptionController::class, 'my_subscription_order_details']);
         Route::post('/check_delivery', [ApiController::class, 'check_delivery']);
         Route::post('/supplement', [ApiController::class, 'supplement']);
+        Route::post('/return_single_product', [ApiController::class, 'return_single_product']);
     });
 
 

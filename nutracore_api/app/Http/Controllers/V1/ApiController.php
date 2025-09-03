@@ -2589,7 +2589,7 @@ class ApiController extends Controller
         if ($user->phone == "9999999999") {
             return response()->json([
                 'result' => false,
-                'message' => '',
+                'message' => 'Unauthorised',
             ], 401);
         }
         $product_id = $request->product_id ?? '';
@@ -4547,5 +4547,77 @@ class ApiController extends Controller
         ], 200);
     }
 
+
+
+    public function return_single_product(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+
+        ]);
+        $user = null;
+        if ($validator->fails()) {
+            return response()->json([
+                'result' => false,
+                'message' => json_encode($validator->errors()),
+            ], 400);
+        }
+        $user = auth()->user();
+        if (empty($user)) {
+            return response()->json([
+                'result' => false,
+                'message' => '',
+            ], 401);
+        }
+        $health_profile = $user->health_profile ?? '';
+        $activity = $user->activity ?? '';
+        $supplimentsArray = [];
+        if (!empty($health_profile) && !empty($activity)) {
+
+            $suppliment = Suppliments::where('category_id', $health_profile)->where('activity', $activity)->first();
+            if (!empty($suppliment)) {
+
+
+                for ($i = 1; $i <= 5; $i++) {
+                    $catField = "supliment_" . $i;
+                    $prodField = "supliment_" . $i . "_products";
+
+                    $catId = $suppliment->$catField ?? null;
+                    $productIds = $suppliment->$prodField ?? '';
+
+                    if (!empty($catId)) {
+                        $category = Category::find($catId);
+                        if(!empty($category)){
+                            $category->image = CustomHelper::getImageUrl('categories', $category->image);
+                        }
+
+                        $products = [];
+                        if (!empty($productIds)) {
+                            $ids = array_filter(explode(',', $productIds));
+
+                            if (!empty($ids)) {
+                                foreach ($ids as $key => $value) {
+                                    $pro = self::getProductDetails($value, $user->id??'');
+                                    if(!empty($pro)){
+                                        $products[] = $pro;
+                                    }
+                                }
+                            }
+                        }
+
+                        $supplimentsArray[] = [
+                            'category' => $category,
+                            'products' => $products,
+                        ];
+                    }
+                }
+
+            }
+        }
+        return response()->json([
+            'result' => true,
+            'message' => "Successfully",
+            "suppliments" => $supplimentsArray,
+        ], 200);
+    }
 
 }
