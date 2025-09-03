@@ -2695,6 +2695,9 @@ class ApiController extends Controller
 
                     if (!empty($catId)) {
                         $category = Category::find($catId);
+                        if(!empty($category)){
+                            $category->image = CustomHelper::getImageUrl('categories', $category->image);
+                        }
 
                         $products = [];
                         if (!empty($productIds)) {
