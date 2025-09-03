@@ -1125,6 +1125,13 @@ class CustomHelper
         return $categories;
 
     }
+    public static function getGoalCategories()
+    {
+        $categories = Category::where('parent_id', 0)->where('is_goal', 1)->where('status', 1)->where('is_delete', 0)->get();
+        return $categories;
+
+    }
+
 
     public static function getOrderStatus($orderID)
     {

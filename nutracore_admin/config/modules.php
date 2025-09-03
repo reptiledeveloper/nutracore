@@ -16,6 +16,7 @@ return [
                 'sellers',
                 'products',
                 'tags',
+                'suppliments',
 
                 'abandoned_cart',
 
@@ -84,6 +85,7 @@ return [
                 'invoices' => 'Invoices',
                 'stocks' => 'Stocks',
                 'stock_transfers' => 'Stock Transfers',
+                'suppliments' => 'Supplements',
 
 
                 'manufacturer' => 'Manufacturer',

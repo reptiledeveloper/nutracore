@@ -46,6 +46,13 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'edit/{id}', 'BannerController@add')->name('.edit');
             Route::match(['get', 'post'], 'delete/{id}', 'BannerController@delete')->name('.delete');
         });
+        ////banners
+        Route::group(['prefix' => 'suppliments', 'as' => 'suppliments', 'middleware' => ['allowedmodule:suppliments,list']], function () {
+            Route::get('/', 'SupplimentsController@index')->name('.index');
+            Route::match(['get', 'post'], 'add', 'SupplimentsController@add')->name('.add');
+            Route::match(['get', 'post'], 'edit/{id}', 'SupplimentsController@add')->name('.edit');
+            Route::match(['get', 'post'], 'delete/{id}', 'SupplimentsController@delete')->name('.delete');
+        });
 ////new_updates
         Route::group(['prefix' => 'new_updates', 'as' => 'new_updates', 'middleware' => ['allowedmodule:new_updates,list']], function () {
             Route::get('/', 'NewUpdateController@index')->name('.index');
