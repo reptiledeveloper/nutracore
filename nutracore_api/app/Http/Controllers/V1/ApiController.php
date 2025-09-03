@@ -2721,7 +2721,8 @@ class ApiController extends Controller
         return response()->json([
             'result' => true,
             'message' => "Successfully",
-            "suppliments" => $supplimentsArray
+            "suppliments" => $supplimentsArray,
+            "user" => $user,
         ], 200);
     }
 
