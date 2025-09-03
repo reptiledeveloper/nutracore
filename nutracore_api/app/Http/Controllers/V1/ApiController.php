@@ -2723,7 +2723,6 @@ class ApiController extends Controller
             'result' => true,
             'message' => "Successfully",
             "suppliments" => $supplimentsArray,
-            "user" => $user,
         ], 200);
     }
 
