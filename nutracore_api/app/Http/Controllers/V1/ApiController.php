@@ -2677,6 +2677,24 @@ class ApiController extends Controller
                 'message' => '',
             ], 401);
         }
+        $banners = Banner::where('status', 1)->where('is_delete', 0)->get()->makeHidden(['created_at', 'updated_at', 'is_delete', 'status']);
+        if (!empty($banners)) {
+            foreach ($banners as $banner) {
+                $banner->banner_img = CustomHelper::getImageUrl('banners', $banner->banner_img);
+                $product_id = explode(",", $banner->product_id);
+                $productsArr = [];
+                if (!empty($product_id)) {
+                    foreach ($product_id as $prod_id) {
+                        $pro_data = self::getProductDetails($prod_id, $user->id);
+                        if (!empty($pro_data)) {
+                            $productsArr[] = $pro_data;
+                        }
+                    }
+                }
+                $banner->products = $productsArr;
+            }
+        }
+
         $health_profile = $user->health_profile ?? '';
         $activity = $user->activity ?? '';
         $supplimentsArray = [];
@@ -2726,6 +2744,7 @@ class ApiController extends Controller
             'result' => true,
             'message' => "Successfully",
             "suppliments" => $supplimentsArray,
+            "banners" => $banners,
         ], 200);
     }
 
