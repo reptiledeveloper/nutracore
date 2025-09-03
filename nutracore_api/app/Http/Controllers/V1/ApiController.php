@@ -2681,6 +2681,9 @@ class ApiController extends Controller
         $activity = $user->activity ?? '';
         $supplimentsArray = [];
         if (!empty($health_profile) && !empty($activity)) {
+            echo $health_profile;
+            echo "asdasdasdasd";
+            echo $activity;
             $suppliment = Suppliments::where('category_id', $health_profile)->where('activity', $activity)->first();
             if (!empty($suppliment)) {
 
