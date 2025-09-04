@@ -768,18 +768,14 @@ class ApiController extends Controller
                 'message' => json_encode($validator->errors()),
             ], 400);
         }
-        $token = $request->bearerToken();
-        if (!empty($token)) {
-            $user = CustomHelper::decodeToken($token);
-            if (empty($user)) {
-                return response()->json([
-                    'result' => false,
-                    'message' => '',
-                    'user' => $user,
-                ], 401);
-            }
+        $user = auth()->user();
+        if (empty($user)) {
+            return response()->json([
+                'result' => false,
+                'message' => '',
+                'user' => $user,
+            ], 401);
         }
-
         $sellers_list = [];
         $lat = $request->latitude ?? '';
         $lon = $request->longitude ?? '';
@@ -1443,16 +1439,13 @@ class ApiController extends Controller
                 'message' => json_encode($validator->errors()),
             ], 400);
         }
-        $token = $request->bearerToken();
-        if (!empty($token)) {
-            $user = CustomHelper::decodeToken($token);
-            if (empty($user)) {
-                return response()->json([
-                    'result' => false,
-                    'message' => '',
-                    'user' => $user,
-                ], 401);
-            }
+        $user = auth()->user();
+        if (empty($user)) {
+            return response()->json([
+                'result' => false,
+                'message' => '',
+                'user' => $user,
+            ], 401);
         }
         $cartArr = null;
         $cart_total = 0;
@@ -1514,16 +1507,13 @@ class ApiController extends Controller
                 'message' => json_encode($validator->errors()),
             ], 400);
         }
-        $token = $request->bearerToken();
-        if (!empty($token)) {
-            $user = CustomHelper::decodeToken($token);
-            if (empty($user)) {
-                return response()->json([
-                    'result' => false,
-                    'message' => '',
-                    'user' => $user,
-                ], 401);
-            }
+        $user = auth()->user();
+        if (empty($user)) {
+            return response()->json([
+                'result' => false,
+                'message' => '',
+                'user' => $user,
+            ], 401);
         }
         $search = $request->search ?? '';
         $search = $request->search ?? '';
@@ -1588,16 +1578,13 @@ class ApiController extends Controller
                 'message' => $validator->errors()->first(),
             ], 400);
         }
-        $token = $request->bearerToken();
-        if (!empty($token)) {
-            $user = CustomHelper::decodeToken($token);
-            if (empty($user)) {
-                return response()->json([
-                    'result' => false,
-                    'message' => '',
-                    'user' => $user,
-                ], 401);
-            }
+        $user = auth()->user();
+        if (empty($user)) {
+            return response()->json([
+                'result' => false,
+                'message' => '',
+                'user' => $user,
+            ], 401);
         }
         $search = $request->search ?? '';
         $category_id = $request->category_id ?? '';
@@ -1636,16 +1623,13 @@ class ApiController extends Controller
                 'message' => json_encode($validator->errors()),
             ], 400);
         }
-        $token = $request->bearerToken();
-        if (!empty($token)) {
-            $user = CustomHelper::decodeToken($token);
-            if (empty($user)) {
-                return response()->json([
-                    'result' => false,
-                    'message' => '',
-                    'user' => $user,
-                ], 401);
-            }
+        $user = auth()->user();
+        if (empty($user)) {
+            return response()->json([
+                'result' => false,
+                'message' => '',
+                'user' => $user,
+            ], 401);
         }
         $search = $request->search ?? '';
 
@@ -1808,16 +1792,13 @@ class ApiController extends Controller
                 'message' => json_encode($validator->errors()),
             ], 400);
         }
-        $token = $request->bearerToken();
-        if (!empty($token)) {
-            $user = CustomHelper::decodeToken($token);
-            if (empty($user)) {
-                return response()->json([
-                    'result' => false,
-                    'message' => '',
-                    'user' => $user,
-                ], 200);
-            }
+        $user = auth()->user();
+        if (empty($user)) {
+            return response()->json([
+                'result' => false,
+                'message' => '',
+                'user' => $user,
+            ], 401);
         }
         $search = $request->search ?? '';
         $type = $request->type ?? '';
@@ -2180,16 +2161,13 @@ class ApiController extends Controller
                 'message' => json_encode($validator->errors()),
             ], 400);
         }
-        $token = $request->bearerToken();
-        if (!empty($token)) {
-            $user = CustomHelper::decodeToken($token);
-            if (empty($user)) {
-                return response()->json([
-                    'result' => false,
-                    'message' => '',
-                    'user' => $user,
-                ], 200);
-            }
+        $user = auth()->user();
+        if (empty($user)) {
+            return response()->json([
+                'result' => false,
+                'message' => '',
+                'user' => $user,
+            ], 401);
         }
         $search = $request->search ?? '';
         $category_id = $request->category_id ?? '';
@@ -2322,16 +2300,13 @@ class ApiController extends Controller
                 'message' => json_encode($validator->errors()),
             ], 400);
         }
-        $token = $request->bearerToken();
-        if (!empty($token)) {
-            $user = CustomHelper::decodeToken($token);
-            if (empty($user)) {
-                return response()->json([
-                    'result' => false,
-                    'message' => '',
-                    'user' => $user,
-                ], 200);
-            }
+        $user = auth()->user();
+        if (empty($user)) {
+            return response()->json([
+                'result' => false,
+                'message' => '',
+                'user' => $user,
+            ], 401);
         }
         $search = $request->search ?? '';
         $category_data = [];
@@ -2452,16 +2427,13 @@ class ApiController extends Controller
                 'message' => json_encode($validator->errors()),
             ], 400);
         }
-        $token = $request->bearerToken();
-        if (!empty($token)) {
-            $user = CustomHelper::decodeToken($token);
-            if (empty($user)) {
-                return response()->json([
-                    'result' => false,
-                    'message' => '',
-                    'user' => $user,
-                ], 200);
-            }
+        $user = auth()->user();
+        if (empty($user)) {
+            return response()->json([
+                'result' => false,
+                'message' => '',
+                'user' => $user,
+            ], 401);
         }
 
         $type = $request->type ?? '';
