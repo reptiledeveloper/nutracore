@@ -68,10 +68,11 @@ Route::prefix('v1/')->group(function () {
 
     Route::match(['get', 'post'], '/sellers_list', [ApiController::class, 'sellers_list'])->name('sellers_list');
     Route::post('/faqs', [ApiController::class, 'faqs']);
-    Route::match(['get', 'post'], '/home', [ApiController::class, 'home']);
+
 
     Route::middleware(['auth:api'])->group(function () {
         Route::match(['get', 'post'], '/profile', [ApiController::class, 'profile']);
+        Route::match(['get', 'post'], '/home', [ApiController::class, 'home']);
         Route::post('/logout', [ApiController::class, 'logout']);
         Route::post('/update_profile', [ApiController::class, 'update_profile']);
         Route::post('/update_cart', [ApiController::class, 'update_cart']);
