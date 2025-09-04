@@ -2740,10 +2740,10 @@ class ApiController extends Controller
                 'message' => '',
             ], 401);
         }
-        if ($user->is_guest == 1) {
+        if ($user->phone == "9999999999") {
             return response()->json([
                 'result' => false,
-                'message' => '',
+                'message' => 'Unauthorised',
             ], 401);
         }
         $coupon_code = $request->coupon_code ?? '';
@@ -4540,7 +4540,11 @@ class ApiController extends Controller
     public function return_single_product(Request $request): \Illuminate\Http\JsonResponse
     {
         $validator = Validator::make($request->all(), [
-
+            "order_id" => "required",
+            "item_id" => "required",
+            "return_reasons" => "required",
+            "return_remarks" => "required",
+            "return_images" => "required",
         ]);
         $user = null;
         if ($validator->fails()) {
@@ -4556,55 +4560,139 @@ class ApiController extends Controller
                 'message' => '',
             ], 401);
         }
-        $health_profile = $user->health_profile ?? '';
-        $activity = $user->activity ?? '';
-        $supplimentsArray = [];
-        if (!empty($health_profile) && !empty($activity)) {
-
-            $suppliment = Suppliments::where('category_id', $health_profile)->where('activity', $activity)->first();
-            if (!empty($suppliment)) {
-
-
-                for ($i = 1; $i <= 5; $i++) {
-                    $catField = "supliment_" . $i;
-                    $prodField = "supliment_" . $i . "_products";
-
-                    $catId = $suppliment->$catField ?? null;
-                    $productIds = $suppliment->$prodField ?? '';
-
-                    if (!empty($catId)) {
-                        $category = Category::find($catId);
-                        if (!empty($category)) {
-                            $category->image = CustomHelper::getImageUrl('categories', $category->image);
-                        }
-
-                        $products = [];
-                        if (!empty($productIds)) {
-                            $ids = array_filter(explode(',', $productIds));
-
-                            if (!empty($ids)) {
-                                foreach ($ids as $key => $value) {
-                                    $pro = self::getProductDetails($value, $user->id ?? '');
-                                    if (!empty($pro)) {
-                                        $products[] = $pro;
-                                    }
-                                }
-                            }
-                        }
-
-                        $supplimentsArray[] = [
-                            'category' => $category,
-                            'products' => $products,
-                        ];
-                    }
+        $order_id = $request->order_id ?? '';
+        $item_id = $request->item_id ?? '';
+        $canReturn = false; // Return not possible
+        $exist = OrderItems::where('order_id', $order_id)->where('id', $item_id)->where('status', "DELIVERED")->first();
+        if (!empty($exist)) {
+            $check_time = DB::table('order_status')->where('order_id', $order_id)->where('status', "DELIVERED")->first();
+            if (!empty($check_time)) {
+                $createdAt = $check_time->created_at;
+                $returnDeadline = $createdAt->copy()->addDays(2);
+                if (now()->lessThanOrEqualTo($returnDeadline)) {
+                    $canReturn = true;  // Return is possible
+                } else {
+                    return response()->json([
+                        'result' => false,
+                        'message' => "Return Can be Possible Within 2 days",
+                    ], 200);
                 }
-
+            } else {
+                return response()->json([
+                    'result' => false,
+                    'message' => "Order Item Cant be Eligible For Return",
+                ], 200);
+            }
+            if (!empty($exist->return_status)) {
+                return response()->json([
+                    'result' => false,
+                    'message' => "You Cant Return",
+                ], 200);
             }
         }
+
+
+        if ($canReturn) {
+            $imagePaths = [];
+            if ($request->hasFile('return_images')) {
+                foreach ($request->file('return_images') as $image) {
+                    // Store image in storage/app/public/returns
+                    $fileName = CustomHelper::UploadImage($image, 'return_order');
+                    $imagePaths[] = $fileName; // Save path in array
+                }
+            }
+
+            $dbArray = [];
+            $dbArray['return_reasons'] = $request->return_reasons ?? '';
+            $dbArray['return_remarks'] = $request->return_remarks ?? '';
+            $dbArray['return_images'] = !empty($imagePaths) ? implode(',', $imagePaths) : '';
+            $dbArray['return_status'] = 'pending';
+            OrderItems::where('id', $item_id)->update($dbArray);
+        }
+
+
         return response()->json([
             'result' => true,
-            'message' => "Successfully",
-            "suppliments" => $supplimentsArray,
+            'message' => "Return Request Placed Successfully",
+        ], 200);
+    }
+
+
+    public function return_order(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            "order_id" => "required",
+            "return_reasons" => "required",
+            "return_remarks" => "required",
+            "return_images" => "required",
+        ]);
+        $user = null;
+        if ($validator->fails()) {
+            return response()->json([
+                'result' => false,
+                'message' => json_encode($validator->errors()),
+            ], 400);
+        }
+        $user = auth()->user();
+        if (empty($user)) {
+            return response()->json([
+                'result' => false,
+                'message' => '',
+            ], 401);
+        }
+        $order_id = $request->order_id ?? '';
+        $canReturn = false; // Return not possible
+        $exist = Order::where('id', $order_id)->where('status', "DELIVERED")->first();
+        if (!empty($exist)) {
+            $check_time = DB::table('order_status')->where('order_id', $order_id)->where('status', "DELIVERED")->first();
+            if (!empty($check_time)) {
+                $createdAt = $check_time->created_at;
+                $returnDeadline = $createdAt->copy()->addDays(2);
+                if (now()->lessThanOrEqualTo($returnDeadline)) {
+                    $canReturn = true;  // Return is possible
+                } else {
+                    return response()->json([
+                        'result' => false,
+                        'message' => "Return Can be Possible Within 2 days",
+                    ], 200);
+                }
+            } else {
+                return response()->json([
+                    'result' => false,
+                    'message' => "Order Item Cant be Eligible For Return",
+                ], 200);
+            }
+            if (!empty($exist->return_status)) {
+                return response()->json([
+                    'result' => false,
+                    'message' => "You Cant Return",
+                ], 200);
+            }
+        }
+
+
+        if ($canReturn) {
+            $imagePaths = [];
+            if ($request->hasFile('return_images')) {
+                foreach ($request->file('return_images') as $image) {
+                    // Store image in storage/app/public/returns
+                    $fileName = CustomHelper::UploadImage($image, 'return_order');
+                    $imagePaths[] = $fileName; // Save path in array
+                }
+            }
+
+            $dbArray = [];
+            $dbArray['return_reasons'] = $request->return_reasons ?? '';
+            $dbArray['return_remarks'] = $request->return_remarks ?? '';
+            $dbArray['return_images'] = !empty($imagePaths) ? implode(',', $imagePaths) : '';
+            $dbArray['return_status'] = 'pending';
+            Order::where('id', $order_id)->update($dbArray);
+        }
+
+
+        return response()->json([
+            'result' => true,
+            'message' => "Return Request Placed Successfully",
         ], 200);
     }
 
