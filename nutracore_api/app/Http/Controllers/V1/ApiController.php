@@ -1251,7 +1251,6 @@ class ApiController extends Controller
             ], 400);
         }
         $user = auth()->user();
-
         if (empty($user)) {
             return response()->json([
                 'result' => false,
