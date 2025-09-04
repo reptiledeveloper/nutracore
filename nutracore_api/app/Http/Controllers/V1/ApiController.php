@@ -3781,6 +3781,7 @@ class ApiController extends Controller
             'selected_freebees_product' => $selected_freebees_product,
             'order_status' => CustomHelper::getOrderStatusData($order_id),
             'seller_details' => $seller_details,
+            'is_return' => self::checkReturn($orders),
         ], 200);
 
     }
@@ -4615,6 +4616,21 @@ class ApiController extends Controller
             'result' => true,
             'message' => "Return Request Placed Successfully",
         ], 200);
+    }
+
+
+    public function checkReturn($order)
+    {
+        $canReturn = false;
+        $createdAt = $order->created_at;
+        $returnDeadline = $createdAt->copy()->addDays(2);
+        if (now()->lessThanOrEqualTo($returnDeadline)) {
+            $canReturn = true;  // Return is possible
+        } else {
+            $canReturn = false; // Return not possible
+        }
+        return $canReturn;
+
     }
 
 
