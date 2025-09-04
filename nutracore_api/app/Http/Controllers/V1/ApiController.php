@@ -1256,6 +1256,7 @@ class ApiController extends Controller
                 'result' => false,
                 'message' => '',
                 'user' => $user,
+                'token' => $request->bearerToken(),
             ], 401);
         }
 
