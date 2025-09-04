@@ -1250,17 +1250,16 @@ class ApiController extends Controller
                 'message' => json_encode($validator->errors()),
             ], 400);
         }
-        $token = $request->bearerToken();
-        if (!empty($token)) {
-            $user = CustomHelper::decodeToken($token);
-            if (empty($user)) {
-                return response()->json([
-                    'result' => false,
-                    'message' => '',
-                    'user' => $user,
-                ], 401);
-            }
+        $user = auth()->user();
+
+        if (empty($user)) {
+            return response()->json([
+                'result' => false,
+                'message' => '',
+                'user' => $user,
+            ], 401);
         }
+
 
         $homepageArr = [];
         $banners = Banner::where('status', 1)->where('is_delete', 0)->get()->makeHidden(['created_at', 'updated_at', 'is_delete', 'status']);
@@ -2713,7 +2712,7 @@ class ApiController extends Controller
 
                     if (!empty($catId)) {
                         $category = Category::find($catId);
-                        if(!empty($category)){
+                        if (!empty($category)) {
                             $category->image = CustomHelper::getImageUrl('categories', $category->image);
                         }
 
@@ -2723,8 +2722,8 @@ class ApiController extends Controller
 
                             if (!empty($ids)) {
                                 foreach ($ids as $key => $value) {
-                                    $pro = self::getProductDetails($value, $user->id??'');
-                                    if(!empty($pro)){
+                                    $pro = self::getProductDetails($value, $user->id ?? '');
+                                    if (!empty($pro)) {
                                         $products[] = $pro;
                                     }
                                 }
@@ -4567,7 +4566,6 @@ class ApiController extends Controller
     }
 
 
-
     public function return_single_product(Request $request): \Illuminate\Http\JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -4605,7 +4603,7 @@ class ApiController extends Controller
 
                     if (!empty($catId)) {
                         $category = Category::find($catId);
-                        if(!empty($category)){
+                        if (!empty($category)) {
                             $category->image = CustomHelper::getImageUrl('categories', $category->image);
                         }
 
@@ -4615,8 +4613,8 @@ class ApiController extends Controller
 
                             if (!empty($ids)) {
                                 foreach ($ids as $key => $value) {
-                                    $pro = self::getProductDetails($value, $user->id??'');
-                                    if(!empty($pro)){
+                                    $pro = self::getProductDetails($value, $user->id ?? '');
+                                    if (!empty($pro)) {
                                         $products[] = $pro;
                                     }
                                 }
