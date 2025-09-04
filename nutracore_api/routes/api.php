@@ -41,18 +41,8 @@ Route::prefix('v1/')->group(function () {
     Route::match(['get', 'post'], '/login', [ApiController::class, 'login'])->name('login');
     Route::match(['get', 'post'], '/skip_login', [ApiController::class, 'skip_login'])->name('skip_login');
     Route::post('/settings', [ApiController::class, 'settings']);
-    Route::post('/category_list', [ApiController::class, 'category_list']);
-    Route::post('/subcategory_list', [ApiController::class, 'subcategory_list']);
-    Route::post('/brands', [ApiController::class, 'brands']);
-    Route::match(['get','post'],'/products', [ApiController::class, 'products']);
-    Route::post('/product_details', [ApiController::class, 'product_details']);
-    Route::post('/app_versions', [ApiController::class, 'app_versions']);
-    Route::post('/tips_list', [ApiController::class, 'tips_list']);
-    Route::post('/settings', [ApiController::class, 'settings']);
-    Route::post('/search_location', [ApiController::class, 'search_location']);
-    Route::post('/fetch_latlong', [ApiController::class, 'fetch_latlong']);
-    Route::post('/app_filters', [ApiController::class, 'app_filters']);
-    Route::match(['get', 'post'], '/search_product', [ApiController::class, 'search_product']);
+
+
 
     Route::match(['get', 'post'], '/send_test_notification', [ApiController::class, 'send_test_notification']);
     Route::match(['get', 'post'], '/check_referal_code', [ApiController::class, 'check_referal_code']);
@@ -66,11 +56,14 @@ Route::prefix('v1/')->group(function () {
 
 
 
-    Route::match(['get', 'post'], '/sellers_list', [ApiController::class, 'sellers_list'])->name('sellers_list');
-    Route::post('/faqs', [ApiController::class, 'faqs']);
 
 
     Route::middleware(['auth:api'])->group(function () {
+        Route::match(['get', 'post'], '/search_product', [ApiController::class, 'search_product']);
+        Route::match(['get', 'post'], '/sellers_list', [ApiController::class, 'sellers_list'])->name('sellers_list');
+        Route::post('/faqs', [ApiController::class, 'faqs']);
+
+
         Route::match(['get', 'post'], '/profile', [ApiController::class, 'profile']);
         Route::match(['get', 'post'], '/home', [ApiController::class, 'home']);
         Route::post('/logout', [ApiController::class, 'logout']);
@@ -96,7 +89,17 @@ Route::prefix('v1/')->group(function () {
         Route::match(['get', 'post'], '/invoice', [ApiController::class, 'invoice']);
         Route::match(['get', 'post'], '/cartdata', [ApiController::class, 'CartData']);
         Route::match(['get', 'post'], '/referal_user_list', [ApiController::class, 'referal_user_list']);
-
+        Route::post('/category_list', [ApiController::class, 'category_list']);
+        Route::post('/subcategory_list', [ApiController::class, 'subcategory_list']);
+        Route::post('/brands', [ApiController::class, 'brands']);
+        Route::match(['get','post'],'/products', [ApiController::class, 'products']);
+        Route::post('/product_details', [ApiController::class, 'product_details']);
+        Route::post('/app_versions', [ApiController::class, 'app_versions']);
+        Route::post('/tips_list', [ApiController::class, 'tips_list']);
+        Route::post('/settings', [ApiController::class, 'settings']);
+        Route::post('/search_location', [ApiController::class, 'search_location']);
+        Route::post('/fetch_latlong', [ApiController::class, 'fetch_latlong']);
+        Route::post('/app_filters', [ApiController::class, 'app_filters']);
         ////////////////////////
 
         Route::match(['get', 'post'], '/notification_list', [ApiController::class, 'notification_list']);
