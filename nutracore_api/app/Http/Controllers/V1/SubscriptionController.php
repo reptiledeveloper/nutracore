@@ -271,7 +271,12 @@ foreach ($subscription_plans as $plan) {
                 'message' => '',
             ], 401);
         }
-
+        if ($user->phone == "9999999999") {
+            return response()->json([
+                'result' => false,
+                'message' => 'Unauthorised',
+            ], 401);
+        }
         $subscription_id = $request->subscription_id ?? '';
         $subscription_plans = SubscriptionPlans::where('id', $subscription_id)->first();
         if (empty($subscription_plans)) {

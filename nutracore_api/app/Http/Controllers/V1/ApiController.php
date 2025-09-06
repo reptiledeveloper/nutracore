@@ -433,6 +433,12 @@ class ApiController extends Controller
                 'user' => $user,
             ], 401);
         }
+        if ($user->phone == "9999999999") {
+            return response()->json([
+                'result' => false,
+                'message' => 'Unauthorised',
+            ], 401);
+        }
         $dbArray = [];
         $userData = User::find($user->id);
         if (!empty($request->name)) {
@@ -1684,6 +1690,12 @@ class ApiController extends Controller
                 'message' => '',
             ], 401);
         }
+        if ($user->phone == "9999999999") {
+            return response()->json([
+                'result' => false,
+                'message' => 'Unauthorised',
+            ], 401);
+        }
         $payment_data = [];
         $order_id = null;
         $amount = $request->amount ?? 0;
@@ -2191,6 +2203,12 @@ class ApiController extends Controller
                 'user' => $user,
             ], 401);
         }
+        if ($user->phone == "9999999999") {
+            return response()->json([
+                'result' => false,
+                'message' => 'Unauthorised',
+            ], 401);
+        }
         $search = $request->search ?? '';
         $category_id = $request->category_id ?? '';
         $subcategory_id = $request->subcategory_id ?? '';
@@ -2499,6 +2517,12 @@ class ApiController extends Controller
             return response()->json([
                 'result' => false,
                 'message' => '',
+            ], 401);
+        }
+        if ($user->phone == "9999999999") {
+            return response()->json([
+                'result' => false,
+                'message' => 'Unauthorised',
             ], 401);
         }
         $method = $request->method();
@@ -2956,6 +2980,12 @@ class ApiController extends Controller
                 'message' => '',
             ], 401);
         }
+        if ($user->phone == "9999999999") {
+            return response()->json([
+                'result' => false,
+                'message' => 'Unauthorised',
+            ], 401);
+        }
         $user_address = UserAddress::where('user_id', $user->id)->where('is_delete', 0)->get();
         if (!empty($user_address)) {
             foreach ($user_address as $user_addres) {
@@ -2990,6 +3020,12 @@ class ApiController extends Controller
             return response()->json([
                 'result' => false,
                 'message' => '',
+            ], 401);
+        }
+        if ($user->phone == "9999999999") {
+            return response()->json([
+                'result' => false,
+                'message' => 'Unauthorised',
             ], 401);
         }
         $dbArray = [];
@@ -3146,6 +3182,12 @@ class ApiController extends Controller
             return response()->json([
                 'result' => false,
                 'message' => '',
+            ], 401);
+        }
+        if ($user->phone == "9999999999") {
+            return response()->json([
+                'result' => false,
+                'message' => 'Unauthorised',
             ], 401);
         }
 
@@ -3663,6 +3705,12 @@ class ApiController extends Controller
                 'orders' => $orders
             ], 401);
         }
+        if ($user->phone == "9999999999") {
+            return response()->json([
+                'result' => false,
+                'message' => 'Unauthorised',
+            ], 401);
+        }
         $ordersArr = [];
         $orders = Order::select('id', 'created_at', 'status', 'total_amount')->where('userID', $user->id)->where('is_delete', 0)->latest();
         $orders = $orders->paginate(30);
@@ -3729,6 +3777,12 @@ class ApiController extends Controller
                 'result' => false,
                 'message' => '',
                 'orders' => $orders
+            ], 401);
+        }
+        if ($user->phone == "9999999999") {
+            return response()->json([
+                'result' => false,
+                'message' => 'Unauthorised',
             ], 401);
         }
         $ordersArr = [];
@@ -4486,6 +4540,12 @@ class ApiController extends Controller
             return response()->json([
                 'result' => false,
                 'message' => '',
+            ], 401);
+        }
+        if ($user->phone == "9999999999") {
+            return response()->json([
+                'result' => false,
+                'message' => 'Unauthorised',
             ], 401);
         }
         $giftcards = DB::table('gift_card')
