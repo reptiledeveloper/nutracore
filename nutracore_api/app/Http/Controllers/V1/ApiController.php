@@ -2693,6 +2693,12 @@ class ApiController extends Controller
                 'message' => '',
             ], 401);
         }
+        if ($user->phone == "9999999999") {
+            return response()->json([
+                'result' => false,
+                'message' => 'Unauthorised',
+            ], 401);
+        }
         $banners = Banner::where('status', 1)->where('is_delete', 0)->get()->makeHidden(['created_at', 'updated_at', 'is_delete', 'status']);
         if (!empty($banners)) {
             foreach ($banners as $banner) {
