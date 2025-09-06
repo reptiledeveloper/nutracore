@@ -1307,8 +1307,11 @@ class ApiController extends Controller
         $seller_id = $user->seller_id ?? $request->seller_id ?? '';
         $selected_address = null;
         $seller_details = null;
-        if (!empty($user) && !self::checkGuest($user)) {
-            $selected_address = CustomHelper::getAddressDetails($user->addressID);
+        if (!empty($user)) {
+            if(!self::checkGuest($user)){
+                $selected_address = CustomHelper::getAddressDetails($user->addressID);
+            }
+
             $seller_details = self::getSellerDetails($user->seller_id, $user->id);
 
             $user->selected_address = $selected_address;
