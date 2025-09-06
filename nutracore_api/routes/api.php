@@ -59,7 +59,9 @@ Route::prefix('v1/')->group(function () {
 
 
     Route::middleware(['auth:api'])->group(function () {
-        Route::match(['get', 'post'], '/search_product', [ApiController::class, 'search_product']);
+//        Route::match(['get', 'post'], '/search_product', [ApiController::class, 'search_product']);
+        Route::get('/search_product', [ApiController::class, 'search_product']);
+        Route::post('/search_product', [ApiController::class, 'search_product']);
         Route::match(['get', 'post'], '/sellers_list', [ApiController::class, 'sellers_list'])->name('sellers_list');
         Route::post('/faqs', [ApiController::class, 'faqs']);
 
