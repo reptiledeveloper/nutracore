@@ -2340,14 +2340,14 @@ class ApiController extends Controller
                 'message' => json_encode($validator->errors()),
             ], 400);
         }
-        $user = auth()->user();
-        if (empty($user)) {
-            return response()->json([
-                'result' => false,
-                'message' => '',
-                'user' => $user,
-            ], 401);
-        }
+//        $user = auth()->user();
+//        if (empty($user)) {
+//            return response()->json([
+//                'result' => false,
+//                'message' => '',
+//                'user' => $user,
+//            ], 401);
+//        }
         $search = $request->search ?? '';
         $search_suggation = [];
         if (!empty($search)) {
