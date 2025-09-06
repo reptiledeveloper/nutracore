@@ -1981,7 +1981,7 @@ class ApiController extends Controller
         $maxDistance = $radiusHours * $avgSpeed;
 
         return Vendors::select(
-            'sellers.*',
+            'vendors.*',
             DB::raw("6371 * acos(cos(radians($latitude))
                     * cos(radians(latitude))
                     * cos(radians(longitude) - radians($longitude))
