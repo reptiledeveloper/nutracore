@@ -1984,7 +1984,14 @@ class ApiController extends Controller
                 $cutoff_time = CustomHelper::getSettingKey('cutoff_time');
                 $user->seller_id = $seller->id ?? "";
                 $user->save();
-                $day_time_text = (date('H:i:s') < $cutoff_time) ? 'Today 8 PM' : 'Tomorrow 11 AM';
+                if (date('H:i:s') < $cutoff_time) {
+                    // Add 2 hours to current time
+                    $delivery_time = date('h:i A', strtotime('+2 hours'));
+                    $day_time_text = "Today " . $delivery_time;
+                } else {
+                    $day_time_text = "Tomorrow 11 AM";
+                }
+//                $day_time_text = (date('H:i:s') < $cutoff_time) ? 'Today 8 PM' : 'Tomorrow 11 AM';
                 $estimated_day_cache = "Get it By " . $day_time_text;
                 $estimated_day = $estimated_day_cache;
             }
