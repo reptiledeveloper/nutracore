@@ -221,11 +221,40 @@ class ApiController extends Controller
 
 
         $user->is_open_suppliment_form = $is_open_suppliment_form;
+
+
+
+        $is_active = 0;
+        $subscription_end_date = '';
+        $exist_subscription = Subscriptions::where('user_id', $user->id)->where('paid_status', 1)->latest()->first();
+        if (!empty($exist_subscription)) {
+            $is_prev_subscribed = 1;
+            $current_date = date('Y-m-d');
+            $subscribed_subscription = SubscriptionPlans::find($exist_subscription->subscription_id);
+            if (strtotime($user->subscription_end) >= strtotime($current_date)) {
+                $is_active = 1;
+            }
+        }
+        $type = ($is_active == 1 )? 'subscribe' : 'not_subscribe';
+        $total_order_amount = Order::where('userID', $user->id)->where('status', 'DELIVERED')->sum('total_amount');
+        $active_loyalty = DB::table('loyality_system')
+            ->where('status', 1)
+            ->where('is_delete', 0)
+            ->where('type', $type)
+            ->where('from_amount', '<=', $total_order_amount)
+            ->where(function ($q) use ($total_order_amount) {
+                $q->where('to_amount', '>=', $total_order_amount)
+                    ->orWhereNull('to_amount'); // for open-ended slabs like Platinum
+            })
+            ->orderBy('from_amount', 'desc') // pick the highest matching tier
+            ->first();
+
         return response()->json([
             'result' => true,
             'message' => 'User Profile',
             'user' => $user,
             'is_update' => $is_update,
+            'active_loyalty' => $active_loyalty,
         ], 200);
     }
 
