@@ -1986,7 +1986,9 @@ class ApiController extends Controller
                 $user->save();
                 if (date('H:i:s') < $cutoff_time) {
                     // Add 2 hours to current time
-                    $delivery_time = date('h:i A', strtotime('+2 hours'));
+                    $nextHour = strtotime('+1 hour', strtotime(date('Y-m-d H:00:00')));
+                    // Add 2 hours to delivery time
+                    $delivery_time = date('h:i A', strtotime('+2 hours', $nextHour));
                     $day_time_text = "Today " . $delivery_time;
                 } else {
                     $day_time_text = "Tomorrow 11 AM";
