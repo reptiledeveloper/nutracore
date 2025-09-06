@@ -2883,10 +2883,10 @@ class ApiController extends Controller
             if ($cashback_wallet_use > 0) {
                 $applied_cashback = ($total_price * $cashback_wallet_use) / 100;
                 if ($applied_cashback <= $cashback_wallet) {
-                    $max_applied_cashback = $applied_cashback;
+                    $max_applied_cashback = (int)$applied_cashback;
                 }
                 if ($applied_cashback > $cashback_wallet) {
-                    $max_applied_cashback = $cashback_wallet;
+                    $max_applied_cashback = (int)$cashback_wallet;
                 }
             }
 
@@ -3526,7 +3526,7 @@ class ApiController extends Controller
             $dbArray['subscription_id'] = $request->subscription_id ?? '';
             $dbArray['freebees_id'] = $request->freebees_id ?? '';
             $dbArray['freebees_price'] = $freebees_price ?? '';
-            $dbArray['applied_cashback'] = $request->applied_cashback ?? '';
+            $dbArray['applied_cashback'] = (int)$request->applied_cashback ?? '';
             $dbArray['longitude'] = $address->longitude ?? '';
             $dbArray['address_type'] = $address->address_type ?? '';
             $dbArray['instruction'] = $request->instruction ?? '';
@@ -3552,10 +3552,10 @@ class ApiController extends Controller
             $dbArray['status'] = 'PLACED';
             $dbArray['order_from'] = 'APP';
             if ($payment_method == 'COD') {
-                $dbArray['cod_amount'] = (float)$cartValue['total_price'] - (float)$request->applied_cashback;
+                $dbArray['cod_amount'] = (int)$cartValue['total_price'] - (int)$request->applied_cashback;
             }
             if ($payment_method == 'online') {
-                $dbArray['online_amount'] = (float)$cartValue['total_price'] - (float)$request->applied_cashback;
+                $dbArray['online_amount'] = (int)$cartValue['total_price'] - (int)$request->applied_cashback;
                 $dbArray['is_delete'] = 1;
             }
             $total_price = $cartValue['total_price'] ?? 0;
@@ -3593,14 +3593,14 @@ class ApiController extends Controller
                 ///////Save Transaction Needed
             }
             if (!empty($request->applied_cashback)) {
-                $new_wallet = (float)$user_data->cashback_wallet - (float)$request->applied_cashback;
+                $new_wallet = (int)$user_data->cashback_wallet - (int)$request->applied_cashback;
                 User::where('id', $user_id)->update(['cashback_wallet' => $new_wallet]);
                 ///////Save Transaction Needed
                 ////Save Transaction////
                 $dbArray = [];
                 $dbArray['userID'] = $user_id;
                 $dbArray['type'] = 'DEBIT';
-                $dbArray['amount'] = $request->applied_cashback ?? 0;
+                $dbArray['amount'] = (int)$request->applied_cashback ?? 0;
                 $dbArray['against_for'] = 'cashback_wallet';
                 $dbArray['wallet_type'] = 'cashback_wallet';
                 $dbArray['remarks'] = "Amount Debited From NC Cash";
