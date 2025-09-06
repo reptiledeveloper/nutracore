@@ -28,6 +28,8 @@
     $pincode = $sellers->pincode ?? '';
     $account_name = $sellers->account_name ?? '';
     $two_hr_radius = $sellers->two_hr_radius ?? '';
+    $open_time = $sellers->open_time ?? '';
+    $close_time = $sellers->close_time ?? '';
 
     $google_address = $sellers->google_address??'';
     $gst_certificate = $sellers->gst_certificate??'';
@@ -139,6 +141,20 @@
                                     <input type="text" class="form-control" name="two_hr_radius"
                                            value="{{ old('two_hr_radius', $two_hr_radius) }}">
                                     @include('snippets.errors_first', ['param' => 'two_hr_radius'])
+                                </div>
+
+                                <div class="form-group col-md-6 mt-3">
+                                    <label for="validationCustom01" class="form-label">Open Time</label>
+                                    <input type="time" class="form-control" name="open_time"
+                                           value="{{ old('open_time', $open_time) }}">
+                                    @include('snippets.errors_first', ['param' => 'open_time'])
+                                </div>
+
+                                <div class="form-group col-md-6 mt-3">
+                                    <label for="validationCustom01" class="form-label">Close Time</label>
+                                    <input type="time" class="form-control" name="close_time"
+                                           value="{{ old('close_time', $close_time) }}">
+                                    @include('snippets.errors_first', ['param' => 'close_time'])
                                 </div>
 
 
