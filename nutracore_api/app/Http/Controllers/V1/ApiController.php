@@ -1232,6 +1232,16 @@ class ApiController extends Controller
         ], 200);
     }
 
+    public function checkGuest($user)
+    {
+        $status = false;
+        if ($user->phone == "9999999999") {
+            $status = true;
+        }
+        return $status;
+
+    }
+
 
     public function home(Request $request): \Illuminate\Http\JsonResponse
     {
@@ -1297,7 +1307,7 @@ class ApiController extends Controller
         $seller_id = $user->seller_id ?? $request->seller_id ?? '';
         $selected_address = null;
         $seller_details = null;
-        if (!empty($user)) {
+        if (!empty($user) && !self::checkGuest($user)) {
             $selected_address = CustomHelper::getAddressDetails($user->addressID);
             $seller_details = self::getSellerDetails($user->seller_id, $user->id);
 
@@ -3783,7 +3793,6 @@ class ApiController extends Controller
             'seller_details' => $seller_details,
             'is_return' => self::checkReturn($orders),
         ], 200);
-
     }
 
 
