@@ -3533,10 +3533,10 @@ class ApiController extends Controller
             $dbArray['status'] = 'PLACED';
             $dbArray['order_from'] = 'APP';
             if ($payment_method == 'COD') {
-                $dbArray['cod_amount'] = $cartValue['total_price'] ?? '';
+                $dbArray['cod_amount'] = (float)$cartValue['total_price'] - (float)$request->applied_cashback;
             }
             if ($payment_method == 'online') {
-                $dbArray['online_amount'] = $cartValue['total_price'] ?? '';
+                $dbArray['online_amount'] = (float)$cartValue['total_price'] - (float)$request->applied_cashback;
                 $dbArray['is_delete'] = 1;
             }
             $total_price = $cartValue['total_price'] ?? 0;
