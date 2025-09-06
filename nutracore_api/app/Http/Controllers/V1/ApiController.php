@@ -2349,8 +2349,6 @@ class ApiController extends Controller
             ], 401);
         }
         $search = $request->search ?? '';
-        $category_data = [];
-        $productArr = [];
         $search_suggation = [];
         if (!empty($search)) {
             $product_suggation = Product::select('id', 'name', 'category_id', 'subcategory_id', 'image');
@@ -2399,8 +2397,6 @@ class ApiController extends Controller
         return response()->json([
             'result' => true,
             'message' => "Successfully",
-//            'category_data' => $category_data,
-//            'products' => $productArr,
             'search_suggation' => $search_suggation,
         ], 200);
     }
