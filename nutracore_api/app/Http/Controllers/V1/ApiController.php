@@ -850,6 +850,7 @@ class ApiController extends Controller
                 $payment_method = $seller->payment_method ?? '';
                 $seller->is_deliver = $is_deliver;
                 $seller->delivery_time = $seller->delivery_time ?? '';
+                $seller->phone = $seller->user_phone ?? '';
                 $seller->payment_method = $payment_method;
                 $seller->open_time = date('h:i A', strtotime($seller->open_time)) ?? '';
                 $seller->close_time = date('h:i A', strtotime($seller->close_time)) ?? '';
