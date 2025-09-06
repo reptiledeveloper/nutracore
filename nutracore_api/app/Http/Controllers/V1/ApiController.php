@@ -1936,7 +1936,7 @@ class ApiController extends Controller
         ], 200);
     }
 
-    public function getNearestSeller($lat, $lon)
+    public function getNearestSellerold($lat, $lon)
     {
         $seller = null;
         \DB::enableQueryLog(); // Enable query log
@@ -1975,6 +1975,23 @@ class ApiController extends Controller
         return $seller;
     }
 
+    public static function getNearestSeller($latitude, $longitude, $radiusHours = 2, $avgSpeed = 40)
+    {
+        // radiusHours = 2 hrs, avgSpeed = 40 km/h → max distance = 80 km
+        $maxDistance = $radiusHours * $avgSpeed;
+
+        return Vendors::select(
+            'sellers.*',
+            DB::raw("6371 * acos(cos(radians($latitude))
+                    * cos(radians(latitude))
+                    * cos(radians(longitude) - radians($longitude))
+                    + sin(radians($latitude))
+                    * sin(radians(latitude))) AS distance")
+        )
+            ->havingRaw("distance <= two_hr_radius")
+            ->orderBy("distance", "asc")
+            ->first();
+    }
 
     public function getProductDetails($product_id, $user_id = null)
     {
@@ -1990,7 +2007,7 @@ class ApiController extends Controller
             $latitude = $user->latitude ?? '';
             $longitude = $user->longitude ?? '';
 
-            $seller = self::getNearestSeller($latitude, $longitude);
+            $seller = self::getNearestSeller($latitude, $longitude, 2, 40);
 
             if (!empty($seller)) {
                 $cutoff_time = CustomHelper::getSettingKey('cutoff_time');
