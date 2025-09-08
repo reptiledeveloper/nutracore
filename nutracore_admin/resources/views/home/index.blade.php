@@ -29,7 +29,7 @@ $values = $valuesData;
                                     <div class="display-5">
                                         <i class="bi bi-person text-secondary"></i>
                                     </div>
-                                    <h5 class="my-3">Total User</h5>
+                                    <h5 class="my-3">Active Orders</h5>
                                     <div class="progress mt-2 mb-2" style="height: 2px">
                                         <div class="progress-bar bg-secondary" role="progressbar" style="width: 100%"
                                              aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
@@ -45,7 +45,7 @@ $values = $valuesData;
                                     <div class="display-5">
                                         <i class="bi bi-receipt text-warning"></i>
                                     </div>
-                                    <h5 class="my-3">Orders</h5>
+                                    <h5 class="my-3">Pending Dispatch</h5>
                                     <div class="progress mt-2 mb-2" style="height: 2px">
                                         <div class="progress-bar bg-warning" role="progressbar" style="width: 100%"
                                              aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
@@ -61,7 +61,7 @@ $values = $valuesData;
                                     <div class="display-5">
                                         <i class="bi bi-cart text-info"></i>
                                     </div>
-                                    <h5 class="my-3">Delivery Boys</h5>
+                                    <h5 class="my-3">Express Orders Pending</h5>
                                     <div class="progress mt-2 mb-2" style="height: 2px">
                                         <div class="progress-bar bg-info" role="progressbar" style="width: 100%"
                                              aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
@@ -77,7 +77,24 @@ $values = $valuesData;
                                     <div class="display-5">
                                         <i class="bi bi-collection text-success"></i>
                                     </div>
-                                    <h5 class="my-3">Products</h5>
+                                    <h5 class="my-3">Express Orders Delivered</h5>
+                                    <div class="progress mt-2 mb-2" style="height: 2px">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: 100%"
+                                             aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <h3 class="text-muted">{{$total_product??0}}</h3>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="card border-0">
+                                <div class="card-body text-center">
+                                    <div class="display-5">
+                                        <i class="bi bi-collection text-success"></i>
+                                    </div>
+                                    <h5 class="my-3">Return Request Pending</h5>
                                     <div class="progress mt-2 mb-2" style="height: 2px">
                                         <div class="progress-bar bg-success" role="progressbar" style="width: 100%"
                                              aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>

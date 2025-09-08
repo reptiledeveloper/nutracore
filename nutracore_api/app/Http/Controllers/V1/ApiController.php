@@ -1278,6 +1278,161 @@ class ApiController extends Controller
 
     }
 
+    public function homeold(Request $request)
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return response()->json([
+                'result' => false,
+                'message' => 'Unauthorized',
+                'user' => null,
+            ], 401);
+        }
+
+        // Cache everything that rarely changes
+        $banners = Cache::remember('home_banners', 300, function () use ($user) {
+            return Banner::where('status', 1)
+                ->where('is_delete', 0)
+                ->get(['id', 'banner_img', 'product_id'])
+                ->map(function ($banner) use ($user) {
+                    $banner->banner_img = CustomHelper::getImageUrl('banners', $banner->banner_img);
+                    $productIds = array_filter(explode(",", $banner->product_id));
+                    $banner->products = Product::whereIn('id', $productIds)
+                        ->where('status', 1)
+                        ->get()
+                        ->map(fn($p) => self::getProductDetails($p->id, $user->id));
+                    return $banner;
+                });
+        });
+
+        $categories = Cache::remember('home_categories', 300, function () {
+            return Category::where(['status' => 1, 'parent_id' => 0, 'is_goal' => 0, 'is_delete' => 0])
+                ->orderBy('priority', 'ASC')
+                ->get(['id', 'name', 'image'])
+                ->map(function ($category) {
+                    $category->image = CustomHelper::getImageUrl('categories', $category->image);
+                    return $category;
+                });
+        });
+
+        $brands = Cache::remember('home_brands', 300, function () {
+            return Brand::where('status', 1)->where('is_delete', 0)
+                ->orderBy('priority', "ASC")
+                ->get(['id', 'brand_name', 'brand_img', 'certificate'])
+                ->map(function ($brand) {
+                    $brand->icon = CustomHelper::getImageUrl('brands', $brand->brand_img);
+                    $brand->image = CustomHelper::getImageUrl('brands', $brand->brand_img);
+                    $brand->brand_img = CustomHelper::getImageUrl('brands', $brand->brand_img);
+                    $brand->brand_icon = CustomHelper::getImageUrl('brands', $brand->brand_img);
+                    $brand->certificate = CustomHelper::getImageUrl('brands', $brand->certificate);
+                    return $brand;
+                });
+        });
+
+        $subscription_plans = Cache::remember('home_subscription_plans', 300, function () {
+            $plans = SubscriptionPlans::where('status', 1)->where('is_delete', 0)->get();
+            $bestPlan = null;
+            $minPricePerDay = PHP_FLOAT_MAX;
+
+            foreach ($plans as $plan) {
+                $durationInDays = $plan->duration * 30.44;
+                if ($durationInDays > 0) {
+                    $pricePerDay = (int)$plan->price / $durationInDays;
+                    if ($pricePerDay < $minPricePerDay) {
+                        $minPricePerDay = $pricePerDay;
+                        $bestPlan = $plan->id;
+                    }
+                }
+            }
+
+            foreach ($plans as $plan) {
+                $plan->image = CustomHelper::getImageUrl('subscription_plans', $plan->image);
+                $plan->is_best_value = ($plan->id == $bestPlan) ? 1 : 0;
+            }
+
+            return $plans;
+        });
+
+        // Collections pre-fetched
+        $collectionProducts = Cache::remember('home_collections', 300, function () {
+            return DB::table('collections')->pluck('product_ids', 'id');
+        });
+
+        $bestDeals = self::mapProducts($collectionProducts[2] ?? '', $user->id);
+        $bestSellers = self::mapProducts($collectionProducts[1] ?? '', $user->id);
+        $newArrivals = self::mapProducts($collectionProducts[3] ?? '', $user->id);
+
+        $newUpdates = Cache::remember('home_new_updates', 120, function () use ($user) {
+            return DB::table('new_updates')
+                ->where(['is_delete' => 0, 'status' => 1])
+                ->latest()->limit(5)->get()
+                ->map(function ($update) use ($user) {
+                    $update->image = CustomHelper::getImageUrl('new_updates', $update->image);
+                    $update->product = self::getProductDetails($update->product_id ?? '', $user->id);
+                    return $update;
+                });
+        });
+
+        $testimonials = Cache::remember('home_testimonials', 600, function () {
+            return DB::table('testimonial')
+                ->where(['is_delete' => 0, 'status' => 1])
+                ->latest()->limit(5)->get()
+                ->map(function ($t) {
+                    $t->image = CustomHelper::getImageUrl('testimonials', $t->image);
+                    return $t;
+                });
+        });
+
+        // User extra details
+        $selected_address = !self::checkGuest($user)
+            ? CustomHelper::getAddressDetails($user->addressID)
+            : null;
+
+        $seller_details = self::getSellerDetails($user->seller_id, $user->id);
+
+        $homepageArr = [
+            'categories'         => $categories,
+            'brands'             => $brands,
+            'banners'            => $banners,
+            'selected_address'   => $selected_address,
+            'seller_details'     => $seller_details,
+            'subscription_plans' => $subscription_plans,
+            'subscription_data'  => [
+                'description' => '🔥 10% OFF every order <br>
+                              🚚 Free Express Delivery <br>
+                              🎁 Monthly Freebie Box <br>
+                              ⏰ Early Access & Secret Sales'
+            ],
+            'new_updates'  => $newUpdates,
+            'testimonials' => $testimonials,
+            'best_deals'   => $bestDeals,
+            'best_sellers' => $bestSellers,
+            'newArrival'   => $newArrivals,
+        ];
+
+        $user->selected_address = $selected_address;
+        $user->seller_details = $seller_details;
+
+        return response()->json([
+            'result'    => true,
+            'message'   => "Successfully",
+            'home_data' => $homepageArr,
+            'banners'   => $banners,
+            'user'      => $user,
+        ], 200);
+    }
+
+    /**
+     * Map product IDs string into product details
+     */
+    private static function mapProducts(string $ids, $userId)
+    {
+        $ids = array_filter(explode(",", $ids));
+        return Product::where('status', 1)->whereIn('id', $ids)->latest()->get()
+            ->map(fn($p) => (new ApiController)->getProductDetails($p->id, $userId));
+    }
+
 
     public function home(Request $request): \Illuminate\Http\JsonResponse
     {

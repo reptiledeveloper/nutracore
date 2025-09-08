@@ -25,3 +25,7 @@ yarn-error.log
 /nutracore_admin/vendor
 /nutracore_admin/.htaccess
 /images
+/ServerImages
+/nutracore_admin/bootstrap
+/nutracore_api/bootstrap
+/nutracore_website/bootstrap
