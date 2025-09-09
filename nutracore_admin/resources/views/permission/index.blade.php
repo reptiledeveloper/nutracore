@@ -135,10 +135,10 @@
                                 <tr>
                                     <th>Modules</th>
                                     <th>List</th>
-                                    <th>Create</th>
-                                    <th>Update</th>
-                                    <th>Delete</th>
-                                    <th>View Details</th>
+{{--                                    <th>Create</th>--}}
+{{--                                    <th>Update</th>--}}
+{{--                                    <th>Delete</th>--}}
+{{--                                    <th>View Details</th>--}}
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -179,6 +179,8 @@
 
                                     }
                                     ?>
+                                @if(!empty($title))
+
                                 <tr>
                                     <td>{{ $title ?? '' }}</td>
                                     <td class="text-start">
@@ -193,57 +195,58 @@
 
                                     </td>
 
-                                    <td class="text-start">
-                                        <div class="mb-3">
-                                            <label class="switch">
-                                                <input type="checkbox" {{ $add }}
-                                                onclick="update_permission('{{ $value }}','{{ $role_id }}','add',this)"
-                                                       id="checkboxadd{{ $value }}">
-                                                <span class="slider round"></span>
-                                            </label>
-                                        </div>
+{{--                                    <td class="text-start">--}}
+{{--                                        <div class="mb-3">--}}
+{{--                                            <label class="switch">--}}
+{{--                                                <input type="checkbox" {{ $add }}--}}
+{{--                                                onclick="update_permission('{{ $value }}','{{ $role_id }}','add',this)"--}}
+{{--                                                       id="checkboxadd{{ $value }}">--}}
+{{--                                                <span class="slider round"></span>--}}
+{{--                                            </label>--}}
+{{--                                        </div>--}}
 
-                                    </td>
-
-
-                                    <td class="text-start">
-                                        <div class="mb-3">
-                                            <label class="switch">
-                                                <input type="checkbox" {{ $edit }}
-                                                onclick="update_permission('{{ $value }}','{{ $role_id }}','edit',this)"
-                                                       id="checkboxedit{{ $value }}">
-                                                <span class="slider round"></span>
-                                            </label>
-                                        </div>
-
-                                    </td>
+{{--                                    </td>--}}
 
 
-                                    <td class="text-start">
-                                        <div class="mb-3">
-                                            <label class="switch">
-                                                <input type="checkbox" {{ $delete }}
-                                                onclick="update_permission('{{ $value }}','{{ $role_id }}','delete',this)"
-                                                       id="checkboxdelete{{ $value }}">
-                                                <span class="slider round"></span>
-                                            </label>
-                                        </div>
+{{--                                    <td class="text-start">--}}
+{{--                                        <div class="mb-3">--}}
+{{--                                            <label class="switch">--}}
+{{--                                                <input type="checkbox" {{ $edit }}--}}
+{{--                                                onclick="update_permission('{{ $value }}','{{ $role_id }}','edit',this)"--}}
+{{--                                                       id="checkboxedit{{ $value }}">--}}
+{{--                                                <span class="slider round"></span>--}}
+{{--                                            </label>--}}
+{{--                                        </div>--}}
 
-                                    </td>
+{{--                                    </td>--}}
 
-                                    <td class="text-start">
-                                        <div class="mb-3">
-                                            <label class="switch">
-                                                <input type="checkbox" {{ $view }}
-                                                onclick="update_permission('{{ $value }}','{{ $role_id }}','view',this)"
-                                                       id="checkboxview{{ $value }}">
-                                                <span class="slider round"></span>
-                                            </label>
-                                        </div>
 
-                                    </td>
+{{--                                    <td class="text-start">--}}
+{{--                                        <div class="mb-3">--}}
+{{--                                            <label class="switch">--}}
+{{--                                                <input type="checkbox" {{ $delete }}--}}
+{{--                                                onclick="update_permission('{{ $value }}','{{ $role_id }}','delete',this)"--}}
+{{--                                                       id="checkboxdelete{{ $value }}">--}}
+{{--                                                <span class="slider round"></span>--}}
+{{--                                            </label>--}}
+{{--                                        </div>--}}
+
+{{--                                    </td>--}}
+
+{{--                                    <td class="text-start">--}}
+{{--                                        <div class="mb-3">--}}
+{{--                                            <label class="switch">--}}
+{{--                                                <input type="checkbox" {{ $view }}--}}
+{{--                                                onclick="update_permission('{{ $value }}','{{ $role_id }}','view',this)"--}}
+{{--                                                       id="checkboxview{{ $value }}">--}}
+{{--                                                <span class="slider round"></span>--}}
+{{--                                            </label>--}}
+{{--                                        </div>--}}
+
+{{--                                    </td>--}}
 
                                 </tr>
+                                @endif
                                 <?php }
                                 } ?>
 

@@ -81,6 +81,9 @@
                                     <a href="{{ route('stocks.export', ['back_url' => $BackUrl]) }}"
                                        class="btn btn-primary" title="Export "><i class="fa fa-file-excel-o"
                                                                                   aria-hidden="true"></i></a>
+
+                                    <a href="{{ route('stocks.export_all', ['back_url' => $BackUrl]) }}"
+                                       class="btn btn-primary" title="Export ">  All Export</a>
                                 </div>
                             </div>
                         </div>

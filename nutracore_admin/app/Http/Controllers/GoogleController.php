@@ -63,7 +63,7 @@ class GoogleController extends Controller
     {
         $authCode = $request->code ?? '';
         if (!empty($authCode)) {
-            $path = storage_path('app/public') . '/config.json';
+            $path = storage_path('app/public') . '/nutracore.json';
             $scope = ['https://www.googleapis.com/auth/firebase.messaging', 'https://www.googleapis.com/auth/cloud-platform'];
             $applicationName = 'buybuycart-441506';
             $client = new \Google_Client();
@@ -96,11 +96,12 @@ class GoogleController extends Controller
 
     public function createAccessToken()
     {
-        $path = storage_path('app/public') . '/config.json';
+        $path = storage_path('app/public') . '/nutracore.json';
         $provider = new GenericProvider([
-            'clientId' => '985890722792-03rcmtvga7l07k67dqbbpe6lt7bphoe5.apps.googleusercontent.com',
-            'clientSecret' => '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',
-            'redirectUri' => ["https://adminbuycart.reptileantitheft.com/googlecallback", "https://localhost/BuyBuyCart/buy_buy_cart_admin/googlecallback"],
+            'clientId' => '154429853000-cv6i13uuujc2hr8cs9lgc2ojc72ckffd.apps.googleusercontent.com',
+            'clientSecret' => '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',
+            'redirectUri' => ["https://admin.nutracore.in/googlecallback",
+                "http://localhost/Nutracore/nutracore_admin/googlecallback"],
             'urlAuthorize' => 'https://accounts.google.com/o/oauth2/auth',
             'urlAccessToken' => 'https://oauth2.googleapis.com/token',
             'urlResourceOwnerDetails' => $path,
@@ -129,9 +130,9 @@ class GoogleController extends Controller
 
     public function google_auth()
     {
-        $path = storage_path('app/public') . '/config.json';
+        $path = storage_path('app/public') . '/nutracore.json';
         $scope = ['https://www.googleapis.com/auth/firebase.messaging', 'https://www.googleapis.com/auth/cloud-platform'];
-        $applicationName = 'buybuycart-441506';
+        $applicationName = 'nutracore';
         $client = new \Google_Client();
         $client->setApplicationName($applicationName);
         $client->setAuthConfig($path);

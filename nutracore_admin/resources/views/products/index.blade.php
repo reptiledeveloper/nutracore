@@ -19,7 +19,7 @@
                 </ol>
             </nav>
         </div>
-        @include('layouts.filter',['search_show'=>'search_show','vendor_show'=>'vendor_show','categories_show'=>'categories_show','subcategory_show'=>'subcategory_show'])
+        @include('layouts.filter',['brand_show'=>'brand_show','tag_show'=>'tag_show','search_show'=>'search_show','vendor_show'=>'vendor_show','categories_show'=>'categories_show','subcategory_show'=>'subcategory_show'])
 
         <div class="row">
             <div class="col-md-12">
@@ -43,6 +43,7 @@
                             <th>Product Name</th>
                             <th>Category</th>
                             <th>SubCategory</th>
+                            <th>Brand</th>
                             <th>Image</th>
                             <th>Vendor Name</th>
                             <th>Status</th>
@@ -58,6 +59,7 @@
                             <td class="text-wrap">{{ $product->name ?? '' }}</td>
                             <td>{{ \App\Helpers\CustomHelper::getCategoryName($product->category_id??'') ?? '' }}</td>
                             <td>{{ \App\Helpers\CustomHelper::getCategoryName($product->subcategory_id??'') ?? '' }}</td>
+                            <td>{{ \App\Helpers\CustomHelper::getBrandName($product->brand_id??'') ?? '' }}</td>
                             <td><a href="{{$image}}" target="_blank"><img height="50px" width="50px" src="{{$image}}"
                                                                           alt=""/></a>
                             </td>

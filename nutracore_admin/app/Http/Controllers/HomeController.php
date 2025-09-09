@@ -20,7 +20,7 @@ use Validator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use FilesystemIterator;
-
+use Illuminate\Support\Facades\Mail;
 class HomeController extends Controller
 {
 
@@ -198,6 +198,9 @@ class HomeController extends Controller
             }
             if (!empty($request->admin_commission)) {
                 $dbArray['admin_commission'] = $request->admin_commission;
+            }
+            if (!empty($request->shipping_delivery_policy)) {
+                $dbArray['shipping_delivery_policy'] = $request->shipping_delivery_policy;
             }
             if (!empty($request->user_commission)) {
                 $dbArray['user_commission'] = $request->user_commission;
@@ -395,5 +398,14 @@ class HomeController extends Controller
         echo $html;
 
 
+    }
+    public function send_test_email(Request $request)
+    {
+        Mail::raw('This is a test email from nutracore.', function ($message) {
+            $message->to('satyanarayansahoo.com@gmail.com')
+                ->subject('Test Email from nutracore');
+        });
+
+        return 'Email sent!';
     }
 }

@@ -160,27 +160,56 @@ class ExportController extends Controller
 
     public function users(Request $request)
     {
-
         $exportArr = [];
+
         $agents = User::where('status', 1)->where('is_delete', 0);
+
         $agents->chunk(50, function ($agents) use (&$exportArr) {
             foreach ($agents as $agent) {
+                $customer_subs_data = \App\Helpers\CustomHelper::getUserSubsData($agent);
                 $excelArr = [];
-                $excelArr['ID'] = $agent->id ?? '';
+
+                // Image URL
+
+                // User fields
                 $excelArr['Name'] = $agent->name ?? '';
                 $excelArr['Email'] = $agent->email ?? '';
                 $excelArr['Phone'] = $agent->phone ?? '';
-                $excelArr['NCCash'] = $agent->cashback_wallet ?? '';
-                $excelArr['Join On'] = date('d M Y', strtotime($agent->created_at)) ?? '';
+                $excelArr['NC Cash'] = $agent->cashback_wallet ?? 0;
+
+                // Status using helper
+                $excelArr['Status'] = \App\Helpers\CustomHelper::getStatusStr($agent->status);
+
+                // Referral user
+                if ($agent->referral_userID) {
+                    $refUser = \App\Helpers\CustomHelper::getUserDetails($agent->referral_userID);
+                    $excelArr['Join By'] = $refUser->name ?? '';
+                } else {
+                    $excelArr['Join By'] = '';
+                }
+
+                // Type
+                $excelArr['Join Through'] = $agent->type ?? '';
+
+                // Subscription data
+                $excelArr['Loyalty Tier'] = $customer_subs_data['loyality'] ?? '';
+                $excelArr['Membership Status'] = $customer_subs_data['membership_status'] ?? '';
+                $excelArr['Total Spent'] = $customer_subs_data['total_spent'] ?? 0;
+                $excelArr['Total Orders'] = $customer_subs_data['total_order'] ?? 0;
+
+                // Join date
+                $excelArr['Join On'] = $agent->created_at ? date('d M Y', strtotime($agent->created_at)) : '';
+
                 $exportArr[] = $excelArr;
             }
         });
+
         if (!empty($exportArr)) {
-            $fileNames = array_keys($exportArr[0]);
-            $fileName = 'User-' . date('Y-m-d-H-i-s') . '.xlsx';
+            $fileNames = array_keys($exportArr[0]); // Get headers from the first row
+            $fileName = 'Users-' . date('Y-m-d-H-i-s') . '.xlsx';
             return Excel::download(new SampleExport($exportArr, $fileNames), $fileName);
         } else {
-            return back();
+            return back()->with('error', 'No users found to export.');
         }
     }
 

@@ -21,7 +21,7 @@
                 </ol>
             </nav>
         </div>
-
+    @include('layouts.filter',['product_show'=>'product_show','vendor_show'=>'vendor_show'])
         <div class="row">
             <div class="col-md-12">
                 <div class="card">

@@ -195,22 +195,6 @@ class NotificationController extends Controller
                 $body =  $campaign->description ?? '';
                 CustomHelper::sendNotificationToTopic($topic, $title, $body,$accessToken);
         }
-//        die;
-//        if (!empty($tokens)) {
-//            foreach ($tokens as $key => $token) {
-//                if(!empty($token)){
-//                    $dbArray = [];
-//                    $dbArray['user_id'] = $userIds[$key] ?? '';
-//                    $dbArray['title'] = $campaign->title ?? '';
-//                    $dbArray['image'] = $campaign->image ?? '';
-//                    $dbArray['description'] = $campaign->description ?? '';
-//                    $dbArray['is_sent'] = 1;
-//                    Notification::insert($dbArray);
-//                    $success = CustomHelper::fcmNotification($token, $data);
-//                }
-//            }
-//        }
-
         return back()->with('alert-success', 'Notification  has been Sent successfully.');
     }
 

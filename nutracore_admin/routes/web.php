@@ -38,6 +38,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
         Route::match(['get', 'post'], '/get_tags', 'HomeController@get_tags')->name('admin.get_tags');
         Route::match(['get', 'post'], '/delete_image', 'HomeController@delete_image')->name('admin.delete_image');
         Route::match(['get', 'post'], '/search_image', 'HomeController@search_image')->name('admin.search_image');
+        Route::match(['get', 'post'], '/send_test_email', 'HomeController@send_test_email')->name('send_test_email');
 
 ////banners
         Route::group(['prefix' => 'banners', 'as' => 'banners', 'middleware' => ['allowedmodule:banners,list']], function () {
@@ -113,6 +114,15 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'add', 'FaqController@add')->name('.add');
             Route::match(['get', 'post'], 'edit/{id}', 'FaqController@add')->name('.edit');
             Route::match(['get', 'post'], 'delete/{id}', 'FaqController@delete')->name('.delete');
+
+        });
+
+        Route::group(['prefix' => 'ratings', 'as' => 'ratings', 'middleware' => ['allowedmodule:ratings,list']], function () {
+            Route::get('/', 'RatingController@index')->name('.index');
+            Route::match(['get', 'post'], 'add', 'RatingController@add')->name('.add');
+            Route::match(['get', 'post'], 'edit/{id}', 'RatingController@add')->name('.edit');
+            Route::match(['get', 'post'], 'delete/{id}', 'RatingController@delete')->name('.delete');
+            Route::match(['get', 'post'], 'update_status/{id}', 'RatingController@update_status')->name('.update_status');
 
         });
         //delivery_charges
@@ -268,17 +278,19 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'stockLogs', 'StockController@stockLogs')->name('.stockLogs');
             Route::match(['get', 'post'], 'import', 'StockController@import')->name('.import');
             Route::match(['get', 'post'], 'export', 'StockController@export')->name('.export');
+            Route::match(['get', 'post'], 'export_all', 'StockController@export_all')->name('.export_all');
             Route::match(['get', 'post'], 'delete_data', 'StockController@delete_data')->name('.delete_data');
 
         });
 ////return_request
         Route::group(['prefix' => 'return_request', 'as' => 'return_request', 'middleware' => ['allowedmodule:return_request,list']], function () {
-            Route::get('/', 'StockController@index')->name('.index');
-            Route::match(['get', 'post'], 'add', 'StockController@add')->name('.add');
-            Route::match(['get', 'post'], 'edit/{id}', 'StockController@add')->name('.edit');
-            Route::match(['get', 'post'], 'delete/{id}', 'StockController@delete')->name('.delete');
-            Route::match(['get', 'post'], 'closingStockList', 'StockController@closingStockList')->name('.closingStockList');
-            Route::match(['get', 'post'], 'stockLogs', 'StockController@stockLogs')->name('.stockLogs');
+            Route::get('/', 'ReturnController@index')->name('.index');
+            Route::match(['get', 'post'], 'add', 'ReturnController@add')->name('.add');
+            Route::match(['get', 'post'], 'edit/{id}', 'ReturnController@add')->name('.edit');
+            Route::match(['get', 'post'], 'delete/{id}', 'ReturnController@delete')->name('.delete');
+            Route::match(['get', 'post'], 'update_status/{id}', 'ReturnController@update_status')->name('.update_status');
+            Route::match(['get', 'post'], 'update_item_status/{id}', 'ReturnController@update_item_status')->name('.update_item_status');
+            Route::match(['get', 'post'], 'order_items', 'ReturnController@order_items')->name('.order_items');
 
         });
 

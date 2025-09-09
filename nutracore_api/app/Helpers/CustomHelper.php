@@ -454,6 +454,45 @@ class CustomHelper
         }
     }
 
+    public static function sendApiEmail($to_email, $subject, $content)
+    {
+        $data = [
+            'sender' => [
+                'name' => 'Nutracore',
+                'email' => 'support@nutracore.in'
+            ],
+            'to' => [
+                [
+                    'email' => $to_email
+                ]
+            ],
+            'subject' => $subject,
+            'htmlContent' => $content
+        ];
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://api.brevo.com/v3/smtp/email',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => json_encode($data),
+            CURLOPT_HTTPHEADER => array(
+                'api-key: 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',
+                'Content-Type: application/json'
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        return $response;
+
+    }
+
     public static function getOrderItemsWithProduct($orderID)
     {
         //$order_items = OrderItems::where('order_id',$orderID)->get();
@@ -539,7 +578,7 @@ class CustomHelper
         }
         $total = $nc_cash_earn + $save;
 
-        return ["total" => $total, "nc_cash_earn" => $nc_cash_earn, "save" => $save,'orders'=>$orders];
+        return ["total" => $total, "nc_cash_earn" => $nc_cash_earn, "save" => $save, 'orders' => $orders];
     }
 
     public static function checkSubscription($user)
@@ -720,7 +759,7 @@ class CustomHelper
         $cartValue['coupon_discount'] = $coupon_discount;
         $cartValue['handling_charges'] = $handling_charges;
         $cartValue['small_cart_fee'] = $small_cart_fee;
-        $cartValue['total_cashback'] = $user->cashback_wallet??0;
+        $cartValue['total_cashback'] = $user->cashback_wallet ?? 0;
         $cartValue['rain_fee'] = $rain_fee;
         $cartValue['coupon_code'] = $coupon_code;
         $cartValue['cart_products'] = $cart_products;

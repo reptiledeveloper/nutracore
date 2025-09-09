@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\SampleExport;
 use App\Exports\StocksExport;
+use App\Exports\StocksExportAll;
 use App\Imports\ProductImport;
 use App\Imports\StockDataImport;
 use App\Models\Products;
@@ -157,11 +158,19 @@ class StockController extends Controller
     }
 
 
-    public function stockLogs()
+    public function stockLogs(Request $request)
     {
+        $product_id = $request->product_id??'';
+        $vendor_id = $request->vendor_id??'';
         $logs = StockLog::with(['product', 'variant', 'store'])
-            ->latest()
-            ->paginate(20);
+            ->latest();
+        if(!empty($product_id)){
+            $logs->where('product_id',$product_id);
+        }
+        if(!empty($vendor_id)){
+            $logs->where('store_id',$vendor_id);
+        }
+        $logs = $logs->paginate(20);
 
         return view('stocks.logs', compact('logs'));
     }
@@ -231,6 +240,13 @@ class StockController extends Controller
         } else {
             return back();
         }
+
+    }
+    public function export_all(Request $request)
+    {
+        $filters = $request->only(['days', 'batch_no', 'product_id', 'variant_id', 'search', 'vendor_id']);
+
+        return Excel::download(new StocksExportAll($filters), 'stocks.xlsx');
 
     }
 

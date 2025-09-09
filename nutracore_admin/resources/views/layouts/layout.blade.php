@@ -618,27 +618,36 @@ $current_route = Route::currentRouteName();
                     <span>Dashboard</span>
                 </a>
             </li>
-            <li>
-                <a href="#">
+            @if(\App\Helpers\CustomHelper::isAllowedSection('admins','list') || \App\Helpers\CustomHelper::isAllowedSection('permission','list') || \App\Helpers\CustomHelper::isAllowedSection('admins','list'))
+                <li>
+                    <a href="#">
                     <span class="nav-link-icon">
                         <i class="bi bi-receipt"></i>
                     </span>
-                    <span>Role/Permission</span>
-                </a>
-                <ul>
-                    <li>
-                        <a class="{{$current_route == 'roles.index' ? "active":""}}" href="{{route('roles.index')}}">Roles</a>
-                    </li>
-                    <li>
-                        <a class="{{$current_route == 'permission.index' ? "active":""}}"
-                           href="{{route('permission.index')}}">Permission</a>
-                    </li>
-                    <li>
-                        <a class="{{$current_route == 'admins.index' ? "active":""}}" href="{{route('admins.index')}}">Admins</a>
-                    </li>
-                </ul>
-            </li>
-
+                        <span>Role/Permission</span>
+                    </a>
+                    <ul>
+                        @if(\App\Helpers\CustomHelper::isAllowedSection('roles','list'))
+                            <li>
+                                <a class="{{$current_route == 'roles.index' ? "active":""}}"
+                                   href="{{route('roles.index')}}">Roles</a>
+                            </li>
+                        @endif
+                        @if(\App\Helpers\CustomHelper::isAllowedSection('permission','list'))
+                            <li>
+                                <a class="{{$current_route == 'permission.index' ? "active":""}}"
+                                   href="{{route('permission.index')}}">Permission</a>
+                            </li>
+                        @endif
+                        @if(\App\Helpers\CustomHelper::isAllowedSection('admins','list'))
+                            <li>
+                                <a class="{{$current_route == 'admins.index' ? "active":""}}"
+                                   href="{{route('admins.index')}}">Admins</a>
+                            </li>
+                        @endif
+                    </ul>
+                </li>
+            @endif
 
             <li>
                 <a href="#">
@@ -648,218 +657,207 @@ $current_route = Route::currentRouteName();
                     <span>Master</span>
                 </a>
                 <ul>
-                    <li>
-                        <a class="{{$current_route == 'banners.index' ? "active":""}}"
-                           href="{{route('banners.index')}}">Banners</a>
-                    </li>
-                    <li>
-                        <a class="{{$current_route == 'categories.index' ? "active":""}}"
-                           href="{{route('categories.index')}}">Categories</a>
-                    </li>
-                    <li>
-                        <a class="{{$current_route == 'subcategories.index' ? "active":""}}"
-                           href="{{route('subcategories.index')}}">Sub Categories</a>
-                    </li>
-                    {{--                    <li>--}}
-                    {{--                        <a class="{{$current_route == 'child_categories.index' ? "active":""}}"--}}
-                    {{--                           href="{{route('child_categories.index')}}">Child Categories</a>--}}
-                    {{--                    </li>--}}
-                    <li>
-                        <a class="{{$current_route == 'brands.index' ? "active":""}}" href="{{route('brands.index')}}">Brand</a>
-                    </li>
-                    <li>
-                        <a class="{{$current_route == 'attributes.index' ? "active":""}}"
-                           href="{{route('attributes.index')}}">Attributes</a>
-                    </li>
-                    <li>
-                        <a class="{{$current_route == 'suppliments.index' ? "active":""}}"
-                           href="{{route('suppliments.index')}}">Supplements</a>
-                    </li>
-                    <li>
-                        <a class="{{$current_route == 'tags.index' ? "active":""}}"
-                           href="{{route('tags.index')}}">Tags</a>
-                    </li>
-                    <li>
-                        <a class="{{$current_route == 'loyality_system.index' ? "active":""}}"
-                           href="{{route('loyality_system.index')}}">Loyality System</a>
-                    </li>
-                    <li>
-                        <a class="{{$current_route == 'free_product.index' ? "active":""}}"
-                           href="{{route('free_product.index')}}">Free Product</a>
-                    </li>
-                    <li>
-                        <a class="{{$current_route == 'new_updates.index' ? "active":""}}"
-                           href="{{route('new_updates.index')}}">Wellness Series</a>
-                    </li>
-                    <li>
-                        <a class="{{$current_route == 'testimonial.index' ? "active":""}}"
-                           href="{{route('testimonial.index')}}">Happy Customers</a>
-                    </li>
-                    {{-- <li>
-                        <a class="{{$current_route == 'manufacturer.index' ? "active":""}}"
-                           href="{{route('manufacturer.index')}}">Manufacturer</a>
-                    </li>
-                    <li>
-                        <a class="{{$current_route == 'gallery.index' ? "active":""}}"
-                           href="{{route('gallery.index')}}">Gallery</a>
-                    </li> --}}
-                    {{--                    <li>--}}
-                    {{--                        <a class="{{$current_route == 'app_settings.index' ? "active":""}}"--}}
-                    {{--                           href="{{route('app_settings.index')}}">App Settings</a>--}}
-                    {{--                    </li>--}}
-                    <li>
-                        <a class="{{$current_route == 'delivery_charges.index' ? "active":""}}"
-                           href="{{route('delivery_charges.index')}}">Delivery Charges</a>
-                    </li>
-                    {{-- <li>
-                        <a class="{{$current_route == 'tax.index' ? "active":""}}"
-                           href="{{route('tax.index')}}">TAX</a>
-                    </li>
-                    <li>
-                        <a class="{{$current_route == 'featured_section.index' ? "active":""}}"
-                           href="{{route('featured_section.index')}}">Featured Section Home</a>
-                    </li> --}}
+                    @if(\App\Helpers\CustomHelper::isAllowedSection('banners','list'))
+                        <li>
+                            <a class="{{$current_route == 'banners.index' ? "active":""}}"
+                               href="{{route('banners.index')}}">Banners</a>
+                        </li>
+                    @endif
+                    @if(\App\Helpers\CustomHelper::isAllowedSection('categories','list'))
+                        <li>
+                            <a class="{{$current_route == 'categories.index' ? "active":""}}"
+                               href="{{route('categories.index')}}">Categories</a>
+                        </li>
+                    @endif
+                    @if(\App\Helpers\CustomHelper::isAllowedSection('subcategories','list'))
+                        <li>
+                            <a class="{{$current_route == 'subcategories.index' ? "active":""}}"
+                               href="{{route('subcategories.index')}}">Sub Categories</a>
+                        </li>
+                    @endif
+                    @if(\App\Helpers\CustomHelper::isAllowedSection('brands','list'))
+
+                        <li>
+                            <a class="{{$current_route == 'brands.index' ? "active":""}}"
+                               href="{{route('brands.index')}}">Brand</a>
+                        </li>
+                    @endif
+                    @if(\App\Helpers\CustomHelper::isAllowedSection('attributes','list'))
+                        <li>
+                            <a class="{{$current_route == 'attributes.index' ? "active":""}}"
+                               href="{{route('attributes.index')}}">Attributes</a>
+                        </li>
+                    @endif
+                    @if(\App\Helpers\CustomHelper::isAllowedSection('suppliments','list'))
+                        <li>
+                            <a class="{{$current_route == 'suppliments.index' ? "active":""}}"
+                               href="{{route('suppliments.index')}}">Supplements</a>
+                        </li>
+                    @endif
+                    @if(\App\Helpers\CustomHelper::isAllowedSection('tags','list'))
+                        <li>
+                            <a class="{{$current_route == 'tags.index' ? "active":""}}"
+                               href="{{route('tags.index')}}">Tags</a>
+                        </li>
+                    @endif
+                    @if(\App\Helpers\CustomHelper::isAllowedSection('loyality_system','list'))
+                        <li>
+                            <a class="{{$current_route == 'loyality_system.index' ? "active":""}}"
+                               href="{{route('loyality_system.index')}}">Loyality System</a>
+                        </li>
+                    @endif
+                    @if(\App\Helpers\CustomHelper::isAllowedSection('free_product','list'))
+                        <li>
+                            <a class="{{$current_route == 'free_product.index' ? "active":""}}"
+                               href="{{route('free_product.index')}}">Free Product</a>
+                        </li>
+                    @endif
+                    @if(\App\Helpers\CustomHelper::isAllowedSection('new_updates','list'))
+                        <li>
+                            <a class="{{$current_route == 'new_updates.index' ? "active":""}}"
+                               href="{{route('new_updates.index')}}">Wellness Series</a>
+                        </li>
+                    @endif
+                    @if(\App\Helpers\CustomHelper::isAllowedSection('testimonial','list'))
+                        <li>
+                            <a class="{{$current_route == 'testimonial.index' ? "active":""}}"
+                               href="{{route('testimonial.index')}}">Happy Customers</a>
+                        </li>
+                    @endif
+                    @if(\App\Helpers\CustomHelper::isAllowedSection('delivery_charges','list'))
+
+                        <li>
+                            <a class="{{$current_route == 'delivery_charges.index' ? "active":""}}"
+                               href="{{route('delivery_charges.index')}}">Delivery Charges</a>
+                        </li>
+                    @endif
                 </ul>
             </li>
-            <li>
-                <a class="{{$current_route == 'sellers.index' ? "active":""}}" href="{{route('sellers.index')}}">
+            @if(\App\Helpers\CustomHelper::isAllowedSection('sellers','list'))
+                <li>
+                    <a class="{{$current_route == 'sellers.index' ? "active":""}}" href="{{route('sellers.index')}}">
                     <span class="nav-link-icon">
                         <i class="bi bi-bar-chart"></i>
                     </span>
-                    <span>Stores</span>
-                </a>
-            </li>
-            @if(\App\Helpers\CustomHelper::isAllowedModule('slots'))
-                {{-- <li>
-                    <a class="{{$current_route == 'slots.index' ? "active":""}}" href="{{route('slots.index')}}">
-                    <span class="nav-link-icon">
-                        <i class="bi bi-clock"></i>
-                    </span>
-                        <span>Slots</span>
+                        <span>Stores</span>
                     </a>
-                </li> --}}
+                </li>
             @endif
-            {{-- <li>
-                <a class="{{$current_route == 'delivery_agents.index' ? "active":""}}"
-                   href="{{route('delivery_agents.index')}}">
-                    <span class="nav-link-icon">
-                        <i class="bi bi-truck"></i>
-                    </span>
-                    <span>Delivery Agents</span>
-                </a>
-            </li> --}}
+            @if(\App\Helpers\CustomHelper::isAllowedSection('offers','list'))
 
-            <li>
-                <a class="{{$current_route == 'offers.index' ? "active":""}}" href="{{route('offers.index')}}">
+                <li>
+                    <a class="{{$current_route == 'offers.index' ? "active":""}}" href="{{route('offers.index')}}">
                     <span class="nav-link-icon">
                         <i class="bi bi-gift"></i>
                     </span>
-                    <span>Offers / Promo Code</span>
-                </a>
-            </li>
-            <li>
-                <a href="#">
+                        <span>Offers / Promo Code</span>
+                    </a>
+                </li>
+            @endif
+            @if(\App\Helpers\CustomHelper::isAllowedSection('cities','list'))
+                <li>
+                    <a href="#">
                     <span class="nav-link-icon">
                         <i class="bi bi-map"></i>
                     </span>
-                    <span>Locations</span>
-                </a>
-                <ul>
-                    <li>
-                        <a class="{{$current_route == 'cities.index' ? "active":""}}" href="{{route('cities.index')}}
+                        <span>Locations</span>
+                    </a>
+                    <ul>
+                        <li>
+                            <a class="{{$current_route == 'cities.index' ? "active":""}}" href="{{route('cities.index')}}
                         ">City</a>
-                    </li>
-                    <li>
-                        <a class="{{$current_route == 'pincode.index' ? "active":""}}" href="{{route('pincode.index')}}
+                        </li>
+                        <li>
+                            <a class="{{$current_route == 'pincode.index' ? "active":""}}" href="{{route('pincode.index')}}
                         ">Pincode</a>
-                    </li>
+                        </li>
 
-                </ul>
-            </li>
+                    </ul>
+                </li>
+            @endif
 
-
-            <li>
-                <a href="#">
+            @if(\App\Helpers\CustomHelper::isAllowedSection('subscription_plans','list') || \App\Helpers\CustomHelper::isAllowedSection('subscriptions','list'))
+                <li>
+                    <a href="#">
                     <span class="nav-link-icon">
                         <i class="bi bi-map"></i>
                     </span>
-                    <span>Subscriptions</span>
-                </a>
-                <ul>
-                    <li>
-                        <a class="{{$current_route == 'subscription_plans.index' ? "active":""}}" href="{{route('subscription_plans.index')}}
+                        <span>Subscriptions</span>
+                    </a>
+                    <ul>
+                        <li>
+                            <a class="{{$current_route == 'subscription_plans.index' ? "active":""}}" href="{{route('subscription_plans.index')}}
                         ">Subscription Plans</a>
-                    </li>
-                    <li>
-                        <a class="{{$current_route == 'subscriptions.index' ? "active":""}}" href="{{route('subscriptions.index')}}
+                        </li>
+                        <li>
+                            <a class="{{$current_route == 'subscriptions.index' ? "active":""}}" href="{{route('subscriptions.index')}}
                       ">Subscriptions</a>
-                    </li>
-                    <!--
+                        </li>
+                        <!--
                     <li>
                         <a class="{{$current_route == 'subscription_orders.index' ? "active":""}}" href="{{route('subscription_orders.index')}}
-                    ">Subscription Orders</a>
-                </li> -->
+                        ">Subscription Orders</a>
+                    </li> -->
 
 
-                </ul>
-            </li>
-
-            <li>
-                <a href="#">
+                    </ul>
+                </li>
+            @endif
+            @if(\App\Helpers\CustomHelper::isAllowedSection('products','list'))
+                <li>
+                    <a href="#">
                     <span class="nav-link-icon">
                         <i class="bi bi-wallet2"></i>
                     </span>
-                    <span>Products</span>
-                </a>
-                <ul>
+                        <span>Products</span>
+                    </a>
+                    <ul>
 
 
-                    <li>
-                        <a class="{{$current_route == 'products.index' ? "active":""}}" href="{{route('products.index')}}
+                        <li>
+                            <a class="{{$current_route == 'products.index' ? "active":""}}" href="{{route('products.index')}}
                         ">Products</a>
-                    </li>
+                        </li>
 
-                    {{-- <li>
-                        <a class="{{$current_route == 'products.approve_product' ? "active":""}}"
-                           href="{{ route('products.approve_product', ['back_url' => 'admin/approve_product']) }}">Approve
-                            Product</a>
-                    </li> --}}
-                    <li>
+                        {{-- <li>
+                            <a class="{{$current_route == 'products.approve_product' ? "active":""}}"
+                               href="{{ route('products.approve_product', ['back_url' => 'admin/approve_product']) }}">Approve
+                                Product</a>
+                        </li> --}}
+                            <?php /*
+     <li>
                         <a class="{{$current_route == 'products.assign_product' ? "active":""}}"
                            href="{{ route('products.assign_product', ['back_url' => 'admin/assign_product']) }}">Assign
                             Product</a>
                     </li>
+ */ ?>
 
-                </ul>
-            </li>
-
-            <li>
-                <a class="{{$current_route == 'collections.index' ? "active":""}}"
-                   href="{{route('collections.index')}}">
+                    </ul>
+                </li>
+            @endif
+            @if(\App\Helpers\CustomHelper::isAllowedSection('collections','list'))
+                <li>
+                    <a class="{{$current_route == 'collections.index' ? "active":""}}"
+                       href="{{route('collections.index')}}">
                     <span class="nav-link-icon">
                         <i class="bi bi-shop"></i>
                     </span>
-                    <span>Collections</span>
-                </a>
-            </li>
-
-            <li>
-                <a class="{{$current_route == 'gift_card.index' ? "active":""}}" href="{{route('gift_card.index')}}">
+                        <span>Collections</span>
+                    </a>
+                </li>
+            @endif
+            @if(\App\Helpers\CustomHelper::isAllowedSection('gift_card','list'))
+                <li>
+                    <a class="{{$current_route == 'gift_card.index' ? "active":""}}"
+                       href="{{route('gift_card.index')}}">
                     <span class="nav-link-icon">
                         <i class="bi bi-shop"></i>
                     </span>
-                    <span>GiftCard</span>
-                </a>
-            </li>
-            {{--            <li>--}}
-            {{--                <a class="{{$current_route == 'inventory_management.index' ? "active":""}}" href="{{route('inventory_management.index')}}">--}}
-            {{--                    <span class="nav-link-icon">--}}
-            {{--                        <i class="bi bi-shop"></i>--}}
-            {{--                    </span>--}}
-            {{--                    <span>Inventory Management</span>--}}
-            {{--                </a>--}}
-            {{--            </li>--}}
-
+                        <span>GiftCard</span>
+                    </a>
+                </li>
+            @endif
+            @if(\App\Helpers\CustomHelper::isAllowedSection('suppliers','list') || \App\Helpers\CustomHelper::isAllowedSection('stocks','list'))
             <li>
                 <a href="#">
                     <span class="nav-link-icon">
@@ -896,7 +894,8 @@ $current_route = Route::currentRouteName();
 
                 </ul>
             </li>
-
+            @endif
+            @if(\App\Helpers\CustomHelper::isAllowedSection('abandoned_cart','list'))
 
             <li>
                 <a class="{{$current_route == 'abandoned_cart.index' ? "active":""}}"
@@ -907,6 +906,8 @@ $current_route = Route::currentRouteName();
                     <span>Abandoned Cart</span>
                 </a>
             </li>
+            @endif
+            @if(\App\Helpers\CustomHelper::isAllowedSection('orders','list'))
 
             <li>
                 <a class="{{$current_route == 'orders.index' ? "active":""}}" href="{{route('orders.index')}}">
@@ -916,6 +917,8 @@ $current_route = Route::currentRouteName();
                     <span>Orders</span>
                 </a>
             </li>
+            @endif
+            @if(\App\Helpers\CustomHelper::isAllowedSection('transaction','list'))
 
             <li>
                 <a class="{{$current_route == 'transaction.index' ? "active":""}}"
@@ -926,15 +929,29 @@ $current_route = Route::currentRouteName();
                     <span>Transaction</span>
                 </a>
             </li>
-            <li>
-                <a class="{{$current_route == 'return_request.index' ? "active":""}}"
-                   href="{{route('return_request.index')}}">
+            @endif
+            @if(\App\Helpers\CustomHelper::isAllowedSection('return_request','list'))
+
+                <li>
+                    <a href="#">
                     <span class="nav-link-icon">
-                        <i class="bi bi-shop"></i>
+                        <i class="bi bi-map"></i>
                     </span>
-                    <span>Return Request</span>
-                </a>
-            </li>
+                        <span>Return Request</span>
+                    </a>
+                    <ul>
+                        <li>
+                            <a class="{{$current_route == 'return_request.index' ? "active":""}}" href="{{route('return_request.index')}}
+                        ">Order </a>
+                        </li>
+                        <li>
+                            <a class="{{$current_route == 'return_request.order_items' ? "active":""}}" href="{{route('return_request.order_items')}}
+                      ">Order Items</a>
+                        </li>
+                    </ul>
+                </li>
+            @endif
+            @if(\App\Helpers\CustomHelper::isAllowedSection('users','list'))
 
             <li>
                 <a class="{{$current_route == 'users.index' ? "active":""}}" href="{{route('users.index')}}">
@@ -944,6 +961,19 @@ $current_route = Route::currentRouteName();
                     <span>Users</span>
                 </a>
             </li>
+            @endif
+
+            @if(\App\Helpers\CustomHelper::isAllowedSection('ratings','list'))
+                <li>
+                    <a class="{{$current_route == 'ratings.index' ? "active":""}}" href="{{route('ratings.index')}}">
+                    <span class="nav-link-icon">
+                        <i class="bi bi-question"></i>
+                    </span>
+                        <span>Ratings & Review</span>
+                    </a>
+                </li>
+            @endif
+            @if(\App\Helpers\CustomHelper::isAllowedSection('faqs','list'))
             <li>
                 <a class="{{$current_route == 'faqs.index' ? "active":""}}" href="{{route('faqs.index')}}">
                     <span class="nav-link-icon">
@@ -952,6 +982,8 @@ $current_route = Route::currentRouteName();
                     <span>FAQ</span>
                 </a>
             </li>
+            @endif
+            @if(\App\Helpers\CustomHelper::isAllowedSection('support_tickets','list'))
             <li>
                 <a href="#">
                     <span class="nav-link-icon">
@@ -966,6 +998,8 @@ $current_route = Route::currentRouteName();
                     </li>
                 </ul>
             </li>
+            @endif
+            @if(\App\Helpers\CustomHelper::isAllowedSection('notifications','list'))
             <li>
                 <a href="#">
                     <span class="nav-link-icon">
@@ -980,6 +1014,7 @@ $current_route = Route::currentRouteName();
                     </li>
                 </ul>
             </li>
+            @endif
 
             {{--            <li>--}}
             {{--                <a href="#">--}}

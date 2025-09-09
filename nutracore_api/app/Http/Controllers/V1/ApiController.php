@@ -223,7 +223,6 @@ class ApiController extends Controller
         $user->is_open_suppliment_form = $is_open_suppliment_form;
 
 
-
         $is_active = 0;
         $subscription_end_date = '';
         $exist_subscription = Subscriptions::where('user_id', $user->id)->where('paid_status', 1)->latest()->first();
@@ -235,7 +234,7 @@ class ApiController extends Controller
                 $is_active = 1;
             }
         }
-        $type = ($is_active == 1 )? 'subscribe' : 'not_subscribe';
+        $type = ($is_active == 1) ? 'subscribe' : 'not_subscribe';
         $total_order_amount = Order::where('userID', $user->id)->where('status', 'DELIVERED')->sum('total_amount');
         $active_loyalty = DB::table('loyality_system')
             ->where('status', 1)
@@ -1392,34 +1391,34 @@ class ApiController extends Controller
         $seller_details = self::getSellerDetails($user->seller_id, $user->id);
 
         $homepageArr = [
-            'categories'         => $categories,
-            'brands'             => $brands,
-            'banners'            => $banners,
-            'selected_address'   => $selected_address,
-            'seller_details'     => $seller_details,
+            'categories' => $categories,
+            'brands' => $brands,
+            'banners' => $banners,
+            'selected_address' => $selected_address,
+            'seller_details' => $seller_details,
             'subscription_plans' => $subscription_plans,
-            'subscription_data'  => [
+            'subscription_data' => [
                 'description' => '🔥 10% OFF every order <br>
                               🚚 Free Express Delivery <br>
                               🎁 Monthly Freebie Box <br>
                               ⏰ Early Access & Secret Sales'
             ],
-            'new_updates'  => $newUpdates,
+            'new_updates' => $newUpdates,
             'testimonials' => $testimonials,
-            'best_deals'   => $bestDeals,
+            'best_deals' => $bestDeals,
             'best_sellers' => $bestSellers,
-            'newArrival'   => $newArrivals,
+            'newArrival' => $newArrivals,
         ];
 
         $user->selected_address = $selected_address;
         $user->seller_details = $seller_details;
 
         return response()->json([
-            'result'    => true,
-            'message'   => "Successfully",
+            'result' => true,
+            'message' => "Successfully",
             'home_data' => $homepageArr,
-            'banners'   => $banners,
-            'user'      => $user,
+            'banners' => $banners,
+            'user' => $user,
         ], 200);
     }
 
@@ -1499,7 +1498,7 @@ class ApiController extends Controller
         $selected_address = null;
         $seller_details = null;
         if (!empty($user)) {
-            if(!self::checkGuest($user)){
+            if (!self::checkGuest($user)) {
                 $selected_address = CustomHelper::getAddressDetails($user->addressID);
             }
 
@@ -4013,6 +4012,8 @@ class ApiController extends Controller
                     }
                     $order_item->images = $images;
                     $order_item->image = $image;
+                    $my_ratings = DB::table('order_ratings')->where('user_id', $user->id)->where('item_id',$order_item->order_items_id)->where('order_id', $orders->id)->first();
+                    $order_item->ratings = $my_ratings;
                 }
             }
             $orders->order_items = $order_items;
@@ -4333,8 +4334,12 @@ class ApiController extends Controller
             $dbArray = [];
             $dbArray['user_id'] = $user->id;
             $dbArray['order_id'] = $request->order_id ?? '';
+            if (!empty($request->item_id)) {
+                $dbArray['item_id'] = $request->item_id ?? '';
+            }
             $dbArray['rating'] = $request->rating ?? '';
             $dbArray['remarks'] = $request->remarks ?? '';
+            $dbArray['status'] = 0;
             DB::table('order_ratings')->insert($dbArray);
             return response()->json([
                 'result' => true,

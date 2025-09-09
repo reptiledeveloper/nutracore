@@ -37,6 +37,7 @@ use App\Models\SellerRoles;
 use App\Models\Shop;
 use App\Models\State;
 use App\Models\SubscriptionPlans;
+use App\Models\Tags;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Wishlist;
@@ -102,7 +103,7 @@ class CustomHelper
         }
     }
 
-    
+
     public static function razorpayKey()
     {
         $settings = DB::table('settings')->first();
@@ -569,7 +570,7 @@ class CustomHelper
     }
 
 
-    
+
     public static function loginShipRocket()
     {
         $curl = curl_init();
@@ -653,7 +654,7 @@ class CustomHelper
         return $image;
     }
 
-  
+
 
 public static function getCartQty($user_id, $product_id, $varient_id)
     {
@@ -666,7 +667,7 @@ public static function getCartQty($user_id, $product_id, $varient_id)
         }
 
         $cart = $cart->first();
-      
+
         if (!empty($cart)) {
             $qty = $cart->qty ?? 0;
         }
@@ -1054,6 +1055,13 @@ public static function getCartQty($user_id, $product_id, $varient_id)
     public static function getBrands()
     {
         $brands = Brand::where('is_delete', 0)->get();
+        return $brands;
+
+    }
+
+    public static function getTags()
+    {
+        $brands = Tags::where('is_delete', 0)->get();
         return $brands;
 
     }

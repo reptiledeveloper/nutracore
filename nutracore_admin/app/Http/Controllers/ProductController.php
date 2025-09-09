@@ -42,6 +42,8 @@ class ProductController extends Controller
         $search = $request->search ?? '';
         $category_id = $request->category_id ?? '';
         $subcategory_id = $request->subcategory_id ?? '';
+        $brand_id = $request->brand_id ?? '';
+        $tag = $request->tag ?? '';
         $vendor_id = $request->vendor_id ?? '';
         $products = Products::where('is_delete', 0)->latest();
         if (!empty($category_id)) {
@@ -50,9 +52,15 @@ class ProductController extends Controller
         if (!empty($subcategory_id)) {
             $products->where('subcategory_id', $subcategory_id);
         }
+        if (!empty($brand_id)) {
+            $products->where('brand_id', $brand_id);
+        }
         if (!empty($vendor_id)) {
             $product_ids = CustomHelper::getVendorProductIds($vendor_id);
             $products->whereIn('id', $product_ids);
+        }
+        if (!empty($tag)) {
+            $products->whereRaw("FIND_IN_SET(?, tags)", [$tag]);
         }
         if (!empty($search)) {
             $products->where('name', 'like', '%' . $search . '%');

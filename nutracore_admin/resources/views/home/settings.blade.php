@@ -27,6 +27,7 @@
 
     $is_handling_charges = $settings->is_handling_charges ?? 0;
     $handling_charges = $settings->handling_charges ?? '';
+    $shipping_delivery_policy = $settings->shipping_delivery_policy ?? '';
 
     $is_surge_fee = $settings->is_surge_fee ?? 0;
     $surge_fee = $settings->surge_fee ?? '';
@@ -89,6 +90,12 @@
                                                 <label for="inputEmail4" class="form-label">Refund Policy</label>
                                                 <textarea name="refund_policy"
                                                           class="editor">{{ old('refund_policy', $refund_policy) }}</textarea>
+                                            </div>
+
+                                            <div class="col-md-12">
+                                                <label for="inputEmail4" class="form-label">Shipping & Delivery Policy</label>
+                                                <textarea name="shipping_delivery_policy"
+                                                          class="editor">{{ old('shipping_delivery_policy', $shipping_delivery_policy) }}</textarea>
                                             </div>
 
                                             <div class="col-md-12">

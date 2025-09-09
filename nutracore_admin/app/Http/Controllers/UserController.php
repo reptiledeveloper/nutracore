@@ -44,10 +44,14 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $search = $request->search ?? '';
+        $type = $request->type ?? '';
         $users = User::where('is_delete', 0)->latest();
         if (!empty($search)) {
             $users->where('name', 'like', '%' . $search . '%');
             $users->orWhere('phone', 'like', '%' . $search . '%');
+        }
+        if(!empty($type)){
+            $users->where('type',$type);
         }
         $users = $users->paginate(20);
         $data['users'] = $users;

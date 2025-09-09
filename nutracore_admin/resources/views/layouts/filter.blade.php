@@ -6,17 +6,23 @@
     $vendor_id = $_GET['vendor_id'] ?? '';
     $date = $_GET['date'] ?? '';
     $agent_id = $_GET['agent_id'] ?? '';
+    $brand_id = $_GET['brand_id'] ?? '';
+    $tag = $_GET['tag'] ?? '';
+    $type = $_GET['type'] ?? '';
+    $product_id = $_GET['product_id'] ?? '';
 
     $current_url = url()->current();
 
     $categories = \App\Helpers\CustomHelper::getCategories();
     $vendors = \App\Helpers\CustomHelper::getVendors();
+    $brands = \App\Helpers\CustomHelper::getBrands();
+    $tags = \App\Helpers\CustomHelper::getTags();
 
     $subcategories = [];
     if (!empty($category_id)) {
         $subcategories = \App\Helpers\CustomHelper::getSubCategory($category_id);
     }
-
+$products = \App\Helpers\CustomHelper::getProducts();
     $agents = \App\Helpers\CustomHelper::getAgents();
 
     $is_export = $is_export ?? '';
@@ -35,35 +41,74 @@
                             <div class="col-md-4 mt-2">
                                 <label class="form-label">Search</label>
                                 <input type="text" class="form-control" name="search" placeholder="Search..."
-                                    value="{{ $search }}">
+                                       value="{{ $search }}">
                             </div>
                         @endif
 
+                        @if(!empty($brand_show))
+                            <div class="col-md-4 mt-2">
+                                <label class="form-label">Brand</label>
+                                <select class="form-control" name="brand_id" id="brand_id">
+                                    <option value="" selected>Select Brand</option>
+                                    @foreach($brands as $brand)
+                                        <option
+                                            value="{{ $brand->id }}" {{ $brand->id == $brand_id ? 'selected' : '' }}>
+                                            {{ $brand->brand_name??'' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
+                        @if(!empty($tag_show))
+                            <div class="col-md-4 mt-2">
+                                <label class="form-label">Tag</label>
+                                <select class="form-control" name="tag" id="tag">
+                                    <option value="" selected>Select Tag</option>
+                                    @foreach($tags as $tag)
+                                        <option value="{{ $tag->name ??''}}" {{ $tag->name == $tag ? "selected" : "" }}>
+                                            {{ $tag->name??'' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
                         @if(!empty($categories_show))
                             <div class="col-md-4 mt-2">
                                 <label class="form-label">Category</label>
                                 <select class="form-control" name="category_id" id="category_id">
                                     <option value="" selected>Select Category</option>
                                     @foreach($categories as $category)
-                                        <option value="{{ $category->id }}" {{ $category->id == $category_id ? 'selected' : '' }}>
+                                        <option
+                                            value="{{ $category->id }}" {{ $category->id == $category_id ? 'selected' : '' }}>
                                             {{ $category->name }}
                                         </option>
                                     @endforeach
                                 </select>
                             </div>
                         @endif
+                        @if(!empty($register_by_show))
+                            <div class="col-md-4 mt-2">
+                                <label class="form-label">Registered By</label>
+                                <select class="form-control" name="type" id="type">
+                                    <option value="" selected>Select Registered By</option>
+                                    <option value="app" {{$type == "app"?"selected":""}}>App</option>
+                                    <option value="website" {{$type == "website"?"selected":""}}>Website</option>
 
-                            @if(!empty($expiry_show))
-                                <div class="col-md-4 mt-3">
-                                    <label class="form-label">Expiry Filter</label>
-                                    <select name="expiry_in_days" class="form-select" onchange="this.form.submit()">
-                                        <option value="0"  {{ $days===0 ? 'selected':'' }}>All</option>
-                                        <option value="30" {{ $days===30? 'selected':'' }}>Within 30 days</option>
-                                        <option value="60" {{ $days===60? 'selected':'' }}>Within 60 days</option>
-                                        <option value="90" {{ $days===90? 'selected':'' }}>Within 90 days</option>
-                                        <option value="180" {{ $days===180? 'selected':'' }}>Within 180 days</option>
-                                    </select>
-                                </div>
+                                </select>
+                            </div>
+                        @endif
+
+                        @if(!empty($expiry_show))
+                            <div class="col-md-4 mt-3">
+                                <label class="form-label">Expiry Filter</label>
+                                <select name="expiry_in_days" class="form-select" onchange="this.form.submit()">
+                                    <option value="0" {{ $days===0 ? 'selected':'' }}>All</option>
+                                    <option value="30" {{ $days===30? 'selected':'' }}>Within 30 days</option>
+                                    <option value="60" {{ $days===60? 'selected':'' }}>Within 60 days</option>
+                                    <option value="90" {{ $days===90? 'selected':'' }}>Within 90 days</option>
+                                    <option value="180" {{ $days===180? 'selected':'' }}>Within 180 days</option>
+                                </select>
+                            </div>
                         @endif
 
                         @if(!empty($subcategory_show))
@@ -72,7 +117,8 @@
                                 <select class="form-control" name="subcategory_id" id="subcategory_id">
                                     <option value="" selected>Select SubCategory</option>
                                     @foreach($subcategories as $subcategory)
-                                        <option value="{{ $subcategory->id }}" {{ $subcategory->id == $subcategory_id ? 'selected' : '' }}>
+                                        <option
+                                            value="{{ $subcategory->id }}" {{ $subcategory->id == $subcategory_id ? 'selected' : '' }}>
                                             {{ $subcategory->name }}
                                         </option>
                                     @endforeach
@@ -86,7 +132,8 @@
                                 <select class="form-control" name="vendor_id">
                                     <option value="" selected>Select Store</option>
                                     @foreach($vendors as $vendor)
-                                        <option value="{{ $vendor->id }}" {{ $vendor->id == $vendor_id ? 'selected' : '' }}>
+                                        <option
+                                            value="{{ $vendor->id }}" {{ $vendor->id == $vendor_id ? 'selected' : '' }}>
                                             {{ $vendor->name }}
                                         </option>
                                     @endforeach
@@ -107,6 +154,19 @@
                                 </select>
                             </div>
                         @endif
+                            @if(!empty($product_show))
+                                <div class="col-md-4 mt-2">
+                                    <label class="form-label">Choose Product</label>
+                                    <select class="form-control select2" name="product_id">
+                                        <option value="" selected>Select Product</option>
+                                        @foreach($products as $product)
+                                            <option value="{{ $product->id }}" {{ $product->id == $product_id ? 'selected' : '' }}>
+                                                {{$product->name??''}}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            @endif
 
                         @if(!empty($date_show))
                             <div class="col-md-4 mt-2">
@@ -121,7 +181,8 @@
                                 <select class="form-control" name="agent_id">
                                     <option value="" selected>Select Delivery Agent</option>
                                     @foreach($agents as $agent)
-                                        <option value="{{ $agent->id }}" {{ $agent_id == $agent->id ? 'selected' : '' }}>
+                                        <option
+                                            value="{{ $agent->id }}" {{ $agent_id == $agent->id ? 'selected' : '' }}>
                                             {{ $agent->name }}
                                         </option>
                                     @endforeach
@@ -141,7 +202,8 @@
                                 <a href="{{ $export_url }}" class="btn btn-warning">Export</a>
                             @endif
                             @if($is_import == 1)
-                                <a data-bs-toggle="modal" data-bs-target="#import_modal" class="btn btn-success">Import</a>
+                                <a data-bs-toggle="modal" data-bs-target="#import_modal"
+                                   class="btn btn-success">Import</a>
                             @endif
                         </div>
                     </div>
@@ -154,14 +216,15 @@
 
 @if($is_import == 1)
     <!-- Import Modal -->
-    <div class="modal fade" id="import_modal" tabindex="-1" role="dialog" aria-labelledby="importLabel" aria-hidden="true">
+    <div class="modal fade" id="import_modal" tabindex="-1" role="dialog" aria-labelledby="importLabel"
+         aria-hidden="true">
         <div class="modal-dialog" role="document">
             <form action="{{ $import_url }}" method="post" enctype="multipart/form-data" class="modal-content">
                 @csrf
                 <div class="modal-header">
                     <h5 class="modal-title" id="importLabel">Import</h5>
                     <button type="button" class="close" data-bs-dismiss="modal"
-                        aria-label="Close"><span>&times;</span></button>
+                            aria-label="Close"><span>&times;</span></button>
                 </div>
                 <div class="modal-body">
                     <input type="file" name="file" class="form-control">

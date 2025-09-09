@@ -38,6 +38,8 @@ use App\Models\State;
 use App\Models\StockBatch;
 use App\Models\StockLog;
 use App\Models\SubscriptionPlans;
+use App\Models\Subscriptions;
+use App\Models\Tags;
 use App\Models\Transaction;
 use App\Models\User;
 
@@ -60,6 +62,7 @@ use Sonata\GoogleAuthenticator\GoogleAuthenticator;
 use Storage;
 use Validator;
 
+use Google\Auth\Credentials\ServiceAccountCredentials;
 
 class CustomHelper
 {
@@ -83,6 +86,47 @@ class CustomHelper
         return $ADMIN_ROUTE_NAME;
     }
 
+    public static function getUserSubsData($user)
+    {
+        $dbarray = [];
+        $total_order = Order::where('is_delete',0)->where('userID',$user->id)->where('status','DELIVERED')->count();
+        $total_spent = Order::where('is_delete',0)->where('userID',$user->id)->where('status','DELIVERED')->sum('total_amount');
+        $dbarray['total_order'] = $total_order;
+        $dbarray['total_spent'] = $total_spent;
+        $is_active = 0;
+
+        $exist_subscription = Subscriptions::where('user_id', $user->id)->where('paid_status', 1)->latest()->first();
+        if (!empty($exist_subscription)) {
+            $is_prev_subscribed = 1;
+            $current_date = date('Y-m-d');
+            $subscribed_subscription = SubscriptionPlans::find($exist_subscription->subscription_id);
+            if (strtotime($user->subscription_end) >= strtotime($current_date)) {
+                $is_active = 1;
+            }
+        }
+
+        $type = ($is_active == 1 )? 'subscribe' : 'not_subscribe';
+        $active_loyalty = DB::table('loyality_system')
+            ->where('status', 1)
+            ->where('is_delete', 0)
+            ->where('type', $type)
+            ->where('from_amount', '<=', $total_spent)
+            ->where(function ($q) use ($total_spent) {
+                $q->where('to_amount', '>=', $total_spent)
+                    ->orWhereNull('to_amount'); // for open-ended slabs like Platinum
+            })
+            ->orderBy('from_amount', 'desc') // pick the highest matching tier
+            ->first();
+        $dbarray['total_spent'] = $total_spent;
+        $dbarray['membership_status'] = "Not Subscribed";
+        $dbarray['loyality'] = $active_loyalty->title??'';
+        if($is_active == 1){
+            $dbarray['membership_status'] = "Subscribed";
+        }
+
+        return $dbarray;
+
+    }
 
     public static function getNoOfStock($product_id, $varient_id, $vendor_id)
     {
@@ -554,6 +598,12 @@ class CustomHelper
 
     }
 
+    public static function getTags()
+    {
+        $brands = Tags::where('is_delete', 0)->get();
+        return $brands;
+
+    }
 
     public static function isAllowedSection($sectionName, $type = '')
     {
@@ -1159,6 +1209,49 @@ class CustomHelper
             if ($order->status == 'ALLOCATED') {
                 $status = '<span class="badge bg-secondary">Allocated</span>';
             }
+        }
+
+        return $status;
+    }
+
+    public static function getReturnOrderStatus($orderID)
+    {
+        $status = '';
+        $order = Order::where('id', $orderID)->first();
+        if (!empty($order)) {
+
+            if ($order->return_status == 'pending') {
+                $status = '<span class="badge bg-secondary">Pending</span>';
+            }
+            if ($order->return_status == 'approved') {
+                $status = '<span class="badge bg-info">Approved</span>';
+            }
+
+            if ($order->return_status == 'rejected') {
+                $status = '<span class="badge bg-danger">Rejected</span>';
+            }
+
+        }
+
+        return $status;
+    }
+    public static function getReturnOrderItemStatus($orderID)
+    {
+        $status = '';
+        $order = OrderItems::where('id', $orderID)->first();
+        if (!empty($order)) {
+
+            if ($order->return_status == 'pending') {
+                $status = '<span class="badge bg-secondary">Pending</span>';
+            }
+            if ($order->return_status == 'approved') {
+                $status = '<span class="badge bg-info">Approved</span>';
+            }
+
+            if ($order->return_status == 'rejected') {
+                $status = '<span class="badge bg-danger">Rejected</span>';
+            }
+
         }
 
         return $status;
@@ -3261,9 +3354,9 @@ class CustomHelper
     {
         $path = storage_path('app/public') . '/config.json';
         $provider = new GenericProvider([
-            'clientId' => '985890722792-03rcmtvga7l07k67dqbbpe6lt7bphoe5.apps.googleusercontent.com',
-            'clientSecret' => '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',
-            'redirectUri' => ["https://adminbuycart.reptileantitheft.com/googlecallback", "https://localhost/BuyBuyCart/buy_buy_cart_admin/googlecallback"],
+            'clientId' => '154429853000-cv6i13uuujc2hr8cs9lgc2ojc72ckffd.apps.googleusercontent.com',
+            'clientSecret' => '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',
+            'redirectUri' => ["http://localhost/Nutracore/nutracore_admin/googlecallback"],
             'urlAuthorize' => 'https://accounts.google.com/o/oauth2/auth',
             'urlAccessToken' => 'https://oauth2.googleapis.com/token',
             'urlResourceOwnerDetails' => $path,
@@ -3378,6 +3471,24 @@ class CustomHelper
         return $response;
     }
 
+    public static function getAccessTokenServiceAccount()
+    {
+        $serviceAccountPath = storage_path('app/public/config.json'); // Correct file path
+
+        $scopes = ['https://www.googleapis.com/auth/firebase.messaging'];
+
+        $credentials = new ServiceAccountCredentials(
+            null,
+            [
+                'keyFile' => $serviceAccountPath, // Pass the file path, NOT the content
+                'scopes' => $scopes,
+            ]
+        );
+
+        return $credentials->fetchAuthToken()['access_token'];
+    }
+
+
     public static function sendNotificationToTopic($topic, $title, $body, $accessToken)
     {
         $postFields = [
@@ -3398,7 +3509,7 @@ class CustomHelper
         ];
         $curl = curl_init();
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'https://fcm.googleapis.com/v1/projects/buybuycart-317d4/messages:send',
+            CURLOPT_URL => 'https://fcm.googleapis.com/v1/projects/nutracore/messages:send',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_POSTFIELDS => json_encode($postFields),

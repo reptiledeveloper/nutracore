@@ -1,10 +1,10 @@
 @extends('layouts.layout')
 @section('content')
-<style>
-    .dropdown-menu.show{
-        overflow: hidden !important;
-    }
-</style>
+    <style>
+        .dropdown-menu.show {
+            overflow: hidden !important;
+        }
+    </style>
     <?php
     $BackUrl = \App\Helpers\CustomHelper::BackUrl();
     $routeName = \App\Helpers\CustomHelper::getAdminRouteName();
@@ -26,7 +26,8 @@
             </nav>
         </div>
 
-        <div class="modal fade" id="updateUserModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal fade" id="updateUserModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+             aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -52,7 +53,7 @@
             </div>
         </div>
 
-        @include('layouts.filter',['search_show'=>'search_show'])
+        @include('layouts.filter',['search_show'=>'search_show','register_by_show'=>'register_by_show'])
         <div class="row">
             <div class="col-md-12">
                 <div class="card">
@@ -85,6 +86,10 @@
                             <th>Status</th>
                             <th>Join By</th>
                             <th>Join Through</th>
+                            <th>Loyalty Tier</th>
+                            <th>Membership Status</th>
+                            <th>Total Spent</th>
+                            <th>Total Orders</th>
                             <th>Join On</th>
                             <th class="text-end">Actions</th>
                         </tr>
@@ -92,7 +97,8 @@
                         <tbody>
                         <?php if (!empty($users)){
                         foreach ($users as $user) {
-                            $image = \App\Helpers\CustomHelper::getImageUrl('users', $user->image??'');
+                            $image = \App\Helpers\CustomHelper::getImageUrl('users', $user->image ?? '');
+                            $customer_subs_data = \App\Helpers\CustomHelper::getUserSubsData($user);
                             ?>
                         <tr>
                             <td><a href="{{$image}}" target="_blank"><img height="50px" width="50px" src="{{$image}}"
@@ -109,6 +115,10 @@
                                 @endif
                             </td>
                             <td>{{$user->type??''}}</td>
+                            <td>{{$customer_subs_data['loyality'] ??''}}</td>
+                            <td>{{$customer_subs_data['membership_status'] ??''}}</td>
+                            <td>{{$customer_subs_data['total_spent'] ??''}}</td>
+                            <td>{{$customer_subs_data['total_order'] ??''}}</td>
                             <td>{{date('d M Y',strtotime($user->created_at))??''}}</td>
                             <td class="text-end">
                                 <div class="d-flex">

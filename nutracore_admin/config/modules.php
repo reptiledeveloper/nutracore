@@ -33,6 +33,7 @@ return [
                 'faqs',
                 'app_settings',
                 'delivery_agents',
+                'ratings',
                 'tax',
                 'suppliers',
                 'invoices',
@@ -115,6 +116,7 @@ return [
                 'inventory_management' => 'Inventory Management',
                 'reports' => 'Reports',
                 'export' => 'export',
+                'ratings' => 'Ratings',
 
                 'reports' => 'Reports',
 
