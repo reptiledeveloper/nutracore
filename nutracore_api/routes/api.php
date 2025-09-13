@@ -135,6 +135,7 @@ Route::prefix('v1/')->group(function () {
         Route::post('/supplement', [ApiController::class, 'supplement']);
         Route::post('/return_single_product', [ApiController::class, 'return_single_product']);
         Route::post('/return_order', [ApiController::class, 'return_order']);
+        Route::post('/giftcard_list', [ApiController::class, 'giftcard_list']);
     });
 
 

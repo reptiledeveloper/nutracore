@@ -1009,12 +1009,13 @@ class ApiController extends Controller
                                     if ($exist->type == 'giftcard') {
                                         if (!empty($user)) {
                                             $gift_card = DB::table('gift_card')->where('amount', $exist->giftcard_amount)->where('user_id', null)->limit($exist->giftcard_qty)->first();
-                                            if (!empty($$gift_card)) {
+                                            if (!empty($gift_card)) {
                                                 foreach ($gift_card as $gift) {
                                                     DB::table('gift_card')->where('id', $gift->id)->update([
                                                         "user_id" => $user->id,
+                                                        "type" => $exist->giftcard_type??'',
                                                         "purchase_date" => date('Y-m-d'),
-                                                        "expire_date" => $futureDate = date('Y-m-d', strtotime("+$gift->duration months")),
+                                                        "expire_date" => date('Y-m-d', strtotime("+$gift->duration months")),
                                                     ]);
                                                 }
                                             }
@@ -4012,7 +4013,7 @@ class ApiController extends Controller
                     }
                     $order_item->images = $images;
                     $order_item->image = $image;
-                    $my_ratings = DB::table('order_ratings')->where('user_id', $user->id)->where('item_id',$order_item->order_items_id)->where('order_id', $orders->id)->first();
+                    $my_ratings = DB::table('order_ratings')->where('user_id', $user->id)->where('item_id', $order_item->order_items_id)->where('order_id', $orders->id)->first();
                     $order_item->ratings = $my_ratings;
                 }
             }
@@ -4774,6 +4775,43 @@ class ApiController extends Controller
         ], 200);
     }
 
+    public function giftcard_list(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+
+        ]);
+        $user = null;
+        if ($validator->fails()) {
+            return response()->json([
+                'result' => false,
+                'message' => json_encode($validator->errors()),
+            ], 400);
+        }
+        $user = auth()->user();
+        if (empty($user)) {
+            return response()->json([
+                'result' => false,
+                'message' => '',
+            ], 401);
+        }
+        if ($user->phone == "9999999999") {
+            return response()->json([
+                'result' => false,
+                'message' => 'Unauthorised',
+            ], 401);
+        }
+        $giftcards = DB::table('gift_card')
+            ->where('user_id', $user->id)
+            ->where('status', 1)
+            ->where('is_delete', 0)
+            ->get();
+        return response()->json([
+            'result' => true,
+            'message' => "Successfully",
+            "giftcard" => $giftcards,
+        ], 200);
+    }
+
 
     public function buy_giftcard(Request $request): \Illuminate\Http\JsonResponse
     {
@@ -4807,6 +4845,7 @@ class ApiController extends Controller
                 $dbArray['subscription_id'] = "";
                 $dbArray['amount'] = $amount;
                 $dbArray['giftcard_amount'] = $request->amount ?? 0;
+                $dbArray['giftcard_type'] = $request->type ?? '';
                 $dbArray['giftcard_qty'] = $request->qty ?? 1;
                 $dbArray['wallet'] = 0;
                 $dbArray['type'] = "giftcard";
@@ -4912,12 +4951,14 @@ class ApiController extends Controller
     public function checkReturn($order)
     {
         $canReturn = false;
-        $createdAt = $order->created_at;
-        $returnDeadline = $createdAt->copy()->addDays(2);
-        if (now()->lessThanOrEqualTo($returnDeadline)) {
-            $canReturn = true;  // Return is possible
-        } else {
-            $canReturn = false; // Return not possible
+        if (!empty($order)) {
+            $createdAt = $order->created_at ?? '';
+            $returnDeadline = $createdAt->copy()->addDays(2);
+            if (now()->lessThanOrEqualTo($returnDeadline)) {
+                $canReturn = true;  // Return is possible
+            } else {
+                $canReturn = false; // Return not possible
+            }
         }
         return $canReturn;
 
