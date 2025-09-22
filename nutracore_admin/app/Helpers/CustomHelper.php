@@ -280,7 +280,7 @@ class CustomHelper
 
     public static function getProducts()
     {
-        $products = Products::select('id', 'name')->where('status', 1)->where('is_delete', 0)->get();
+        $products = Products::select('id', 'name','sku')->where('status', 1)->where('is_delete', 0)->get();
         return $products;
     }
 
@@ -1682,7 +1682,7 @@ class CustomHelper
         if ($is_s3 == 1) {
             $path = $path . '/' . $fileName;
             Storage::disk('s3')->put($path, file_get_contents($file));
-            $path = Storage::disk('s3')->url($path);
+           // $path = Storage::disk('s3')->url($path);
 
         }
         return $fileName;

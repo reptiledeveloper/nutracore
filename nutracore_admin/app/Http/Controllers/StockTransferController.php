@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Products;
 use App\Models\Stock;
 use App\Models\StockBatch;
 use App\Models\StockTransfer;
@@ -91,7 +92,7 @@ class StockTransferController extends Controller
                 }
                 return redirect(url($back_url))->with('alert-success', $alert_msg);
             } else {
-                return back()->with('alert-danger', 'Something went wrong, please try again or contact the administrator.');
+                return back()->with('alert-danger', 'Something went wrong, please try again or emails the administrator.');
             }
         }
 
@@ -100,6 +101,7 @@ class StockTransferController extends Controller
         $data['id'] = $id;
         $data['transfer'] = $transfer;
         $data['stocks'] = Stock::latest()->get();
+        $data['products'] = Products::with('variants')->get();
 
         return view('stock_transfers.form', $data);
     }

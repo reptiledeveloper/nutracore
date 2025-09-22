@@ -20,6 +20,7 @@
     $razorpay_key_live = $settings->razorpay_key_live ?? '';
     $google_map_key = $settings->google_map_key ?? '';
     $razorpay_secret_live = $settings->razorpay_secret_live ?? '';
+    $send_otp_through = $settings->send_otp_through ?? '';
     $is_live = $settings->is_live ?? 0;
     $refer_amount = $settings->refer_amount ?? '';
     $contact_whatsapp = $settings->contact_whatsapp ?? 0;
@@ -41,6 +42,7 @@
     $delhivery_key = $settings->delhivery_key ?? '';
     $delhivery_url = $settings->delhivery_url ?? '';
     $cutoff_time = $settings->cutoff_time ?? '';
+    $about_us_video = $settings->about_us_video ?? '';
 
     ?>
     <style>
@@ -93,7 +95,8 @@
                                             </div>
 
                                             <div class="col-md-12">
-                                                <label for="inputEmail4" class="form-label">Shipping & Delivery Policy</label>
+                                                <label for="inputEmail4" class="form-label">Shipping & Delivery
+                                                    Policy</label>
                                                 <textarea name="shipping_delivery_policy"
                                                           class="editor">{{ old('shipping_delivery_policy', $shipping_delivery_policy) }}</textarea>
                                             </div>
@@ -213,6 +216,32 @@
                                                        placeholder="Delivery Cutoff Time"
                                                        name="cutoff_time"
                                                        value="{{ old('cutoff_time', $cutoff_time) }}">
+                                            </div>
+
+                                            <div class="col-md-6 mt-3">
+                                                <label for="" class="form-label">About Us Video (Video ID)</label>
+                                                <input type="text" class="form-control"
+                                                       placeholder="About Us Video (Video ID)"
+                                                       name="about_us_video"
+                                                       value="{{ old('about_us_video', $about_us_video) }}">
+
+                                            </div>
+
+                                            <div class="col-md-6 mt-3">
+                                                <label for="" class="form-label">About Us Video (Video ID)</label>
+                                                <select class="form-control" name="send_otp_through">
+                                                    <option
+                                                        value="msg91" {{$send_otp_through == "msg91" ?"selected":""}}>
+                                                        MSG91
+                                                    </option>
+                                                    <option
+                                                        value="whatsapp" {{$send_otp_through == "whatsapp" ?"selected":""}}>
+                                                        MSG91
+                                                    </option>
+                                                    <option value="both" {{$send_otp_through == "both" ?"selected":""}}>MSG91</option>
+
+                                                </select>
+
                                             </div>
                                         </div>
 

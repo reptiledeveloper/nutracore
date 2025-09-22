@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
+use App\Models\Products;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Http\Request;
@@ -76,7 +77,7 @@ class SupplimentsController extends Controller
                 }
                 return redirect(url($back_url))->with('alert-success', $alert_msg);
             } else {
-                return back()->with('alert-danger', 'something went wrong, please try again or contact the administrator.');
+                return back()->with('alert-danger', 'something went wrong, please try again or emails the administrator.');
             }
         }
 
@@ -169,5 +170,17 @@ class SupplimentsController extends Controller
         }
     }
 
+    public function getProducts(Request $request)
+    {
+        $category_id = $request->category_id??'';
+        $products = Products::where('category_id',$category_id)->get();
+        $html = '';
+        if(!empty($products)){
+            foreach ($products as $product){
+                $html.='<option value='.$product->id.'>'.$product->name.'</option>';
+            }
+        }
+        echo $html;
+    }
 
 }

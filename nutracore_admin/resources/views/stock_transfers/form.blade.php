@@ -51,28 +51,51 @@
                         <form class="card-body" action="" method="post" accept-chartset="UTF-8"
                               enctype="multipart/form-data" role="form">
                             {{ csrf_field() }}
-
-                            <div class="row">
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">From Store</label>
+                                    <select class="form-select" name="from_location" required>
+                                        <option value="">-- Select Store --</option>
+                                        @foreach($stores as $store)
+                                            <option
+                                                value="{{ $store->id }}" {{ $store->id == $defaultStoreId ? 'selected' : '' }}>
+                                                {{ $store->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">To Store</label>
+                                    <select class="form-select" name="to_location" required>
+                                        <option value="">-- Select Store --</option>
+                                        @foreach($stores as $store)
+                                            <option value="{{ $store->id }}">{{ $store->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <h5 class="mb-2">Items</h5>
                                     <button type="button" class="btn btn-sm btn-outline-primary"
-                                            onclick="addTransferRow()">+ Add Row
+                                            onclick="addRow()">+ Add Row
                                     </button>
                                 </div>
                                 <div class="table-responsive">
                                     <table class="table table-bordered" id="transferTable">
                                         <thead>
                                         <tr>
-                                            <th>Product / Variant</th>
+                                            <th>SKU</th>
+                                            <th>Product</th>
+                                            <th>Variant</th>
                                             <th>Batch</th>
-                                            <th>From</th>
-                                            <th>To</th>
                                             <th>Qty</th>
                                             <th>Remove</th>
                                         </tr>
                                         </thead>
                                         <tbody></tbody>
                                     </table>
+
                                 </div>
 
                                 <div class="form-group mb-0 mt-3 justify-content-end">
@@ -89,89 +112,221 @@
         </div>
     </div>
 
+
+
     @php
-        $stockMap = $stocks->map(function ($s) {
-        return [
-            'id'    => $s->id,
-            'label' => implode(' ', array_filter([
-                $s->product->name ?? '',
-                $s->variant ? '- ' . $s->variant->unit : null,
-                '(Batch: ' . ($s->batch_number ?? '-') .
-                ', Qty: ' . ($s->quantity ?? 0) .
-                ($s->expiry_date ? ', Exp: ' . $s->expiry_date : '') . ')'
-            ])),
-            'batch' => $s->batch_number
-        ];
-    })->values();
+        $stockMap = $stocks->groupBy(function($s) {
+            return $s->product_id.'_'.$s->variant_id; // unique per product+variant
+        })->map(function($group) {
+            $first = $group->first();
+            $key = $first->product->id??'';
+            $key.='_';
+            $key.=$first->variant->id ??'';
+            return [
+                'id'      => $first->id,
+                'key'      => $key,
+                'label'   => implode(' ', array_filter([
+                                $first->product->name ?? '',
+                                $first->variant ? '- '.$first->variant->unit : null,
+                            ])),
+                'batches' => $group->map(function($s) {
+                    return [
+                        'id'    => $s->id,
+                        'batch' => $s->batch_number,
+                        'qty'   => $s->quantity,
+                        'exp'   => $s->expiry_date,
+                    ];
+                })->values()
+            ];
+        })->values();
+
+
     @endphp
+
     <script>
-        /* server-side JSON (safe) */
         const stockMap = @json($stockMap);
-        console.log(stockMap);
-        let tIndex = 0;
+        const products = @json($products);
+        // Structure: [{id, name, variants:[{id, varient_sku, unit, selling_price}]}]
 
-        function escapeHtml(str) {
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
+        function addRow() {
+            let row = `
+        <tr>
+            <td><input type="text" name="sku[]" class="form-control sku-input" required></td>
+            <td>
+                <select name="product_id[]" class="form-control product-select select2" required>
+                    <option value="">-- Select Product --</option>
+                    ${products.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+                </select>
+            </td>
+            <td>
+                <select name="variant_id[]" class="form-control variant-select" required>
+                    <option value="">-- Select Variant --</option>
+                </select>
+            </td>
+             <td>
+            <select class="form-select batch-select" name="batch_id[]" required>
+                <option value="">-- Select Batch --</option>
+            </select>
+        </td>
+            <td><input type="number" name="qty[]" class="form-control qty" min="1" required></td>
+            <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)">X</button></td>
+        </tr>`;
+            document.querySelector("#transferTable tbody").insertAdjacentHTML('beforeend', row);
         }
 
-        function buildOptionsHtml() {
-            let html = '';
-            for (let i = 0; i < stockMap.length; i++) {
-                const s = stockMap[i];
-                html += '<option value="' + s.id + '">' + escapeHtml(s.label) + '</option>';
+        function removeRow(button) {
+            button.closest('tr').remove();
+            calculateSubtotal();
+        }
+
+
+        // Load variants when product changes
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('product-select')) {
+                let productId = e.target.value;
+                let row = e.target.closest('tr');
+                let variantSelect = row.querySelector('.variant-select');
+                let skuInput = row.querySelector('.sku-input');
+
+                variantSelect.innerHTML = '<option value="" selected>-- Select Variant --</option>';
+                let product = products.find(p => p.id == productId);
+
+                if (product && product.variants) {
+                    product.variants.forEach(v => {
+                        variantSelect.innerHTML += `<option value="${v.id}" data-sku="${v.varient_sku}">${v.unit} - ₹${v.selling_price}</option>`;
+                    });
+                }
+
+                // Reset SKU when product changes
+                skuInput.value = '';
             }
-            return html;
+        });
+
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('variant-select')) {
+                let row = e.target.closest('tr');
+                let productId = row.querySelector('.product-select').value;
+                let variantId = e.target.value;
+                let skuInput = row.querySelector('.sku-input');
+                let batchSelect = row.querySelector('.batch-select');
+
+                // update SKU
+                let selectedOption = e.target.options[e.target.selectedIndex];
+                if (selectedOption && selectedOption.dataset.sku) {
+                    skuInput.value = selectedOption.dataset.sku;
+                }
+
+                // load batches
+                batchSelect.innerHTML = '<option value="" selected>-- Select Batch --</option>';
+                const stockKey = productId + '_' + variantId;
+                const stockItem = stockMap.find(s => s.key === stockKey) || null;
+
+                if (stockItem && stockItem.batches) {
+                    stockItem.batches.forEach(b => {
+                        const label = `Batch: ${b.batch} | Qty: ${b.qty} ${b.exp ? '| Exp: '+b.exp : ''}`;
+                        batchSelect.innerHTML += `<option value="${b.id}">${label}</option>`;
+                    });
+                } else {
+                    batchSelect.innerHTML = `<option value="">-- No Batch Found --</option>`;
+                }
+            }
+        });
+
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('batch-select')) {
+                let row = e.target.closest('tr');
+                let qtyInput = row.querySelector('.qty');
+                let productId = row.querySelector('.product-select').value;
+                let variantId = row.querySelector('.variant-select').value;
+                let batchId = e.target.value;
+
+                const stockKey = productId + '_' + variantId;
+                const stockItem = stockMap.find(s => s.key === stockKey) || null;
+
+                if (stockItem && stockItem.batches) {
+                    let selectedBatch = stockItem.batches.find(b => String(b.id) === String(batchId));
+                    if (selectedBatch) {
+                        // set max qty based on stock
+                        qtyInput.setAttribute("max", selectedBatch.qty);
+                        qtyInput.value = ""; // reset so user enters new
+                    }
+                }
+            }
+        });
+
+        // When variant changes → update SKU automatically
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('variant-select')) {
+                let row = e.target.closest('tr');
+                let selectedOption = e.target.options[e.target.selectedIndex];
+                let skuInput = row.querySelector('.sku-input');
+
+                if (selectedOption && selectedOption.dataset.sku) {
+                    skuInput.value = selectedOption.dataset.sku;
+                }
+            }
+        });
+
+        // When SKU is typed → auto-select product & variant
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('sku-input')) {
+                let sku = e.target.value.trim();
+                let row = e.target.closest('tr');
+                let productSelect = row.querySelector('.product-select');
+                let variantSelect = row.querySelector('.variant-select');
+
+                if (sku.length > 0) {
+                    let foundProduct = null, foundVariant = null;
+
+                    // Search SKU in variants
+                    products.forEach(p => {
+                        p.variants.forEach(v => {
+                            if (v.varient_sku == sku) {
+                                foundProduct = p;
+                                foundVariant = v;
+                            }
+                        });
+                    });
+
+                    if (foundProduct && foundVariant) {
+                        // Select product
+                        productSelect.value = foundProduct.id;
+
+                        // Rebuild variants
+                        variantSelect.innerHTML = '<option value="">-- Select Variant --</option>';
+                        foundProduct.variants.forEach(v => {
+                            // variantSelect.innerHTML += `<option value="${v.id}" data-sku="${v.varient_sku}" ${v.id == foundVariant.id ? 'selected' : ''}>${v.unit} - ₹${v.selling_price}</option>`;
+                            variantSelect.innerHTML += `<option value="${v.id}" data-sku="${v.varient_sku}" >${v.unit} - ₹${v.selling_price}</option>`;
+                        });
+                    }
+                }
+            }
+        });
+
+        // Auto-calc row totals & subtotal
+        function calculateRow(row) {
+            let qty = parseFloat(row.querySelector(".qty")?.value) || 0;
+            let price = parseFloat(row.querySelector(".price")?.value) || 0;
+            let total = qty * price;
+            if (row.querySelector(".total")) row.querySelector(".total").value = total.toFixed(2);
+            return total;
         }
 
-        function addTransferRow() {
-            const tb = document.querySelector('#transferTable tbody');
-            const tr = document.createElement('tr');
-
-            const options = buildOptionsHtml();
-            const storeOptions = `{!! collect($stores)->map(function($store) use ($defaultStoreId) {
-        $selected = $store->id === $defaultStoreId ? 'selected' : '';
-        return "<option value=\"{$store->id}\" {$selected}>{$store->name}</option>";
-    })->implode('') !!}`;
-            // build row using string concatenation to avoid nested template issues
-            tr.innerHTML =
-                '<td>' +
-                '<select class="form-select" name="items[' + tIndex + '][stock_id]" required onchange="syncBatch(this)">' +
-                '<option value="">-- Select --</option>' + options +
-                '</select>' +
-                '</td>' +
-                '<td><input class="form-control" name="items[' + tIndex + '][batch_display]" readonly></td>' +
-                '<td>' +
-                '<select class="form-select" name="items[' + tIndex + '][from_location]" required>' +
-                '<option value="">-- Select Store --</option>' +
-                storeOptions + // <-- populate this from backend
-                '</select>' +
-                '</td>' +
-                '<td>' +
-                '<select class="form-select" name="items[' + tIndex + '][to_location]" required>' +
-                '<option value="">-- Select Store --</option>' +
-                storeOptions + // <-- populate this from backend
-                '</select>' +
-                '</td>' +
-                '<td><input type="number" min="1" class="form-control" name="items[' + tIndex + '][quantity]" required></td>' +
-                '<td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest(\'tr\').remove()">X</button></td>';
-
-            tb.appendChild(tr);
-            tIndex++;
+        function calculateSubtotal() {
+            let rows = document.querySelectorAll("#itemsTable tbody tr");
+            let subtotal = 0;
+            rows.forEach(row => {
+                subtotal += calculateRow(row);
+            });
+            document.getElementById("subtotal").value = subtotal.toFixed(2);
         }
 
-        function syncBatch(sel) {
-            const tr = sel.closest('tr');
-            const batchInput = tr.querySelector('input[name$="[batch_display]"]');
-            const s = stockMap.find(x => String(x.id) === String(sel.value));
-            batchInput.value = s ? (s.batch || '-') : '';
-        }
-
-        addTransferRow();
+        // Listen for qty/price input
+        document.addEventListener("input", function(e) {
+            if (e.target.classList.contains("qty") || e.target.classList.contains("price")) {
+                calculateSubtotal();
+            }
+        });
     </script>
 
 @endsection

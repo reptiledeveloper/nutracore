@@ -24,6 +24,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 
 Route::match(['get', 'post'], '/update_payment_status', [ApiController::class, 'update_payment_status'])->name('update_payment_status');
+Route::match(['get', 'post'], '/porter_webhook', [ApiController::class, 'porter_webhook'])->name('porter_webhook');
 
 Route::prefix('v1/')->group(function () {
     Route::match(['get', 'post'], '/update_payment_status', [ApiController::class, 'update_payment_status'])->name('update_payment_status');
@@ -136,6 +137,7 @@ Route::prefix('v1/')->group(function () {
         Route::post('/return_single_product', [ApiController::class, 'return_single_product']);
         Route::post('/return_order', [ApiController::class, 'return_order']);
         Route::post('/giftcard_list', [ApiController::class, 'giftcard_list']);
+        Route::post('/apply_giftcard', [ApiController::class, 'apply_giftcard']);
     });
 
 

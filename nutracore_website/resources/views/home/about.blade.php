@@ -1,17 +1,27 @@
 @extends('home.layout')
 @section('content')
-    <?php 
-                                                                                                                                use App\Helpers\CustomHelper;
+    <?php
+
+    use App\Helpers\CustomHelper;
+
+    $download_banner = [];
+    $banners = \App\Models\Banner::where('status', 1)->where('is_delete', 0)->get()->makeHidden(['created_at', 'updated_at', 'is_delete', 'status']);
+    if (!empty($banners)) {
+        foreach ($banners as $banner) {
+            $banner->banner_img = CustomHelper::getImageUrl('banners', $banner->banner_img);
+            if ($banner->type == 'download_banner') {
+                $download_banner = $banner;
+            }
+        }
+    }
+    ?>
 
 
-                                                                                                                            ?>
-
-
-<main class="main pages">
+    <main class="main pages">
         <div class="page-header breadcrumb-wrap">
             <div class="container">
                 <div class="breadcrumb">
-                    <a href='index.html' rel='nofollow'><i class="fi-rs-home mr-5"></i>Home</a>
+                    <a href='' rel='nofollow'><i class="fi-rs-home mr-5"></i>Home</a>
                     <span></span> About us
                 </div>
             </div>
@@ -19,186 +29,118 @@
         <div class="page-content pt-50">
             <div class="container">
                 <div class="row">
-                    <div class="col-xl-10 col-lg-12 m-auto">
-                        <section class="row align-items-center mb-50">
-                            <div class="col-lg-6">
-                                <img src="public/assets/imgs/page/about-1.png" alt="" class="border-radius-15 mb-md-3 mb-lg-0 mb-sm-4" />
-                            </div>
-                            <div class="col-lg-6">
-                                <div class="pl-25">
-                                    <h2 class="mb-30">Welcome to Nest</h2>
-                                    <p class="mb-25">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate id est laborum.</p>
-                                    <p class="mb-50">Ius ferri velit sanctus cu, sed at soleat accusata. Dictas prompta et Ut placerat legendos interpre.Donec vitae sapien ut libero venenatis faucibus. Nullam quis ante Etiam sit amet orci eget. Quis commodo odio aenean sed adipiscing. Turpis massa tincidunt dui ut ornare lectus. Auctor elit sed vulputate mi sit amet. Commodo consequat. Duis aute irure dolor in reprehenderit in voluptate id est laborum.</p>
-                                    <div class="carausel-3-columns-cover position-relative">
-                                        <div id="carausel-3-columns-arrows"></div>
-                                        <div class="carausel-3-columns" id="carausel-3-columns">
-                                            <img src="public/assets/imgs/page/about-2.png" alt="" />
-                                            <img src="public/assets/imgs/page/about-3.png" alt="" />
-                                            <img src="public/assets/imgs/page/about-4.png" alt="" />
-                                            <img src="public/assets/imgs/page/about-2.png" alt="" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-                        <section class="text-center mb-50">
-                            <h2 class="title style-3 mb-40">What We Provide?</h2>
-                            <div class="row">
-                                <div class="col-lg-4 col-md-6 mb-24">
-                                    <div class="featured-card">
-                                        <img src="public/assets/imgs/theme/icons/icon-1.svg" alt="" />
-                                        <h4>Best Prices & Offers</h4>
-                                        <p>There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form</p>
-                                        <a href="#">Read more</a>
-                                    </div>
-                                </div>
-                                <div class="col-lg-4 col-md-6 mb-24">
-                                    <div class="featured-card">
-                                        <img src="public/assets/imgs/theme/icons/icon-2.svg" alt="" />
-                                        <h4>Wide Assortment</h4>
-                                        <p>There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form</p>
-                                        <a href="#">Read more</a>
-                                    </div>
-                                </div>
-                                <div class="col-lg-4 col-md-6 mb-24">
-                                    <div class="featured-card">
-                                        <img src="public/assets/imgs/theme/icons/icon-3.svg" alt="" />
-                                        <h4>Free Delivery</h4>
-                                        <p>There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form</p>
-                                        <a href="#">Read more</a>
-                                    </div>
-                                </div>
-                                <div class="col-lg-4 col-md-6 mb-24">
-                                    <div class="featured-card">
-                                        <img src="public/assets/imgs/theme/icons/icon-4.svg" alt="" />
-                                        <h4>Easy Returns</h4>
-                                        <p>There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form</p>
-                                        <a href="#">Read more</a>
-                                    </div>
-                                </div>
-                                <div class="col-lg-4 col-md-6 mb-24">
-                                    <div class="featured-card">
-                                        <img src="public/assets/imgs/theme/icons/icon-5.svg" alt="" />
-                                        <h4>100% Satisfaction</h4>
-                                        <p>There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form</p>
-                                        <a href="#">Read more</a>
-                                    </div>
-                                </div>
-                                <div class="col-lg-4 col-md-6 mb-24">
-                                    <div class="featured-card">
-                                        <img src="public/assets/imgs/theme/icons/icon-6.svg" alt="" />
-                                        <h4>Great Daily Deal</h4>
-                                        <p>There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form</p>
-                                        <a href="#">Read more</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-                        <section class="row align-items-center mb-50">
-                            <div class="row mb-50 align-items-center">
-                                <div class="col-lg-7 pr-30">
-                                    <img src="public/assets/imgs/page/about-5.png" alt="" class="mb-md-3 mb-lg-0 mb-sm-4" />
-                                </div>
-                                <div class="col-lg-5">
-                                    <h4 class="mb-20 text-muted">Our performance</h4>
-                                    <h1 class="heading-1 mb-40">Your Partner for e-commerce grocery solution</h1>
-                                    <p class="mb-30">Ed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto</p>
-                                    <p>Pitatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia</p>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-lg-4 pr-30 mb-md-5 mb-lg-0 mb-sm-5">
-                                    <h3 class="mb-30">Who we are</h3>
-                                    <p>Volutpat diam ut venenatis tellus in metus. Nec dui nunc mattis enim ut tellus eros donec ac odio orci ultrices in. ellus eros donec ac odio orci ultrices in.</p>
-                                </div>
-                                <div class="col-lg-4 pr-30 mb-md-5 mb-lg-0 mb-sm-5">
-                                    <h3 class="mb-30">Our history</h3>
-                                    <p>Volutpat diam ut venenatis tellus in metus. Nec dui nunc mattis enim ut tellus eros donec ac odio orci ultrices in. ellus eros donec ac odio orci ultrices in.</p>
-                                </div>
-                                <div class="col-lg-4">
-                                    <h3 class="mb-30">Our mission</h3>
-                                    <p>Volutpat diam ut venenatis tellus in metus. Nec dui nunc mattis enim ut tellus eros donec ac odio orci ultrices in. ellus eros donec ac odio orci ultrices in.</p>
-                                </div>
-                            </div>
-                        </section>
-                    </div>
+                    <iframe width="560" height="500"
+                            src="https://www.youtube.com/embed/{{CustomHelper::getSettingKey('about_us_video')}}"
+                            title="YouTube video player"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen>
+                    </iframe>
                 </div>
-            </div>
-            <section class="container mb-50 d-none d-md-block">
-                <div class="row about-count">
-                    <div class="col-lg-1-5 col-md-6 text-center mb-lg-0 mb-md-5">
-                        <h1 class="heading-1"><span class="count">12</span>+</h1>
-                        <h4>Glorious years</h4>
+                <div class="row text-center mt-30">
+                    <h3 style="font-size: 30px;font-weight: 600;color: #00a8a8">Fuelling Your Fitness with Trust</h3>
+                    <p>At <strong>NutraCore®,</strong> we’re more than just a supplement store — we’re your trusted
+                        partner in
+                        achieving
+                        a stronger, healthier you. Born from a mission to bring authenticity back into the fitness
+                        supplement industry, NutraCore® was founded with a simple belief: <strong> everyone deserves
+                            access to
+                            safe, genuine, and effective supplements backed by expert guidance and care.</strong></p>
+
+                    <p>Whether you're a gym-goer, athlete, or simply health-conscious, NutraCore® is here to empower
+                        your wellness journey — with trust, transparency, and top-quality products.</p>
+
+                    <h3 style="font-size: 30px;font-weight: 600;color: #00a8a8;margin-top: 10px">🏋️♂️ Our Mission</h3>
+                    <h3 style="font-size: 30px;font-weight: 600;color: #00a8a8;margin-top: 10px">“Empowering Your Health
+                        Journey.”</h3>
+                    <p>We exist to make fitness and nutrition accessible, safe, and effective for all. From sourcing
+                        100% authentic supplements to offering personalized consultation, we’re committed to helping you
+                        transform your goals into reality — with strength you can trust.</p>
+
+                    <div class="mt-3">
+                        <img src="{{url('public/assets/aboutus.png')}}">
                     </div>
-                    <div class="col-lg-1-5 col-md-6 text-center">
-                        <h1 class="heading-1"><span class="count">36</span>+</h1>
-                        <h4>Happy clients</h4>
-                    </div>
-                    <div class="col-lg-1-5 col-md-6 text-center">
-                        <h1 class="heading-1"><span class="count">58</span>+</h1>
-                        <h4>Projects complete</h4>
-                    </div>
-                    <div class="col-lg-1-5 col-md-6 text-center">
-                        <h1 class="heading-1"><span class="count">24</span>+</h1>
-                        <h4>Team advisor</h4>
-                    </div>
-                    <div class="col-lg-1-5 text-center d-none d-lg-block">
-                        <h1 class="heading-1"><span class="count">26</span>+</h1>
-                        <h4>Products Sale</h4>
-                    </div>
+
+
+                    <h3 style="font-size: 30px;font-weight: 600;color: #00a8a8;margin-top: 10px"> 💼 What We Offer</h3>
+                    <p>
+                        At NutraCore®, we bring you the best of both worlds — an in-store experience backed by digital
+                        convenience through our website and app.
+                    </p>
+                    <p>“Authentic Supplements” “NutraCore App” “Supplement Consultation” “Loyalty Program – NutraPass”
+                        “Genuine Product Guarantee” “Express Delivery”</p>
+
+
+                    <h3 style="font-size: 30px;font-weight: 600;color: #00a8a8;margin-top: 10px"> 🤝 Why Trust
+                        NutraCore® </h3>
+                    <p>We don’t just sell — we care.</p>
+                    <p>Our customer-first approach, expert-backed support, and strict sourcing practices set us
+                        apart.</p>
+                    <p>What makes us different?</p>
+                    <p>• ✅ 100% Authentic Products – No middlemen. No compromises.</p>
+                    <p>• 🌟 Trusted by Thousands – 4.9⭐ average rating from over 10,000 happy customers.</p>
+                    <p>• 💳 Unmatchable Membership Program – NutraPass offers exclusive pricing, cashback, and VIP perks
+                        you won’t find anywhere else.</p>
+                    <p>• 📜 Certified & Verified – Direct partnerships with top global supplement brands.</p>
+                    <p>• 🧑🔬 Expert Staff – Our team includes certified trainers and nutritionists.</p>
+                    <p>• 📍 Physical Stores + Online Access – shop from anywhere.</p>
                 </div>
-            </section>
-            <div class="container">
-                <div class="row">
-                    <div class="col-xl-10 col-lg-12 m-auto">
-                        <section class="mb-50">
-                            <h2 class="title style-3 mb-40 text-center">Our Team</h2>
-                            <div class="row">
-                                <div class="col-lg-4 mb-lg-0 mb-md-5 mb-sm-5">
-                                    <h6 class="mb-5 text-brand">Our Team</h6>
-                                    <h1 class="mb-30">Meet Our Expert Team</h1>
-                                    <p class="mb-30">Proin ullamcorper pretium orci. Donec necscele risque leo. Nam massa dolor imperdiet neccon sequata congue idsem. Maecenas malesuada faucibus finibus.</p>
-                                    <p class="mb-30">Proin ullamcorper pretium orci. Donec necscele risque leo. Nam massa dolor imperdiet neccon sequata congue idsem. Maecenas malesuada faucibus finibus.</p>
-                                    <a href="#" class="btn">View All Members</a>
-                                </div>
-                                <div class="col-lg-8">
-                                    <div class="row">
-                                        <div class="col-lg-6 col-md-6">
-                                            <div class="team-card">
-                                                <img src="public/assets/imgs/page/about-6.png" alt="" />
-                                                <div class="content text-center">
-                                                    <h4 class="mb-5">H. Merinda</h4>
-                                                    <span>CEO & Co-Founder</span>
-                                                    <div class="social-network mt-20">
-                                                        <a href="#"><img src="public/assets/imgs/theme/icons/icon-facebook-brand.svg" alt="" /></a>
-                                                        <a href="#"><img src="public/assets/imgs/theme/icons/icon-twitter-brand.svg" alt="" /></a>
-                                                        <a href="#"><img src="public/assets/imgs/theme/icons/icon-instagram-brand.svg" alt="" /></a>
-                                                        <a href="#"><img src="public/assets/imgs/theme/icons/icon-youtube-brand.svg" alt="" /></a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-6 col-md-6">
-                                            <div class="team-card">
-                                                <img src="public/assets/imgs/page/about-8.png" alt="" />
-                                                <div class="content text-center">
-                                                    <h4 class="mb-5">Dilan Specter</h4>
-                                                    <span>Head Engineer</span>
-                                                    <div class="social-network mt-20">
-                                                        <a href="#"><img src="public/assets/imgs/theme/icons/icon-facebook-brand.svg" alt="" /></a>
-                                                        <a href="#"><img src="public/assets/imgs/theme/icons/icon-twitter-brand.svg" alt="" /></a>
-                                                        <a href="#"><img src="public/assets/imgs/theme/icons/icon-instagram-brand.svg" alt="" /></a>
-                                                        <a href="#"><img src="public/assets/imgs/theme/icons/icon-youtube-brand.svg" alt="" /></a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
+
+
+                <div class="row mt-20">
+                    <div class="col-md-4">
+                        <div class="testimonial-box p-3 border rounded shadow-sm">
+                            <p class="mb-2" style="font-style: italic;">
+                                "I’ve been buying supplements for years, but NutraCore made me believe in authenticity
+                                again. Their membership scheme makes the purchasing much more affordable. It’s my go-to
+                                for real results."
+                            </p>
+                            <p class="mb-0">
+                                — <span style="color:#d9534f; font-weight:bold;">Kushal R</span>,
+                                <strong>Fitness Enthusiast & Verified Customer</strong>
+                            </p>
+                        </div>
                     </div>
+
+                    <div class="col-md-4">
+                        <div class="testimonial-box p-3 border rounded shadow-sm">
+                            <p class="mb-2" style="font-style: italic;">
+                                "From the moment I walked into their store, I knew this was different. The staff didn’t
+                                push products — they educated me. I shop from home and pick up from store or get it
+                                delivered fast.
+                            </p>
+                            <p class="mb-0">
+                                — <span style="color:#d9534f; font-weight:bold;" >Divya M</span>,
+                                <strong>CrossFit Enthusiast & Verified Buyer</strong>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="testimonial-box p-3 border rounded shadow-sm">
+                            <p class="mb-2" style="font-style: italic;">
+                                "Finding NutraCore was a game-changer for me. As someone who's always been skeptical
+                                about the authenticity, I finally feel confident in what I’m consuming. Their team
+                                actually guided based on goals — not just sells.
+                            </p>
+                            <p class="mb-0">
+                                — <span style="color:#d9534f; font-weight:bold;">Arvind R</span>,
+                                <strong>IT Professional & Fitness Coach</strong>
+                            </p>
+                        </div>
+                    </div>
+
+
                 </div>
+
+
+                <section class="section-padding pb-5">
+                    <div class="container">
+                        <div class="section-title wow animate__animated animate__fadeIn" data-wow-delay="0">
+                            <img src="{{ $download_banner->banner_img ?? '' }}" alt=""/>
+                        </div>
+                    </div>
+                </section>
             </div>
         </div>
     </main>

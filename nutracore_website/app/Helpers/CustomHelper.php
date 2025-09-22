@@ -6,6 +6,7 @@ use App\Models\ActivityLogs;
 use App\Models\Admin;
 use App\Models\Attributes;
 use App\Models\Bank;
+use App\Models\Banner;
 use App\Models\Branch;
 use App\Models\Brand;
 use App\Models\CaseInvoices;
@@ -16,14 +17,17 @@ use App\Models\City;
 use App\Models\Company;
 use App\Models\Country;
 use App\Models\DeliveryAgents;
+use App\Models\DeliveryCharges;
 use App\Models\DocumentRequired;
 use App\Models\EventImages;
+use App\Models\FAQ;
 use App\Models\Manufacturer;
 use App\Models\Order;
 use App\Models\OrderItems;
 use App\Models\OrderStatus;
 use App\Models\Cart;
 use App\Models\Permission;
+use App\Models\Product;
 use App\Models\Products;
 use App\Models\ProductVarient;
 use App\Models\PropertyBorrower;
@@ -34,9 +38,12 @@ use App\Models\PropertyType;
 use App\Models\QRCodes;
 use App\Models\Roles;
 use App\Models\SellerRoles;
+use App\Models\Setting;
 use App\Models\Shop;
 use App\Models\State;
+use App\Models\SubscriptionOrder;
 use App\Models\SubscriptionPlans;
+use App\Models\Subscriptions;
 use App\Models\Tags;
 use App\Models\Transaction;
 use App\Models\User;
@@ -53,6 +60,7 @@ use Carbon\Carbon;
 use DateTime;
 use DB;
 use Google\Auth\AccessToken\AccessToken;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Image;
 use League\OAuth2\Client\Provider\GenericProvider;
@@ -92,7 +100,6 @@ class CustomHelper
     }
 
 
-
     public static function checkWishlist($user_id, $productID, $varientID)
     {
         $exist = Wishlist::where('user_id', $user_id)->where('product_id', $productID)->where('varient_id', $varientID)->first();
@@ -103,6 +110,16 @@ class CustomHelper
         }
     }
 
+
+    public static function getBannerData($type)
+    {
+        $image = '';
+        $banner = Banner::where('type', $type)->first();
+        if (!empty($banner)) {
+            $image = self::getImageUrl('banners', $banner->banner_img);
+        }
+        return $image;
+    }
 
     public static function razorpayKey()
     {
@@ -129,6 +146,13 @@ class CustomHelper
             $duration = $diff->h . ' H ' . $diff->i . ' M ' . $diff->s . ' S ';
         }
         return $duration;
+    }
+
+    public static function getOrderStatusData($order_id)
+    {
+        $order_status = OrderStatus::where('order_id', $order_id)->orderBy('created_at', 'ASC')->get();
+        return $order_status;
+
     }
 
     public static function getCompanyData($company_id)
@@ -207,8 +231,8 @@ class CustomHelper
         $user_id = Auth::guard('admin')->user()->id ?? '';
         $emi_data = DB::table('emis')->where('id', $emi_id)->first();
         if (!empty($emi_data)) {
-            $new_paid_amount = (int) $emi_data->paid_amount + (int) $paid_amount;
-            $new_due_amount = (int) $emi_data->amount - (int) $new_paid_amount;
+            $new_paid_amount = (int)$emi_data->paid_amount + (int)$paid_amount;
+            $new_due_amount = (int)$emi_data->amount - (int)$new_paid_amount;
 
             $dbArray = [];
             $dbArray['paid_amount'] = $new_paid_amount;
@@ -549,7 +573,7 @@ class CustomHelper
     public static function getProductOptions($product_id, $option_name)
     {
         $option_name_array = explode(",", $option_name);
-       $option_name_array = array_unique($option_name_array);
+        $option_name_array = array_unique($option_name_array);
         $optionArr = [];
         if (!empty($option_name_array)) {
             foreach ($option_name_array as $val) {
@@ -568,7 +592,6 @@ class CustomHelper
         }
         return $optionArr;
     }
-
 
 
     public static function loginShipRocket()
@@ -602,7 +625,7 @@ class CustomHelper
     public static function checkDelivery($pincode)
     {
         $login_data = self::loginShipRocket();
-        $token = $login_data->token??'';
+        $token = $login_data->token ?? '';
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
@@ -622,7 +645,7 @@ class CustomHelper
 }',
             CURLOPT_HTTPHEADER => array(
                 'Content-Type: application/json',
-                'Authorization: Bearer '.$token
+                'Authorization: Bearer ' . $token
             ),
         ));
 
@@ -655,8 +678,7 @@ class CustomHelper
     }
 
 
-
-public static function getCartQty($user_id, $product_id, $varient_id)
+    public static function getCartQty($user_id, $product_id, $varient_id)
     {
         $qty = 0;
         $user = User::find($user_id);
@@ -673,6 +695,7 @@ public static function getCartQty($user_id, $product_id, $varient_id)
         }
         return $qty;
     }
+
     public static function checkProductPrice($products_id, $varient_id)
     {
         if (!empty($products_id) && !empty($varient_id)) {
@@ -680,6 +703,194 @@ public static function getCartQty($user_id, $product_id, $varient_id)
         } else {
             return null;
         }
+    }
+
+    public static function getSettings($key = "")
+    {
+        $value = Setting::first();
+        if (!empty($key)) {
+            $value = $value->$key ?? '';
+        }
+        return $value;
+    }
+
+    public static function subscriptionsData($user)
+    {
+
+        $subscriptionsArr = null;
+        $seller_id = $request->seller_id ?? '';
+        $subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->where('is_show', 1)->get();
+        $minPricePerDay = PHP_FLOAT_MAX;
+        $bestValuePlanId = null;
+        foreach ($subscription_plans as $plan) {
+            // Assume duration is in days. If months, convert to days.
+            $durationInDays = $plan->duration * 30.44;
+
+            if ($durationInDays > 0) {
+                $pricePerDay = (int)$plan->price / $durationInDays;
+
+                if ($pricePerDay < $minPricePerDay) {
+                    $minPricePerDay = $pricePerDay;
+                    $bestValuePlanId = $plan->id;
+                }
+            }
+        }
+
+        if (!empty($subscription_plans)) {
+            foreach ($subscription_plans as $plan) {
+                $original_price = $plan->mrp ?? 0;
+                $discounted_price = $plan->price ?? 0;
+                $is_best_value = 0;
+                if ($plan->id == $bestValuePlanId) {
+                    $is_best_value = 1;
+                }
+                $plan->is_best_value = $is_best_value;
+                $discount_percentage = (($original_price - $discounted_price) / $original_price) * 100;
+                $plan->discount = round($discount_percentage);
+            }
+        }
+
+        $subscriptionsArr['subscription_plans'] = $subscription_plans;
+        $prime_benifitArr = [];
+        $settings = Setting::find(1);
+        $prime_benifits = json_decode($settings->prime_benifits) ?? '';
+        if (!empty($prime_benifits)) {
+            foreach ($prime_benifits as $prime_benifit) {
+                $prime_benifit->icon = url('/public/assets/settings/' . $prime_benifit->icon);
+                $prime_benifitArr[] = $prime_benifit;
+            }
+        }
+
+        $faqs = FAQ::where('type', 'subscription')->where('is_delete', 0)->get();
+        $subscriptionsArr['prime_benifits'] = $prime_benifitArr;
+        $subscriptionsArr['faqs'] = $faqs;
+
+
+        $user_subscription = [];
+        $subscribed_subscription = null;
+        $is_prev_subscribed = 0;
+        $is_active = 0;
+        $subscription_end_date = '';
+        $exist_subscription = [];
+        if (!empty($user)) {
+            $exist_subscription = Subscriptions::where('user_id', $user->id)->where('paid_status', 1)->latest()->first();
+        }
+
+        if (!empty($exist_subscription)) {
+            $is_prev_subscribed = 1;
+            $current_date = date('Y-m-d');
+            $subscribed_subscription = SubscriptionPlans::find($exist_subscription->subscription_id);
+            if (strtotime($user->subscription_end) >= strtotime($current_date)) {
+                $is_active = 1;
+//                $subscription_end_date = $exist_subscription->end_date ?? '';
+                $subscription_end_date = $user->subscription_end ?? '';
+                if (!empty($subscription_end_date)) {
+                    $subscription_end_date = date('d M Y', strtotime($subscription_end_date));
+                }
+            }
+        }
+
+        $banners = Banner::where('status', 1)->where('is_delete', 0)->where('type', 'subscription')->get()->makeHidden(['created_at', 'updated_at', 'is_delete', 'status']);
+        if (!empty($banners)) {
+            foreach ($banners as $banner) {
+                $banner->banner_img = CustomHelper::getImageUrl('banners', $banner->banner_img);
+            }
+        }
+        $subscription_order_details = [];
+        $subscription_order = [];
+        // $subscription_order = SubscriptionOrder::where('user_id',$user->id)->whereDate('start_date','<=',date('Y-m-d'))->whereDate('end_date','>=',date('Y-m-d'))->where('order_status',1)->get();
+        if (!empty($user)) {
+            $subscription_order = SubscriptionOrder::where('user_id', $user->id)->where('order_status', 1)->get();
+        }
+        if (!empty($subscription_order)) {
+            foreach ($subscription_order as $subscription_ord) {
+                $product = DB::table('products')->where('id', $subscription_ord->product_id)->first();
+                $subscription_ord->product_name = $product->name ?? '';
+                $subscription_ord->product_image = CustomHelper::getImageUrl('products', $product->image ?? '');
+            }
+        }
+
+        $total_data = CustomHelper::calculateSavingAmount($user);
+        $saved_amount = $total_data['total'] ?? 0;
+
+
+        $user_subscription['is_prev_subscribed'] = $is_prev_subscribed;
+        $user_subscription['is_active'] = $is_active;
+        $user_subscription['total_data'] = $total_data;
+        $user_subscription['subscription_end_date'] = $subscription_end_date;
+        $user_subscription['subscribed_subscription'] = $subscribed_subscription;
+        $user_subscription['saved_amount'] = $saved_amount;
+        $subscriptionsArr['user_subscription'] = $user_subscription;
+        $subscriptionsArr['saved_amount'] = $saved_amount;
+        $subscriptionsArr['banners'] = $banners;
+        $subscriptionsArr['subscription_order_details'] = $subscription_order_details;
+        $subscriptionsArr['subscription_order'] = $subscription_order;
+        $subscriptionsArr['subscription_descrpiption'] = '🔥  10% OFF every order <br>
+                                            🚚  Free Express Delivery <br>
+                                            🎁  Monthly Freebie Box <br>
+                                            ⏰  Early Access & Secret Sales';
+        $tire_system = [];
+        $type = ($is_active == 1) ? 'subscribe' : 'not_subscribe';
+        $total_order_amount = 0;
+        if (!empty($user)) {
+            $total_order_amount = Order::where('userID', $user->id)->where('status', 'DELIVERED')->sum('total_amount');
+
+        }
+        $active_loyalty = DB::table('loyality_system')
+            ->where('status', 1)
+            ->where('is_delete', 0)
+            ->where('type', $type)
+            ->where('from_amount', '<=', $total_order_amount)
+            ->where(function ($q) use ($total_order_amount) {
+                $q->where('to_amount', '>=', $total_order_amount)
+                    ->orWhereNull('to_amount'); // for open-ended slabs like Platinum
+            })
+            ->orderBy('from_amount', 'desc') // pick the highest matching tier
+            ->first();
+        $tire_system = DB::table('loyality_system')
+            ->where('status', 1)
+            ->where('is_delete', 0)
+            ->where('type', $type)->get();
+
+        $subscriptionsArr['total_order_amount'] = $total_order_amount;
+        $subscriptionsArr['tire_system'] = $tire_system;
+        $subscriptionsArr['active_loyalty'] = $active_loyalty;
+
+        return $subscriptionsArr;
+    }
+
+    public static function calculateSavingAmount($user)
+    {
+        $date = date('Y-m-d');
+        $total = 0;
+        $nc_cash_earn = 0;
+        $save = 0;
+        $orders = [];
+        $subscriptions = [];
+        if (!empty($user)) {
+            $subscriptions = Subscriptions::where('user_id', $user->id)->whereDate('end_date', '>=', $date)->where('paid_status', 1)->orderBy('created_at', "ASC")->first();
+
+        }
+        if (!empty($subscriptions)) {
+            $start_date = $subscriptions->start_date ?? '';
+            $end_date = $subscriptions->end_date ?? '';
+            $orders = Order::where('userID', $user->id)->whereDate('created_at', ">=", $start_date)->whereDate('created_at', "<=", $end_date)->get();
+            if (!empty($orders)) {
+                foreach ($orders as $orde) {
+                    $nc_cash_earn += (int)$orde->nc_cash_earned;
+                    $order_items = OrderItems::where("order_id", $orde->id)->where('status', "DELIVERED")->get();
+                    if (!empty($order_items)) {
+                        foreach ($order_items as $item) {
+                            $diff = (int)$item->net_price - (int)$item->net_subscription_price;
+                            $save += $diff;
+                        }
+                    }
+                }
+            }
+        }
+        $total = $nc_cash_earn + $save;
+
+        return ["total" => $total, "nc_cash_earn" => $nc_cash_earn, "save" => $save, 'orders' => $orders];
     }
 
     public static function numberToWords($number)
@@ -780,8 +991,6 @@ public static function getCartQty($user_id, $product_id, $varient_id)
     }
 
 
-
-
     public static function getPastTime($timestamp)
     {
         $date1 = new DateTime($timestamp);
@@ -858,7 +1067,7 @@ public static function getCartQty($user_id, $product_id, $varient_id)
         $slug = $new_slug;
 
         if (is_array($slug_array) && in_array($slug, $slug_array)) {
-            $num = (int) $num + 1;
+            $num = (int)$num + 1;
             $slug = self::GetUniqueSlugBySelf($slug_array, $new_slug, $num);
         }
 
@@ -896,6 +1105,421 @@ public static function getCartQty($user_id, $product_id, $varient_id)
         return $slug;
     }
 
+    public static function getSettingKey($key)
+    {
+        $setting = Setting::where('id', 1)->first();
+        return $setting->$key ?? '';
+
+    }
+
+    public static function getNcCashPercent($user, $amount)
+    {
+        $is_active = 0;
+
+        $subscription_end_date = '';
+        if (!empty($user)) {
+            $exist_subscription = Subscriptions::where('user_id', $user->id)->where('paid_status', 1)->latest()->first();
+            if (!empty($exist_subscription)) {
+                $current_date = date('Y-m-d');
+                if (strtotime($exist_subscription->end_date) >= strtotime($current_date)) {
+                    $is_active = 1;
+
+                }
+            }
+        }
+
+        $type = ($is_active == 1) ? 'subscribe' : 'not_subscribe';
+        $active_loyalty = DB::table('loyality_system')
+            ->where('status', 1)
+            ->where('type', $type)
+            ->where('from_amount', '<=', $amount)
+            ->where('to_amount', '>=', $amount)
+            ->first();
+        if (!empty($active_loyalty)) {
+            return round(($amount * (int)$active_loyalty->cashback) / 100);
+        }
+        return 0;
+
+    }
+
+    public static function calculateDeliveryCharge($user, $total_amount, $type = "express")
+    {
+        $delivery_charge = 0;
+
+        $delivery_charges = DeliveryCharges::where('type', $type)
+            ->whereRaw('? BETWEEN CAST(order_amount AS UNSIGNED) AND CAST(order_amount2 AS UNSIGNED)', [$total_amount])
+            ->first();
+
+        if (!empty($delivery_charges)) {
+            $delivery_charge = (float)$delivery_charges->delivery_charge ?? 0;
+        }
+        return $delivery_charge;
+    }
+
+    public static function getFreeDeliveryAmount()
+    {
+        return DeliveryCharges::where('delivery_charge', 0)->first();
+    }
+
+    public static function checkSubscription($user)
+    {
+        $is_active = 0;
+        $exist_subscription = Subscriptions::where('user_id', $user->id)->where('paid_status', 1)->latest()->first();
+        if (!empty($exist_subscription)) {
+            $current_date = date('Y-m-d');
+            if (strtotime($user->subscription_end) >= strtotime($current_date)) {
+                $is_active = 1;
+            }
+        }
+        return $is_active;
+    }
+
+    public static function calculateDiscountPer($originalPrice, $discountedPrice)
+    {
+        if ($originalPrice <= 0) {
+            return 0;
+        }
+        $discount = ((int)$originalPrice - (int)$discountedPrice) / (int)$originalPrice * 100;
+        return round($discount);
+    }
+
+    public static function cartData($user_id, $coupon_code = '', $request, $user)
+    {
+        $cartValue = [];
+        $cartArr = [];
+        $handling_charges = 0;
+        $surge_fee = 0;
+        $platform_fee = 0;
+        $small_cart_fee = 0;
+        $rain_fee = 0;
+        $settings = Setting::where('id', 1)->first();
+
+
+        if ($settings->is_handling_charges == 1) {
+            $handling_charges = $settings->handling_charges ?? 0;
+        }
+        if ($settings->is_surge_fee == 1) {
+            $surge_fee = $settings->surge_fee ?? 0;
+        }
+        if ($settings->is_platform_fee == 1) {
+            $platform_fee = $settings->platform_fee ?? 0;
+        }
+        if ($settings->is_small_cart_fee == 1) {
+            $small_cart_fee = $settings->small_cart_fee ?? 0;
+        }
+
+
+        $cart_total = 0;
+        $cart_discount = 0;
+        $coupon_discount = 0;
+        $applied_wallet = 0;
+        $freebees_price = 0;
+        $total_mrp_price = 0;
+        $cart_products = [];
+        $cart_products_category = [];
+        $image = '';
+        $user_data = User::find($user_id);
+        $cart_qty = 0;
+        $tips = $request->tips ?? 0;
+        $cart_list = Cart::where('user_id', $user_id)->get();
+        if (!empty($cart_list)) {
+            foreach ($cart_list as $cart) {
+                $is_available = 0;
+                $product = ProductVarient::where('product_id', $cart->product_id)->where('id', $cart->variant_id)->first();
+                $product_data = Product::where('id', $cart->product_id)->first();
+                if (!empty($product)) {
+                    $is_available = 1;
+                    $cart_products_category[] = $product_data->category_id ?? '';
+                    if (empty($image) && $image == '') {
+                        $image = CustomHelper::getImageUrl('products', $product_data->image ?? '');
+                    }
+                }
+
+                if (!empty($request->freebees_id)) {
+                    $freebees_pro = DB::table('freebees_product')->where('id', $request->freebees_id)->first();
+                    if (!empty($freebees_pro)) {
+                        $freebees_price = $freebees_pro->amount ?? 0;
+                    }
+                }
+                $dbArray = [];
+                $dbArray['product_id'] = $product_data->id ?? '';
+                $dbArray['category_id'] = $product_data->category_id ?? '';
+                $dbArray['subcategory_id'] = $product_data->subcategory_id ?? '';
+                $dbArray['brand_id'] = $product_data->brand_id ?? '';
+                $dbArray['sku'] = $product_data->sku ?? '';
+
+                $cart_products[] = $product->product_id ?? '';
+                $dbArray['varient_id'] = $cart->variant_id ?? '';
+                $dbArray['product_name'] = $product_data->name ?? '';
+                $dbArray['max_qty'] = $product_data->max_qty ?? '';
+                $dbArray['min_qty'] = $product_data->min_qty ?? '';
+
+                $dbArray['is_subscribed_product'] = $product->is_subscribed_product ?? '';
+                $dbArray['product_image'] = CustomHelper::getImageUrl('products', $product_data->image ?? '');
+
+
+                $selling_price = $product->selling_price ?? '';
+                $mrp = $product->mrp ?? '';
+                $subscription_price = $product->subscription_price ?? '';
+                $dbArray['nc_cash'] = self::getNcCashPercent($user_data, $selling_price ?? '');
+                if (empty($cart->variant_id)) {
+                    $selling_price = $product_data->product_selling_price ?? '';
+                    $mrp = $product_data->product_mrp ?? '';
+                    $subscription_price = $product_data->product_subscription_price ?? '';
+                    $dbArray['nc_cash'] = self::getNcCashPercent($user_data, $subscription_price ?? '');
+                }
+
+                if (self::checkSubscription($user) == 1) {
+                    $selling_price = $subscription_price;
+                }
+                if (!empty($request->subscription_id) && $request->subscription_id != "null" && $request->subscription_id != null) {
+                    $selling_price = $subscription_price;
+                }
+                $dbArray['nc_cash'] = self::getNcCashPercent($user_data, $selling_price ?? '');
+                $dbArray['qty'] = $cart->qty ?? '';
+                $dbArray['selling_price'] = $selling_price ?? '';
+                $dbArray['mrp'] = $mrp ?? '';
+                $dbArray['subscription_price'] = $subscription_price ?? '';
+                $dbArray['unit'] = $product->unit ?? '';
+                $dbArray['discount_per'] = self::calculateDiscountPer($mrp ?? 0, $selling_price ?? 0);
+                $dbArray['unit_value'] = $product->unit_value ?? '';
+                $dbArray['is_available'] = $is_available;
+                $dbArray['vendor_id'] = $product->vendor_id ?? '';
+
+                $qty = (int)$cart->qty ?? 0;
+                $cart_qty += $cart->qty;
+                $total_cart_price = (int)$qty * (int)$selling_price;
+                $net_subscription_price = (int)$qty * (int)$subscription_price;
+                if (self::checkSubscription($user) == 1) {
+                    $total_cart_price = (int)$qty * (int)$subscription_price;
+                }
+                if (!empty($request->subscription_id) && $request->subscription_id != "null" && $request->subscription_id != null) {
+                    $total_cart_price = (int)$qty * (int)$subscription_price;
+                }
+                $total_mrp = (int)$qty * (int)$mrp;
+
+                $total_mrp_price += $total_mrp;
+                $total_product_price = (int)$total_cart_price ?? 0;
+
+                $dbArray['total_mrp'] = $total_mrp;
+                $dbArray['total_product_price'] = $total_product_price;
+                $dbArray['net_subscription_price'] = $net_subscription_price;
+
+                $discount = (int)$mrp - (int)$selling_price;
+                $total_discount = (int)$cart->qty * (int)$discount;
+                $dbArray['total_price'] = $total_cart_price;
+                $cartArr[] = $dbArray;
+                $cart_total += $total_cart_price;
+                $cart_discount += $total_discount;
+            }
+        }
+
+
+        $subscription_amount = 0;
+        if (!empty($request->subscription_id)) {
+            $subscription_plans = SubscriptionPlans::where('id', $request->subscription_id)->where('is_delete', 0)->where('status', 1)->first();
+            $subscription_amount = $subscription_plans->price ?? 0;
+        }
+        $delivery_charges = self::calculateDeliveryCharge($user, $cart_total, $request->type);
+        $total_price = $cart_total + (int)$subscription_amount + (int)$freebees_price + $delivery_charges + $platform_fee + $surge_fee + $tips + $small_cart_fee + $handling_charges + $rain_fee;
+        $cartValue['total_price'] = $total_price;
+        $total_mrp_discount = 0;
+
+        $cartValue['cart_price'] = $cart_total + (int)$freebees_price + (int)$subscription_amount;
+
+        $total_mrp_discount = (int)$total_mrp_price - (int)$cartValue['cart_price'];
+        $cartValue['freebees_price'] = $freebees_price;
+        $cartValue['total_discount'] = $cart_discount;
+        $cartValue['subscription_amount'] = $subscription_amount;
+        $cartValue['delivery_charges'] = $delivery_charges;
+        $cartValue['cart_qty'] = $cart_qty;
+        $cartValue['tips'] = $tips;
+        $cartValue['total_mrp_price'] = $total_mrp_price;
+        $cartValue['total_mrp_discount'] = $total_mrp_discount;
+        $cartValue['coupon_discount'] = $coupon_discount;
+        $cartValue['handling_charges'] = $handling_charges;
+        $cartValue['small_cart_fee'] = $small_cart_fee;
+        $cartValue['total_cashback'] = $user->cashback_wallet ?? 0;
+        $cartValue['rain_fee'] = $rain_fee;
+        $cartValue['coupon_code'] = $coupon_code;
+        $cartValue['cart_products'] = $cart_products;
+        $cartValue['cart_products_category'] = $cart_products_category;
+        $cartValue['wallet'] = $user->wallet ?? 0;
+        $applied_wallet_amount = 0;
+        $wallet_applied = $request->wallet_applied ?? false;
+        $payment_method = $request->payment_method ?? '';
+        $wallet = $user_data->wallet ?? 0;
+        if ($wallet_applied) {
+            if ((float)$user_data->wallet <= (float)$total_price) {
+                $applied_wallet_amount = $wallet;
+            } else {
+                $applied_wallet_amount = $total_price;
+            }
+        }
+
+
+        $cartValue['applied_wallet'] = $applied_wallet_amount;
+
+        $cartValue['saved_delivery_fee'] = 10;
+        $cartValue['actual_delivery_fee'] = $delivery_charges;
+        $cartValue['surge_fee'] = $surge_fee;
+        $cartValue['platform_fee'] = $platform_fee;
+        $cartValue['image'] = $image;
+        if (empty($coupon_code)) {
+            return [
+                'result' => true,
+                'message' => "Successfully",
+                'cartValue' => $cartValue,
+                'cart_list' => $cartArr,
+            ];
+        } else {
+            $offers = Offers::where('offer_code', $coupon_code)->where('is_active', 'Y')->whereDate('end_date', '>=', date('Y-m-d'))->first();
+            if (!empty($offers)) {
+                // ✅ check usage limit
+                if (!empty($offers->no_of_times)) {
+                    $ordercount = Order::where('userID', $user_id)
+                        ->where('coupon_code', $offers->offer_code)
+                        ->count();
+
+                    if ((int)$ordercount >= (int)$offers->no_of_times) {
+                        return [
+                            'result' => false,
+                            'message' => "You Have Applied Max Times",
+                            'cartValue' => $cartValue,
+                            'cart_list' => $cartArr,
+                        ];
+                    }
+                }
+
+                // ✅ check min cart value
+                if ((int)$cart_total < (int)$offers->min_cart_value) {
+                    return [
+                        'result' => false,
+                        'message' => "Minimum Cart Value " . $offers->min_cart_value,
+                        'cartValue' => $cartValue,
+                        'cart_list' => $cartArr,
+                    ];
+                }
+
+                // ✅ category restriction
+                if ($offers->category_restrictions != '0' && !empty($offers->category_ids)) {
+                    $offerCategoryIds = explode(',', $offers->category_ids);
+                    $cartCategoryIds = $cart_products_category;
+
+                    if ($offers->category_restrictions == '1') { // include only
+                        if (empty(array_intersect($cartCategoryIds, $offerCategoryIds))) {
+                            return [
+                                'result' => false,
+                                'message' => "Coupon not applicable for selected categories",
+                                'cartValue' => $cartValue,
+                                'cart_list' => $cartArr,
+                            ];
+                        }
+                    }
+                    if ($offers->category_restrictions == '2') { // exclude
+                        if (!empty(array_intersect($cartCategoryIds, $offerCategoryIds))) {
+                            return [
+                                'result' => false,
+                                'message' => "Coupon not applicable on these categories",
+                                'cartValue' => $cartValue,
+                                'cart_list' => $cartArr,
+                            ];
+                        }
+                    }
+                }
+
+                // ✅ product restriction
+                if ($offers->product_restrictions != '0' && !empty($offers->product_ids)) {
+                    $offerProductIds = explode(',', $offers->product_ids);
+                    $cartProductIds = $cart_products;
+
+                    if ($offers->product_restrictions == '1') { // include only
+                        if (empty(array_intersect($cartProductIds, $offerProductIds))) {
+                            return [
+                                'result' => false,
+                                'message' => "Coupon not applicable for selected products",
+                                'cartValue' => $cartValue,
+                                'cart_list' => $cartArr,
+                            ];
+                        }
+                    }
+                    if ($offers->product_restrictions == '2') { // exclude
+                        if (!empty(array_intersect($cartProductIds, $offerProductIds))) {
+                            return [
+                                'result' => false,
+                                'message' => "Coupon not applicable on these products",
+                                'cartValue' => $cartValue,
+                                'cart_list' => $cartArr,
+                            ];
+                        }
+                    }
+                }
+
+                // ✅ brand restriction
+                if ($offers->brand_restrictions != '0' && !empty($offers->brand_ids)) {
+                    $offerBrandIds = explode(',', $offers->brand_ids);
+                    $cartBrandIds = array_column($cartArr, 'brand_id');
+
+                    if ($offers->brand_restrictions == '1') { // include only
+                        if (empty(array_intersect($cartBrandIds, $offerBrandIds))) {
+                            return [
+                                'result' => false,
+                                'message' => "Coupon not applicable for selected brands",
+                                'cartValue' => $cartValue,
+                                'cart_list' => $cartArr,
+                            ];
+                        }
+                    }
+                    if ($offers->brand_restrictions == '2') { // exclude
+                        if (!empty(array_intersect($cartBrandIds, $offerBrandIds))) {
+                            return [
+                                'result' => false,
+                                'message' => "Coupon not applicable on these brands",
+                                'cartValue' => $cartValue,
+                                'cart_list' => $cartArr,
+                            ];
+                        }
+                    }
+                }
+
+                // ✅ apply discount
+                if ($offers->offer_type == 'FIXED') {
+                    $total_price = (int)$total_price - (int)$offers->offer_value;
+                    $cartValue['total_price'] = $total_price;
+                    $cartValue['coupon_discount'] = (int)$offers->offer_value;
+                    $cartValue['coupon_code'] = $coupon_code;
+
+                    return [
+                        'result' => true,
+                        'message' => $coupon_code . " Successfully Applied",
+                        'cartValue' => $cartValue,
+                        'cart_list' => $cartArr,
+                    ];
+                }
+
+                if ($offers->offer_type == 'PERCENTAGE') {
+                    $percent_val = ($cart_total * $offers->offer_value) / 100;
+                    if ($percent_val >= $offers->max_discount) {
+                        $percent_val = $offers->max_discount;
+                    }
+
+                    $total_price = (int)$total_price - (int)$percent_val;
+                    $cartValue['total_price'] = $total_price;
+                    $cartValue['coupon_discount'] = (int)$percent_val;
+                    $cartValue['coupon_code'] = $coupon_code;
+
+                    return [
+                        'result' => true,
+                        'message' => $coupon_code . " Successfully Applied",
+                        'cartValue' => $cartValue,
+                        'cart_list' => $cartArr,
+                    ];
+                }
+            }
+
+        }
+    }
+
     public static function GetUniqueSlug($tbl_name, $id_field, $row_id = '', $slug = '', &$num = '')
     {
 
@@ -914,7 +1538,7 @@ public static function getCartQty($user_id, $product_id, $varient_id)
             if (!empty($row_id) && $row->$id_field == $row_id) {
                 $slug = $new_slug;
             } else {
-                $num = (int) $num + 1;
+                $num = (int)$num + 1;
                 $slug = self::GetUniqueSlug($tbl_name, $id_field, $row_id, $new_slug, $num);
             }
         }
@@ -1082,6 +1706,7 @@ public static function getCartQty($user_id, $product_id, $varient_id)
         OrderStatus::insert($dbArray);
         return true;
     }
+
     public static function getProductVarients($product_id)
     {
         $varients = [];
@@ -1107,6 +1732,7 @@ public static function getCartQty($user_id, $product_id, $varient_id)
         $varients = VendorProductPrice::where('vendor_id', $vendor_id)->where('product_id', $product_id)->where('varient_id', $varient_id)->where('is_delete', 0)->first();
         return $varients;
     }
+
     public static function getVendorProductSingleVarients($vendor_id, $product_id, $varient_id)
     {
         $varients = VendorProductPrice::where('vendor_id', $vendor_id)->where('product_id', $product_id)->where('varient_id', $varient_id)->where('is_delete', 0)->first();
@@ -1137,6 +1763,7 @@ public static function getCartQty($user_id, $product_id, $varient_id)
         }
         return $dateArr;
     }
+
     public static function getCategories()
     {
         $categories = Category::where('parent_id', 0)->where('status', 1)->where('is_delete', 0)->get();
@@ -1175,14 +1802,21 @@ public static function getCartQty($user_id, $product_id, $varient_id)
         return $status;
     }
 
+//    public static function getOrderItemsWithProduct($orderID)
+//    {
+//        $order_items = OrderItems::where('order_id', $orderID)->get();
+//        //        $order_items = OrderItems::select('products.*', 'order_items.id as order_items_id', 'order_items.variant_id', 'order_items.qty', 'order_items.price', 'order_items.net_price', 'order_items.status')->leftJoin('products', 'products.id', '=', 'order_items.product_id')
+////            ->where('order_items.order_id', $orderID)->where('order_items.is_delete', 0)->get();
+//        return $order_items;
+//    }
+
     public static function getOrderItemsWithProduct($orderID)
     {
-        $order_items = OrderItems::where('order_id', $orderID)->get();
-        //        $order_items = OrderItems::select('products.*', 'order_items.id as order_items_id', 'order_items.variant_id', 'order_items.qty', 'order_items.price', 'order_items.net_price', 'order_items.status')->leftJoin('products', 'products.id', '=', 'order_items.product_id')
-//            ->where('order_items.order_id', $orderID)->where('order_items.is_delete', 0)->get();
+        //$order_items = OrderItems::where('order_id',$orderID)->get();
+        $order_items = OrderItems::select('products.*', 'order_items.id as order_items_id', 'order_items.variant_id', 'order_items.qty', 'order_items.price', 'order_items.net_price', 'order_items.status')->leftJoin('products', 'products.id', '=', 'order_items.product_id')
+            ->where('order_items.order_id', $orderID)->where('order_items.is_delete', 0)->get();
         return $order_items;
     }
-
 
     public static function getVendorName($vendor_id)
     {
@@ -1335,9 +1969,9 @@ public static function getCartQty($user_id, $product_id, $varient_id)
         if ($range < 1)
             return $min; // not so random...
         $log = ceil(log($range, 2));
-        $bytes = (int) ($log / 8) + 1; // length in bytes
-        $bits = (int) $log + 1; // length in bits
-        $filter = (int) (1 << $bits) - 1; // set all lower bits to 1
+        $bytes = (int)($log / 8) + 1; // length in bytes
+        $bits = (int)$log + 1; // length in bits
+        $filter = (int)(1 << $bits) - 1; // set all lower bits to 1
         do {
             $rnd = hexdec(bin2hex(openssl_random_pseudo_bytes($bytes)));
             $rnd = $rnd & $filter; // discard irrelevant bits
@@ -1470,7 +2104,7 @@ public static function getCartQty($user_id, $product_id, $varient_id)
 
         $new_date = $date;
 
-        $formatArr = array('d-m-y', 'd-m-Y', 'd/m/Y', 'd/m/y', 'd/m/Y H:i:s', 'd/m/y H:i:s', 'd/m/Y H:i A', 'd/m/y H:i A', );
+        $formatArr = array('d-m-y', 'd-m-Y', 'd/m/Y', 'd/m/y', 'd/m/Y H:i:s', 'd/m/y H:i:s', 'd/m/Y H:i A', 'd/m/y H:i A',);
 
         if (empty($toFormat)) {
             $toFormat = 'Y-m-d H:i:s';
@@ -1717,8 +2351,7 @@ public static function getCartQty($user_id, $product_id, $varient_id)
         $percent = 0;
         $total_sale = OrderItems::where('product_id', $category_id)->where('status', 'DELIVERED')->where('is_delete', 0)->sum('net_price');
         $total_qty = OrderItems::where('product_id', $category_id)->where('status', 'DELIVERED')->where('is_delete', 0)->sum('qty');
-        $total_activated = QRCodes::where('product_id', $category_id)->where('is_delete', 0)->orderBy('id', 'desc')->where('is_activated', 1)->count();
-        ;
+        $total_activated = QRCodes::where('product_id', $category_id)->where('is_delete', 0)->orderBy('id', 'desc')->where('is_activated', 1)->count();;
         if ($total_sale > 0) {
             $percent = ($total_activated / $total_qty) * 100;
         }
@@ -1798,8 +2431,7 @@ public static function getCartQty($user_id, $product_id, $varient_id)
                     $extension = $file->getClientOriginalExtension();
                     $fileOriginalName = $file->getClientOriginalName();
                     // $fileName = date('dmyhis').'-'.$fileOriginalName;
-                    $fileName = date('dmyhis') . '-' . str_replace(' ', '', $fileOriginalName);
-                    ;
+                    $fileName = date('dmyhis') . '-' . str_replace(' ', '', $fileOriginalName);;
 
                     $path = $file->storeAs($path, $fileName);
 
@@ -2157,7 +2789,7 @@ public static function getCartQty($user_id, $product_id, $varient_id)
             if (!empty($hierarchy_arr_rev) && count($hierarchy_arr_rev) > 0) {
                 foreach ($hierarchy_arr_rev as $cat) {
 
-                    $cat = (object) $cat;
+                    $cat = (object)$cat;
 
                     if (isset($cat->name)) {
                         if (!empty($first_uri_name)) {
@@ -2218,7 +2850,7 @@ public static function getCartQty($user_id, $product_id, $varient_id)
 
                 foreach ($hierarchy_arr_rev as $cat) {
 
-                    $cat = (object) $cat;
+                    $cat = (object)$cat;
 
                     if (isset($cat->name)) {
                         if (!empty($first_uri_name)) {
@@ -2410,8 +3042,8 @@ public static function getCartQty($user_id, $product_id, $varient_id)
         $num2 = intval(($num - $index) / 26);
         if ($num2 > 0) {
             return self::getNameFromNumber(
-                $num2 - 1 + $index
-            ) . $letter;
+                    $num2 - 1 + $index
+                ) . $letter;
         } else {
             return $letter;
         }
@@ -2866,7 +3498,7 @@ public static function getCartQty($user_id, $product_id, $varient_id)
             return false;
         }
 
-        if (($number >= 0 && (int) $number < 0) || (int) $number < 0 - PHP_INT_MAX) {
+        if (($number >= 0 && (int)$number < 0) || (int)$number < 0 - PHP_INT_MAX) {
             // overflow
             trigger_error(
                 'convert_number_to_words only accepts numbers between -' . PHP_INT_MAX . ' and ' . PHP_INT_MAX,
@@ -2890,7 +3522,7 @@ public static function getCartQty($user_id, $product_id, $varient_id)
                 $string = $dictionary[$number];
                 break;
             case $number < 100:
-                $tens = ((int) ($number / 10)) * 10;
+                $tens = ((int)($number / 10)) * 10;
                 $units = $number % 10;
                 $string = $dictionary[$tens];
                 if ($units) {
@@ -2907,7 +3539,7 @@ public static function getCartQty($user_id, $product_id, $varient_id)
                 break;
             default:
                 $baseUnit = pow(1000, floor(log($number, 1000)));
-                $numBaseUnits = (int) ($number / $baseUnit);
+                $numBaseUnits = (int)($number / $baseUnit);
                 $remainder = $number % $baseUnit;
                 $string = self::convert_number_to_words($numBaseUnits) . ' ' . $dictionary[$baseUnit];
                 if ($remainder) {
@@ -2920,7 +3552,7 @@ public static function getCartQty($user_id, $product_id, $varient_id)
         if (null !== $fraction && is_numeric($fraction)) {
             $string .= $decimal;
             $words = array();
-            foreach (str_split((string) $fraction) as $number) {
+            foreach (str_split((string)$fraction) as $number) {
                 $words[] = $dictionary[$number];
             }
             $string .= implode(' ', $words);
@@ -2928,9 +3560,6 @@ public static function getCartQty($user_id, $product_id, $varient_id)
 
         return $string;
     }
-
-
-
 
 
     /* End Common Function */
@@ -3001,6 +3630,7 @@ public static function getCartQty($user_id, $product_id, $varient_id)
         return $product_images;
 
     }
+
     public static function getProductDeatils($product_id)
     {
         $product = Products::find($product_id);
@@ -3192,10 +3822,6 @@ public static function getCartQty($user_id, $product_id, $varient_id)
     }
 
 
-
-
-
-
     public static function fcmNotification($token, $data)
     {
         $accessToken = self::createAccessToken();
@@ -3224,7 +3850,7 @@ public static function getCartQty($user_id, $product_id, $varient_id)
                     'address' => $address,
                     'file_type' => $file_type,
                     'type' => $type,
-                    'total_item' => (string) $total_item,
+                    'total_item' => (string)$total_item,
                     'address' => $address,
                     'priority' => $priority,
                     'order_status' => $order_status,
@@ -3352,6 +3978,51 @@ public static function getCartQty($user_id, $product_id, $varient_id)
 
     }
 
+
+    public static function sendEmailApi($emaildata)
+    {
+        $to_email = $emaildata['to_email'] ?? '';
+//        $to_email = 'satyanarayansahoo.com@gmail.com';
+        $name = $emaildata['name'] ?? '';
+        $subject = $emaildata['subject'] ?? '';
+        $htmlContent = $emaildata['htmlContent'] ?? '';
+        $data = [
+            'sender' => [
+                'name' => 'NutraCore',
+                'email' => 'support@nutracore.in'
+            ],
+            'to' => [
+                [
+                    'email' => $to_email,
+                    'name' => $name
+                ]
+            ],
+            'subject' => $subject,
+            'htmlContent' => $htmlContent
+        ];
+
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://api.brevo.com/v3/smtp/email',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => json_encode($data),
+            CURLOPT_HTTPHEADER => array(
+                'api-key: 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',
+                'Content-Type: application/json'
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        return $response;
+    }
 
     /* End of helper class */
 }

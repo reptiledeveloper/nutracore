@@ -241,7 +241,7 @@ class OrderController extends Controller
                 }
                 return redirect(url($back_url))->with('alert-success', $alert_msg);
             } else {
-                return back()->with('alert-danger', 'something went wrong, please try again or contact the administrator.');
+                return back()->with('alert-danger', 'something went wrong, please try again or emails the administrator.');
             }
         }
 
@@ -513,7 +513,11 @@ class OrderController extends Controller
             ->where('to_amount', '>=', $amount)
             ->first();
         if (!empty($active_loyalty)) {
-            return round(($amount * (int)$active_loyalty->cashback) / 100);
+            $amount =  round(($amount * (int)$active_loyalty->cashback) / 100);
+            if((int)$amount >= (int)$active_loyalty->max_cashback){
+                $amount = $active_loyalty->max_cashback??0;
+            }
+            return $amount;
         }
         return 0;
 

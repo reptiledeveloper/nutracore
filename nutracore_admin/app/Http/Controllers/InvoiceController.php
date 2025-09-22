@@ -150,6 +150,7 @@ class InvoiceController extends Controller
                         'expiry_date'  => $request->expiry[$index],
                         'quantity'     => DB::raw('quantity + ' . $request->qty[$index]),
                         'purchase_price' => $request->purchase_price[$index],
+                        'type' => "stock_in",
                     ]
                 );
 

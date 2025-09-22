@@ -1536,7 +1536,7 @@ textarea:focus {
   max-width: 135px;
 }
 
-/*contact form*/
+/*emails form*/
 .contact-from-area .contact-form-style button {
   font-size: 17px;
   font-weight: 500;
@@ -10712,7 +10712,7 @@ footer .hotline img {
 }
 
 /***************************
-    Page section margin 
+    Page section margin
 ****************************/
 .mtb-0 {
   margin: 0;

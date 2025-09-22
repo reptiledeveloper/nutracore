@@ -25,7 +25,7 @@ class LoginController extends Controller
             $users = Admin::where('email', $request->email)->first();
             if (!empty($users)) {
                 if ($users->status == 0) {
-                    return back()->with('alert-danger', 'Your Account id Inactive, contact the administrator.');
+                    return back()->with('alert-danger', 'Your Account id Inactive, emails the administrator.');
                 }
                 if ($users->status == 1) {
                     if ($users->is_approve == 0) {

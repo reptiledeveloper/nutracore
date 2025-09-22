@@ -21,7 +21,7 @@
                 </ol>
             </nav>
         </div>
-    @include('layouts.filter',['product_show'=>'product_show','vendor_show'=>'vendor_show'])
+    @include('layouts.filter',['search_show'=>'search_show','vendor_show'=>'vendor_show'])
         <div class="row">
             <div class="col-md-12">
                 <div class="card">
@@ -41,6 +41,7 @@
                         <tr>
                             <th>Date</th>
                             <th>Store</th>
+                            <th>SKU</th>
                             <th>Product</th>
                             <th>Variant</th>
                             <th>Action</th>
@@ -55,6 +56,7 @@
                             <tr>
                                 <td>{{ $log->created_at->format('d-m-Y H:i') }}</td>
                                 <td>{{ $log->store->name ?? '-' }}</td>
+                                <td>{{ $log->product->sku ?? '-' }}</td>
                                 <td>{{ $log->product->name ?? '-' }}</td>
                                 <td>{{ $log->variant->name ?? '-' }}</td>
                                 <td>{{ ucfirst($log->action) }}</td>

@@ -23,10 +23,10 @@
     $goal_catgories = \App\Helpers\CustomHelper::getGoalCategories();
     $vendors = \App\Helpers\CustomHelper::getVendors();
     $brands = \App\Helpers\CustomHelper::getBrands();
-    $products = \App\Helpers\CustomHelper::getProducts();
+//    $products = \App\Helpers\CustomHelper::getProducts();
     $activity_array = [
-        "Walking",
-        "Running",
+        "Walking / Running",
+//        "Running",
         "Sports",
         "Gym (Beginner)",
         "Gym (Intermediate/Advance)",
@@ -124,25 +124,30 @@
                             <div class="row mt-3">
                                 @for($i=1; $i<=5; $i++)
                                     @php
-                                        $categoryField = "supliment_".$i;
-                                        $productsField = "supliment_".$i."_products";
 
-                                        // Get selected category
-                                        $selectedCategory = old($categoryField, $suppliments->$categoryField ?? '');
+                                            $categoryField = "supliment_".$i;
+                                            $productsField = "supliment_".$i."_products";
 
-                                        // Get selected products (comma-separated string → array)
-                                        $selectedProductsRaw = old($productsField, $suppliments->$productsField ?? '');
-                                        $selectedProducts = is_array($selectedProductsRaw)
-                                            ? $selectedProductsRaw
-                                            : array_filter(explode(',', $selectedProductsRaw));
+                                            // Get selected category
+                                            $selectedCategory = old($categoryField, $suppliments->$categoryField ?? '');
+
+                                            // Get selected products (comma-separated string → array)
+                                            $selectedProductsRaw = old($productsField, $suppliments->$productsField ?? '');
+$selectedProducts = is_array($selectedProductsRaw)
+    ? $selectedProductsRaw
+    : array_filter(explode(',', $selectedProductsRaw));
+
+                                            $products = \App\Models\Products::whereIn('$category_id',$selectedCategory)->get();
                                     @endphp
 
                                     <div class="form-group col-md-6 mt-3">
                                         <label class="form-label">Choose Category</label>
-                                        <select class="form-control" name="{{ $categoryField }}">
+                                        <select class="form-control" onchange="getProducts(this.value,'{{$i}}')"
+                                                name="{{ $categoryField }}">
                                             <option value="" selected>Select</option>
                                             @foreach($categories as $category)
-                                                <option value="{{ $category->id }}" {{ $category->id == $selectedCategory ? 'selected' : '' }}>
+                                                <option
+                                                    value="{{ $category->id }}" {{ $category->id == $selectedCategory ? 'selected' : '' }}>
                                                     {{ $category->name }}
                                                 </option>
                                             @endforeach
@@ -152,9 +157,11 @@
 
                                     <div class="form-group col-md-6 mt-3">
                                         <label class="form-label">Choose Products</label>
-                                        <select class="form-control select2" multiple name="{{ $productsField }}[]">
+                                        <select class="form-control select2" multiple name="{{ $productsField }}[]"
+                                                id="products{{$i}}">
                                             @foreach($products as $product)
-                                                <option value="{{ $product->id }}" {{ in_array($product->id, $selectedProducts) ? 'selected' : '' }}>
+                                                <option
+                                                    value="{{ $product->id }}" {{ in_array($product->id, $selectedProducts) ? 'selected' : '' }}>
                                                     {{ $product->name }}
                                                 </option>
                                             @endforeach
@@ -180,5 +187,22 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function getProducts(category_id, id) {
+            var _token = '{{ csrf_token() }}';
+            $.ajax({
+                url: "{{ route('suppliments.getProducts') }}",
+                type: "POST",
+                data: {category_id: category_id},
+                dataType: "HTML",
+                headers: {'X-CSRF-TOKEN': _token},
+                cache: false,
+                success: function (resp) {
+                   $('#products'+id).html(resp);
+                }
+            });
+        }
+    </script>
 
 @endsection

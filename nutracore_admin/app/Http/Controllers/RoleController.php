@@ -58,7 +58,7 @@ class RoleController extends Controller
                 }
                 return redirect(url($back_url))->with('alert-success', $alert_msg);
             } else {
-                return back()->with('alert-danger', 'something went wrong, please try again or contact the administrator.');
+                return back()->with('alert-danger', 'something went wrong, please try again or emails the administrator.');
             }
         }
         $page_heading = 'Add Role';

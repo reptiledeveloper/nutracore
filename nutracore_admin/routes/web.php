@@ -53,6 +53,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'add', 'SupplimentsController@add')->name('.add');
             Route::match(['get', 'post'], 'edit/{id}', 'SupplimentsController@add')->name('.edit');
             Route::match(['get', 'post'], 'delete/{id}', 'SupplimentsController@delete')->name('.delete');
+            Route::match(['get', 'post'], 'getProducts', 'SupplimentsController@getProducts')->name('.getProducts');
         });
 ////new_updates
         Route::group(['prefix' => 'new_updates', 'as' => 'new_updates', 'middleware' => ['allowedmodule:new_updates,list']], function () {
@@ -280,6 +281,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'export', 'StockController@export')->name('.export');
             Route::match(['get', 'post'], 'export_all', 'StockController@export_all')->name('.export_all');
             Route::match(['get', 'post'], 'delete_data', 'StockController@delete_data')->name('.delete_data');
+            Route::match(['get', 'post'], 'closing_stock_export', 'StockController@closing_stock_export')->name('.closing_stock_export');
+            Route::match(['get', 'post'], 'update_closing_stock', 'StockController@update_closing_stock')->name('.update_closing_stock');
 
         });
 ////return_request

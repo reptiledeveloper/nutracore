@@ -1,196 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Thank you for your purchase!</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <meta name="viewport" content="width=device-width">
-    <link rel="stylesheet" type="text/css" href="/assets/notifications/styles.css">
-    <style>
-        .button__cell { background: #0000FF; }
-        a, a:hover, a:active, a:visited { color: #0000FF; }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wellness+ Membership</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
-<table class="body">
-    <tr>
-        <td>
-            <table class="header row">
-                <tr>
-                    <td class="header__cell">
-                        <center>
+<div class="container">
+    <div class="left-section">
+        <h2>Join Wellness+ Membership</h2>
+        <ul>
+            <li>🔥 10% OFF every order</li>
+            <li>🚚 Free Express Delivery</li>
+            <li>🎁 Monthly Freebie Box</li>
+            <li>🔒 Early Access & Secret Sales</li>
+        </ul>
+        <button class="join-now">Join Now</button>
+    </div>
+    <div class="right-section">
+        <div class="pricing-box">
+            <span class="pricing-label">Best Value</span>
+            <div class="pricing-option">
+                <span class="duration">6 months</span>
+                <span class="price">₹ 800/mo</span>
+                <span class="save">SAVE 47%</span>
+            </div>
+            <div class="pricing-option">
+                <span class="duration">12 months</span>
+                <span class="price">₹ 800/mo</span>
+                <span class="save">SAVE 47%</span>
+            </div>
+            <div class="total-price">
+                <span class="total">₹ 8,000</span>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<style>
+    /* Reset some default styles */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-                            <table class="container">
-                                <tr>
-                                    <td>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f5f5f5;
+    }
 
-                                        <table class="row">
-                                            <tr>
-                                                <td class="shop-name__cell">
-                                                    <h1 class="shop-name__text">
-                                                        <a href="https://yourstore.com">Your Store Name</a>
-                                                    </h1>
-                                                </td>
+    .container {
+        display: flex;
+        padding: 30px;
+        background-color: #f8e4a2;
+    }
 
-                                                <td>
-                                                    <table class="order-po-number__container">
-                                                        <tr>
-                                                            <td class="order-number__cell">
-                            <span class="order-number__text">
-                              Order #12345
-                            </span>
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                        </table>
+    .left-section {
+        flex: 1;
+        padding-right: 20px;
+    }
 
-                                    </td>
-                                </tr>
-                            </table>
+    h2 {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
 
-                        </center>
-                    </td>
-                </tr>
-            </table>
+    ul {
+        list-style: none;
+        margin-bottom: 20px;
+    }
 
-            <table class="row content">
-                <tr>
-                    <td class="content__cell">
-                        <center>
-                            <table class="container">
-                                <tr>
-                                    <td>
+    li {
+        margin-bottom: 10px;
+    }
 
-                                        <h2>Thank you for your purchase!</h2>
-                                        <p>We're getting your order ready to be shipped. We will notify you when it has been sent.</p>
+    .join-now {
+        padding: 12px 20px;
+        background-color: #ff6a00;
+        border: none;
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+    }
 
+    .join-now:hover {
+        background-color: #e55b00;
+    }
 
+    .right-section {
+        flex: 1;
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+    }
 
-                                        <table class="row actions">
-                                            <tr>
-                                                <td class="empty-line">&nbsp;</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="actions__cell">
-                                                    <table class="button main-action-cell">
-                                                        <tr>
-                                                            <td class="button__cell"><a href="https://yourstore.com/order-status" class="button__text">View your order</a></td>
-                                                        </tr>
-                                                    </table>
+    .pricing-box {
+        text-align: center;
+    }
 
-                                                    <table class="link secondary-action-cell">
-                                                        <tr>
-                                                            <td class="link__cell">or <a href="https://yourstore.com">Visit our store</a></td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                        </table>
+    .pricing-label {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
 
+    .pricing-option {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
 
+    .duration {
+        font-size: 18px;
+        font-weight: bold;
+    }
 
-                                    </td>
-                                </tr>
-                            </table>
-                        </center>
-                    </td>
-                </tr>
-            </table>
+    .price {
+        font-size: 20px;
+        font-weight: bold;
+    }
 
-            <table class="row section">
-                <tr>
-                    <td class="section__cell">
-                        <center>
-                            <table class="container">
-                                <tr>
-                                    <td>
-                                        <h3>Order summary</h3>
-                                    </td>
-                                </tr>
-                            </table>
-                            <table class="container">
-                                <tr>
-                                    <td>
+    .save {
+        font-size: 16px;
+        color: green;
+    }
 
+    .total-price {
+        font-size: 24px;
+        font-weight: bold;
+        margin-top: 20px;
+    }
 
-                                        <table class="row">
+    .total {
+        font-size: 22px;
+        color: #ff6a00;
+    }
 
-                                            <tr class="order-list__item">
-                                                <td class="order-list__item__cell">
-                                                    <table>
-
-                                                        <td class="order-list__image-cell">
-                                                            <div class="order-list__no-image-cell">
-                                                                <img src="/assets/notifications/no-image.png" align="left" width="60" height="60" class="order-list__no-product-image"/>
-                                                            </div>
-                                                        </td>
-                                                        <td class="order-list__product-description-cell">
-
-                                                            <span class="order-list__item-title">Example Product&nbsp;&times;&nbsp;1</span><br/>
-
-
-                                                            <span class="order-list__item-variant">Default Title</span><br/>
-
-
-
-                                                        </td>
-                                                        <td class="order-list__price-cell">
-                                                            <p class="order-list__item-price">
-                                                                $10.00
-                                                            </p>
-                                                        </td>
-
-                                                    </table>
-                                                </td>
-                                            </tr>
-
-                                        </table>
-
-                                        <table class="row subtotal-lines">
-                                            <tr>
-                                                <td class="subtotal-lines__cell">
-                                                    <table class="float-right">
-                                                        <tr class="subtotal-line">
-                                                            <td class="subtotal-line__title">
-                                                                <p>Subtotal</p>
-                                                            </td>
-                                                            <td class="subtotal-line__value">
-                                                                <strong>$10.00</strong>
-                                                            </td>
-                                                        </tr>
-
-
-                                                        <tr class="subtotal-line">
-                                                            <td class="subtotal-line__title">
-                                                                <p>Shipping</p>
-                                                            </td>
-                                                            <td class="subtotal-line__value">
-                                                                <p>$5.00</p>
-                                                            </td>
-                                                        </tr>
-
-
-
-
-
-                                                        <tr class="subtotal-line">
-                                                            <td class="subtotal-line__title">
-                                                                <p>Taxes</p>
-                                                            </td>
-                                                            <td class="subtotal-line__value">
-                                                                <p>$1.00</p>
-                                                            </td>
-                                                        </tr>
-
-                                                        <tr class="subtotal-line order-total">
-                                                            <td class="subtotal-line__title">
-                                                                <p>Total</p>
-                                                            </td>
-                                                            <td class="subtotal-line__value">
-                                                                <strong>$16.00</strong>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="subtotal-line__currency" colspan="2">
+</style>

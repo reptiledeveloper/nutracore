@@ -744,7 +744,6 @@ $current_route = Route::currentRouteName();
                 </li>
             @endif
             @if(\App\Helpers\CustomHelper::isAllowedSection('offers','list'))
-
                 <li>
                     <a class="{{$current_route == 'offers.index' ? "active":""}}" href="{{route('offers.index')}}">
                     <span class="nav-link-icon">
@@ -1537,7 +1536,7 @@ $current_route = Route::currentRouteName();
             </a>
         </div>
         <!-- Logo -->
-        <a href="index.html" class="logo">
+        <a href="" class="logo">
             <img width="100" src="{{url('public')}}/assets/images/logo.svg" alt="logo">
         </a>
         <!-- ./ Logo -->

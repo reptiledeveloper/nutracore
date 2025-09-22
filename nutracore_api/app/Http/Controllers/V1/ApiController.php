@@ -106,7 +106,7 @@ class ApiController extends Controller
                 $exist->save();
             }
         }
-        $response = $this->send_sms($phone, $otp);
+        $response = $this->send_message($phone, $otp);
 
 
         // $emailController = new EmailController();
@@ -117,6 +117,74 @@ class ApiController extends Controller
             'message' => 'OTP Sent',
             'response' => $response,
         ], 200);
+    }
+
+
+    public function porter_webhook(Request $request)
+    {
+        DB::table('new')->insert(['data'=>json_encode($request->toArray())]);
+
+    }
+
+    public function send_message($mobile, $code)
+    {
+        $settings = Setting::where('id', 1)->first();
+        if (!empty($settings)) {
+            if ($settings->send_otp_through == 'msg91') {
+                $response = $this->send_sms($mobile, $code);
+            }
+            if ($settings->send_otp_through == 'whatsapp') {
+                $response = $this->send_whatsappsms($mobile, $code);
+            }
+            if ($settings->send_otp_through == 'both') {
+                $this->send_sms($mobile, $code);
+                $response = $this->send_whatsappsms($mobile, $code);
+            }
+        }
+        return $response;
+    }
+
+    public function send_whatsappsms($mobile, $code)
+    {
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://api.interakt.ai/v1/public/message/',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => '{
+    "countryCode": "+91",
+    "phoneNumber": "' . $mobile . '",
+    "callbackData": "some text here",
+    "type": "Template",
+    "template": {
+        "name": "send_otp",
+        "languageCode": "en",
+        "bodyValues": [
+            "' . $code . '"
+        ],
+        "buttonValues": {
+            "0": [
+                "CopyCode"
+            ]
+        }
+    }
+}',
+            CURLOPT_HTTPHEADER => array(
+                'Authorization: Basic UHRmVkdXamE3NVYzQmFRYVhaZjVPaW1TbEk0QllKbUx3eTc1WTlEeFp6VTo=',
+                'Content-Type: application/json'
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        return $response;
     }
 
     public function send_sms($mobile, $code)
@@ -1008,12 +1076,12 @@ class ApiController extends Controller
                                     }
                                     if ($exist->type == 'giftcard') {
                                         if (!empty($user)) {
-                                            $gift_card = DB::table('gift_card')->where('amount', $exist->giftcard_amount)->where('user_id', null)->limit($exist->giftcard_qty)->first();
+                                            $gift_card = DB::table('gift_card')->where('amount', $exist->giftcard_amount)->where('user_id', null)->limit($exist->giftcard_qty)->get();
                                             if (!empty($gift_card)) {
                                                 foreach ($gift_card as $gift) {
                                                     DB::table('gift_card')->where('id', $gift->id)->update([
                                                         "user_id" => $user->id,
-                                                        "type" => $exist->giftcard_type??'',
+                                                        "type" => $exist->giftcard_type ?? '',
                                                         "purchase_date" => date('Y-m-d'),
                                                         "expire_date" => date('Y-m-d', strtotime("+$gift->duration months")),
                                                     ]);
@@ -1021,14 +1089,14 @@ class ApiController extends Controller
                                             }
                                             ////Save Transaction////
                                             $dbArray = [];
-                                            $dbArray['user_id'] = $exist->user_id;
+                                            $dbArray['userID'] = $exist->user_id;
                                             $dbArray['type'] = 'CREDIT';
                                             $dbArray['amount'] = $exist->amount;
                                             $dbArray['type_val'] = 'add_wallet';
                                             $dbArray['remarks'] = "Amount Credited To Wallet";
                                             $dbArray['is_approved'] = 1;
                                             $transaction_id = Transaction::insertGetId($dbArray);
-                                            Transaction::where('id', $transaction_id)->update(['transaction_id' => $txn_id]);
+                                            Transaction::where('id', $transaction_id)->update(['txn_no' => $txn_id]);
                                         }
                                     }
                                     if ($exist->type == 'order') {
@@ -1366,9 +1434,9 @@ class ApiController extends Controller
         $newUpdates = Cache::remember('home_new_updates', 120, function () use ($user) {
             return DB::table('new_updates')
                 ->where(['is_delete' => 0, 'status' => 1])
-                ->latest()->limit(5)->get()
+                ->latest()->limit(10)->get()
                 ->map(function ($update) use ($user) {
-                    $update->image = CustomHelper::getImageUrl('new_updates', $update->image);
+                    //$update->image = $update->image;
                     $update->product = self::getProductDetails($update->product_id ?? '', $user->id);
                     return $update;
                 });
@@ -3158,7 +3226,7 @@ class ApiController extends Controller
             'freebees_product' => $freebees_product,
             'delivery_data' => $delivery_data,
             'selected_freebees_product' => $selected_freebees_product,
-            'subscription_plans' => $subscription_plans,
+            'subscription_plans' => $subscription_plans_new,
             'subscription_plans_new' => $subscription_plans_new,
             'is_subscribe' => CustomHelper::checkSubscription($user),
         ], 200);
@@ -3415,6 +3483,7 @@ class ApiController extends Controller
             $seller_id = $request->seller_id ?? '';
             $tips = $request->tips ?? '';
             $seller_id = $request->seller_id ?? '';
+            $giftcard_code = $request->giftcard_code ?? '';
             $image = '';
 
 
@@ -3928,14 +3997,14 @@ class ApiController extends Controller
                     $first_product_name = '';
                     $image = '';
                     if ($count_order_items > 1) {
-                        $first_product_name = $order_items[0]['product_name'] ?? '';
+                        $first_product_name = $order_items[0]['name'] ?? '';
                         $product_id = $order_items[0]['id'] ?? '';
                         $product = Product::where('id', $product_id)->first();
                         $image = CustomHelper::getImageUrl('products', $product->image ?? '');
                         $minus_1 = $count_order_items - 1;
                         $first_product_name .= ' & ' . $minus_1 . " More.";
                     } else {
-                        $first_product_name = $order_items[0]['product_name'] ?? '';
+                        $first_product_name = $order_items[0]['name'] ?? '';
                         $product_id = $order_items[0]['id'] ?? '';
                         $product = Product::where('id', $product_id)->first();
                         $image = CustomHelper::getImageUrl('products', $product->image ?? '');
@@ -4013,7 +4082,11 @@ class ApiController extends Controller
                     }
                     $order_item->images = $images;
                     $order_item->image = $image;
-                    $my_ratings = DB::table('order_ratings')->where('user_id', $user->id)->where('item_id', $order_item->order_items_id)->where('order_id', $orders->id)->first();
+                    $my_ratings = [];
+                    if (!empty($order_item->order_items_id)) {
+                        $my_ratings = DB::table('order_ratings')->where('user_id', $user->id)->where('item_id', $order_item->order_items_id)->where('order_id', $orders->id)->first();
+
+                    }
                     $order_item->ratings = $my_ratings;
                 }
             }
@@ -4775,6 +4848,47 @@ class ApiController extends Controller
         ], 200);
     }
 
+    public function apply_giftcard(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            "code" => "required"
+        ]);
+        $user = null;
+        if ($validator->fails()) {
+            return response()->json([
+                'result' => false,
+                'message' => json_encode($validator->errors()),
+            ], 400);
+        }
+        $user = auth()->user();
+        if (empty($user)) {
+            return response()->json([
+                'result' => false,
+                'message' => '',
+            ], 401);
+        }
+        if ($user->phone == "9999999999") {
+            return response()->json([
+                'result' => false,
+                'message' => 'Unauthorised',
+            ], 401);
+        }
+
+        $formattedInput = preg_replace('/[^A-Za-z0-9]/', '', $request->code);
+        $giftcards = DB::table('gift_card')
+            ->where('user_id', $user->id)
+            ->whereRaw("REPLACE(REPLACE(REPLACE(REPLACE(code, '-', ''), ' ', ''), '_', ''), '.', '') = ?", [$formattedInput])
+            ->where('status', 1)
+            ->where('is_delete', 0)
+            ->get();
+
+        return response()->json([
+            'result' => true,
+            'message' => "Successfully",
+            "giftcard" => $giftcards,
+        ], 200);
+    }
+
     public function giftcard_list(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -4955,7 +5069,10 @@ class ApiController extends Controller
             $createdAt = $order->created_at ?? '';
             $returnDeadline = $createdAt->copy()->addDays(2);
             if (now()->lessThanOrEqualTo($returnDeadline)) {
-                $canReturn = true;  // Return is possible
+                if ($order->status == 'DELIVERED') {
+                    $canReturn = true;  // Return is possible
+                }
+
             } else {
                 $canReturn = false; // Return not possible
             }
@@ -4994,15 +5111,22 @@ class ApiController extends Controller
             $check_time = DB::table('order_status')->where('order_id', $order_id)->where('status', "DELIVERED")->first();
             if (!empty($check_time)) {
                 $createdAt = $check_time->created_at;
-                $returnDeadline = $createdAt->copy()->addDays(2);
+                if (!$createdAt instanceof Carbon) {
+                    $createdAt = Carbon::parse($createdAt);
+                }
+
+                $returnDeadline = (clone $createdAt)->addDays(2);
+
                 if (now()->lessThanOrEqualTo($returnDeadline)) {
                     $canReturn = true;  // Return is possible
                 } else {
                     return response()->json([
                         'result' => false,
-                        'message' => "Return Can be Possible Within 2 days",
+                        'message' => "Return can be possible within 2 days",
                     ], 200);
                 }
+
+
             } else {
                 return response()->json([
                     'result' => false,

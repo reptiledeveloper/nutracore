@@ -14,9 +14,11 @@
 
     $email = isset($admin->email) ? $admin->email : '';
     $phone = isset($admin->phone) ? $admin->phone : '';
+    $vendor_id = isset($admin->vendor_id) ? $admin->vendor_id : '';
     $username = isset($admin->username) ? $admin->username : '';
     $password = isset($admin->password) ? $admin->password : '';
     $roles = \App\Helpers\CustomHelper::getRoles();
+    $vendors = \App\Helpers\CustomHelper::getVendors();
     ?>
 
     <div class="content ">
@@ -85,6 +87,20 @@
                                        @endforeach
                                    </select>
                                </div>
+
+
+
+
+                               <div class="col-md-6 mt-3">
+                                   <label for="userName" class="form-label">Choose Store</label>
+                                   <select class="form-control select2" name="vendor_id">
+                                       <option value="" selected>Select Store</option>
+                                       @foreach($vendors as $vendor)
+                                           <option value="{{$vendor->id??''}}" <?php if($vendor->id == $vendor_id) echo "selected"?>>{{$vendor->name??''}}</option>
+                                       @endforeach
+                                   </select>
+                               </div>
+
 
 
                                <div class="col-md-6 mt-3">

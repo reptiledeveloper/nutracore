@@ -21,6 +21,7 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use FilesystemIterator;
 use Illuminate\Support\Facades\Mail;
+
 class HomeController extends Controller
 {
 
@@ -242,6 +243,9 @@ class HomeController extends Controller
             if (isset($request->is_platform_fee)) {
                 $dbArray['is_platform_fee'] = $request->is_platform_fee;
             }
+            if (isset($request->send_otp_through)) {
+                $dbArray['send_otp_through'] = $request->send_otp_through;
+            }
             if (isset($request->is_small_cart_fee)) {
                 $dbArray['is_small_cart_fee'] = $request->is_small_cart_fee;
             }
@@ -271,6 +275,11 @@ class HomeController extends Controller
             if (!empty($request->delhivery_url)) {
                 $dbArray['delhivery_url'] = $request->delhivery_url;
             }
+
+            if (!empty($request->about_us_video)) {
+                $dbArray['about_us_video'] = $request->about_us_video;
+            }
+
 
 
             Setting::where('id', 1)->update($dbArray);
@@ -305,14 +314,14 @@ class HomeController extends Controller
         if (!empty($shops)) {
             $tags = explode(",", $shops->tags);
             $is_selected = "";
-            $alltags = \App\Models\Tags::where('is_delete',0)->get();
+            $alltags = \App\Models\Tags::where('is_delete', 0)->get();
             if (!empty($alltags)) {
                 foreach ($alltags as $tag) {
                     $is_selected = "";
-                    if(in_array($tag->name,$tags)){
+                    if (in_array($tag->name, $tags)) {
                         $is_selected = "selected";
                     }
-                    $html .= '<option value=' . $tag->name . ' '.$is_selected.'>' . $tag->name . '</option>';
+                    $html .= '<option value=' . $tag->name . ' ' . $is_selected . '>' . $tag->name . '</option>';
                 }
             }
         }
@@ -399,6 +408,7 @@ class HomeController extends Controller
 
 
     }
+
     public function send_test_email(Request $request)
     {
         Mail::raw('This is a test email from nutracore.', function ($message) {

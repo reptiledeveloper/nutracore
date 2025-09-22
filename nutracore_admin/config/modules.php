@@ -60,6 +60,7 @@ return [
                 'stocks',
                 'stock_transfers',
                 'return_request',
+                'stock_transfer_approval',
 
 
         ],
@@ -124,6 +125,7 @@ return [
                 'free_product' => 'Free Product',
                 'loyality_system' => 'Loyality System',
                 'collections' => 'Collections',
+                'stock_transfer_approval' => 'Stock Transfer Approval',
         ],
 
 

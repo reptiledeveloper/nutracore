@@ -133,6 +133,21 @@
                                             Fixed Banner 4
                                         </option>
 
+                                        <option
+                                            value="download_banner" <?php if ($type == 'download_banner') echo "selected" ?>>
+                                            Download Banner
+                                        </option>
+
+                                        <option
+                                            value="small_banner" <?php if ($type == 'small_banner') echo "selected" ?>>
+                                            Small Banner For Website
+                                        </option>
+
+                                        <option
+                                            value="nutrapass_banner" <?php if ($type == 'nutrapass_banner') echo "selected" ?>>
+                                           Nutrapass For Website
+                                        </option>
+
 
                                     </select>
                                     @include('snippets.errors_first', ['param' => 'banner_name'])

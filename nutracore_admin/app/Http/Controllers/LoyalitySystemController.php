@@ -75,10 +75,10 @@ class LoyalitySystemController extends Controller
 
             $rules = [];
             if (is_numeric($id) && $id > 0) {
-               
+
 
             } else {
-               
+
             }
             $request->validate($rules);
 
@@ -91,7 +91,7 @@ class LoyalitySystemController extends Controller
                 }
                 return redirect(url($back_url))->with('alert-success', $alert_msg);
             } else {
-                return back()->with('alert-danger', 'something went wrong, please try again or contact the administrator.');
+                return back()->with('alert-danger', 'something went wrong, please try again or emails the administrator.');
             }
         }
 
@@ -118,7 +118,7 @@ class LoyalitySystemController extends Controller
 
 
         $oldImg = '';
-        
+
         $categories = new LoyalitySystem;
 
         if (is_numeric($id) && $id > 0) {

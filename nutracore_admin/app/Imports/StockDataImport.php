@@ -77,6 +77,7 @@ class StockDataImport implements ToModel, WithHeadingRow
                 'expiry_date' => $expiry_date,
                 'quantity' => DB::raw('quantity + ' . $quantity),
                 'purchase_price' => $purchase_price,
+                'stock_id' => $stockItem->id,
             ]
         );
 

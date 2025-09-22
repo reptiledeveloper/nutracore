@@ -110,7 +110,7 @@ class ProductController extends Controller
                 }
                 return redirect(url($back_url))->with('alert-success', $alert_msg);
             } else {
-                return back()->with('alert-danger', 'something went wrong, please try again or contact the administrator.');
+                return back()->with('alert-danger', 'something went wrong, please try again or emails the administrator.');
             }
         }
 
@@ -154,6 +154,11 @@ class ProductController extends Controller
                 $product = $exist;
                 $oldImg = $exist->image;
             }
+            if (empty($exist->slug)) {
+                $data['slug'] = CustomHelper::GetSlug('products', 'id', $id, $request->name);
+            }
+        } else {
+            $data['slug'] = CustomHelper::GetSlug('products', 'id', $id, $request->name);
         }
         foreach ($data as $key => $val) {
             $product->$key = $val;

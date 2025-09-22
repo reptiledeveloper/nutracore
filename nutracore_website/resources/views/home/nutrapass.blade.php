@@ -1,34 +1,27 @@
 @extends('home.layout')
 @section('content')
-    <?php 
-                                                                                                                                                                                                                                                use App\Helpers\CustomHelper;
-                                                                                                        ?>
+    <?php
+
+    use App\Helpers\CustomHelper;
+
+    $user = Auth::user();
+    $subscription = CustomHelper::subscriptionsData($user);
+    $tire_system = $subscription['tire_system'] ?? '';
+    $active_loyalty = $subscription['active_loyalty'] ?? '';
+
+    $nutrapassbanner = CustomHelper::getBannerData('nutrapass_banner');
+
+    ?>
 
     <style>
         .hero-section {
-            background-image: url('{{url('public/assets/images/Frame 1261155282.png')}}');
+            background-image: url('{{$nutrapassbanner}}');
             background-size: cover;
             background-position: center;
             color: white;
             padding: 100px 0;
             text-align: center;
         }
-
-        /* 
-                                                                                            .benefits-card {
-                                                                                                border: 1px solid #ddd;
-                                                                                                border-radius: 15px;
-                                                                                                background-color: #f8f9fa;
-                                                                                            }
-
-                                                                                            .faq-section .accordion-button {
-                                                                                                font-weight: 600;
-                                                                                            }
-
-                                                                                            .review-card {
-                                                                                                border: none;
-                                                                                                background-color: #f8f9fa;
-                                                                                            } */
 
         .border_radius_white {
             border: 1px solid;
@@ -159,7 +152,7 @@
             padding-bottom: 15px;
         }
 
-        .faq-question.active+.faq-answer {
+        .faq-question.active + .faq-answer {
             max-height: 500px;
         }
 
@@ -289,18 +282,119 @@
             font-size: 14px;
             color: #fff;
         }
+
+        .slider-wrapper {
+            margin-top: 20px;
+        }
+
+        .levels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .range-values {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .progress-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #ddd;
+            outline: none;
+        }
+
+        .progress-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #f0c14b;
+            cursor: pointer;
+            border: none;
+            margin-top: -6px;
+        }
+
+        .progress-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #f0c14b;
+            cursor: pointer;
+            border: none;
+        }
+
+        .filled {
+            height: 8px;
+            border-radius: 4px;
+            background: red;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .slider-container {
+            position: relative;
+        }
     </style>
+    <style>
+
+        .slider-container {
+            max-width: 400px;
+            margin: auto;
+        }
+
+        .levels {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .range-values {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+
+        .slider-inner {
+            position: relative;
+            height: 8px;
+            background: #ddd;
+            border-radius: 4px;
+        }
+
+        .filled {
+            height: 100%;
+            background: #f0c14b;
+            border-radius: 4px;
+            width: 0;
+            transition: width 0.3s ease;
+        }
+
+
+    </style>
+
     <main class="main">
         <div class="page-header breadcrumb-wrap">
             <div class="container">
                 <div class="breadcrumb">
-                    <a href='index.html' rel='nofollow'><i class="fi-rs-home mr-5"></i>Home</a>
+                    <a href='' rel='nofollow'><i class="fi-rs-home mr-5"></i>Home</a>
                     <span></span> Nutrapass
 
                 </div>
             </div>
         </div>
-
 
 
         <section class="hero-section">
@@ -315,45 +409,76 @@
                 <!-- Left Image -->
                 <div class="col-md-3 d-none d-md-block">
                     <img src="{{ url('public/assets/images/image 1414.svg') }}"
-                        class="img-fluid h-100 object-fit-cover rounded-start-4" alt="">
+                         class="img-fluid h-100 object-fit-cover rounded-start-4" alt="">
                 </div>
 
                 <!-- Center Content -->
                 <div class="col-md-6 text-center px-4">
                     <img src="{{ url('public/assets/images/nutrapasslogo.svg') }}"
-                        class="img-fluid h-100 object-fit-cover rounded-start-4" alt="">
+                         class="img-fluid h-100 object-fit-cover rounded-start-4" alt="">
                     <p class="text-white-50">Exclusive Pricing · Unlimited Benefits</p>
 
-                    <div class="slider-container mt-4 position-relative">
-                        <div class="d-flex justify-content-between px-2 mb-1">
-                            <span>Silver</span>
-                            <span>Gold</span>
-                            <span>Platinum</span>
+
+                    <div class="slider-container">
+                        <div class="levels">
+                            @php
+                                $per_val = 100 / count($tire_system);
+                                $filled = 0;
+                            @endphp
+
+                            @foreach($tire_system as $tire)
+                                @php
+                                    if($active_loyalty->id == $tire->id){
+                                        // Matched tier → stop adding further
+                                        $filled += $per_val;
+                                        break;
+                                    } else {
+                                        $filled += $per_val;
+                                    }
+                                @endphp
+
+                            @endforeach
+
+                            @foreach($tire_system as $tire)
+                                <span>{{ $tire->title ?? '' }}</span>
+                            @endforeach
+
+
                         </div>
-                        <input type="range" class="form-range custom-slider" min="0" max="2" value="1" disabled>
-                        <div class="slider-value">₹12,000</div>
+                        <div class="slider-inner"
+                             style="background-color: black; border-radius: 4px; height: 8px; width: 100%;">
+                            <div id="filledBar" class="filled"
+                                 style="width: {{$filled}}%; background-color: #f9b201; height: 100%; border-radius: 4px;"></div>
+                        </div>
+                        <div class="range-values">
+                            @foreach($tire_system as $tire)
+                                <span>₹{{$tire->from_amount??''}}</span>
+                            @endforeach
+                        </div>
                     </div>
+
                 </div>
 
                 <!-- Right Image -->
                 <div class="col-md-3 d-none d-md-block">
                     <img src="{{ url('public/assets/images/image 1419.svg') }}"
-                        class="img-fluid h-100 object-fit-cover rounded-end-4" alt="">
+                         class="img-fluid h-100 object-fit-cover rounded-end-4" alt="">
                 </div>
             </div>
 
             <div class="row mt-4 border-top pt-3 text-center" style="background-color: #212828;margin:10px">
                 <div class="col-md-4">
                     <div class="text-muted">Membership Status</div>
-                    <div class="fw-bold text-warning fs-5">GOLD</div>
+                    <div class="fw-bold text-warning fs-5">{{$active_loyalty->title??''}}</div>
                 </div>
                 <div class="col-md-4">
                     <div class="text-muted">Valid Till</div>
-                    <div class="fw-bold fs-5 text-warning">20 Jul 2025</div>
+                    <div
+                        class="fw-bold fs-5 text-warning">{{!empty($user->subscription_end) ? date('d M Y',strtotime($user->subscription_end)) : ""}}</div>
                 </div>
                 <div class="col-md-4">
                     <div class="text-muted">Saved So Far</div>
-                    <div class="fw-bold fs-5 text-warning">₹6,000</div>
+                    <div class="fw-bold fs-5 text-warning">₹{{$subscription['saved_amount'] ?? ''}}</div>
                 </div>
             </div>
         </section>
@@ -364,28 +489,28 @@
                     <div class="col-6 col-md-3">
                         <div class="p-3 border rounded text-center">
                             <img src="{{ url('public/assets/images/ic_twotone-discount.svg') }}" class="mb-2"
-                                style="width: 40px; height: 40px;">
+                                 style="width: 40px; height: 40px;">
                             <div>10% off every order</div>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="p-3 border rounded text-center">
                             <img src="{{ url('public/assets/images/ic_twotone-discount.svg') }}" class="mb-2"
-                                style="width: 40px; height: 40px;">
+                                 style="width: 40px; height: 40px;">
                             <div>Free Expert Delivery</div>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="p-3 border rounded text-center">
                             <img src="{{ url('public/assets/images/ic_twotone-discount.svg') }}" class="mb-2"
-                                style="width: 40px; height: 40px;">
+                                 style="width: 40px; height: 40px;">
                             <div>Monthly Fitness Box</div>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="p-3 border rounded text-center">
                             <img src="{{ url('public/assets/images/ic_twotone-discount.svg') }}" class="mb-2"
-                                style="width: 40px; height: 40px;">
+                                 style="width: 40px; height: 40px;">
                             <div>Early Access & Secret Sales</div>
                         </div>
                     </div>
@@ -394,6 +519,70 @@
             </div>
         </section>
 
+        <style>
+            .calculator-card {
+                background-color: #4fc3c3;
+                color: white;
+                border-radius: 12px;
+                padding: 20px;
+
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .calculator-card h5 {
+                font-size: 14px;
+                font-weight: bold;
+                margin-bottom: 15px;
+                text-transform: uppercase;
+            }
+
+            .slider-container1 {
+                margin-bottom: 15px;
+            }
+
+            .slider {
+                width: 100%;
+            }
+
+            .text-line {
+                font-size: 13px;
+                margin: 5px 0;
+            }
+
+            .text-line strong {
+                font-weight: bold;
+            }
+
+            .bottom-section {
+                background-color: white;
+                color: #000;
+                border-radius: 0 0 12px 12px;
+                padding: 10px 15px;
+                display: flex;
+                align-items: center;
+                font-weight: bold;
+                cursor: pointer;
+            }
+
+            .bottom-section img {
+                margin-right: 8px;
+            }
+
+            .slider-container1 {
+                width: 100%; /* Ensure the container is wide enough */
+            }
+
+            .slider {
+                width: 100%; /* Make the slider span the full container width */
+            }
+
+            input {
+
+                padding-left: 0px;
+
+            }
+
+        </style>
 
         <section class="p-5 m-2 " style="background: black; width: 99%;border-radius:10px">
             <div class="row p-3">
@@ -401,31 +590,44 @@
                     <div class="bg-dark text-white p-3 rounded-box m-3 border_radius_white">
                         <div class="d-flex align-items-center">
                             <img src="{{ url('public/assets/images/vip_icon.png') }}" class="me-3" style="width: 50px;"
-                                alt="VIP">
+                                 alt="VIP">
                             <div>
                                 <div class="fw-bold">Membership Validity</div>
-                                <div>Active till <span class="fw-bold text-warning">31/Dec/23</span></div>
+                                <div>Active till <span
+                                        class="fw-bold text-warning">{{!empty($user->subscription_end) ? date('d M Y',strtotime($user->subscription_end)) : ""}}</span>
+                                </div>
                             </div>
                         </div>
                         <!-- <img src="{{ url('public/assets/images/athlete.png') }}" class="mt-3 w-100 rounded" alt="Athlete"> -->
                     </div>
 
                     <!-- Membership Calculator -->
-                    <div class="bg-warning p-3 m-3 text-dark rounded-box border_radius_white">
-                        <h5 class="fw-bold text-uppercase">Membership Calculator</h5>
-                        <p class="mb-1">Spend <strong>₹3,000</strong>/month?</p>
-                        <p class="mb-3">You save <strong class="text-primary">₹2,700</strong>/year with NutraPass!</p>
-                        <div class="d-flex align-items-center border-top pt-2 bg-white w-100">
-                            <img src="{{ url('public/assets/images/calc_icon.png') }}" class="me-2" width="24">
-                            <span class="fw-semibold">See how much you save</span>
+                    <div class="calculator-card">
+                        <h5>Membership Calculator</h5>
+                        <div class="slider-container1">
+                            <input type="range" min="0" max="25000" value="5000" class="slider" id="savingsSlider1"
+                                   step="500">
+                            <span class="tooltip" id="sliderTooltip">5000</span>
+                        </div>
+                        <div class="text-line">Spend <strong>₹<span id="spendAmount">5000</span></strong>/month?</div>
+                        <div class="text-line">You save <strong>₹<span id="saveAmount">840</span></strong>/year with
+                            NutraPass!
+                        </div>
+
+                        <div class="bottom-section" id="seeSave">
+                            <img src="https://img.icons8.com/ios-filled/50/000000/calculator.png" width="20"
+                                 alt="Calculator Icon">
+                            See how much you save ₹<span id="bottomSave">840</span>
                         </div>
                     </div>
+
+
                 </div>
 
                 <div class="col-md-7 ">
                     <div class="bg-info text-white p-4 rounded-box h-100 border_radius_white">
                         <div class="row mb-3">
-                            <div class="col-6 fw-bold"> </div>
+                            <div class="col-6 fw-bold"></div>
                             <div class="col-3 text-center fw-bold">NutraPass<br>Member</div>
                             <div class="col-3 text-center fw-bold">Non-member</div>
                         </div>
@@ -482,8 +684,6 @@
         </section>
 
 
-
-
         <section class="p-5 m-2 " style="background: #063232; width: 99%;border-radius:10px">
             <div class="row p-3">
                 <div class="col-md-6">
@@ -496,53 +696,38 @@
                     </div>
                     <div>
                         <div class="scroll-container" id="planScroll">
-                            <div class="plan selected" onclick="selectPlan(this)">
-                                <h4 class="text-white">Best Value</h4>
-                                <div class="months">6</div>
-                                <div class="details ">months<br>₹ 800/mo<br><strong>SAVE 47%</strong></div>
-                                <hr>
-                                <div class="price">₹ 8,000</div>
-                            </div>
-                            <div class="plan" onclick="selectPlan(this)">
-                                <h4 class="text-white">Best Value</h4>
-                                <div class="months">12</div>
-                                <div class="details">months<br>₹ 800/mo<br><strong>SAVE 47%</strong></div>
-                                <hr>
-                                <div class="price">₹ 8,000</div>
-                            </div>
-                            <div class="plan" onclick="selectPlan(this)">
-                                <h4 class="text-white">Best Value</h4>
-                                <div class="months">12</div>
-                                <div class="details">months<br>₹ 800/mo<br><strong>SAVE 47%</strong></div>
-                                <hr>
-                                <div class="price">₹ 8,000</div>
-                            </div>
-                            <div class="plan" onclick="selectPlan(this)">
-                                <h4 class="text-white">Best Value</h4>
-                                <div class="months">12</div>
-                                <div class="details">months<br>₹ 800/mo<br><strong>SAVE 47%</strong></div>
-                                <hr>
-                                <div class="price">₹ 8,000</div>
-                            </div>
-                            <div class="plan" onclick="selectPlan(this)">
-                                <h4 class="text-white">Best Value</h4>
-                                <div class="months">12</div>
-                                <div class="details">months<br>₹ 800/mo<br><strong>SAVE 47%</strong></div>
-                                <hr>
-                                <div class="price">₹ 8,000</div>
-                            </div>
-                            <div class="plan" onclick="selectPlan(this)">
-                                <h4 class="text-white">Best Value</h4>
-                                <div class="months">12</div>
-                                <div class="details">months<br>₹ 800/mo<br><strong>SAVE 47%</strong></div>
-                                <hr>
-                                <div class="price">₹ 8,000</div>
-                            </div>
+                            @foreach($subscription['subscription_plans'] as $key =>  $plan)
+                                @php
+                                    $permonth = (int)$plan->price / (int)$plan->duration;
+                                    $permonth = round($permonth);
+                                     $standardMonthlyPrice = (int)$plan->price;
+$totalStandardPrice = $standardMonthlyPrice * $plan->duration;
+                                     $savePercent = 0;
+    if ($totalStandardPrice > 0) {
+        $savePercent = round((($totalStandardPrice - $plan->price) / $totalStandardPrice) * 100);
+    }
+                                @endphp
+                                <div class="plan {{$key == 0 ? 'selected' : ''}}" onclick="selectPlan(this)">
+                                    @if($plan->is_best_value == 1)
+                                        <h4 class="text-white">Best Value</h4>
+                                    @endif
+
+                                    <div class="months">{{$plan->duration ?? ''}}</div>
+                                    <div class="details">
+                                        months<br>
+                                        ₹ {{$permonth}}/mo<br>
+                                        <strong>SAVE {{$savePercent}}%</strong>
+                                    </div>
+                                    <hr>
+                                    <div class="price">₹ {{$plan->price ?? ''}}</div>
+                                </div>
+                            @endforeach
+
                             <!-- Add more if needed -->
                         </div>
                     </div>
 
-                    <div class="mt-3">
+                    <div class="mt-20">
                         <a href="#" class="btn btn-warning text-white w-50">JOIN NOW</a>
                     </div>
                 </div>
@@ -552,55 +737,25 @@
         <section class="p-5 m-2 " style="background: #FFFFFF00; width: 99%;border-radius:10px">
             <div class="row p-3">
                 <h3 class="text-center">FAQ</h3>
-                <p class="description">
-                    We’re here to help you with anything and everything on NutraCore.<br>
-                    Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the
-                    industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and
-                    scrambled.
-                </p>
+                @foreach($subscription['faqs'] as $faq)
+                    <div class="faq-item mt-2">
+                        <div class="faq-question">
+                            <span>{{ strip_tags($faq->question ?? 'No question') }}</span>
+                            <span class="icon">+</span>
+                        </div>
+                        <div class="faq-answer">
+                            {{ strip_tags($faq->answer ?? 'No answer available') }}
+                        </div>
+                    </div>
+
+                @endforeach
 
 
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <span>What is NutraCore?</span>
-                        <span class="icon">−</span>
-                    </div>
-                    <div class="faq-answer open">
-                        Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the
-                        industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type
-                        and scrambled it to make a type specimen book. It has survived not only five centuries, but also the
-                        leap into electronic typesetting, remaining essentially .
-                    </div>
-                </div>
-
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <span>How to apply for a Subscription?</span>
-                        <span class="icon">+</span>
-                    </div>
-                    <div class="faq-answer">
-                        You can apply for a subscription by going to our Plans page and selecting the desired plan and
-                        duration.
-                    </div>
-                </div>
-
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <span>How to know status of a Delivery?</span>
-                        <span class="icon">+</span>
-                    </div>
-                    <div class="faq-answer">
-                        Track your delivery in your account under "Orders" or use the tracking link sent to your email.
-                    </div>
-                </div>
             </div>
         </section>
 
 
-
-
-
-        <section class="p-5 m-2 ">
+        <section class="p-5 m-2 d-none">
             <h2>Our Member Reviews</h2>
             <div class="slider-container" id="sliderContainer">
                 <div class="slider" id="slider">
@@ -612,7 +767,8 @@
                                 <h3>Amit Kumar</h3>
                                 <small>Gym Trainer</small>
                                 <p>
-                                    “Since I joined NutraCore Membership, my fitness journey has reached new heights! The
+                                    “Since I joined NutraCore Membership, my fitness journey has reached new heights!
+                                    The
                                     exclusive access to personalized nutrition plans has been a game changer...”
                                     <br><br>
                                     - Enhanced workout efficiency<br>
@@ -635,8 +791,7 @@
         </section>
 
 
-
-        <section class="p-4 m-5" style="background: #00A8A870; border-radius: 30px;">
+        <section class="p-4 m-5 d-none" style="background: #00A8A870; border-radius: 30px;">
             <div class="row align-items-stretch" style="min-height: 350px;">
                 <!-- Left Side: Text and Subscription -->
                 <div class="col-md-6 text-white px-4 d-flex flex-column justify-content-center">
@@ -646,9 +801,11 @@
 
                     <!-- Email Subscription Form -->
                     <form class="d-flex bg-white rounded-pill overflow-hidden shadow-sm" style="max-width: 400px;">
-                        <input type="email" class="form-control border-0 ps-4" placeholder="Your email address" required>
+                        <input type="email" class="form-control border-0 ps-4" placeholder="Your email address"
+                               required>
                         <button type="submit" class="btn text-white px-4"
-                            style="background-color: #00A8A8;">Subscribe</button>
+                                style="background-color: #00A8A8;">Subscribe
+                        </button>
                     </form>
                 </div>
 
@@ -665,7 +822,43 @@
 
     </main>
 
+    <script>
+        const slider = document.getElementById("savingsSlider1");
+        const tooltip = document.getElementById("sliderTooltip");
+        const spendAmount = document.getElementById("spendAmount");
+        const saveAmount = document.getElementById("saveAmount");
+        const bottomSave = document.getElementById("bottomSave");
 
+        function updateSlider() {
+            const value = slider.value;
+            tooltip.innerHTML = value;
+            spendAmount.innerHTML = value;
+
+            // Example save calculation
+            const save = Math.round(value * 0.168);
+
+
+
+
+            saveAmount.innerHTML = save;
+            bottomSave.innerHTML = save;
+
+            // Position tooltip correctly
+            const sliderWidth = slider.offsetWidth;
+            const max = slider.max;
+            const min = slider.min;
+            const percent = (value - min) / (max - min);
+            const offset = percent * sliderWidth;
+
+            tooltip.style.left = `${offset}px`;
+        }
+
+        // Initial position
+        updateSlider();
+
+        // Update on slider move
+        slider.addEventListener("input", updateSlider);
+    </script>
 
     <script>
         // Highlight selected card
@@ -739,55 +932,5 @@
         // Initialize first item as open
         document.querySelector('.faq-question').classList.add('active');
     </script>
-    <script>
-        const slider = document.getElementById('slider');
-        const bullets = document.getElementById('bullets').children;
-        let currentSlide = 0;
 
-        function goToSlide(index) {
-            currentSlide = index;
-            slider.style.transform = `translateX(-${index * 100}%)`;
-            [...bullets].forEach(b => b.classList.remove('active'));
-            bullets[index].classList.add('active');
-        }
-
-        // Optional: Drag to scroll
-        let isDragging = false;
-
-
-        slider.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            startX = e.pageX;
-            slider.style.cursor = 'grabbing';
-        });
-
-        slider.addEventListener('mouseup', () => {
-            isDragging = false;
-            slider.style.cursor = 'grab';
-        });
-
-        slider.addEventListener('mouseleave', () => {
-            isDragging = false;
-            slider.style.cursor = 'grab';
-        });
-
-        slider.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            const x = e.pageX;
-            const walk = x - startX;
-            if (walk > 50 && currentSlide > 0) {
-                goToSlide(currentSlide - 1);
-                isDragging = false;
-            } else if (walk < -50 && currentSlide < bullets.length - 1) {
-                goToSlide(currentSlide + 1);
-                isDragging = false;
-            }
-        });
-
-        // Optional: Autoplay
-        // setInterval(() => {
-        //   let next = (currentSlide + 1) % bullets.length;
-        //   goToSlide(next);
-        // }, 5000);
-    </script>
 @endsection

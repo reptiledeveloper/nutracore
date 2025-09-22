@@ -61,7 +61,7 @@
         @include('layouts.filter',['search_show'=>'search_show','expiry_show'=>'expiry_show','days'=>$days,'vendor_show'=>'vendor_show'])
         @include('snippets.errors')
         @include('snippets.flash')
-        <form action="{{route('stocks.delete_data')}}" method="post" enctype="multipart/form-data">
+        <form action="{{route('stocks.delete_data')}}" method="post" enctype="multipart/form-data" onsubmit="return confirm('Are you sure you want to delete?');">
             @csrf
             <div class="row">
                 <div class="col-md-12">
@@ -71,12 +71,12 @@
                                 <div class="d-none d-md-flex">All Stocks & Expiry</div>
 
                                 <div class="dropdown ms-auto">
-                                    <button  onclick="return confirm('Are You Sure Want To Delete?')"
+                                    <button  type="submit"
                                         class="btn btn-danger" title="Import "> <i class="bi bi-trash"></i></button>
 
                                     <a data-bs-toggle="modal"
                                        data-bs-target="#stockUpdate"
-                                       class="btn btn-primary" title="Import "> <i class="bi bi-file-text"></i></a>
+                                       class="btn btn-primary" title=" "> <i class="bi bi-file-text"></i></a>
 
                                     <a href="{{ route('stocks.export', ['back_url' => $BackUrl]) }}"
                                        class="btn btn-primary" title="Export "><i class="fa fa-file-excel-o"

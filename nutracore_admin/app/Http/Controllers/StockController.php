@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ClosingStockExport;
 use App\Exports\SampleExport;
 use App\Exports\StocksExport;
 use App\Exports\StocksExportAll;
+use App\Imports\ClosingStockDataImport;
 use App\Imports\ProductImport;
 use App\Imports\StockDataImport;
 use App\Models\Products;
@@ -80,7 +82,7 @@ class StockController extends Controller
             $q->where('store_id', $request->vendor_id);
         }
 
-        $stocks = $q->orderBy('expiry_date')->paginate(100)->withQueryString();
+        $stocks = $q->where('is_delete', 0)->orderBy('expiry_date')->paginate(100)->withQueryString();
 
 
         return view('stocks.index', [
@@ -101,23 +103,8 @@ class StockController extends Controller
         $filtered_ids = array_filter($stock_ids, fn($id) => $id !== 'all');
 
         // Delete stocks
-//        Stock::whereIn('id', $filtered_ids)->update(['is_delete' => 1]);
-
-//        StockBatch::updateOrCreate(
-//            [
-//                'product_id'   => $productId,
-//                'variant_id'   => $request->variant_id[$index] ?? null,
-//                'batch_number' => $request->batch[$index],
-//            ],
-//            [
-//                'mfg_date'     => $request->mfg[$index],
-//                'store_id'     => $request->store_id??'',
-//                'expiry_date'  => $request->expiry[$index],
-//                'quantity'     => DB::raw('quantity + ' . $request->qty[$index]),
-//                'purchase_price' => $request->purchase_price[$index],
-//            ]
-//        );
-
+        Stock::whereIn('id', $filtered_ids)->update(['is_delete' => 1]);
+        StockBatch::whereIn('stock_id', $filtered_ids)->update(['is_delete' => 1]);
         return back()->with('alert-success', 'Selected stock items deleted successfully.');
     }
 
@@ -126,11 +113,10 @@ class StockController extends Controller
     {
         $sellerId = $request->input('vendor_id');
         $search = $request->input('search');
-
-        $query = DB::table('stock_batches as sb')
-            ->join('product_varients as pv', 'pv.id', '=', 'sb.variant_id')
+        $query = DB::table('stock_batches as sl')
+            ->join('product_varients as pv', 'pv.id', '=', 'sl.variant_id')
             ->join('products as p', 'p.id', '=', 'pv.product_id')
-            ->join('vendors as s', 's.id', '=', 'sb.store_id')
+            ->join('vendors as s', 's.id', '=', 'sl.store_id')
             ->select(
                 's.id as seller_id',
                 's.name as seller_name',
@@ -139,36 +125,52 @@ class StockController extends Controller
                 'pv.id as variant_id',
                 'pv.varient_sku as sku',
                 'pv.unit',
-                DB::raw('SUM(sb.quantity) as closing_stock')
+                DB::raw('SUM(sl.quantity) as closing_stock') // sum of all batches
             )
+            ->where('sl.is_delete', 0)
             ->groupBy('s.id', 'p.id', 'pv.id');
 
         if (!empty($sellerId)) {
             $query->where('s.id', $sellerId);
         }
+
         if (!empty($search)) {
             $query->where('pv.varient_sku', $search);
         }
 
         $stocks = $query->paginate(10);
 
+
         $sellers = CustomHelper::getVendors(); // For filter dropdown
 
         return view('stocks.closing_stock', compact('stocks', 'sellers'));
+    }
+    public function closing_stock_export(Request $request)
+    {
+        $sellerId = $request->input('vendor_id');
+        $search   = $request->input('search');
+
+        $fileName = 'closing_stock_'.date('Ymd_His').'.xlsx';
+        return Excel::download(new ClosingStockExport($sellerId, $search), $fileName);
+
     }
 
 
     public function stockLogs(Request $request)
     {
-        $product_id = $request->product_id??'';
-        $vendor_id = $request->vendor_id??'';
+        $product_id = $request->product_id ?? '';
+        $vendor_id = $request->vendor_id ?? '';
+        $search = $request->search ?? '';
+        if(!empty($search)){
+            $product_id = Products::where('sku', $search)->first()->id ?? '';
+        }
         $logs = StockLog::with(['product', 'variant', 'store'])
             ->latest();
-        if(!empty($product_id)){
-            $logs->where('product_id',$product_id);
+        if (!empty($product_id)) {
+            $logs->where('product_id', $product_id);
         }
-        if(!empty($vendor_id)){
-            $logs->where('store_id',$vendor_id);
+        if (!empty($vendor_id)) {
+            $logs->where('store_id', $vendor_id);
         }
         $logs = $logs->paginate(20);
 
@@ -190,6 +192,21 @@ class StockController extends Controller
             return back()->with('success', ' Imported successfully!');
         }
 
+        return back()->with('success', 'Imported successfully!');
+
+    }
+    public function update_closing_stock(Request $request)
+    {
+        $data = [];
+        $method = $request->method();
+        if ($method == 'POST') {
+            $request->validate([
+                'file' => 'required',
+            ]);
+
+            Excel::import(new ClosingStockDataImport(), $request->file('file'));
+            return back()->with('success', ' Imported successfully!');
+        }
         return back()->with('success', 'Imported successfully!');
 
     }
@@ -242,6 +259,7 @@ class StockController extends Controller
         }
 
     }
+
     public function export_all(Request $request)
     {
         $filters = $request->only(['days', 'batch_no', 'product_id', 'variant_id', 'search', 'vendor_id']);

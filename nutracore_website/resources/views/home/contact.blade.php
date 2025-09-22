@@ -1,6 +1,6 @@
 @extends('home.layout')
 @section('content')
-    <?php 
+    <?php
                                                                                                                                                 use App\Helpers\CustomHelper;
 
 
@@ -12,7 +12,7 @@
         <div class="page-header breadcrumb-wrap">
             <div class="container">
                 <div class="breadcrumb">
-                    <a href='index.html' rel='nofollow'><i class="fi-rs-home mr-5"></i>Home</a>
+                    <a href='' rel='nofollow'><i class="fi-rs-home mr-5"></i>Home</a>
                     <span></span> Contact
                 </div>
             </div>
@@ -22,31 +22,31 @@
                 <div class="row">
                     <div class="col-xl-10 col-lg-12 m-auto">
                         <section class="mb-50">
-                            <div class="row mb-60">
-                                <div class="col-md-4 mb-4 mb-md-0">
-                                    <h4 class="mb-15 text-brand">Office</h4>
-                                    205 North Michigan Avenue, Suite 810<br />
-                                    Chicago, 60601, USA<br />
-                                    <abbr title="Phone">Phone:</abbr> (123) 456-7890<br />
-                                    <abbr title="Email">Email: </abbr>contact@Evara.com<br />
-                                    <a class="btn btn-sm font-weight-bold text-white mt-20 border-radius-5 btn-shadow-brand hover-up"><i class="fi-rs-marker mr-5"></i>View map</a>
+                            <div class="row">
+                                <!-- Heading and City Filter -->
+                                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                                    <h4 class="mb-0">NutraCore Store in India</h4>
                                 </div>
-                                <div class="col-md-4 mb-4 mb-md-0">
-                                    <h4 class="mb-15 text-brand">Studio</h4>
-                                    205 North Michigan Avenue, Suite 810<br />
-                                    Chicago, 60601, USA<br />
-                                    <abbr title="Phone">Phone:</abbr> (123) 456-7890<br />
-                                    <abbr title="Email">Email: </abbr>contact@Evara.com<br />
-                                    <a class="btn btn-sm font-weight-bold text-white mt-20 border-radius-5 btn-shadow-brand hover-up"><i class="fi-rs-marker mr-5"></i>View map</a>
+
+                                <!-- Store Cards -->
+                                <div class="row" id="storeCards">
+                                    @foreach($sellers_list as $seller)
+                                        <div class="col-lg-4 col-md-6 mb-4 store-card"
+                                             data-lat="{{ $seller->latitude ?? 0 }}"
+                                             data-lng="{{ $seller->longitude ?? 0 }}">
+                                            <div class="card shadow-sm h-100">
+                                                <div class="card-body">
+{{--                                                    <h5 class="mb-1">{{$seller->name??''}}</h5>--}}
+                                                    <p class="mb-1"><strong>Address:</strong> {{$seller->address??''}}</p>
+                                                    <p class="mb-1"><strong>Contact:</strong> {{$seller->user_phone??''}}</p>
+                                                    <p class="mb-1"><strong>Opening Time :</strong> {{$seller->open_time??''}} - {{$seller->close_time??''}}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
                                 </div>
-                                <div class="col-md-4">
-                                    <h4 class="mb-15 text-brand">Shop</h4>
-                                    205 North Michigan Avenue, Suite 810<br />
-                                    Chicago, 60601, USA<br />
-                                    <abbr title="Phone">Phone:</abbr> (123) 456-7890<br />
-                                    <abbr title="Email">Email: </abbr>contact@Evara.com<br />
-                                    <a class="btn btn-sm font-weight-bold text-white mt-20 border-radius-5 btn-shadow-brand hover-up"><i class="fi-rs-marker mr-5"></i>View map</a>
-                                </div>
+
+
                             </div>
                             <div class="row">
                                 <div class="col-xl-8">
@@ -54,7 +54,8 @@
                                         <h5 class="text-brand mb-10">Contact form</h5>
                                         <h2 class="mb-10">Drop Us a Line</h2>
                                         <p class="text-muted mb-30 font-sm">Your email address will not be published. Required fields are marked *</p>
-                                        <form class="contact-form-style mt-30" id="contact-form" action="#" method="post">
+                                        <form class="contact-form-style mt-30" id="contact-form" action="" method="post">
+                                            @csrf
                                             <div class="row">
                                                 <div class="col-lg-6 col-md-6">
                                                     <div class="input-style mb-20">
