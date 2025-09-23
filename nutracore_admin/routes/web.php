@@ -77,6 +77,14 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'delete/{id}', 'CollectionsController@delete')->name('.delete');
         });
 
+        ////pos
+        Route::group(['prefix' => 'pos', 'as' => 'pos', 'middleware' => ['allowedmodule:pos,list']], function () {
+            Route::get('/', 'POSController@index')->name('.index');
+            Route::match(['get', 'post'], 'add', 'POSController@add')->name('.add');
+            Route::match(['get', 'post'], 'edit/{id}', 'POSController@add')->name('.edit');
+            Route::match(['get', 'post'], 'delete/{id}', 'POSController@delete')->name('.delete');
+        });
+
 
         ////reports
         Route::group(['prefix' => 'reports', 'as' => 'reports', 'middleware' => ['allowedmodule:reports,list']], function () {

@@ -4,7 +4,7 @@
     <?php
     $BackUrl = \App\Helpers\CustomHelper::BackUrl();
     $routeName = \App\Helpers\CustomHelper::getAdminRouteName();
-        ?>
+    ?>
 
     <div class="content ">
         <div class="mb-4">
@@ -21,7 +21,7 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                <div class="card">
+                <div class="card mb-3">
                     <div class="card-body">
                         <div class="d-md-flex gap-4 align-items-center">
                             <div class="d-none d-md-flex">All Abandoned Cart</div>
@@ -31,16 +31,25 @@
                         </div>
                     </div>
                 </div>
+
+                @include('layouts.filter',['search_show'=>'search_show'])
+
+
                 <div class="table-responsive">
-                    @forelse($abandonedCarts as $user)
+                    @forelse($abandonedCarts as $carts)
+                        @php
+                            $user = \App\Models\User::where('id',$carts->userID)->first();
+                            $cart_items = \App\Models\OrderItems::where('order_id',$carts->id)->get();
+                        @endphp
                         <div class="card mb-3 mt-3">
                             <div class="card-header d-flex justify-content-between">
                                 <div>
-                                    <strong>{{ $user->user_name ??"Guest"}}</strong> ({{ $user->user_email }})<br>
-                                    Phone: {{ $user->user_phone }}
+                                    <strong>{{ $user->name ??"Guest"}}</strong> ({{ $user->email }})<br>
+                                    Phone: {{ $user->phone }}
                                 </div>
                                 <div>
-                                    <span class="badge bg-info">Total: ₹{{ number_format($user->total_amount, 2) }}</span>
+                                    <span
+                                        class="badge bg-info">Total: ₹{{ number_format($carts->total_amount, 2) }}</span>
                                 </div>
                             </div>
                             <div class="card-body">
@@ -51,24 +60,30 @@
                                         <th>Variant</th>
                                         <th>Qty</th>
                                         <th>Price</th>
-                                        <th>Line Total</th>
+                                        <th> Total</th>
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    @foreach($user->products as $item)
+                                    @foreach($cart_items as $item)
+                                        @php
+                                            $product = \App\Models\Products::where('id',$item->product_id)->first();
+                                            $varients = \App\Models\ProductVarient::where('id',$item->variant_id)->first();
+
+                                        @endphp
                                         <tr>
-                                            <td>{{ $item->product_name ??''}}</td>
-                                            <td>{{ $item->varient_name??'' }}</td>
+                                            <td>{{ $product->name ??''}}</td>
+                                            <td>{{ $varients->unit??'' }}</td>
                                             <td>{{ $item->qty ??0}}</td>
-                                            <td>₹{{ number_format($item->selling_price, 2) }}</td>
-                                            <td>₹{{ number_format($item->line_total, 2) }}</td>
+                                            <td>₹{{ number_format($item->price, 2) }}</td>
+                                            <td>₹{{ number_format($item->net_price, 2) }}</td>
                                         </tr>
                                     @endforeach
                                     </tbody>
                                 </table>
 
                                 <small class="text-muted">
-                                    Last added at: {{ \Carbon\Carbon::parse($user->last_added_at)->format('d M Y H:i') }}
+                                    Last added
+                                    at: {{ \Carbon\Carbon::parse($carts->updated_at)->format('d M Y H:i') }}
                                 </small>
 
                                 <div class="mt-2 text-end">

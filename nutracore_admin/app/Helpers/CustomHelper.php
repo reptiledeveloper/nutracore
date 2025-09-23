@@ -89,8 +89,8 @@ class CustomHelper
     public static function getUserSubsData($user)
     {
         $dbarray = [];
-        $total_order = Order::where('is_delete',0)->where('userID',$user->id)->where('status','DELIVERED')->count();
-        $total_spent = Order::where('is_delete',0)->where('userID',$user->id)->where('status','DELIVERED')->sum('total_amount');
+        $total_order = Order::where('is_delete', 0)->where('userID', $user->id)->where('status', 'DELIVERED')->count();
+        $total_spent = Order::where('is_delete', 0)->where('userID', $user->id)->where('status', 'DELIVERED')->sum('total_amount');
         $dbarray['total_order'] = $total_order;
         $dbarray['total_spent'] = $total_spent;
         $is_active = 0;
@@ -105,7 +105,7 @@ class CustomHelper
             }
         }
 
-        $type = ($is_active == 1 )? 'subscribe' : 'not_subscribe';
+        $type = ($is_active == 1) ? 'subscribe' : 'not_subscribe';
         $active_loyalty = DB::table('loyality_system')
             ->where('status', 1)
             ->where('is_delete', 0)
@@ -119,8 +119,8 @@ class CustomHelper
             ->first();
         $dbarray['total_spent'] = $total_spent;
         $dbarray['membership_status'] = "Not Subscribed";
-        $dbarray['loyality'] = $active_loyalty->title??'';
-        if($is_active == 1){
+        $dbarray['loyality'] = $active_loyalty->title ?? '';
+        if ($is_active == 1) {
             $dbarray['membership_status'] = "Subscribed";
         }
 
@@ -280,9 +280,57 @@ class CustomHelper
 
     public static function getProducts()
     {
-        $products = Products::select('id', 'name','sku')->where('status', 1)->where('is_delete', 0)->get();
+        $products = Products::select('id', 'name', 'sku')->where('status', 1)->where('is_delete', 0)->get();
         return $products;
     }
+
+    public static function getProductsWithVarients()
+    {
+        $productArr = [];
+
+        $products = Products::with('variants') // eager load variants
+        ->select('id', 'name', 'sku')
+            ->where('status', 1)
+            ->where('is_delete', 0)
+            ->get();
+
+        if ($products->isNotEmpty()) {
+            foreach ($products as $product) {
+                if (!empty($product->variants) && count($product->variants) > 0) {
+                    foreach ($product->variants as $varient) {
+                        $productArr[] = [
+                            'product_id'        => $product->id,
+                            'product_name'      => $product->name,
+                            'product_sku'       => $product->sku,
+                            'mrp'               => $varient->mrp ?? 0,
+                            'selling_price'     => $varient->selling_price ?? 0,
+                            'unit'              => $varient->unit ?? '',
+                            'subscription_price'=> $varient->subscription_price ?? 0,
+                            'varient_sku'       => $varient->varient_sku ?? '',
+                            'varient_id'        => $varient->id ?? 0,
+                        ];
+                    }
+                } else {
+                    // product without variants
+                    $productArr[] = [
+                        'product_id'        => $product->id,
+                        'product_name'      => $product->name,
+                        'product_sku'       => $product->sku,
+                        'mrp'               => $product->mrp ?? 0,
+                        'selling_price'     => $product->selling_price ?? 0,
+                        'unit'              => '',
+                        'subscription_price'=> $product->subscription_price ?? 0,
+                        'varient_sku'       => $product->sku,
+                        'varient_id'        => 0,
+                    ];
+                }
+            }
+        }
+
+        return $productArr;
+    }
+
+
 
     public static function getLoanNo($string)
     {
@@ -1175,6 +1223,7 @@ class CustomHelper
         return $categories;
 
     }
+
     public static function getGoalCategories()
     {
         $categories = Category::where('parent_id', 0)->where('is_goal', 1)->where('status', 1)->where('is_delete', 0)->get();
@@ -1235,6 +1284,7 @@ class CustomHelper
 
         return $status;
     }
+
     public static function getReturnOrderItemStatus($orderID)
     {
         $status = '';
@@ -1382,13 +1432,13 @@ class CustomHelper
             $response = json_decode($response);
             if (!empty($response)) {
                 $dbArray = [];
-                $dbArray['order_status'] = $response->status??'';
+                $dbArray['order_status'] = $response->status ?? '';
                 $dbArray['order_details_porter'] = json_encode($response);
                 DB::table('order_courier')->where('id', $exist->id)->update($dbArray);
             }
         }
 
-    return $exist;
+        return $exist;
     }
 
     public static function bookPorterShipment($orders)
@@ -1682,7 +1732,7 @@ class CustomHelper
         if ($is_s3 == 1) {
             $path = $path . '/' . $fileName;
             Storage::disk('s3')->put($path, file_get_contents($file));
-           // $path = Storage::disk('s3')->url($path);
+            // $path = Storage::disk('s3')->url($path);
 
         }
         return $fileName;
@@ -3521,6 +3571,7 @@ class CustomHelper
 
         $response = curl_exec($curl);
         curl_close($curl);
+
         return $response;
     }
 
@@ -3681,6 +3732,56 @@ class CustomHelper
 
     }
 
+
+    public function orderDelivered($mobile, $orderID)
+    {
+        $user_name = "User";
+        $curl = curl_init();
+        curl_setopt_array($curl, [
+            CURLOPT_URL => "https://api.msg91.com/api/v5/flow/",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => "{\n  \"flow_id\": \"68d0ef48e1c9106fae00a859\",\n  \"sender\": \"NUTRCR\",\n  \"mobiles\": \"91$mobile\",\n  \"var\": \"$orderID\"}",
+            CURLOPT_HTTPHEADER => [
+                "authkey: 431621ABncLfiKpzo6875ff9bP1",
+                "content-type: application/JSON"
+            ],
+        ]);
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        curl_close($curl);
+        return $response;
+
+    }
+
+    public function orderCancelled($mobile, $orderID)
+    {
+        $user_name = "User";
+        $curl = curl_init();
+        curl_setopt_array($curl, [
+            CURLOPT_URL => "https://api.msg91.com/api/v5/flow/",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => "{\n  \"flow_id\": \"68d0effc9580525ccb7af7f7\",\n  \"sender\": \"NUTRCR\",\n  \"mobiles\": \"91$mobile\",\n  \"var\": \"$orderID\"}",
+            CURLOPT_HTTPHEADER => [
+                "authkey: 431621ABncLfiKpzo6875ff9bP1",
+                "content-type: application/JSON"
+            ],
+        ]);
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        curl_close($curl);
+        return $response;
+
+    }
 
     /* End of helper class */
 }

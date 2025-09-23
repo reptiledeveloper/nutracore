@@ -894,6 +894,17 @@ $current_route = Route::currentRouteName();
                 </ul>
             </li>
             @endif
+
+            @if(\App\Helpers\CustomHelper::isAllowedSection('pos','list'))
+                <li>
+                    <a class="{{$current_route == 'pos.index' ? "active":""}}" href="{{route('pos.index')}}">
+                    <span class="nav-link-icon">
+                        <i class="bi bi-gift"></i>
+                    </span>
+                        <span>POS</span>
+                    </a>
+                </li>
+            @endif
             @if(\App\Helpers\CustomHelper::isAllowedSection('abandoned_cart','list'))
 
             <li>

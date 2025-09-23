@@ -122,7 +122,7 @@ class ApiController extends Controller
 
     public function porter_webhook(Request $request)
     {
-        DB::table('new')->insert(['data'=>json_encode($request->toArray())]);
+        DB::table('new')->insert(['data' => json_encode($request->toArray())]);
 
     }
 
@@ -379,6 +379,11 @@ class ApiController extends Controller
             $is_update = 1;
         }
         $user->device_token = $request->device_token ?? '';
+        if(!empty($request->device_token)){
+            $topic = 'news';
+            $accessToken = CustomHelper::createAccessToken();
+            CustomHelper::subscribeToTopic($request->device_token, $topic, $accessToken);
+        }
         $referral_code = $request->referral_code ?? '';
         if (!empty($referral_code)) {
             $referral_code_user = User::where('referral_code', $referral_code)->first();
@@ -1097,6 +1102,8 @@ class ApiController extends Controller
                                             $dbArray['is_approved'] = 1;
                                             $transaction_id = Transaction::insertGetId($dbArray);
                                             Transaction::where('id', $transaction_id)->update(['txn_no' => $txn_id]);
+
+                                            CustomHelper::sendGiftCardMessage($user->phone ?? '', $gift_card->code ?? '');
                                         }
                                     }
                                     if ($exist->type == 'order') {
@@ -1164,7 +1171,9 @@ class ApiController extends Controller
                                                 }
                                             }
                                             Cart::where('user_id', $user->id)->delete();
+                                            CustomHelper::sendPlaceNewOrder($user->phone??'',$exist->order_id??'');
                                             self::sendOrderNotification($exist->order_id ?? '');
+
                                         }
                                     }
                                 }
@@ -1526,7 +1535,8 @@ class ApiController extends Controller
 
 
         $homepageArr = [];
-        $banners = Banner::where('status', 1)->where('is_delete', 0)->get()->makeHidden(['created_at', 'updated_at', 'is_delete', 'status']);
+        $banner_types = ['', 'product', 'brand', 'category', 'link'];
+        $banners = Banner::where('status', 1)->where('is_delete', 0)->whereIn('type', $banner_types)->get()->makeHidden(['created_at', 'updated_at', 'is_delete', 'status']);
         if (!empty($banners)) {
             foreach ($banners as $banner) {
                 $banner->banner_img = CustomHelper::getImageUrl('banners', $banner->banner_img);
@@ -1577,7 +1587,7 @@ class ApiController extends Controller
             $user->seller_details = $seller_details;
         }
 
-        $subscription_plans = SubscriptionPlans::where('status', 1)->where('is_delete', 0)->get();
+        $subscription_plans = SubscriptionPlans::where('status', 1)->where('is_show', 1)->where('is_delete', 0)->get();
         $minPricePerDay = PHP_FLOAT_MAX;
         $bestValuePlanId = null;
 // First pass: Find plan with best price per day
@@ -1629,10 +1639,12 @@ class ApiController extends Controller
         $product_ids = explode(",", $collections->product_ids ?? '');
         $new_arrivalsArr = Product::where('status', 1)->whereIn('id', $product_ids)->latest()->get();
         if (!empty($new_arrivalsArr)) {
-            foreach ($new_arrivalsArr as $product) {
-                $pro_data = self::getProductDetails($product->id, $user->id);
-                if (!empty($pro_data)) {
-                    $new_arrivals[] = $pro_data;
+            foreach ($new_arrivalsArr as $key => $product) {
+                if ($key < 10) {
+                    $pro_data = self::getProductDetails($product->id, $user->id);
+                    if (!empty($pro_data)) {
+                        $new_arrivals[] = $pro_data;
+                    }
                 }
             }
         }
@@ -1642,10 +1654,12 @@ class ApiController extends Controller
         $best_dealsArr = Product::where('status', 1)->whereIn('id', $product_ids)->latest()->get();
 
         if (!empty($best_dealsArr)) {
-            foreach ($best_dealsArr as $product) {
-                $pro_data = self::getProductDetails($product->id, $user->id);
-                if (!empty($pro_data)) {
-                    $best_deals[] = $pro_data;
+            foreach ($best_dealsArr as $key => $product) {
+                if ($key < 10) {
+                    $pro_data = self::getProductDetails($product->id, $user->id);
+                    if (!empty($pro_data)) {
+                        $best_deals[] = $pro_data;
+                    }
                 }
             }
         }
@@ -1655,10 +1669,12 @@ class ApiController extends Controller
         $best_sellersArr = Product::where('status', 1)->whereIn('id', $product_ids)->latest()->get();
 
         if (!empty($best_sellersArr)) {
-            foreach ($best_sellersArr as $product) {
-                $pro_data = self::getProductDetails($product->id, $user->id);
-                if (!empty($pro_data)) {
-                    $best_sellers[] = $pro_data;
+            foreach ($best_sellersArr as $key => $product) {
+                if ($key < 10) {
+                    $pro_data = self::getProductDetails($product->id, $user->id);
+                    if (!empty($pro_data)) {
+                        $best_sellers[] = $pro_data;
+                    }
                 }
             }
         }
@@ -2109,6 +2125,24 @@ class ApiController extends Controller
         if (!empty($product_id)) {
             $product_id = explode(",", $product_id);
         }
+
+        if (!empty($type)) {
+            if ($type == 'best_sellers') {
+                $collections = DB::Table('collections')->where('id', 1)->first();
+                $product_id = explode(",", $collections->product_ids ?? '');
+            }
+            if ($type == 'best_deals') {
+                $collections = DB::Table('collections')->where('id', 2)->first();
+                $product_id = explode(",", $collections->product_ids ?? '');
+            }
+
+            if ($type == 'new_arrival') {
+                $collections = DB::Table('collections')->where('id', 3)->first();
+                $product_id = explode(",", $collections->product_ids ?? '');
+            }
+        }
+
+
         $products = Product::select(
             'products.id',
             DB::raw('MIN(product_varients.selling_price) as min_price')
@@ -2293,7 +2327,6 @@ class ApiController extends Controller
             $images[] = $dbArray;
             $varients = $product->varients()->where('is_delete', 0)->where('status', 1)->get();
             $product->estimated_day = $estimated_day;
-
             if (!empty($varients) && count($varients) > 0) {
                 foreach ($varients as $varient) {
                     $qty = 0;
@@ -2353,6 +2386,10 @@ class ApiController extends Controller
                         $varient_images[] = $dbArray;
                     }
                 }
+                $qty = 0;
+                if (!empty($user)) {
+                    $qty = CustomHelper::getCartQty($user_id, $product->id, 0);
+                }
                 $varients = [[
                     'id' => 0, // You can keep it product_id or generate a fake ID
                     'product_id' => $product->id,
@@ -2368,7 +2405,7 @@ class ApiController extends Controller
                     'created_at' => $product->created_at,
                     'updated_at' => $product->updated_at,
                     'varient_sku' => $product->sku,
-                    'qty' => $product->stock ?? 0,
+                    'qty' => $qty,
                     'discount_per' => $product->product_mrp && $product->product_selling_price
                         ? round((($product->product_mrp - $product->product_selling_price) / $product->product_mrp) * 100)
                         : 0,
@@ -3517,6 +3554,7 @@ class ApiController extends Controller
                             self::sendOrderNotification($order_id);
                             Cart::where('user_id', $user->id)->delete();
                         }
+                        CustomHelper::sendPlaceNewOrder($user->phone??'',$order_id);
                     }
                     if ($payment_method == 'ONLINE' || $payment_method == 'online') {
                         $wallet = $user->wallet ?? 0;
@@ -3539,6 +3577,7 @@ class ApiController extends Controller
                         if ($order_id) {
                             self::sendOrderNotification($order_id);
                             Cart::where('user_id', $user->id)->delete();
+                            CustomHelper::sendPlaceNewOrder($user->phone??'',$order_id);
                         }
                     }
                     if ($payment_method == 'ONLINE' || $payment_method == 'online') {

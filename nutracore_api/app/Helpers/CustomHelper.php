@@ -945,7 +945,12 @@ class CustomHelper
         $qty = 0;
         $user = User::find($user_id);
         $seller_id = $user->seller_id ?? '';
-        $cart = Cart::where('product_id', $product_id)->where('variant_id', $varient_id)->where('user_id', $user_id);
+        $cart = Cart::where('product_id', $product_id)->latest();
+
+        if (!empty($varient_id)) {
+            $cart->where('variant_id', $varient_id);
+        }
+        $cart = $cart->where('user_id', $user_id);
         if (!empty($seller_id)) {
             // $cart->where('seller_id', $seller_id);
         }
@@ -3534,13 +3539,36 @@ class CustomHelper
         return $ransom_num;
     }
 
+    public static function subscribeToTopic($tokens, $topic, $accessToken)
+    {
+        $data = [
+            'to' => '/topics/' . $topic,
+            'registration_tokens' => $tokens
+        ];
+
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://iid.googleapis.com/iid/v1:batchAdd',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => json_encode($data),
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $accessToken
+            ),
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+        return $response;
+    }
     public static function createAccessToken()
     {
-        $path = storage_path('app/public') . '/configold.json';
+        $path = storage_path('app/public') . '/config.json';
         $provider = new GenericProvider([
-            'clientId' => '985890722792-03rcmtvga7l07k67dqbbpe6lt7bphoe5.apps.googleusercontent.com',
-            'clientSecret' => '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',
-            'redirectUri' => ["https://adminbuycart.reptileantitheft.com/googlecallback", "https://localhost/BuyBuyCart/buy_buy_cart_admin/googlecallback"],
+            'clientId' => '154429853000-cv6i13uuujc2hr8cs9lgc2ojc72ckffd.apps.googleusercontent.com',
+            'clientSecret' => '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',
+            'redirectUri' => ["http://localhost/Nutracore/nutracore_admin/googlecallback"],
             'urlAuthorize' => 'https://accounts.google.com/o/oauth2/auth',
             'urlAccessToken' => 'https://oauth2.googleapis.com/token',
             'urlResourceOwnerDetails' => $path,
@@ -3557,6 +3585,7 @@ class CustomHelper
             // Failed to retrieve access token
             // Handle the exception
         }
+
         // The new access token
         $newAccessToken = $accessToken->getToken();
         if (!empty($newAccessToken)) {
@@ -3772,6 +3801,56 @@ class CustomHelper
 
             }
         }
+
+    }
+
+    public function sendGiftCardMessage($mobile,$code)
+    {
+     $user_name = "User";
+        $curl = curl_init();
+        curl_setopt_array($curl, [
+            CURLOPT_URL => "https://api.msg91.com/api/v5/flow/",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => "{\n  \"flow_id\": \"68ce502b77297a288a0370f4\",\n  \"sender\": \"NUTRCR\",\n  \"mobiles\": \"91$mobile\",\n  \"var1\": \"$code\"}",
+            CURLOPT_HTTPHEADER => [
+                "authkey: 431621ABncLfiKpzo6875ff9bP1",
+                "content-type: application/JSON"
+            ],
+        ]);
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        curl_close($curl);
+        return $response;
+
+    }
+
+    public function sendPlaceNewOrder($mobile,$orderID)
+    {
+     $user_name = "User";
+        $curl = curl_init();
+        curl_setopt_array($curl, [
+            CURLOPT_URL => "https://api.msg91.com/api/v5/flow/",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => "{\n  \"flow_id\": \"68ce4f9c91b086526c237d03\",\n  \"sender\": \"NUTRCR\",\n  \"mobiles\": \"91$mobile\",\n  \"var1\": \"$orderID\"}",
+            CURLOPT_HTTPHEADER => [
+                "authkey: 431621ABncLfiKpzo6875ff9bP1",
+                "content-type: application/JSON"
+            ],
+        ]);
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        curl_close($curl);
+        return $response;
 
     }
 

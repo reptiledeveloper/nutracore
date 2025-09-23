@@ -193,7 +193,7 @@ class NotificationController extends Controller
             $accessToken = CustomHelper::createAccessToken();
                 $title =  $campaign->title ?? '';
                 $body =  $campaign->description ?? '';
-                CustomHelper::sendNotificationToTopic($topic, $title, $body,$accessToken);
+                $response = CustomHelper::sendNotificationToTopic($topic, $title, $body,$accessToken);
         }
         return back()->with('alert-success', 'Notification  has been Sent successfully.');
     }

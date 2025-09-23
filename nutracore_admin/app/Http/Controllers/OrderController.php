@@ -364,7 +364,7 @@ class OrderController extends Controller
         $item_id = $request->item_id ?? '';
         $delivery_boy = $request->delivery_boy ?? '';
         $vendor_id = $request->vendor_id ?? '';
-
+        $order = Order::where('id', $order_id)->first();
         if (!empty($status)) {
             $dbArray = [];
             $dbArray['order_id'] = $order_id;
@@ -461,6 +461,12 @@ class OrderController extends Controller
             }
             ////Credit NC Cash
             $this->creditNcCash($order);
+
+            CustomHelper::orderDelivered($user->phone??'',$order_id);
+        }
+        if($status == 'CANCEL'){
+            $user = User::where('id', $order->userID)->first();
+            CustomHelper::orderCancelled($user->phone??'',$order_id);
         }
         echo 1;
     }
