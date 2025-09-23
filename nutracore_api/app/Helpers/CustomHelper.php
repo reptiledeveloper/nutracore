@@ -583,12 +583,15 @@ class CustomHelper
 
     public static function checkSubscription($user)
     {
+
         $is_active = 0;
         $exist_subscription = Subscriptions::where('user_id', $user->id)->where('paid_status', 1)->latest()->first();
         if (!empty($exist_subscription)) {
             $current_date = date('Y-m-d');
-            if (strtotime($user->subscription_end) >= strtotime($current_date)) {
-                $is_active = 1;
+            if(!empty($user->subscription_end)){
+                if (strtotime($user->subscription_end) >= strtotime($current_date)) {
+                    $is_active = 1;
+                }
             }
         }
         return $is_active;
@@ -3804,7 +3807,7 @@ class CustomHelper
 
     }
 
-    public function sendGiftCardMessage($mobile,$code)
+    public static function sendGiftCardMessage($mobile,$code)
     {
      $user_name = "User";
         $curl = curl_init();
@@ -3829,7 +3832,7 @@ class CustomHelper
 
     }
 
-    public function sendPlaceNewOrder($mobile,$orderID)
+    public static function sendPlaceNewOrder($mobile,$orderID)
     {
      $user_name = "User";
         $curl = curl_init();
@@ -3854,6 +3857,70 @@ class CustomHelper
 
     }
 
+    public static function availableCourier(){
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://queries-test.envia.com/available-carrier/IN/0',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'GET',
+            CURLOPT_HTTPHEADER => array(
+                'Authorization: Bearer 089ab863726cc060246c56bbb4cdaf8d33dd05cb9e95c8c92020366f3fe49a35'
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        return $response;
+
+    }
+
+    public static function pincodeData(){
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://api.postalpincode.in/pincode/110001',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'GET',
+            CURLOPT_HTTPHEADER => array(
+
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        return  $response;
+    }
+    public static function  getPincodeDataEnvia(){
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://geocodes.envia.com/zipcode/IN/500019',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'GET',
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+        return  $response;
+
+    }
 
     /* End of helper class */
 }

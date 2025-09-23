@@ -64,13 +64,13 @@
                                     <td>{{ $po->invoice_no }}</td>
                                     <td>{{ \Carbon\Carbon::parse($po->date)->format('d-m-Y') }}</td>
                                     <td>{{ \Carbon\Carbon::parse($po->due_date)->format('d-m-Y') }}</td>
-                                    <td>{{ \App\Helpers\CustomHelper::getUserName($po->user_id) }}</td>
+                                    <td>{{ \App\Helpers\CustomHelper::getUserName($po->user_id ??'') }}</td>
                                     <td>{{ number_format($po->total_amount, 2) }}</td>
                                     <td>{{ ucfirst($po->payment_mode) }}</td>
                                     <td>{{ ucfirst($po->payment_status) }}</td>
                                     <td>{{ ucfirst($po->order_type) }}</td>
-                                    <td>{{ \App\Helpers\CustomHelper::getUserName($po->created_by) }}</td>
-                                    <td>{{ \App\Helpers\CustomHelper::getStatusStr($po->status) }}</td>
+                                    <td>{{ \App\Helpers\CustomHelper::getUserName($po->created_by??'') }}</td>
+                                    <td>{{ \App\Helpers\CustomHelper::getStatusStr($po->status??'') }}</td>
                                     <td>{{ $po->is_delete ? 'Deleted' : 'Active' }}</td>
                                     <td>{{ \Carbon\Carbon::parse($po->created_at)->format('d-m-Y H:i') }}</td>
                                     <td>{{ \Carbon\Carbon::parse($po->updated_at)->format('d-m-Y H:i') }}</td>

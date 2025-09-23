@@ -55,7 +55,18 @@
                                             <h5 class="mb-0">Delivery Address</h5>
 {{--                                            <a href="#">Edit</a>--}}
                                         </div>
-                                        <div>Name: {{ $orders->customer_name ?? '' }}</div>
+
+                                        @if(!empty($orders->customer_name))
+                                            <strong>{{$orders->customer_name??''}}</strong><br>
+                                            {{$orders->contact_no??''}}
+                                        @else
+                                            @php
+                                                $user = \App\Helpers\CustomHelper::getUserDetails($orders->userID);
+                                            @endphp
+                                            <strong>{{$user->name??''}}</strong><br>
+                                            {{$user->phone??''}}
+                                        @endif
+
                                         <div>{{ $orders->house_no ?? '' }} {{ $orders->appartment ?? '' }}</div>
                                         <div>{{ $orders->landmark ?? '' }}</div>
                                         <div> {{ $orders->location ?? '' }}</div>
@@ -72,7 +83,16 @@
                                             <h5 class="mb-0">Billing Address</h5>
 {{--                                            <a href="#">Edit</a>--}}
                                         </div>
-                                        <div>Name: {{ $orders->customer_name ?? '' }}</div>
+                                        @if(!empty($orders->customer_name))
+                                            <strong>{{$orders->customer_name??''}}</strong><br>
+                                            {{$orders->contact_no??''}}
+                                        @else
+                                            @php
+                                                $user = \App\Helpers\CustomHelper::getUserDetails($orders->userID);
+                                            @endphp
+                                            <strong>{{$user->name??''}}</strong><br>
+                                            {{$user->phone??''}}
+                                        @endif
                                         <div>{{ $orders->house_no ?? '' }} {{ $orders->appartment ?? '' }}</div>
                                         <div>{{ $orders->landmark ?? '' }}</div>
                                         <div> {{ $orders->location ?? '' }}</div>

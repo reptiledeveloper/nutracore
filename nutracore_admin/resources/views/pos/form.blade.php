@@ -124,7 +124,7 @@
 
                             <div class="row mb-3">
                                 <div class="col-md-6">
-                                    <select name="product" id="product_dropdown" class="form-control ">
+                                    <select name="product" id="product_dropdown" class="form-control select2">
                                         <option value="">Select Product</option>
                                         @foreach(\App\Helpers\CustomHelper::getProductsWithVarients() as $p)
                                             <option value="{{ $p['varient_id'] }}">
@@ -226,7 +226,7 @@
     <script>
         let rowCount = 0;
 
-        $(document).on("change", "#product_dropdown", function () {
+        $(document).on("select2:select", "#product_dropdown", function (e) {
             let varientId = $(this).val();
 
             if (!varientId) return;

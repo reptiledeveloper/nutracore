@@ -12,6 +12,7 @@
         $delivery_agents = CustomHelper::getDeliveryAgents();
         $vendors = CustomHelper::getVendors();
         $products = [];
+         $user = \App\Helpers\CustomHelper::getUserDetails($orders->userID);
         $address = DB::table('user_address')->where('id', $orders->address_id)->first();
     @endphp
 
@@ -81,6 +82,9 @@
                                         <option value="porter" {{ $orders->logistics == 'porter' ? 'selected' : '' }}>
                                             Porter
                                         </option>
+                                        <option value="envia" {{ $orders->logistics == 'envia' ? 'selected' : '' }}>
+                                            Envia
+                                        </option>
                                     </select>
                                 </div>
 
@@ -104,6 +108,8 @@
                             @include('orders.shiprocket')
                         @elseif($orders->logistics == 'porter')
                             @include('orders.porter')
+                        @elseif($orders->logistics == 'envia')
+                            @include('orders.envia')
                         @endif
 
                     </div>
@@ -131,10 +137,15 @@
                                 {{ date('d M Y h:i A', strtotime($orders->created_at)) }}
                             </div>
                             <div class="col-md-3 col-sm-6">
-                                <p class="fw-bold">Name</p>{{ $orders->customer_name }}
+                                <p class="fw-bold">Name</p> @if(!empty($orders->customer_name))
+                                    {{ $orders->customer_name }}
+                                @else
+                                    {{$user->name??''}}
+
+                                @endif
                             </div>
                             <div class="col-md-3 col-sm-6">
-                                <p class="fw-bold">Contact No</p>{{ $orders->contact_no }}
+                                <p class="fw-bold">Contact No</p>{{ !empty($orders->contact_no) ? $orders->contact_no : $user->phone ??''}}
                             </div>
                             <div class="col-md-3 col-sm-6">
                                 <p class="fw-bold">Payment Status</p>{{ strtoupper($orders->payment_method) }}
@@ -152,12 +163,13 @@
                                             <a href="javascript:;" data-bs-toggle="modal"
                                                data-bs-target="#updateAddressModal">Edit</a>
                                         </div>
-                                        <div>Name: {{ $orders->customer_name }}</div>
+                                        <div>Name:
+                                        {{ !empty($orders->customer_name) ? $orders->customer_name : $user->name ??''}}</div>
                                         <div>{{ $orders->house_no }} {{ $orders->apartment }}</div>
                                         <div>{{ $orders->landmark }}</div>
                                         <div>{{ $orders->location }}</div>
                                         <div>{{ $orders->pincode }}</div>
-                                        <div><i class="bi bi-telephone me-2"></i> {{ $orders->contact_no }}</div>
+                                        <div><i class="bi bi-telephone me-2"></i> {{ !empty($orders->contact_no) ? $orders->contact_no : $user->phone ??''}}</div>
                                     </div>
                                 </div>
                             </div>
@@ -169,11 +181,12 @@
                                         <div class="d-flex justify-content-between">
                                             <h5 class="mb-0">Billing Address</h5>
                                         </div>
-                                        <div>Name: {{ $orders->customer_name }}</div>
+                                        <div>Name:
+                                            {{ !empty($orders->customer_name) ? $orders->customer_name : $user->name ??''}}</div>
                                         <div>{{ $orders->house_no }} {{ $orders->apartment }}</div>
                                         <div>{{ $orders->landmark }}</div>
                                         <div>{{ $orders->location }}</div>
-                                        <div><i class="bi bi-telephone me-2"></i> {{ $orders->contact_no }}</div>
+                                        <div><i class="bi bi-telephone me-2"></i> {{ !empty($orders->contact_no) ? $orders->contact_no : $user->phone ??''}}</div>
                                     </div>
                                 </div>
                             </div>
@@ -445,7 +458,7 @@
                 data: {logistics, logistics, order_id: order_id},
                 headers: {'X-CSRF-TOKEN': _token},
                 success: function () {
-                    // location.reload();
+                     location.reload();
                 }
             });
         }

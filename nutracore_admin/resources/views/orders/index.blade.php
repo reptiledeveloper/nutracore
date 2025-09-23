@@ -79,8 +79,17 @@
                                 @endforeach
                             </td>
                             <td>
-                                <strong>{{$order->customer_name??''}}</strong><br>
-                                {{$order->contact_no??''}}
+                                @if(!empty($order->customer_name))
+                                    <strong>{{$order->customer_name??''}}</strong><br>
+                                    {{$order->contact_no??''}}
+                                @else
+                                    @php
+                                        $user = \App\Helpers\CustomHelper::getUserDetails($order->userID);
+                                    @endphp
+                                    <strong>{{$user->name??''}}</strong><br>
+                                    {{$user->phone??''}}
+                                @endif
+
                             </td>
                             <td class="text-wrap">{{$order->house_no??''}} {{$order->land_mark??''}} {{$order->apartment??''}} {{$order->location??''}}</td>
                             <td>{{$count_order_items??''}}</td>

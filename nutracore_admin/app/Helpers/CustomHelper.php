@@ -134,6 +134,12 @@ class CustomHelper
         return $stock_data->no_of_stock ?? 0;
     }
 
+    public static function getUserName($userID)
+    {
+        $user = User::where('id', $userID)->first();
+        return $user->name ?? '';
+
+    }
 
     public static function logStock($product_id, $variant_id, $store_id, $action, $quantity, $related_id = null, $related_type = null)
     {
@@ -299,29 +305,29 @@ class CustomHelper
                 if (!empty($product->variants) && count($product->variants) > 0) {
                     foreach ($product->variants as $varient) {
                         $productArr[] = [
-                            'product_id'        => $product->id,
-                            'product_name'      => $product->name,
-                            'product_sku'       => $product->sku,
-                            'mrp'               => $varient->mrp ?? 0,
-                            'selling_price'     => $varient->selling_price ?? 0,
-                            'unit'              => $varient->unit ?? '',
-                            'subscription_price'=> $varient->subscription_price ?? 0,
-                            'varient_sku'       => $varient->varient_sku ?? '',
-                            'varient_id'        => $varient->id ?? 0,
+                            'product_id' => $product->id,
+                            'product_name' => $product->name,
+                            'product_sku' => $product->sku,
+                            'mrp' => $varient->mrp ?? 0,
+                            'selling_price' => $varient->selling_price ?? 0,
+                            'unit' => $varient->unit ?? '',
+                            'subscription_price' => $varient->subscription_price ?? 0,
+                            'varient_sku' => $varient->varient_sku ?? '',
+                            'varient_id' => $varient->id ?? 0,
                         ];
                     }
                 } else {
                     // product without variants
                     $productArr[] = [
-                        'product_id'        => $product->id,
-                        'product_name'      => $product->name,
-                        'product_sku'       => $product->sku,
-                        'mrp'               => $product->mrp ?? 0,
-                        'selling_price'     => $product->selling_price ?? 0,
-                        'unit'              => '',
-                        'subscription_price'=> $product->subscription_price ?? 0,
-                        'varient_sku'       => $product->sku,
-                        'varient_id'        => 0,
+                        'product_id' => $product->id,
+                        'product_name' => $product->name,
+                        'product_sku' => $product->sku,
+                        'mrp' => $product->mrp ?? 0,
+                        'selling_price' => $product->selling_price ?? 0,
+                        'unit' => '',
+                        'subscription_price' => $product->subscription_price ?? 0,
+                        'varient_sku' => $product->sku,
+                        'varient_id' => 0,
                     ];
                 }
             }
@@ -329,7 +335,6 @@ class CustomHelper
 
         return $productArr;
     }
-
 
 
     public static function getLoanNo($string)
@@ -3733,7 +3738,7 @@ class CustomHelper
     }
 
 
-    public function orderDelivered($mobile, $orderID)
+    public static function orderDelivered($mobile, $orderID)
     {
         $user_name = "User";
         $curl = curl_init();
@@ -3758,7 +3763,7 @@ class CustomHelper
 
     }
 
-    public function orderCancelled($mobile, $orderID)
+    public static function orderCancelled($mobile, $orderID)
     {
         $user_name = "User";
         $curl = curl_init();

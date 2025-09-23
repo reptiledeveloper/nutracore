@@ -3238,12 +3238,12 @@ class ApiController extends Controller
             $delivery_data['normalSlot'] = $normalSlot;
         }
         $subscription_plans = null;
-        if (CustomHelper::checkSubscription($user) == 1) {
+        if (CustomHelper::checkSubscription($user) == 0) {
             $subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->where('is_show', "0")->first();
         }
 
         $subscription_plans_new = [];
-        if (CustomHelper::checkSubscription($user) == 1) {
+        if (CustomHelper::checkSubscription($user) == 0) {
             $subscription_plans_new = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->orderBy('duration', "ASC")->get();
         }
 
