@@ -3788,5 +3788,93 @@ class CustomHelper
 
     }
 
+    public static function getquoteEnvia($orders,$courier)
+    {
+        $data = [
+            'origin' => [
+                'name' => 'Satya',
+                'company' => 'EnviaIndia',
+                'email' => 'satya@example.com',
+                'phone' => '9876543210',
+                'street' => 'MG Road',
+                'number' => '12',
+                'district' => 'Koramangala',
+                'city' => 'Bengaluru',
+                'state' => 'KA',
+                'country' => 'IN',
+                'postalCode' => '560095',
+                'reference' => '',
+                'coordinates' => [
+                    'latitude' => '12.971599',
+                    'longitude' => '77.594566'
+                ]
+            ],
+            'destination' => [
+                'name' => 'Rahul Sharma',
+                'company' => '',
+                'email' => 'rahul@example.com',
+                'phone' => '9123456780',
+                'street' => 'Connaught Place',
+                'number' => '5',
+                'district' => 'Central Delhi',
+                'city' => 'New Delhi',
+                'state' => 'DL',
+                'country' => 'IN',
+                'postalCode' => '110001',
+                'reference' => '',
+                'coordinates' => [
+                    'latitude' => '28.630420',
+                    'longitude' => '77.217721'
+                ]
+            ],
+            'packages' => [
+                [
+                    'content' => 'Shoes',
+                    'amount' => 1,
+                    'type' => 'box',
+                    'weight' => 2,
+                    'insurance' => 0,
+                    'declaredValue' => 1000,
+                    'weightUnit' => 'KG',
+                    'lengthUnit' => 'CM',
+                    'dimensions' => [
+                        'length' => 30,
+                        'width' => 20,
+                        'height' => 15
+                    ]
+                ]
+            ],
+            'shipment' => [
+                'carrier' => $courier,
+                'type' => 1
+            ],
+            'settings' => [
+                'currency' => 'INR'
+            ]
+        ];
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://api-test.envia.com/ship/rate/',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => json_encode($data),
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: application/json',
+                'Authorization: Bearer 089ab863726cc060246c56bbb4cdaf8d33dd05cb9e95c8c92020366f3fe49a35'
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        return json_decode($response);
+
+    }
+
     /* End of helper class */
 }

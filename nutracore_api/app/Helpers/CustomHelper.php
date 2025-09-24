@@ -588,7 +588,7 @@ class CustomHelper
         $exist_subscription = Subscriptions::where('user_id', $user->id)->where('paid_status', 1)->latest()->first();
         if (!empty($exist_subscription)) {
             $current_date = date('Y-m-d');
-            if(!empty($user->subscription_end)){
+            if (!empty($user->subscription_end)) {
                 if (strtotime($user->subscription_end) >= strtotime($current_date)) {
                     $is_active = 1;
                 }
@@ -3565,6 +3565,7 @@ class CustomHelper
         curl_close($curl);
         return $response;
     }
+
     public static function createAccessToken()
     {
         $path = storage_path('app/public') . '/config.json';
@@ -3807,9 +3808,9 @@ class CustomHelper
 
     }
 
-    public static function sendGiftCardMessage($mobile,$code)
+    public static function sendGiftCardMessage($mobile, $code)
     {
-     $user_name = "User";
+        $user_name = "User";
         $curl = curl_init();
         curl_setopt_array($curl, [
             CURLOPT_URL => "https://api.msg91.com/api/v5/flow/",
@@ -3832,9 +3833,9 @@ class CustomHelper
 
     }
 
-    public static function sendPlaceNewOrder($mobile,$orderID)
+    public static function sendPlaceNewOrder($mobile, $orderID)
     {
-     $user_name = "User";
+        $user_name = "User";
         $curl = curl_init();
         curl_setopt_array($curl, [
             CURLOPT_URL => "https://api.msg91.com/api/v5/flow/",
@@ -3857,7 +3858,8 @@ class CustomHelper
 
     }
 
-    public static function availableCourier(){
+    public static function availableCourier()
+    {
         $curl = curl_init();
         curl_setopt_array($curl, array(
             CURLOPT_URL => 'https://queries-test.envia.com/available-carrier/IN/0',
@@ -3880,7 +3882,8 @@ class CustomHelper
 
     }
 
-    public static function pincodeData(){
+    public static function pincodeData()
+    {
 
         $curl = curl_init();
 
@@ -3893,20 +3896,20 @@ class CustomHelper
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => 'GET',
-            CURLOPT_HTTPHEADER => array(
-
-            ),
+            CURLOPT_HTTPHEADER => array(),
         ));
 
         $response = curl_exec($curl);
 
         curl_close($curl);
-        return  $response;
+        return $response;
     }
-    public static function  getPincodeDataEnvia(){
+
+    public static function getPincodeDataEnvia($pincode)
+    {
         $curl = curl_init();
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'https://geocodes.envia.com/zipcode/IN/500019',
+            CURLOPT_URL => 'https://geocodes.envia.com/zipcode/IN/' . $pincode,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -3918,7 +3921,7 @@ class CustomHelper
 
         $response = curl_exec($curl);
         curl_close($curl);
-        return  $response;
+        return json_decode($response);
 
     }
 

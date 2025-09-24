@@ -379,7 +379,7 @@ class ApiController extends Controller
             $is_update = 1;
         }
         $user->device_token = $request->device_token ?? '';
-        if(!empty($request->device_token)){
+        if (!empty($request->device_token)) {
             $topic = 'news';
             $accessToken = CustomHelper::createAccessToken();
             CustomHelper::subscribeToTopic($request->device_token, $topic, $accessToken);
@@ -1171,7 +1171,7 @@ class ApiController extends Controller
                                                 }
                                             }
                                             Cart::where('user_id', $user->id)->delete();
-                                            CustomHelper::sendPlaceNewOrder($user->phone??'',$exist->order_id??'');
+                                            CustomHelper::sendPlaceNewOrder($user->phone ?? '', $exist->order_id ?? '');
                                             self::sendOrderNotification($exist->order_id ?? '');
 
                                         }
@@ -3315,7 +3315,7 @@ class ApiController extends Controller
     public function update_user_address(Request $request): \Illuminate\Http\JsonResponse
     {
         $validator = Validator::make($request->all(), [
-
+            "pincode" => "required"
         ]);
         $user = null;
         if ($validator->fails()) {
@@ -3366,6 +3366,19 @@ class ApiController extends Controller
         } else {
             $addressID = DB::table('user_address')->insertGetId($dbArray);
             User::where('id', $user->id)->update(['addressID' => $addressID, 'latitude' => $request->latitude, 'longitude' => $request->longitude]);
+        }
+
+        if(!empty($request->pincode)){
+            $response = CustomHelper::getPincodeDataEnvia($request->pincode);
+            if(!empty($response)){
+                $response = $response[0] ??'';
+                $dbArray = [];
+                $variable = '2digit';
+                $dbArray['country'] = $response->country->code ??'';
+                $dbArray['state'] = $response->state->code->$variable ??'';
+                $dbArray['envia_data'] = json_encode($response) ??'';
+                UserAddress::where('id',$addressID)->update($dbArray);
+            }
         }
 
         return response()->json([
@@ -3554,7 +3567,7 @@ class ApiController extends Controller
                             self::sendOrderNotification($order_id);
                             Cart::where('user_id', $user->id)->delete();
                         }
-                        CustomHelper::sendPlaceNewOrder($user->phone??'',$order_id);
+                        CustomHelper::sendPlaceNewOrder($user->phone ?? '', $order_id);
                     }
                     if ($payment_method == 'ONLINE' || $payment_method == 'online') {
                         $wallet = $user->wallet ?? 0;
@@ -3577,7 +3590,7 @@ class ApiController extends Controller
                         if ($order_id) {
                             self::sendOrderNotification($order_id);
                             Cart::where('user_id', $user->id)->delete();
-                            CustomHelper::sendPlaceNewOrder($user->phone??'',$order_id);
+                            CustomHelper::sendPlaceNewOrder($user->phone ?? '', $order_id);
                         }
                     }
                     if ($payment_method == 'ONLINE' || $payment_method == 'online') {
