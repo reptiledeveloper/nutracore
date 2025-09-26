@@ -6,26 +6,23 @@
     $total_cart_price = 0;
 @endphp
 
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Invoice - ORD{{ $orders->id }}</title>
     <style>
-        @page {
-            size: A4;
-            margin: 20mm;
-        }
 
         body {
             font-family: Arial, sans-serif;
-            font-size: 12px;
-            margin: 0 auto;
-            width: 100%;
+            font-size: 12pt;  /* use pt for printing */
+            margin: 0;
+            padding: 0;
         }
 
         .container {
-            padding: 10px;
+            width: 210mm;   /* full A4 width */
+            padding: 10mm;  /* page padding */
         }
 
         .center {
@@ -83,19 +80,27 @@
     </style>
 </head>
 <body>
+
+@php
+    $logoPath = url('public/assets/images/logo.png');
+    $logoBase64 = base64_encode(file_get_contents($logoPath));
+@endphp
 <div class="container">
     <div class="center">
-        <img src="{{url('public/assets/images/logo.png')}}" class="logo" alt="Logo">
+        <img src="data:image/png;base64,{{ $logoBase64 }}" alt="Logo" style="max-width:150px;">
     </div>
 
-    <div class="center bold mt-10">{{ $seller_details->name ?? '' }}</div>
+    <div class="center bold mt-10">Nutracore</div>
     <div class="center bold mt-10">Invoice</div>
-    <div class="center">{{ $seller_details->address ?? '' }}</div>
-    <div class="center">GSTIN: {{ $seller_details->tax_number ?? '' }}</div>
-    <div class="center">Email: {{ $seller_details->user_email ?? '' }}</div>
-    <div class="center">Phone: {{ $seller_details->user_phone ?? '' }}</div>
+    <div class="center">House No 2-39, 1st Floor, Tellapur Road, Hyderabad <br>
+        Rangareddy - 500019, Telangana (36)</div>
+    <div class="center">GSTIN: 36GOOPS5702B1ZS</div>
+    <div class="center">PAN NO: GOOPS5702B</div>
+    <div class="center">Email:  nutracore.in@gmail.com</div>
+    <div class="center">Phone: 8885065550</div>
 
     <div class="line"></div>
+
 
     <table class="table">
         <tr>

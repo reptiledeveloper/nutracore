@@ -235,6 +235,22 @@
                         </div>
                     </div>
                 </div>
+
+                @if(!empty($orders->subscription_id) && $orders->subscription_id != "null")
+                    @php
+                        $subscription =\App\Models\SubscriptionPlans::where('id',$orders->subscription_id)->first();
+                    @endphp
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <h6 class="card-title mb-4">Subscription</h6>
+                            <div class="row">
+                                <div class="col-6 text-end">Plan Name : {{$subscription->name??''}}</div>
+                                <div class="col-6 text-end">Amount : {{$subscription->price??''}}</div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
             </div>
         </div>
 

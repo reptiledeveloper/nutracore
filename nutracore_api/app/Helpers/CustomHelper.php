@@ -545,7 +545,7 @@ class CustomHelper
             ->where('to_amount', '>=', $amount)
             ->first();
         if (!empty($active_loyalty)) {
-            return round(($amount * (int)$active_loyalty->cashback) / 100);
+            return round(((int)$amount * (int)$active_loyalty->cashback) / 100);
         }
         return 0;
 
@@ -3924,6 +3924,157 @@ class CustomHelper
         return json_decode($response);
 
     }
+
+
+    public static function getquoteEnvia($product, $courier)
+    {
+
+        $packages = [];
+        if (!empty($order_items)) {
+            foreach ($order_items as $items) {
+                $product = CustomHelper::getProductDeatils($items->product_id);
+                $dbArray = [
+                    'content' => $product->name ?? '',
+                    'amount' => 1,
+                    'type' => 'box',
+                    'weight' => (float)$items->weight ?? '',
+                    'insurance' => 0,
+                    'declaredValue' => (int)$items->net_price ?? '',
+                    'weightUnit' => 'KG',
+                    'lengthUnit' => 'CM',
+                    'dimensions' => [
+                        'length' => (int)$items->length ?? '',
+                        'width' => (int)$items->width ?? '',
+                        'height' => (int)$items->height ?? '',
+                    ]
+                ];
+                if (!empty($items->weight) && !empty($items->length) && !empty($items->width) && !empty($items->height)) {
+                    $packages[] = $dbArray;
+                }
+            }
+        }
+        $data = [
+            'origin' => [
+                'name' => $vendor->name ?? '',
+                'company' => 'EnviaIndia',
+                'email' => $vendor->user_email ?? '',
+                'phone' => $vendor->user_phone ?? '',
+                'street' => $vendor->address ?? '',
+                'number' => '',
+                'district' => '',
+                'city' => 'Telengana',
+                'state' => 'TG',
+                'country' => 'IN',
+                'postalCode' => $vendor->pincode ?? '',
+                'reference' => '',
+                'coordinates' => [
+                    'latitude' => $vendor->latitude ?? '',
+                    'longitude' => $vendor->longitude ?? '',
+                ]
+            ],
+            'destination' => [
+                'name' => $orders->customer_name ?? '',
+                'company' => '',
+                'email' => $orders->customer_name ?? '',
+                'phone' => $orders->contact_no ?? '',
+                'street' => $orders->house_no ?? '',
+                'number' => $orders->landmark . ' ' . $orders->location,
+                'district' => $envia_data->locality ?? '',
+                'city' => $envia_data->locality ?? '',
+                'state' => $address->state ?? '',
+                'country' => 'IN',
+                'postalCode' => (string)$address->pincode ?? '',
+                'reference' => '',
+                'coordinates' => [
+                    'latitude' => $orders->latitude ?? '',
+                    'longitude' => $orders->longitude ?? '',
+                ]
+            ],
+            'packages' => $packages,
+            'shipment' => [
+                'carrier' => "delhivery",
+                'type' => 1
+            ],
+            'settings' => [
+                'currency' => 'INR'
+            ]
+        ];
+//        echo json_encode($data);die;
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://api.envia.com/ship/rate/',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => json_encode($data),
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: application/json',
+                'Authorization: Bearer ba4995dd978fa863b4fcc07bae59642de7ecc57238bb101edb298502b010ecf6'
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+
+        return json_decode($response);
+
+    }
+
+    public static function Membership_Purchase($mobile, $order_id,$endate)
+    {
+        $user_name = "User";
+        $curl = curl_init();
+        curl_setopt_array($curl, [
+            CURLOPT_URL => "https://api.msg91.com/api/v5/flow/",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => "{\n  \"flow_id\": \"68d422dc5f5988715d1de0de\",\n  \"sender\": \"NUTRCR\",\n  \"mobiles\": \"91$mobile\",\n  \"var\": \"$order_id\",\n  \"var\": \"$endate\"}",
+            CURLOPT_HTTPHEADER => [
+                "authkey: 431621ABncLfiKpzo6875ff9bP1",
+                "content-type: application/JSON"
+            ],
+        ]);
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        curl_close($curl);
+        return $response;
+
+    }
+
+    public static function Redeeming_NC_Cash($mobile, $balance,$remaining_balance)
+    {
+        $user_name = "User";
+        $curl = curl_init();
+        curl_setopt_array($curl, [
+            CURLOPT_URL => "https://api.msg91.com/api/v5/flow/",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => "{\n  \"flow_id\": \"68d4f5479dc2116c26417289\",\n  \"sender\": \"NUTRCR\",\n  \"mobiles\": \"91$mobile\",\n  \"var\": \"$balance\",\n  \"var\": \"$remaining_balance\"}",
+            CURLOPT_HTTPHEADER => [
+                "authkey: 431621ABncLfiKpzo6875ff9bP1",
+                "content-type: application/JSON"
+            ],
+        ]);
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        curl_close($curl);
+        return $response;
+
+    }
+
 
     /* End of helper class */
 }

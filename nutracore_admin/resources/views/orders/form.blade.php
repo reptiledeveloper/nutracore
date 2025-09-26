@@ -89,7 +89,10 @@
                                 </div>
 
                             </div>
-
+                            <div class="dropdown ms-auto">
+                                <a data-bs-toggle="modal"
+                                   data-bs-target="#updateDimensionModal" class="btn btn-primary">Update Dimension</a>
+                            </div>
                             <div class="dropdown ms-auto">
                                 <a href="" class="btn btn-primary"><i class="fa fa-refresh"></i></a>
                             </div>
@@ -145,7 +148,8 @@
                                 @endif
                             </div>
                             <div class="col-md-3 col-sm-6">
-                                <p class="fw-bold">Contact No</p>{{ !empty($orders->contact_no) ? $orders->contact_no : $user->phone ??''}}
+                                <p class="fw-bold">Contact
+                                    No</p>{{ !empty($orders->contact_no) ? $orders->contact_no : $user->phone ??''}}
                             </div>
                             <div class="col-md-3 col-sm-6">
                                 <p class="fw-bold">Payment Status</p>{{ strtoupper($orders->payment_method) }}
@@ -164,12 +168,14 @@
                                                data-bs-target="#updateAddressModal">Edit</a>
                                         </div>
                                         <div>Name:
-                                        {{ !empty($orders->customer_name) ? $orders->customer_name : $user->name ??''}}</div>
+                                            {{ !empty($orders->customer_name) ? $orders->customer_name : $user->name ??''}}</div>
                                         <div>{{ $orders->house_no }} {{ $orders->apartment }}</div>
                                         <div>{{ $orders->landmark }}</div>
                                         <div>{{ $orders->location }}</div>
                                         <div>{{ $orders->pincode }}</div>
-                                        <div><i class="bi bi-telephone me-2"></i> {{ !empty($orders->contact_no) ? $orders->contact_no : $user->phone ??''}}</div>
+                                        <div>
+                                            <i class="bi bi-telephone me-2"></i> {{ !empty($orders->contact_no) ? $orders->contact_no : $user->phone ??''}}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -186,7 +192,9 @@
                                         <div>{{ $orders->house_no }} {{ $orders->apartment }}</div>
                                         <div>{{ $orders->landmark }}</div>
                                         <div>{{ $orders->location }}</div>
-                                        <div><i class="bi bi-telephone me-2"></i> {{ !empty($orders->contact_no) ? $orders->contact_no : $user->phone ??''}}</div>
+                                        <div>
+                                            <i class="bi bi-telephone me-2"></i> {{ !empty($orders->contact_no) ? $orders->contact_no : $user->phone ??''}}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -197,6 +205,9 @@
             </div>
 
             {{-- Right - Pricing --}}
+
+
+
             <div class="col-lg-4 col-md-12 mt-4 mt-lg-0">
                 <div class="card mb-4">
                     <div class="card-body">
@@ -231,7 +242,23 @@
                         </div>
                     </div>
                 </div>
+                @if(!empty($orders->subscription_id) && $orders->subscription_id != "null")
+                    @php
+                    $subscription =\App\Models\SubscriptionPlans::where('id',$orders->subscription_id)->first();
+                    @endphp
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title mb-4">Subscription</h6>
+                        <div class="row">
+                            <div class="col-6 text-end">Plan Name : {{$subscription->name??''}}</div>
+                            <div class="col-6 text-end">Amount : {{$subscription->price??''}}</div>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
             </div>
+
         </div>
         <div class="row mt-3" id="update_order_form" style="display: none;">
             <div class="card ">
@@ -319,7 +346,7 @@
                                 @php
                                     $product = CustomHelper::getProductDeatils($value->product_id);
                                     $image = CustomHelper::getImageUrl('products', $product->image);
-                                    $varients = CustomHelper::getVendorProductSingleVarients($orders->vendor_id, $value->product_id, $value->variant_id);
+                                    $varients = CustomHelper::getAdminProductSingleVarients($value->product_id, $value->variant_id);
                                 @endphp
                                 <tr>
                                     <td>{{ $i + 1 }}</td>
@@ -362,7 +389,7 @@
                                                      alt="...">
                                             </a>
                                         </td>
-                                        <td>{{$pro->name??''}}</td>
+                                        <td>{{$pro->name??''}} </td>
                                         <td> ₹ {{$freebees_product->amount??''}}</td>
                                         <td></td>
                                         <td>1</td>
@@ -385,7 +412,68 @@
     </div>
 
 
-
+    <div class="modal fade" id="updateDimensionModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Book Shipment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ route('orders.update_dimension',['id'=>$orders->id]) }}" method="post">
+                    @csrf
+                    <input type="hidden" name="id" value="{{$orders->id}}">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-4 mt-3">
+                                Name
+                            </div>
+                            <div class="col-md-2 mt-3">
+                                Weight (in KG)
+                            </div>
+                            <div class="col-md-2 mt-3">
+                               Length (In CM)
+                            </div>
+                            <div class="col-md-2 mt-3">
+                                Width (In CM)
+                            </div>
+                            <div class="col-md-2 mt-3">
+                                Height (In CM)
+                            </div>
+                            @foreach($order_items as $i => $value)
+                                @php
+                                    $product = CustomHelper::getProductDeatils($value->product_id);
+                                    $image = CustomHelper::getImageUrl('products', $product->image);
+                                    $varients = CustomHelper::getAdminProductSingleVarients($value->product_id, $value->variant_id);
+                                @endphp
+                            <input type="hidden" name="item_ids[]" value="{{$value->id??''}}">
+                                <div class="col-md-4 mt-3">
+{{--                                    <label class="form-label">{{ $product->name }} - {{ $varients->unit ??'' }} {{ $varients->unit_value ??'' }}</label>--}}
+                                    <label class="form-label">Box - {{$i+1}}</label>
+                                </div>
+                                <div class="col-md-2 mt-3">
+                                  <input type="text" class="form-control" name="weight[]" value="{{$value->weight??''}}">
+                                </div>
+                                <div class="col-md-2 mt-3">
+                                    <input type="text" class="form-control" name="length[]" value="{{$value->length??''}}">
+                                </div>
+                                <div class="col-md-2 mt-3">
+                                    <input type="text" class="form-control" name="width[]" value="{{$value->width??''}}">
+                                </div>
+                                <div class="col-md-2 mt-3">
+                                    <input type="text" class="form-control" name="height[]" value="{{$value->height??''}}">
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <div class="modal fade" id="updateAddressModal" tabindex="-1" aria-labelledby="exampleModalLabel"
          aria-hidden="true">
@@ -436,17 +524,19 @@
     {{-- JS --}}
     <script>
         function update_order_status(item_id, status, delivery_boy, vendor_id) {
-            var order_id = '{{ $orders->id }}';
-            var _token = '{{ csrf_token() }}';
-            $.ajax({
-                url: "{{ route('orders.update_order_status') }}",
-                type: "POST",
-                data: {status, order_id, item_id, delivery_boy, vendor_id},
-                headers: {'X-CSRF-TOKEN': _token},
-                success: function (resp) {
-                    // alert('Updated...');
-                }
-            });
+            if(confirm('Are You Sure Want To Update The Status')){
+                var order_id = '{{ $orders->id }}';
+                var _token = '{{ csrf_token() }}';
+                $.ajax({
+                    url: "{{ route('orders.update_order_status') }}",
+                    type: "POST",
+                    data: {status, order_id, item_id, delivery_boy, vendor_id},
+                    headers: {'X-CSRF-TOKEN': _token},
+                    success: function (resp) {
+                        // alert('Updated...');
+                    }
+                });
+            }
         }
 
         function update_logistics(logistics) {
@@ -458,7 +548,7 @@
                 data: {logistics, logistics, order_id: order_id},
                 headers: {'X-CSRF-TOKEN': _token},
                 success: function () {
-                     location.reload();
+                    location.reload();
                 }
             });
         }

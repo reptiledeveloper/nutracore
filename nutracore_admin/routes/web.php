@@ -485,6 +485,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'update_order', 'OrderController@update_order')->name('.update_order');
             Route::match(['get', 'post'], 'book_porter/{order_id}', 'OrderController@book_porter')->name('.book_porter');
             Route::match(['get', 'post'], 'cancel_porter/{order_id}', 'OrderController@cancel_porter')->name('.cancel_porter');
+            Route::match(['get', 'post'], 'update_dimension/{id}', 'OrderController@update_dimension')->name('.update_dimension');
+            Route::match(['get', 'post'], 'book_envia_shipment/{id}', 'OrderController@book_envia_shipment')->name('.book_envia_shipment');
         });
         ////users
         Route::group(['prefix' => 'users', 'as' => 'users', 'middleware' => ['allowedmodule:users,list']], function () {

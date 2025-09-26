@@ -9,6 +9,8 @@ use App\Models\Order;
 use App\Models\OrderItems;
 use App\Models\OrderStatus;
 use App\Models\ProductVarient;
+use App\Models\RazorpayOrders;
+use App\Models\SubscriptionPlans;
 use App\Models\Subscriptions;
 use App\Models\User;
 use App\Models\Varients;
@@ -19,10 +21,10 @@ use DB;
 use Google\Service\Monitoring\Custom;
 use Hash;
 use Illuminate\Http\Request;
-use PDF;
+
 use Storage;
 use Validator;
-
+use PDF;
 
 class OrderController extends Controller
 {
@@ -125,7 +127,7 @@ class OrderController extends Controller
             $dbArray['variant_id'] = $varient_id;
             $dbArray['qty'] = $qty;
             $dbArray['price'] = $varients->selling_price ?? 0;
-            $dbArray['net_price'] = (int) $varients->selling_price * (int) $qty;
+            $dbArray['net_price'] = (int)$varients->selling_price * (int)$qty;
             $dbArray['status'] = 'PLACED';
             if (empty($items_id)) {
                 OrderItems::insert($dbArray);
@@ -162,7 +164,7 @@ class OrderController extends Controller
                         $dbArray['order_amount'] = $cartValue['cart_price'] ?? '';
                         $dbArray['total_amount'] = $cartValue['total_price'] ?? '';
                         $dbArray['online_amount'] = $online_amount ?? 0;
-                        $dbArray['cod_amount'] = (int) $cartValue['total_price'] - (int) $online_amount;
+                        $dbArray['cod_amount'] = (int)$cartValue['total_price'] - (int)$online_amount;
                     }
                     if ($online_amount > $cartValue['total_price']) {
                         $dbArray['coupon_discount'] = $cartValue['coupon_discount'] ?? '';
@@ -176,7 +178,7 @@ class OrderController extends Controller
                         if (!empty($user)) {
                             $amount = $online_amount - $cartValue['total_price'];
                             $wallet = $user->wallet ?? 0;
-                            $new_wallet = (int) $wallet + $amount;
+                            $new_wallet = (int)$wallet + $amount;
                             $user->wallet = $new_wallet;
                             $user->save();
                             $dbArray1 = [];
@@ -289,60 +291,90 @@ class OrderController extends Controller
     }
 
 
-    public function generateInvoicePdf(Request $request)
+    public function generateInvoicePdfold(Request $request)
     {
         $orderID = $request->id;
         $orders = Order::where('id', $orderID)->first();
         $seller_details = Vendors::where('id', $orders->id)->first();
-        $data = ['orders' => $orders, 'seller_details' => $seller_details];
 
-        $pdf = PDF::loadView('orders.saleinvoice_80', $data);
-        $pdf->setPaper([0, 0, 226, 9999]);
-        $pdf->setOptions([
-            'isRemoteEnabled' => true,
-            'isHtml5ParserEnabled' => true,
-            'isPhpEnabled' => true,
-        ]);
+        $data = [
+            'orders' => $orders,
+            'seller_details' => $seller_details
+        ];
 
-        $filename = 'Invoice_' . $orderID . 'order' . rand(111, 999999) . time() . '.pdf';
+        $pdf = PDF::loadView('orders.saleinvoice_a4', $data)
+            ->setPaper('a4') // lowercase works better
+            ->setOrientation('portrait')
+            ->setOption('enable-local-file-access', true)
+            ->setOption('margin-top', '0mm')
+            ->setOption('margin-bottom', '0mm')
+            ->setOption('margin-left', '0mm')
+            ->setOption('margin-right', '0mm');
+
+
+        $filename = 'Invoice_' . $orderID . '_order_' . rand(111, 999999) . time() . '.pdf';
+
+        return $pdf->stream($filename);
+    }
+
+    public function generateInvoicePdf(Request $request)
+    {
+        $data = [];
+        $pdf = PDF::loadView('orders.saleinvoice_a4_new', $data)
+            ->setPaper('a4')
+            ->setOrientation('portrait')
+            ->setOption('enable-local-file-access', true)
+            ->setOption('margin-top', '10mm')
+            ->setOption('margin-bottom', '10mm')
+            ->setOption('margin-left', '10mm')
+            ->setOption('margin-right', '10mm')
+            ->setOption('zoom', 1.2); // increases content scale
+
+
+        $filename = 'Invoice_order_' . rand(111, 999999) . time() . '.pdf';
+
         return $pdf->stream($filename);
     }
 
 
-    public function get_varients(Request $request){
-        $product_id = $request->product_id??'';
+    public function get_varients(Request $request)
+    {
+        $product_id = $request->product_id ?? '';
         $html = '<option value="" selected>Choose Varient</option>';
         $varients = CustomHelper::getProductVarients($product_id);
-        if(!empty($varients)){
-            foreach($varients as $varient){
-                $html.='<option value='.$varient->id.'>'.$varient->unit.'</option>';
+        if (!empty($varients)) {
+            foreach ($varients as $varient) {
+                $html .= '<option value=' . $varient->id . '>' . $varient->unit . '</option>';
             }
         }
         echo $html;
     }
-     public function get_varient_detail(Request $request){
-        $varient_id = $request->varient_id??'';
+
+    public function get_varient_detail(Request $request)
+    {
+        $varient_id = $request->varient_id ?? '';
         $varient = ProductVarient::find($varient_id);
-        return json_encode(['varient'=>$varient]);
+        return json_encode(['varient' => $varient]);
     }
 
-    public function update_order(Request $request){
-        $id = $request->id??'';
-        $product_id = $request->product_id??'';
-        $varient_id = $request->varient_id??'';
-        $price = $request->price??'';
-        $qty = $request->qty??'';
+    public function update_order(Request $request)
+    {
+        $id = $request->id ?? '';
+        $product_id = $request->product_id ?? '';
+        $varient_id = $request->varient_id ?? '';
+        $price = $request->price ?? '';
+        $qty = $request->qty ?? '';
         $order = Order::find($id);
         $varient = ProductVarient::find($id);
-        $selling_price = $varient->selling_price??'';
-        $order_amount = $order->order_amount??'';
-        $total_amount = $order->total_amount??'';
+        $selling_price = $varient->selling_price ?? '';
+        $order_amount = $order->order_amount ?? '';
+        $total_amount = $order->total_amount ?? '';
         $order_amount = (int)$order_amount + (int)$selling_price;
         $total_amount = (int)$total_amount + (int)$selling_price;
         $dbArray = [];
         $dbArray['order_amount'] = $order_amount;
         $dbArray['total_amount'] = $total_amount;
-        Order::where('id',$id)->update($dbArray);
+        Order::where('id', $id)->update($dbArray);
 
         $order_items = [];
         $order_items['order_id'] = $id;
@@ -351,7 +383,7 @@ class OrderController extends Controller
         $order_items['qty'] = $qty;
         $order_items['price'] = $selling_price;
         $order_items['net_price'] = (int)$selling_price * (int)$qty;
-        $order_items['subscription_price'] = $varient->subscription_price??'';
+        $order_items['subscription_price'] = $varient->subscription_price ?? '';
         DB::table('order_items')->insert($order_items);
         return back();
     }
@@ -440,7 +472,7 @@ class OrderController extends Controller
                     'title' => $not->title ?? '',
                     'body' => $description ?? '',
                 ];
-               // CustomHelper::fcmNotification($token, $data);
+                // CustomHelper::fcmNotification($token, $data);
             }
         }
 
@@ -457,18 +489,71 @@ class OrderController extends Controller
                     'title' => $not->title ?? '',
                     'body' => $description ?? '',
                 ];
-               // CustomHelper::fcmNotification($token, $data);
+                // CustomHelper::fcmNotification($token, $data);
             }
+
+            if (!empty($order->subscription_id) && $order->subscription_id != "null") {
+                $this->updateSubscription($order, $user);
+            }
+
             ////Credit NC Cash
             $this->creditNcCash($order);
 
-            CustomHelper::orderDelivered($user->phone??'',$order_id);
+            CustomHelper::orderDelivered($user->phone ?? '', $order_id);
         }
-        if($status == 'CANCEL'){
+        if ($status == 'CANCEL') {
             $user = User::where('id', $order->userID)->first();
-            CustomHelper::orderCancelled($user->phone??'',$order_id);
+            CustomHelper::orderCancelled($user->phone ?? '', $order_id);
         }
         echo 1;
+    }
+
+    public function updateSubscription($order, $user)
+    {
+        if (!empty($user)) {
+            $subscription_start = $user->subscription_start ?? '';
+            $subscription_end = $user->subscription_end ?? '';
+            $subscription_plans = SubscriptionPlans::where('id', $order->subscription_id)->first();
+            if (!empty($subscription_plans)) {
+                $duration = (int)$subscription_plans->duration ?? 0;
+                if (empty($subscription_start)) {
+                    $subscription_start = date('Y-m-d');
+                    $subscription_end = date('Y-m-d', strtotime("+" . $duration . " months", strtotime(date('Y-m-d'))));
+                } else {
+                    $subscription_end = date('Y-m-d', strtotime("+" . $duration . " months", strtotime($subscription_end)));
+                }
+                $discount = $subscription_plans->max_discount ?? 0;
+                $total_discount = $user->total_discount + $discount;
+                User::where('id', $user->id)->update(['subscription_start' => $subscription_start, 'subscription_end' => $subscription_end, 'subscription_id' => $order->subscription_id, 'total_discount' => $total_discount]);
+                $txn_id = "NC" . rand(111111, 9999999);
+                $subsc = new Subscriptions();
+                $subsc->user_id = $user->id ?? '';
+                $subsc->subscription_id = $exist->subscription_id ?? '';
+                $subsc->txn_id = $txn_id ?? '';
+                $subsc->paid_status = 1;
+                $subsc->taken_by = "Self";
+                if (empty($subscription_start)) {
+                    $start_date = date('Y-m-d');
+                } else {
+                    $start_date = $subscription_end;
+                }
+                $subsc->start_date = $start_date;
+                $subsc->end_date = date('Y-m-d', strtotime("+" . $duration . " months", strtotime($start_date)));
+                $subsc->save();
+
+                $data = [];
+                $data['userID'] = $user->id ?? '';
+                $data['txn_no'] = $txn_id;
+                $data['amount'] = $subscription_plans->amount ?? 0;
+                $data['type'] = 'DEBIT';
+                $data['note'] = 'Take Subscription';
+                $data['against_for'] = 'subscription';
+                $data['paid_by'] = 'user';
+                $data['orderID'] = 0;
+                CustomHelper::saveTransaction($data);
+            }
+        }
+
     }
 
 
@@ -488,7 +573,7 @@ class OrderController extends Controller
         $dbArray1['amount'] = $amount;
         $dbArray1['wallet_type'] = "cashback_wallet";
         $dbArray1['type'] = "CREDIT";
-        $dbArray1['note'] = "Earn NC Cash From Order ".$order->id??'';
+        $dbArray1['note'] = "Earn NC Cash From Order " . $order->id ?? '';
         $dbArray1['against_for'] = 'cashback_wallet';
         $dbArray1['paid_by'] = 'order';
         $dbArray1['orderID'] = 0;
@@ -505,57 +590,85 @@ class OrderController extends Controller
             $exist_subscription = Subscriptions::where('user_id', $user->id)->where('paid_status', 1)->latest()->first();
             if (!empty($exist_subscription)) {
                 $current_date = date('Y-m-d');
-                if (strtotime($user->subscription_end) >= strtotime($current_date)) {
+                if (strtotime($user->end_date) >= strtotime($current_date)) {
                     $is_active = 1;
                 }
             }
         }
 
         $type = ($is_active == 1) ? 'subscribe' : 'not_subscribe';
+        \DB::enableQueryLog(); // Enable query log
+
         $active_loyalty = DB::table('loyality_system')
             ->where('status', 1)
             ->where('type', $type)
-            ->where('from_amount', '<=', $amount)
-            ->where('to_amount', '>=', $amount)
+            ->where('is_delete', 0)
+            ->where(function ($q) use ($amount) {
+                $q->where(function ($q2) use ($amount) {
+                    $q2->where('from_amount', '<=', $amount)
+                        ->where('to_amount', '>=', $amount);
+                })->orWhere(function ($q3) use ($amount) {
+                    $q3->where('from_amount', '<=', $amount)
+                        ->whereNull('to_amount');
+                });
+            })
+            ->orderBy('from_amount', 'ASC')
             ->first();
         if (!empty($active_loyalty)) {
-            $amount =  round(($amount * (int)$active_loyalty->cashback) / 100);
-            if((int)$amount >= (int)$active_loyalty->max_cashback){
-                $amount = $active_loyalty->max_cashback??0;
+            $amount = round(($amount * (int)$active_loyalty->cashback) / 100);
+            if ((int)$amount >= (int)$active_loyalty->max_cashback) {
+                $amount = $active_loyalty->max_cashback ?? 0;
             }
             return $amount;
         }
         return 0;
 
     }
+
     public function update_logistics(Request $request)
     {
 
         $order_id = $request->order_id ?? '';
         $logistics = $request->logistics ?? '';
         if (!empty($logistics)) {
-            Order::where('id', $order_id)->update(['logistics' => $logistics]);
+            $exist = DB::table('order_courier')->where('order_id', $order_id)->first();
+            if (empty($exist)) {
+                $dbArray = [];
+                $dbArray['order_id'] = $order_id;
+                $dbArray['logistics'] = $logistics;
+                DB::table('order_courier')->insertGetId($dbArray);
+                Order::where('id', $order_id)->update(['logistics' => $logistics]);
+            } else {
+                $dbArray = [];
+                $dbArray['order_id'] = $order_id;
+                $dbArray['logistics'] = $logistics;
+                DB::table('order_courier')->insertGetId($dbArray);
+                Order::where('id', $order_id)->update(['logistics' => $logistics]);
+            }
+
         }
         echo 1;
     }
 
 
-    public function  book_porter(Request $request)
+    public function book_porter(Request $request)
     {
-        $order_id = $request->order_id??'';
+        $order_id = $request->order_id ?? '';
         $order = Order::find($order_id);
         $book_shipment = CustomHelper::bookPorterShipment($order);
         return back();
 
     }
-    public function  cancel_porter(Request $request)
+
+    public function cancel_porter(Request $request)
     {
-        $order_id = $request->order_id??'';
+        $order_id = $request->order_id ?? '';
         $order = Order::find($order_id);
         $book_shipment = CustomHelper::cancelPorterShipment($order);
         return back();
 
     }
+
     public function bookshipment_shiprocket(Request $request)
     {
         $id = $request->id ?? '';
@@ -624,6 +737,7 @@ class OrderController extends Controller
         }
         return $state_name;
     }
+
     public function bookShipRocket($order_courier_id)
     {
         $order_courier = DB::table('order_courier')->where('id', $order_courier_id)->first();
@@ -664,7 +778,7 @@ class OrderController extends Controller
             "billing_address" => $address,
             "billing_address_2" => $order->landmark ?? '',
             "billing_city" => '',
-            "billing_pincode" => (int) $pincode,
+            "billing_pincode" => (int)$pincode,
             "billing_state" => self::getStateNameFromPincode($pincode),
             "billing_country" => "India",
             "billing_email" => $user->email ?? '',
@@ -687,10 +801,10 @@ class OrderController extends Controller
             "transaction_charges" => 0,
             "total_discount" => 0,
             "sub_total" => $order->order_amount ?? 0,
-            "length" => (int) $order_courier->length ?? 0,
-            "breadth" => (int) $order_courier->breadth ?? 0,
-            "height" => (int) $order_courier->height ?? 0,
-            "weight" => (float) $order_courier->weight ?? 0,
+            "length" => (int)$order_courier->length ?? 0,
+            "breadth" => (int)$order_courier->breadth ?? 0,
+            "height" => (int)$order_courier->height ?? 0,
+            "weight" => (float)$order_courier->weight ?? 0,
         ];
         $curl = curl_init();
         $login_data = CustomHelper::loginShipRocket();
@@ -784,4 +898,59 @@ class OrderController extends Controller
         DB::table('orders')->where('id', $order_id)->update($dbArray1);
         return back();
     }
+
+    public function update_dimension(Request $request)
+    {
+
+        $item_ids = $request->item_ids ?? '';
+        $weight = $request->weight ?? '';
+        $length = $request->length ?? '';
+        $width = $request->width ?? '';
+        $height = $request->height ?? '';
+        if (!empty($item_ids)) {
+            foreach ($item_ids as $key => $item_id) {
+                $dbArray = [];
+                $dbArray['weight'] = $weight[$key] ?? '';
+                $dbArray['length'] = $length[$key] ?? '';
+                $dbArray['width'] = $width[$key] ?? '';
+                $dbArray['height'] = $height[$key] ?? '';
+                OrderItems::where('id', $item_id)->update($dbArray);
+            }
+        }
+        return back();
+    }
+
+    public function book_envia_shipment(Request $request)
+    {
+        $id = $request->id ?? '';
+        $service = $request->service ?? '';
+        $courier = $request->courier ?? '';
+        $price = $request->price ?? '';
+        $carrier = $request->carrier ?? '';
+        $delivery_date = $request->delivery_date ?? '';
+        $order_courier = DB::table('order_courier')->where('order_id', $id)->first();
+        if (!empty($order_courier)) {
+            $orders = Order::find($id);
+            $dbArray = [];
+            $dbArray['service'] = $service;
+            $dbArray['price'] = $price;
+            $dbArray['delivery_date'] = $delivery_date;
+            $dbArray['courier'] = $courier;
+            $dbArray['carrier'] = $carrier;
+            ////Book Shipment
+            $shipment_data = CustomHelper::bookShipmentEnvia($orders, $carrier, $service);
+            if (!empty($shipment_data)) {
+
+                $error = $shipment_data->error ?? '';
+                if (empty($error)) {
+                    $dbArray['envia_data'] = json_encode($shipment_data);
+                }
+            }
+            DB::table('order_courier')->where('id', $order_courier->id)->update($dbArray);
+        }
+
+        return back();
+    }
+
+
 }

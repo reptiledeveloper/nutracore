@@ -1,7 +1,7 @@
 @php
     $height = 250;
     $order_items = \App\Helpers\CustomHelper::getOrderItemsWithProduct1($orders->id);
-    
+
     $count = count($order_items);
     if ($count > 0) {
         $height1 = $count * 32;
@@ -89,7 +89,7 @@
 <body>
     <div class="container">
         <div class="center">
-            <img src="data:image/png;base64,{{ base64_encode(file_get_contents('https://buybuycart.com/uploads/media/2023/BUYBUYCART_APP_LOGO1.png')) }}"
+            <img src="data:image/png;base64,{{ base64_encode(file_get_contents('https://admin.nutracore.in/public/assets/images/logo.png')) }}"
                 class='linux-img'>
         </div>
         <div class="center bold" style="margin-top: 10px">{{ $seller_details->name ?? '' }}</div>
@@ -142,8 +142,8 @@
             </thead>
             <tbody style="border-top: 1px dashed black;">
                 @foreach ($order_items as $key => $value)
-                    <?php 
-               
+                    <?php
+
                         $product = \App\Helpers\CustomHelper::getProductDeatils($value['product_id'] ?? '');
                         if(!empty($product)){
                         $image = \App\Helpers\CustomHelper::getImageUrl('products', $product->image ?? '');

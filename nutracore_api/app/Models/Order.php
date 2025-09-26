@@ -12,7 +12,7 @@ class Order extends Model{
 
     protected $guarded = ['id'];
 
-    public static function generateOrderId()
+    public static function generateOrderIdold()
     {
         // Define the prefix
         $prefix = 'NC';
@@ -37,4 +37,31 @@ class Order extends Model{
         // Combine prefix and formatted order number
         return $prefix . $newOrderNumberFormatted;
     }
+
+    public static function generateOrderId()
+    {
+        // Define the prefix
+        $prefix = 'NC';
+
+        // Get the latest order id from the database
+        $latestOrder = self::whereNotNull('unique_id')->orderBy('id', 'desc')->first();
+
+        if ($latestOrder) {
+            // Extract the number part after prefix
+            $lastOrderNumber = (int) substr($latestOrder->unique_id, strlen($prefix));
+
+            // Increment
+            $newOrderNumber = $lastOrderNumber + 1;
+        } else {
+            // Start from 001001
+            $newOrderNumber = 1001;
+        }
+
+        // Format with leading zeros (6 digits total)
+        $newOrderNumberFormatted = str_pad($newOrderNumber, 6, '0', STR_PAD_LEFT);
+
+        // Combine prefix + number
+        return $prefix . $newOrderNumberFormatted;
+    }
+
 }
