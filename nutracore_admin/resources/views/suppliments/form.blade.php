@@ -21,9 +21,6 @@
 
     $categories = \App\Helpers\CustomHelper::getCategories();
     $goal_catgories = \App\Helpers\CustomHelper::getGoalCategories();
-    $vendors = \App\Helpers\CustomHelper::getVendors();
-    $brands = \App\Helpers\CustomHelper::getBrands();
-//    $products = \App\Helpers\CustomHelper::getProducts();
     $activity_array = [
         "Walking / Running",
 //        "Running",
@@ -124,20 +121,18 @@
                             <div class="row mt-3">
                                 @for($i=1; $i<=5; $i++)
                                     @php
+                                        $categoryField = "supliment_".$i;
+                                        $productsField = "supliment_".$i."_products";
 
-                                            $categoryField = "supliment_".$i;
-                                            $productsField = "supliment_".$i."_products";
+                                        $selectedCategory = old($categoryField, $suppliments->$categoryField ?? '');
+                                        $selectedProductsRaw = old($productsField, $suppliments->$productsField ?? '');
+                                        $selectedProducts = is_array($selectedProductsRaw)
+                                            ? $selectedProductsRaw
+                                            : array_filter(explode(',', $selectedProductsRaw));
 
-                                            // Get selected category
-                                            $selectedCategory = old($categoryField, $suppliments->$categoryField ?? '');
-
-                                            // Get selected products (comma-separated string → array)
-                                            $selectedProductsRaw = old($productsField, $suppliments->$productsField ?? '');
-$selectedProducts = is_array($selectedProductsRaw)
-    ? $selectedProductsRaw
-    : array_filter(explode(',', $selectedProductsRaw));
-
-                                            $products = \App\Models\Products::whereIn('$category_id',$selectedCategory)->get();
+                                        $products = $selectedCategory
+                                            ? \App\Models\Products::where('category_id', $selectedCategory)->get()
+                                            : collect();
                                     @endphp
 
                                     <div class="form-group col-md-6 mt-3">

@@ -502,6 +502,13 @@ class CustomHelper
     }
 
 
+    public static function getOrderItemsWithProductNew($orderID)
+    {
+        $order_items = OrderItems::where('order_id', $orderID)->get();
+        return $order_items;
+    }
+
+
     public static function getOrderItemsWithProduct1($orderID)
     {
         $order_items = OrderItems::where('order_id', $orderID)->get();
@@ -647,6 +654,8 @@ class CustomHelper
         $cart_list = Cart::where('user_id', $user_id)->get();
         if (!empty($cart_list)) {
             foreach ($cart_list as $cart) {
+                $cart->type = $request->type??'normal';
+                $cart->save();
                 $is_available = 0;
                 $product = ProductVarient::where('product_id', $cart->product_id)->where('id', $cart->variant_id)->first();
                 $product_data = Product::where('id', $cart->product_id)->first();
@@ -731,6 +740,7 @@ class CustomHelper
                 $discount = (int)$mrp - (int)$selling_price;
                 $total_discount = (int)$cart->qty * (int)$discount;
                 $dbArray['total_price'] = $total_cart_price;
+                $dbArray['type'] = $cart->type??'';
                 $cartArr[] = $dbArray;
                 $cart_total += $total_cart_price;
                 $cart_discount += $total_discount;
@@ -979,7 +989,11 @@ class CustomHelper
 
         return $user;
     }
-
+    public static function getAdminProductSingleVarients($product_id, $varient_id)
+    {
+        $varients = ProductVarient::where('product_id', $product_id)->where('id', $varient_id)->where('is_delete', 0)->first();
+        return $varients;
+    }
     public static function getLiveClassTypes()
     {
         $types = config('custom.live_class_types');
@@ -1360,6 +1374,10 @@ class CustomHelper
         $delivery_charges = DeliveryCharges::where('type', $type)
             ->whereRaw('? BETWEEN CAST(order_amount AS UNSIGNED) AND CAST(order_amount2 AS UNSIGNED)', [$total_amount])
             ->first();
+
+        if((int)$total_amount <= 999){
+            $delivery_charge = 99;
+        }
 
         if (!empty($delivery_charges)) {
             $delivery_charge = (float)$delivery_charges->delivery_charge ?? 0;

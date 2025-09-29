@@ -4,7 +4,9 @@
 
    $exist = DB::table('order_courier')->where("order_id",$orders->id)->first();
    //$track_order = CustomHelper::trackPorterOrder($exist);
-   $exist = DB::table('order_courier')->where("order_id",$orders->id)->first();
+//   $exist = DB::table('order_courier')->where("order_id",$orders->id)->first();
+
+    $order_details_porter = json_decode($exist->order_details_porter ??'');
 @endphp
 
 <div class="row">
@@ -25,18 +27,30 @@
         <div class="col-md-12">
             <label>Estimated Pickup Time : {{ $exist->estimated_pickup_time ?? '' }}</label>
         </div>
-        @if(empty($exist))
+        @if(empty($exist) || empty($exist->porter_data))
             <div class="ms-auto mt-3" id="bookBtn">
                 <a href="{{route('orders.book_porter',['order_id'=>$orders->id])}}" class="btn btn-primary">Book</i>
                 </a>
 
             </div>
         @else
-            <div class="ms-auto mt-3" id="bookBtn">
-                <a href="{{route('orders.cancel_porter',['order_id'=>$orders->id])}}" class="btn btn-danger">Cancel</i>
-                </a>
+            @if(!empty($order_details_porter) && $order_details_porter->status == 'cancelled')
+                <div class="ms-auto mt-3" >
+                    <a href="#" class="btn btn-danger">Canceled</i>
+                    </a>
+                </div>
+                <div class="ms-auto mt-3" id="bookBtn">
+                    <a href="{{route('orders.book_porter',['order_id'=>$orders->id])}}" class="btn btn-primary">Book</i>
+                    </a>
 
-            </div>
+                </div>
+            @else
+                <div class="ms-auto mt-3" id="bookBtn">
+                    <a href="{{route('orders.cancel_porter',['order_id'=>$orders->id])}}" class="btn btn-danger">Cancel</i>
+                    </a>
+                </div>
+            @endif
+
         @endif
 
     </div>
@@ -62,13 +76,13 @@
                 <div class="col-md-6">
                     <div class="col-md-12">
                         <h3>Order Timmings Details</h3>
-                        <label>Pickup Time : {{ $order_details_porter->order_timings->pickup_time ?? '' }}</label><br>
+                        <label>Pickup Time : {{  !empty($order_details_porter->order_timings->pickup_time) ?date('Y-m-d h:i A',$order_details_porter->order_timings->pickup_time) ?? '' :"" }}</label><br>
                         <label>Accept Time
-                            : {{ $order_details_porter->partner_info->order_accepted_time ?? '' }}</label><br>
+                            : {{  !empty($order_details_porter->order_timings->order_accepted_time) ?date('Y-m-d h:i A',$order_details_porter->order_timings->order_accepted_time) ?? ''  :"" }}</label><br>
                         <label>Order Started Time
-                            : {{ $order_details_porter->partner_info->order_started_time ?? '' }}</label><br>
+                            : {{  !empty($order_details_porter->order_timings->order_started_time) ?date('Y-m-d h:i A',$order_details_porter->order_timings->order_started_time ) ?? ''  :"" }}</label><br>
                         <label>Order End Time
-                            : {{ $order_details_porter->partner_info->mobile->order_ended_time ?? '' }}</label><br>
+                            : {{ !empty($order_details_porter->order_timings->order_ended_time) ? date('Y-m-d h:i A',$order_details_porter->order_timings->order_ended_time ) ?? '' :"" }}</label><br>
                     </div>
 
                 </div>
@@ -76,7 +90,9 @@
                     <div class="col-md-12">
                         <h3>Fare Details</h3>
                         <label>Fare
-                            : {{ $order_details_porter->fare_details->estimated_fare_details->minor_amount ?? '' }}</label><br>
+                            : {{ isset($order_details_porter->fare_details->estimated_fare_details->minor_amount)
+    ? number_format($order_details_porter->fare_details->estimated_fare_details->minor_amount / 100, 2)
+    : '' }}</label><br>
                     </div>
                 </div>
 

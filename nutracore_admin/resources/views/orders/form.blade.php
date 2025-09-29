@@ -94,7 +94,8 @@
                                    data-bs-target="#updateDimensionModal" class="btn btn-primary">Update Dimension</a>
                             </div>
                             <div class="dropdown ms-auto">
-                                <a href="" class="btn btn-primary"><i class="fa fa-refresh"></i></a>
+                                <a href="{{route('orders.get_courier_data',['id'=>$orders->id])}}"
+                                   class="btn btn-primary"><i class="fa fa-refresh"></i></a>
                             </div>
                         </div>
                     </div>
@@ -129,7 +130,7 @@
 
                         {{-- Header --}}
                         <div class="mb-5 d-flex align-items-center justify-content-between">
-                            <span>Order No : <a href="#">#{{ $orders->id }}</a></span>
+                            <span>Order No : <a href="#">#{{ $orders->unique_id }}</a></span>
                             {!! CustomHelper::getOrderStatus($orders->id) !!}
                         </div>
 
@@ -154,6 +155,16 @@
                             <div class="col-md-3 col-sm-6">
                                 <p class="fw-bold">Payment Status</p>{{ strtoupper($orders->payment_method) }}
                             </div>
+                            <div class="col-md-3 col-sm-6">
+                                <p class="fw-bold">Delivery Speed</p>
+                                @if($orders->delivery_speed == 'normal')
+                                    Standard
+                                @elseif($orders->delivery_speed == 'express')
+                                    Express
+                                @else
+
+                                @endif
+                            </div>
                         </div>
 
                         {{-- Address --}}
@@ -173,6 +184,7 @@
                                         <div>{{ $orders->landmark }}</div>
                                         <div>{{ $orders->location }}</div>
                                         <div>{{ $orders->pincode }}</div>
+                                        <div><a href="https://maps.google.com/?q={{$orders->latitude??''}},{{$orders->longitude??''}}" target="_blank">Click Here</a></div>
                                         <div>
                                             <i class="bi bi-telephone me-2"></i> {{ !empty($orders->contact_no) ? $orders->contact_no : $user->phone ??''}}
                                         </div>
@@ -192,6 +204,7 @@
                                         <div>{{ $orders->house_no }} {{ $orders->apartment }}</div>
                                         <div>{{ $orders->landmark }}</div>
                                         <div>{{ $orders->location }}</div>
+                                        <div><a href="https://maps.google.com/?q={{$orders->latitude??''}},{{$orders->longitude??''}}" target="_blank">Click Here</a></div>
                                         <div>
                                             <i class="bi bi-telephone me-2"></i> {{ !empty($orders->contact_no) ? $orders->contact_no : $user->phone ??''}}
                                         </div>
@@ -207,34 +220,56 @@
             {{-- Right - Pricing --}}
 
 
-
             <div class="col-lg-4 col-md-12 mt-4 mt-lg-0">
                 <div class="card mb-4">
                     <div class="card-body">
-                        <h6 class="card-title mb-4">Price</h6>
+                        <h6 class="card-title mb-4">Sub Total</h6>
                         <div class="row justify-content-center mb-3">
                             <div class="col-4 text-end">Sub Total :</div>
                             <div class="col-4">₹ {{ $orders->order_amount ?? 0 }}</div>
                         </div>
                         <div class="row justify-content-center mb-3">
-                            <div class="col-4 text-end">Delivery Charges :</div>
+                            <div class="col-4 text-end">Total Discount :</div>
+                            <div class="col-4">₹ {{ $orders->total_discount ?? 0 }}</div>
+                        </div>
+                        <div class="row justify-content-center mb-3">
+                            <div class="col-4 text-end">Coupon Discount :</div>
+                            <div class="col-4">{{ $orders->coupon_discount ?? 0 }}</div>
+                        </div>
+                        <div class="row justify-content-center mb-3">
+                            <div class="col-4 text-end">Freebies Price :</div>
+                            @php
+                                $freebies_price = 0;
+                            @endphp
+                            @if(!empty($orders->freebees_id) && $orders->freebees_id != "null")
+                                @php
+
+                                    $freebees_product = \App\Models\FreeProduct::where('id',$orders->freebees_id)->first();
+                                $freebies_price= $freebees_product->amount ?? 0;
+                                @endphp
+                            @endif
+                            <div class="col-4">₹ {{ $freebies_price ?? 0 }}</div>
+                        </div>
+                        <div class="row justify-content-center mb-3">
+                            <div class="col-4 text-end">Delivery Fee :</div>
                             <div class="col-4">₹ {{ $orders->delivery_charges ?? 0 }}</div>
                         </div>
                         <div class="row justify-content-center mb-3">
-                            <div class="col-4 text-end">Tax(18%) :</div>
-                            <div class="col-4">0</div>
+                            <div class="col-4 text-end">NC Cash :</div>
+                            <div class="col-4">₹ {{ $orders->applied_cashback ?? 0 }}</div>
                         </div>
                         <div class="row justify-content-center mb-3">
-                            <div class="col-4 text-end">Online Amount :</div>
-                            <div class="col-4">₹ {{ $orders->online_amount ?? 0 }}</div>
-                        </div>
-                        <div class="row justify-content-center mb-3">
-                            <div class="col-4 text-end">COD Amount :</div>
-                            <div class="col-4">₹ {{ $orders->cod_amount ?? 0 }}</div>
-                        </div>
-                        <div class="row justify-content-center mb-3">
-                            <div class="col-4 text-end">Wallet Amount :</div>
-                            <div class="col-4">₹ {{ $orders->wallet ?? 0 }}</div>
+                            <div class="col-4 text-end">Membership Price :</div>
+                            @php
+                                $subscription_price = 0;
+                            @endphp
+                            @if(!empty($orders->subscription_id) && $orders->subscription_id != "null")
+                                @php
+                                    $subscription = \App\Models\SubscriptionPlans::find($orders->subscription_id);
+                                    $subscription_price= $subscription->price ?? 0;
+                                @endphp
+                            @endif
+                            <div class="col-4">₹ {{ $subscription_price }}</div>
                         </div>
                         <div class="row justify-content-center">
                             <div class="col-4 text-end"><strong>Total :</strong></div>
@@ -244,17 +279,17 @@
                 </div>
                 @if(!empty($orders->subscription_id) && $orders->subscription_id != "null")
                     @php
-                    $subscription =\App\Models\SubscriptionPlans::where('id',$orders->subscription_id)->first();
+                        $subscription =\App\Models\SubscriptionPlans::where('id',$orders->subscription_id)->first();
                     @endphp
-                <div class="card">
-                    <div class="card-body">
-                        <h6 class="card-title mb-4">Subscription</h6>
-                        <div class="row">
-                            <div class="col-6 text-end">Plan Name : {{$subscription->name??''}}</div>
-                            <div class="col-6 text-end">Amount : {{$subscription->price??''}}</div>
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="card-title mb-4">Subscription</h6>
+                            <div class="row">
+                                <div class="col-6 text-end">Plan Name : {{$subscription->name??''}}</div>
+                                <div class="col-6 text-end">Amount : {{$subscription->price??''}}</div>
+                            </div>
                         </div>
                     </div>
-                </div>
                 @endif
 
             </div>
@@ -432,7 +467,7 @@
                                 Weight (in KG)
                             </div>
                             <div class="col-md-2 mt-3">
-                               Length (In CM)
+                                Length (In CM)
                             </div>
                             <div class="col-md-2 mt-3">
                                 Width (In CM)
@@ -446,22 +481,26 @@
                                     $image = CustomHelper::getImageUrl('products', $product->image);
                                     $varients = CustomHelper::getAdminProductSingleVarients($value->product_id, $value->variant_id);
                                 @endphp
-                            <input type="hidden" name="item_ids[]" value="{{$value->id??''}}">
+                                <input type="hidden" name="item_ids[]" value="{{$value->id??''}}">
                                 <div class="col-md-4 mt-3">
-{{--                                    <label class="form-label">{{ $product->name }} - {{ $varients->unit ??'' }} {{ $varients->unit_value ??'' }}</label>--}}
+                                    {{--                                    <label class="form-label">{{ $product->name }} - {{ $varients->unit ??'' }} {{ $varients->unit_value ??'' }}</label>--}}
                                     <label class="form-label">Box - {{$i+1}}</label>
                                 </div>
                                 <div class="col-md-2 mt-3">
-                                  <input type="text" class="form-control" name="weight[]" value="{{$value->weight??''}}">
+                                    <input type="text" class="form-control" name="weight[]"
+                                           value="{{$value->weight??''}}">
                                 </div>
                                 <div class="col-md-2 mt-3">
-                                    <input type="text" class="form-control" name="length[]" value="{{$value->length??''}}">
+                                    <input type="text" class="form-control" name="length[]"
+                                           value="{{$value->length??''}}">
                                 </div>
                                 <div class="col-md-2 mt-3">
-                                    <input type="text" class="form-control" name="width[]" value="{{$value->width??''}}">
+                                    <input type="text" class="form-control" name="width[]"
+                                           value="{{$value->width??''}}">
                                 </div>
                                 <div class="col-md-2 mt-3">
-                                    <input type="text" class="form-control" name="height[]" value="{{$value->height??''}}">
+                                    <input type="text" class="form-control" name="height[]"
+                                           value="{{$value->height??''}}">
                                 </div>
                             @endforeach
                         </div>
@@ -480,7 +519,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Book Shipment</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">Update Address</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form action="{{ route('orders.update_address',['id'=>$orders->id]) }}" method="post">
@@ -524,7 +563,7 @@
     {{-- JS --}}
     <script>
         function update_order_status(item_id, status, delivery_boy, vendor_id) {
-            if(confirm('Are You Sure Want To Update The Status')){
+            if (confirm('Are You Sure Want To Update The Status')) {
                 var order_id = '{{ $orders->id }}';
                 var _token = '{{ csrf_token() }}';
                 $.ajax({

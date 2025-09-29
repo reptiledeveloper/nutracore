@@ -83,6 +83,10 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'add', 'POSController@add')->name('.add');
             Route::match(['get', 'post'], 'edit/{id}', 'POSController@add')->name('.edit');
             Route::match(['get', 'post'], 'delete/{id}', 'POSController@delete')->name('.delete');
+            Route::match(['get', 'post'], 'update_pos_daily_cash', 'POSController@update_pos_daily_cash')->name('.update_pos_daily_cash');
+            Route::match(['get', 'post'], 'user_search', 'POSController@user_search')->name('.user_search');
+            Route::match(['get', 'post'], 'getFreebiesProduct', 'POSController@getFreebiesProduct')->name('.getFreebiesProduct');
+            Route::match(['get', 'post'], 'getMembershipPlans', 'POSController@getMembershipPlans')->name('.getMembershipPlans');
         });
 
 
@@ -487,6 +491,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'cancel_porter/{order_id}', 'OrderController@cancel_porter')->name('.cancel_porter');
             Route::match(['get', 'post'], 'update_dimension/{id}', 'OrderController@update_dimension')->name('.update_dimension');
             Route::match(['get', 'post'], 'book_envia_shipment/{id}', 'OrderController@book_envia_shipment')->name('.book_envia_shipment');
+            Route::match(['get', 'post'], 'get_courier_data/{id}', 'OrderController@get_courier_data')->name('.get_courier_data');
         });
         ////users
         Route::group(['prefix' => 'users', 'as' => 'users', 'middleware' => ['allowedmodule:users,list']], function () {
@@ -500,6 +505,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'search', 'UserController@search')->name('.search');
             Route::match(['get', 'post'], 'update_wallet', 'UserController@update_wallet')->name('.update_wallet');
             Route::match(['get', 'post'], 'import', 'UserController@import')->name('.import');
+            Route::match(['get', 'post'], 'save_user', 'UserController@save_user')->name('.save_user');
+            Route::match(['get', 'post'], 'getUserDetails', 'UserController@getUserDetails')->name('.getUserDetails');
         });
         ////gallery
         Route::group(['prefix' => 'gallery', 'as' => 'gallery', 'middleware' => ['allowedmodule:gallery,list']], function () {

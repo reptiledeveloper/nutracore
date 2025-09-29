@@ -2,17 +2,11 @@
 return [
     'pdf' => [
         'enabled' => true,
-        'binary'  => '/usr/bin/wkhtmltopdf',
+        'binary'  => 'C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe',
         'timeout' => false,
-        'options' => [
-            'page-width'  => '80mm',
-            'page-height' => '200mm',
-            'margin-top'    => 0,
-            'margin-right'  => 0,
-            'margin-bottom' => 0,
-            'margin-left'   => 0,
-        ],
+        'options' => [],
     ],
+
     'image' => [
         'enabled' => true,
         'binary'  => '/usr/bin/wkhtmltoimage',

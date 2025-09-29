@@ -2,6 +2,7 @@
 
 namespace App\Helpers;
 
+use App\Http\Controllers\OrderController;
 use App\Models\ActivityLogs;
 use App\Models\Admin;
 use App\Models\Attributes;
@@ -314,6 +315,7 @@ class CustomHelper
                             'subscription_price' => $varient->subscription_price ?? 0,
                             'varient_sku' => $varient->varient_sku ?? '',
                             'varient_id' => $varient->id ?? 0,
+                            'discount' => (int)$varient->mrp -(int) $varient->selling_price,
                         ];
                     }
                 } else {
@@ -328,6 +330,7 @@ class CustomHelper
                         'subscription_price' => $product->subscription_price ?? 0,
                         'varient_sku' => $product->sku,
                         'varient_id' => 0,
+                        'discount' => (int)$product->mrp -(int) $product->selling_price,
                     ];
                 }
             }
@@ -1452,6 +1455,38 @@ class CustomHelper
         return $exist;
     }
 
+    public static function getPorterData($order_id)
+    {
+        $orders = Order::find($order_id);
+        $exist = DB::table('order_courier')->where("order_id", $orders->id)->first();
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://pfe-apigw.porter.in/v1/orders/' . $exist->porter_order_id,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'GET',
+            CURLOPT_HTTPHEADER => array(
+                'x-api-key: aa850081-1f6d-4786-8a8f-211ed6ed1be8'
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        $response = json_decode($response);
+        if (!empty($response)) {
+            if (!empty($response->partner_info) || $response->status == 'cancelled') {
+                DB::table('order_courier')->where("order_id", $orders->id)->update(['order_details_porter' => json_encode($response)]);
+            }
+        }
+
+    }
+
     public static function bookPorterShipment($orders)
     {
         $store = CustomHelper::getVendorDetails($orders->vendor_id ?? '');
@@ -1512,7 +1547,6 @@ class CustomHelper
             ]
         ];
         $curl = curl_init();
-
         curl_setopt_array($curl, array(
             CURLOPT_URL => 'https://pfe-apigw.porter.in/v1/orders/create',
             CURLOPT_RETURNTRANSFER => true,
@@ -1530,10 +1564,12 @@ class CustomHelper
         ));
 
         $response = curl_exec($curl);
-
         curl_close($curl);
         $response = json_decode($response);
         if (!empty($response)) {
+            $exist = DB::table('order_courier')->where("order_id",$orders->id)->first();
+
+
             $dbArray = [];
             $dbArray['logistics'] = 'porter';
             $dbArray['order_id'] = $orders->id ?? '';
@@ -1542,7 +1578,23 @@ class CustomHelper
             $dbArray['estimated_pickup_time'] = $response->estimated_pickup_time ?? '';
             $dbArray['tracking_url'] = $response->tracking_url ?? '';
             $dbArray['porter_data'] = json_encode($response);
-            DB::table('order_courier')->insert($dbArray);
+            $dbArray['order_details_porter'] = null;
+            if(empty($exist)){
+                DB::table('order_courier')->insert($dbArray);
+            }else{
+                DB::table('order_courier')->where('id',$exist->id)->update($dbArray);
+            }
+
+            /////Confirm Order///////
+            $status = 'CONFIRM';
+            $order_id = $orders->id?? '';
+            $dbArray = [];
+            $dbArray['order_id'] = $order_id;
+            $dbArray['status'] = $status;
+            $dbArray['updated_by'] = 'admin';
+            OrderStatus::where('order_id', $order_id)->insert($dbArray);
+
+            Order::where('id', $order_id)->update(['status' => $status]);
         }
     }
 
@@ -1652,6 +1704,8 @@ class CustomHelper
         }
         return true;
     }
+
+
 
     public static function getPropertyOwnersType()
     {
@@ -3834,9 +3888,10 @@ class CustomHelper
         $order_items = OrderItems::where('order_id', $orders->id)->get();
         $vendor = Vendors::where('id', $orders->vendor_id)->first();
         $address = UserAddress::where('id', $orders->address_id)->first();
-        self::updatePincodeData($address->pincode, $orders->address_id);
-        $envia_data = json_decode($address->envia_data) ?? '';
+        self::updatePincodeData($address->pincode  ??'', $orders->address_id??'');
+        $envia_data = json_decode($address->envia_data ??'') ?? '';
         $packages = [];
+        $response = null;
         if (!empty($order_items)) {
             foreach ($order_items as $items) {
                 $product = CustomHelper::getProductDeatils($items->product_id);
@@ -3860,84 +3915,88 @@ class CustomHelper
                 }
             }
         }
-        $data = [
-            'origin' => [
-                'name' => $vendor->name ?? '',
-                'company' => 'EnviaIndia',
-                'email' => $vendor->user_email ?? '',
-                'phone' => $vendor->user_phone ?? '',
-                'street' => $vendor->address ?? '',
-                'number' => '',
-                'district' => '',
-                'city' => 'Telengana',
-                'state' => 'TG',
-                'country' => 'IN',
-                'postalCode' => $vendor->pincode ?? '',
-                'reference' => '',
-                'coordinates' => [
-                    'latitude' => $vendor->latitude ?? '',
-                    'longitude' => $vendor->longitude ?? '',
+        if(!empty($address) && !empty($envia_data)){
+            $data = [
+                'origin' => [
+                    'name' => $vendor->name ?? '',
+                    'company' => 'EnviaIndia',
+                    'email' => $vendor->user_email ?? '',
+                    'phone' => $vendor->user_phone ?? '',
+                    'street' => $vendor->address ?? '',
+                    'number' => '',
+                    'district' => '',
+                    'city' => 'Telengana',
+                    'state' => 'TG',
+                    'country' => 'IN',
+                    'postalCode' => $vendor->pincode ?? '',
+                    'reference' => '',
+                    'coordinates' => [
+                        'latitude' => $vendor->latitude ?? '',
+                        'longitude' => $vendor->longitude ?? '',
+                    ]
+                ],
+                'destination' => [
+                    'name' => $orders->customer_name ?? '',
+                    'company' => '',
+                    'email' => $orders->customer_name ?? '',
+                    'phone' => $orders->contact_no ?? '',
+                    'street' => $orders->house_no ?? '',
+                    'number' => $orders->landmark . ' ' . $orders->location,
+                    'district' => $envia_data->locality ?? '',
+                    'city' => $envia_data->locality ?? '',
+                    'state' => $address->state ?? '',
+                    'country' => 'IN',
+                    'postalCode' => (string)$address->pincode ?? '',
+                    'reference' => '',
+                    'coordinates' => [
+                        'latitude' => $orders->latitude ?? '',
+                        'longitude' => $orders->longitude ?? '',
+                    ]
+                ],
+                'packages' => $packages,
+                'shipment' => [
+                    'carrier' => $courier,
+                    'type' => 1
+                ],
+                'settings' => [
+                    'currency' => 'INR'
                 ]
-            ],
-            'destination' => [
-                'name' => $orders->customer_name ?? '',
-                'company' => '',
-                'email' => $orders->customer_name ?? '',
-                'phone' => $orders->contact_no ?? '',
-                'street' => $orders->house_no ?? '',
-                'number' => $orders->landmark . ' ' . $orders->location,
-                'district' => $envia_data->locality ?? '',
-                'city' => $envia_data->locality ?? '',
-                'state' => $address->state ?? '',
-                'country' => 'IN',
-                'postalCode' => (string)$address->pincode ?? '',
-                'reference' => '',
-                'coordinates' => [
-                    'latitude' => $orders->latitude ?? '',
-                    'longitude' => $orders->longitude ?? '',
-                ]
-            ],
-            'packages' => $packages,
-            'shipment' => [
-                'carrier' => $courier,
-                'type' => 1
-            ],
-            'settings' => [
-                'currency' => 'INR'
-            ]
-        ];
+            ];
 //        echo json_encode($data);die;
-        $curl = curl_init();
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => 'https://api.envia.com/ship/rate/',
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS => json_encode($data),
-            CURLOPT_HTTPHEADER => array(
-                'Content-Type: application/json',
-                'Authorization: Bearer ba4995dd978fa863b4fcc07bae59642de7ecc57238bb101edb298502b010ecf6'
-            ),
-        ));
+            $curl = curl_init();
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => 'https://api.envia.com/ship/rate/',
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS => json_encode($data),
+                CURLOPT_HTTPHEADER => array(
+                    'Content-Type: application/json',
+                    'Authorization: Bearer ba4995dd978fa863b4fcc07bae59642de7ecc57238bb101edb298502b010ecf6'
+                ),
+            ));
 
-        $response = curl_exec($curl);
+            $response = curl_exec($curl);
 
-        curl_close($curl);
+            curl_close($curl);
+        }
 
         return json_decode($response);
 
     }
 
 
-    public static function bookShipmentEnvia($orders, $courier,$surface){
+    public static function bookShipmentEnvia($orders, $courier, $surface)
+    {
         $order_items = OrderItems::where('order_id', $orders->id)->get();
         $vendor = Vendors::where('id', $orders->vendor_id)->first();
         $address = UserAddress::where('id', $orders->address_id)->first();
         $envia_data = json_decode($address->envia_data) ?? '';
+
         $packages = [];
         if (!empty($order_items)) {
             foreach ($order_items as $items) {
@@ -4023,7 +4082,7 @@ class CustomHelper
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS =>json_encode($data),
+            CURLOPT_POSTFIELDS => json_encode($data),
             CURLOPT_HTTPHEADER => array(
                 'Content-Type: application/json',
                 'Authorization: Bearer ba4995dd978fa863b4fcc07bae59642de7ecc57238bb101edb298502b010ecf6',
@@ -4033,7 +4092,7 @@ class CustomHelper
         $response = curl_exec($curl);
 
         curl_close($curl);
-        return  json_decode($response);
+        return json_decode($response);
 
     }
 

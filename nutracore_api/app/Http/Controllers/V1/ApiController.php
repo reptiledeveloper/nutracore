@@ -42,7 +42,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Passport\TokenRepository;
-use PDF;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification as FBNotification;
@@ -105,7 +105,7 @@ class ApiController extends Controller
                 $exist->referral_code = $referral_code_val;
                 $exist->save();
             }
-            if($register == 1){
+            if ($register == 1) {
                 $exist->cashback_wallet = $coin;
                 $exist->save();
                 ////Save Transaction////
@@ -116,7 +116,7 @@ class ApiController extends Controller
                 $dbArray['type_val'] = 'add_wallet';
                 $dbArray['wallet_type'] = 'cashback_wallet';
                 $dbArray['remarks'] = "Joining Bonus";
-                $dbArray['txn_no'] = "NC".rand(111111,999999999);
+                $dbArray['txn_no'] = "NC" . rand(111111, 999999999);
                 $dbArray['is_approved'] = 1;
                 Transaction::insert($dbArray);
             }
@@ -134,8 +134,34 @@ class ApiController extends Controller
         ], 200);
     }
 
+    public  function generateNextInvoiceNo()
+    {
+        // Get the last invoice number among non-deleted orders
+        $lastOrder = Order::where('is_delete', 0)
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if ($lastOrder && $lastOrder->invoice_no) {
+            // Extract the numeric part and increment
+            $lastNumber = (int) substr($lastOrder->invoice_no, 3);
+            $nextNumber = $lastNumber + 1;
+        } else {
+            $nextNumber = 1; // start from 1 if no previous orders
+        }
+
+        // Format as INV000001, INV000002, etc.
+        $invoiceNo = 'INV' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+
+        return $invoiceNo;
+    }
 
     public function porter_webhook(Request $request)
+    {
+        DB::table('new')->insert(['data' => json_encode($request->toArray())]);
+
+    }
+
+    public function envia_webhook(Request $request)
     {
         DB::table('new')->insert(['data' => json_encode($request->toArray())]);
 
@@ -1027,7 +1053,7 @@ class ApiController extends Controller
 
                                 if (!empty($exist)) {
 //
-                                    RazorpayOrders::where('razorpay_order_id', $order_id)->update([ 'payment_status' => 1,'transaction_id' => $txn_id, 'fee' => $fee, 'callback_data' => json_encode($request->toArray())]);
+                                    RazorpayOrders::where('razorpay_order_id', $order_id)->update(['payment_status' => 1, 'transaction_id' => $txn_id, 'fee' => $fee, 'callback_data' => json_encode($request->toArray())]);
                                     $user = User::where('id', $exist->user_id)->first();
                                     if ($exist->type == 'subscription') {
                                         if (!empty($user)) {
@@ -1160,7 +1186,7 @@ class ApiController extends Controller
                                                     } else {
                                                         $subscription_end = date('Y-m-d', strtotime("+" . $duration . " months", strtotime($subscription_end)));
                                                     }
-                                                    CustomHelper::Membership_Purchase($user->phone ?? '', $exist->order_id,$subscription_end);
+                                                    CustomHelper::Membership_Purchase($user->phone ?? '', $exist->order_id, $subscription_end);
                                                     $discount = $subscription_plans->max_discount ?? 0;
                                                     $total_discount = $user->total_discount + $discount;
                                                     User::where('id', $user->id)->update(['subscription_start' => $subscription_start, 'subscription_end' => $subscription_end, 'subscription_id' => $exist->subscription_id, 'total_discount' => $total_discount]);
@@ -1192,7 +1218,7 @@ class ApiController extends Controller
                                             }
                                             Cart::where('user_id', $user->id)->delete();
                                             CustomHelper::sendPlaceNewOrder($user->phone ?? '', $exist->order_id ?? '');
-
+                                            self::updateNCCashAfterOrder($order_id);
                                             self::sendOrderNotification($exist->order_id ?? '');
 
                                         }
@@ -1556,7 +1582,7 @@ class ApiController extends Controller
 
 
         $homepageArr = [];
-        $banner_types = ['', 'product', 'brand', 'category', 'link','instant_expert'];
+        $banner_types = ['', 'product', 'brand', 'category', 'link', 'instant_expert'];
         $banners = Banner::where('status', 1)->where('is_delete', 0)->whereIn('type', $banner_types)->get()->makeHidden(['created_at', 'updated_at', 'is_delete', 'status']);
         if (!empty($banners)) {
             foreach ($banners as $banner) {
@@ -2298,7 +2324,7 @@ class ApiController extends Controller
                     * sin(radians(latitude))) AS distance")
         )
             ->havingRaw("distance <= two_hr_radius")
-            ->where('is_delete',0)
+            ->where('is_delete', 0)
             ->orderBy("distance", "asc")
             ->first();
     }
@@ -2315,16 +2341,16 @@ class ApiController extends Controller
             $user = User::find($user_id);
             $latitude = $user->latitude ?? '17.44757253036007';
             $longitude = $user->longitude ?? '78.30504618870073';
-            if(!empty($user->addressID)){
-                $address = UserAddress::where('id',$user->addressID)->first();
-                if(!empty($address)){
+            if (!empty($user->addressID)) {
+                $address = UserAddress::where('id', $user->addressID)->first();
+                if (!empty($address)) {
                     $latitude = $address->latitude ?? '17.44757253036007';
                     $longitude = $address->longitude ?? '78.30504618870073';
                 }
             }
             $pincode = $user->pincode ?? '';
-            if(empty($pincode)){
-                $pincode = $address->pincode??'';
+            if (empty($pincode)) {
+                $pincode = $address->pincode ?? '';
             }
             $seller = self::getNearestSeller($latitude, $longitude, 2, 40);
 
@@ -2347,34 +2373,34 @@ class ApiController extends Controller
             }
         }
 
-        if(empty($estimated_day) && empty($user->estimated_day)){
-            $shipment_data = CustomHelper::checkDelivery($pincode??'');
-            if(!empty($shipment_data)){
+        if (empty($estimated_day) && empty($user->estimated_day)) {
+            $shipment_data = CustomHelper::checkDelivery($pincode ?? '');
+            if (!empty($shipment_data)) {
                 $data = json_decode($shipment_data, true);
                 if (!empty($data['data']['available_courier_companies'])) {
                     foreach ($data['data']['available_courier_companies'] as $courier) {
                         $courierName = $courier['courier_name'] ?? '';
-                        $courierId   = $courier['courier_company_id'] ?? '';
-                        $rate        = $courier['rate'] ?? 0;
-                        $freight     = $courier['freight_charge'] ?? 0;
-                        $cod         = $courier['cod_charges'] ?? 0;
-                        $other       = $courier['other_charges'] ?? 0;
-                        $etd         = $courier['etd'] ?? '';
-                        $days        = $courier['estimated_delivery_days'] ?? '';
+                        $courierId = $courier['courier_company_id'] ?? '';
+                        $rate = $courier['rate'] ?? 0;
+                        $freight = $courier['freight_charge'] ?? 0;
+                        $cod = $courier['cod_charges'] ?? 0;
+                        $other = $courier['other_charges'] ?? 0;
+                        $etd = $courier['etd'] ?? '';
+                        $days = $courier['estimated_delivery_days'] ?? '';
 
                         // Example: Save to DB or make array
                         $couriers[] = [
-                            'id'       => $courierId,
-                            'name'     => $courierName,
-                            'rate'     => $rate,
-                            'freight'  => $freight,
-                            'cod'      => $cod,
-                            'other'    => $other,
-                            'etd'      => $etd,
-                            'days'     => $days,
+                            'id' => $courierId,
+                            'name' => $courierName,
+                            'rate' => $rate,
+                            'freight' => $freight,
+                            'cod' => $cod,
+                            'other' => $other,
+                            'etd' => $etd,
+                            'days' => $days,
                         ];
 
-                        if(!empty($user)){
+                        if (!empty($user)) {
                             $user->estimated_day = $days;
                             $user->save();
                             $estimated_day_user = $days;
@@ -2382,13 +2408,12 @@ class ApiController extends Controller
                     }
                 }
             }
-        }else{
-            $estimated_day_user =$user->estimated_day??'';
+        } else {
+            $estimated_day_user = $user->estimated_day ?? '';
         }
-        if(!empty($estimated_day_user)){
-            $estimated_day =  "Get it Within " . $estimated_day_user . " Days";
+        if (!empty($estimated_day_user)) {
+            $estimated_day = "Get it Within " . $estimated_day_user . " Days";
         }
-
 
 
         $product = Product::where('id', $product_id)->first();
@@ -3443,23 +3468,23 @@ class ApiController extends Controller
         $dbArray['is_default'] = $request->is_default ?? 'N';
         if (!empty($id)) {
             DB::table('user_address')->where('id', $id)->update($dbArray);
-            User::where('id', $user->id)->update(['addressID' => $id,'estimated_day'=>'']);
+            User::where('id', $user->id)->update(['addressID' => $id, 'estimated_day' => '']);
             $addressID = $id;
         } else {
             $addressID = DB::table('user_address')->insertGetId($dbArray);
-            User::where('id', $user->id)->update(['addressID' => $addressID, 'latitude' => $request->latitude, 'longitude' => $request->longitude,'estimated_day'=>'']);
+            User::where('id', $user->id)->update(['addressID' => $addressID, 'latitude' => $request->latitude, 'longitude' => $request->longitude, 'estimated_day' => '']);
         }
 
-        if(!empty($request->pincode)){
+        if (!empty($request->pincode)) {
             $response = CustomHelper::getPincodeDataEnvia($request->pincode);
-            if(!empty($response)){
-                $response = $response[0] ??'';
+            if (!empty($response)) {
+                $response = $response[0] ?? '';
                 $dbArray = [];
                 $variable = '2digit';
-                $dbArray['country'] = $response->country->code ??'';
-                $dbArray['state'] = $response->state->code->$variable ??'';
-                $dbArray['envia_data'] = json_encode($response) ??'';
-                UserAddress::where('id',$addressID)->update($dbArray);
+                $dbArray['country'] = $response->country->code ?? '';
+                $dbArray['state'] = $response->state->code->$variable ?? '';
+                $dbArray['envia_data'] = json_encode($response) ?? '';
+                UserAddress::where('id', $addressID)->update($dbArray);
             }
         }
 
@@ -3599,6 +3624,23 @@ class ApiController extends Controller
                 'message' => 'Unauthorised',
             ], 401);
         }
+
+        $address_id = $request->address_id ?? '';
+        $address = UserAddress::where('id', $address_id)->first();
+        if (!empty($address)) {
+            if (empty($address->landmark) || empty($address->pincode) || empty($address->latitude) || empty($address->longitude)) {
+                return response()->json([
+                    'result' => false,
+                    'message' => 'Address Required',
+                ], 200);
+            }
+        } else {
+            return response()->json([
+                'result' => false,
+                'message' => 'Address Required',
+            ], 200);
+        }
+
 
         $lockKey = 'place_order_' . $user->id;
 
@@ -3835,7 +3877,7 @@ class ApiController extends Controller
                     $order_id = $orders->id;
                     $dbArray = [];
                     $dbArray['user_id'] = $user->id;
-                    $dbArray['subscription_id'] = $request->subscription_id??'';
+                    $dbArray['subscription_id'] = $request->subscription_id ?? '';
                     $dbArray['order_id'] = $request->order_id ?? '';
                     $dbArray['amount'] = $amount;
                     $dbArray['wallet'] = 0;
@@ -3942,6 +3984,7 @@ class ApiController extends Controller
             $dbArray['delivery_otp'] = rand(1111, 9999);
 
             $dbArray['payment_method'] = $payment_method;
+            $dbArray['invoice_no'] = self::generateNextInvoiceNo();
             $dbArray['tips'] = $request->tips ?? '';
             $dbArray['delivery_instruction'] = $request->delivery_instruction ?? '';
 
@@ -3989,20 +4032,24 @@ class ApiController extends Controller
                 ///////Save Transaction Needed
             }
             if (!empty($request->applied_cashback)) {
-                $new_wallet = (int)$user_data->cashback_wallet - (int)$request->applied_cashback;
-                User::where('id', $user_id)->update(['cashback_wallet' => $new_wallet]);
-                ///////Save Transaction Needed
-                ////Save Transaction////
-                $dbArray = [];
-                $dbArray['userID'] = $user_id;
-                $dbArray['type'] = 'DEBIT';
-                $dbArray['amount'] = (int)$request->applied_cashback ?? 0;
-                $dbArray['against_for'] = 'cashback_wallet';
-                $dbArray['wallet_type'] = 'cashback_wallet';
-                $dbArray['remarks'] = "Amount Debited From NC Cash";
-                $transaction_id = Transaction::insertGetId($dbArray);
-                Transaction::where('id', $transaction_id)->update(['txn_no' => "NC" . rand(111111, 9999999999)]);
-                CustomHelper::Redeeming_NC_Cash($user_data->phone, $request->applied_cashback??'',$new_wallet??'');
+
+                if ($payment_method == 'COD') {
+                    $new_wallet = (int)$user_data->cashback_wallet - (int)$request->applied_cashback;
+                    User::where('id', $user_id)->update(['cashback_wallet' => $new_wallet]);
+                    ///////Save Transaction Needed
+                    ////Save Transaction////
+                    $dbArray = [];
+                    $dbArray['userID'] = $user_id;
+                    $dbArray['type'] = 'DEBIT';
+                    $dbArray['amount'] = (int)$request->applied_cashback ?? 0;
+                    $dbArray['against_for'] = 'cashback_wallet';
+                    $dbArray['wallet_type'] = 'cashback_wallet';
+                    $dbArray['remarks'] = "Amount Debited From NC Cash";
+                    $transaction_id = Transaction::insertGetId($dbArray);
+                    Transaction::where('id', $transaction_id)->update(['txn_no' => "NC" . rand(111111, 9999999999)]);
+                    CustomHelper::Redeeming_NC_Cash($user_data->phone, $request->applied_cashback ?? '', $new_wallet ?? '');
+                }
+
             }
 
 
@@ -4020,6 +4067,7 @@ class ApiController extends Controller
                     $itemsArr['status'] = 'PLACED';
                     $itemsArr['vendor_id'] = $seller_id;
                     OrderItems::insert($itemsArr);
+                    Order::where('id',$order_id)->update(['delivery_speed' => $value['type'] ??'']);
                 }
             }
         }
@@ -4028,6 +4076,30 @@ class ApiController extends Controller
         return $order_id;
     }
 
+
+    public function updateNCCashAfterOrder($order_id)
+    {
+        $order = Order::find($order_id);
+        if (!empty($order)) {
+            $user_data = User::find($order->userID);
+            $new_wallet = (int)$user_data->cashback_wallet - (int)$order->applied_cashback;
+            User::where('id', $user_data->id)->update(['cashback_wallet' => $new_wallet]);
+            ///////Save Transaction Needed
+            ////Save Transaction////
+            $dbArray = [];
+            $dbArray['userID'] = $user_data->id;
+            $dbArray['type'] = 'DEBIT';
+            $dbArray['amount'] = (int)$request->applied_cashback ?? 0;
+            $dbArray['against_for'] = 'cashback_wallet';
+            $dbArray['wallet_type'] = 'cashback_wallet';
+            $dbArray['remarks'] = "Amount Debited From NC Cash";
+            $transaction_id = Transaction::insertGetId($dbArray);
+            Transaction::where('id', $transaction_id)->update(['txn_no' => "NC" . rand(111111, 9999999999)]);
+            CustomHelper::Redeeming_NC_Cash($user_data->phone, $order->applied_cashback ?? '', $new_wallet ?? '');
+        }
+
+
+    }
 
     public function sendOrderNotification($order_id)
     {
@@ -4128,7 +4200,7 @@ class ApiController extends Controller
             ], 401);
         }
         $ordersArr = [];
-        $orders = Order::select('id', 'created_at', 'status', 'total_amount','unique_id')->where('userID', $user->id)->where('is_delete', 0)->latest();
+        $orders = Order::select('id', 'created_at', 'status', 'total_amount', 'unique_id')->where('userID', $user->id)->where('is_delete', 0)->latest();
         $orders = $orders->paginate(30);
         if (!empty($orders)) {
             foreach ($orders as $order) {
@@ -4243,7 +4315,24 @@ class ApiController extends Controller
             if ($orders->payment_method == 'cod' || $orders->payment_method == 'COD') {
                 $payment_method = 'COD';
             }
-
+            $order_courierArr = [];
+            $order_courier = DB::table('order_courier')->where('order_id', $order_id)->first();
+            if (!empty($order_courier)) {
+                if ($order_courier->logistics == 'envia') {
+                    $orde = json_decode($order_courier->envia_data ?? '');
+                    $order_courierArr['shipmentId'] = $orde->shipmentId ?? '';
+                    $order_courierArr['trackingNumber'] = $orde->trackingNumber ?? '';
+                    $order_courierArr['trackUrl'] = $orde->trackUrl ?? '';
+                    $order_courierArr['carrier'] = $orde->carrier ?? '';
+                }
+                if ($order_courier->logistics == 'porter') {
+                    $order_courierArr['shipmentId'] = $order_courier->porter_order_id ?? '';
+                    $order_courierArr['trackingNumber'] = $order_courier->porter_order_id ?? '';
+                    $order_courierArr['trackUrl'] = $order_courier->tracking_url ?? '';
+                    $order_courierArr['carrier'] = 'porter';
+                }
+            }
+            $orders->order_courier = $order_courierArr;
             $orders->payment_method = $payment_method;
             $seller_details = self::getSellerDetails($orders->vendor_id, $user->id);
 
@@ -4932,7 +5021,7 @@ class ApiController extends Controller
         $data = ['orders' => $orders, 'seller_details' => $seller_details];
 
 
-        $pdf = \PDF::loadView('saleinvoice_80', $data);
+        $pdf = PDF::loadView('saleinvoice_80', $data);
         $filename = 'Invoice_' . $orderID . 'order' . rand(111, 999999) . time() . '.pdf';
 
         $pdfContent = $pdf->output();
@@ -5307,6 +5396,17 @@ class ApiController extends Controller
         return response()->json([
             'result' => true,
             'message' => "Return Request Placed Successfully",
+        ], 200);
+    }
+
+    public function validatePincode(Request $request)
+    {
+        $pincode = $request->pincode ?? '';
+        $pincode_data = CustomHelper::getPincodeDataEnvia($pincode);
+        return response()->json([
+            'result' => true,
+            'message' => "Pincode Data Successfully",
+            "pincode_data" => $pincode_data,
         ], 200);
     }
 

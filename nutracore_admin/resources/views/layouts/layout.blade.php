@@ -857,88 +857,99 @@ $current_route = Route::currentRouteName();
                 </li>
             @endif
             @if(\App\Helpers\CustomHelper::isAllowedSection('suppliers','list') || \App\Helpers\CustomHelper::isAllowedSection('stocks','list'))
-            <li>
-                <a href="#">
+                <li>
+                    <a href="#">
                     <span class="nav-link-icon">
                         <i class="bi bi-wallet2"></i>
                     </span>
-                    <span>Inventory Management</span>
-                </a>
-                <ul>
-                    <li>
-                        <a class="{{$current_route == 'suppliers.index' ? "active":""}}" href="{{route('suppliers.index')}}
+                        <span>Inventory Management</span>
+                    </a>
+                    <ul>
+                        <li>
+                            <a class="{{$current_route == 'suppliers.index' ? "active":""}}" href="{{route('suppliers.index')}}
                         ">Suppliers</a>
-                    </li>
-                    <li>
-                        <a class="{{$current_route == 'invoices.index' ? "active":""}}" href="{{route('invoices.index')}}
+                        </li>
+                        <li>
+                            <a class="{{$current_route == 'invoices.index' ? "active":""}}" href="{{route('invoices.index')}}
                         ">Invoices</a>
-                    </li>
-                    <li>
-                        <a class="{{$current_route == 'stocks.index' ? "active":""}}" href="{{route('stocks.index')}}
+                        </li>
+                        <li>
+                            <a class="{{$current_route == 'stocks.index' ? "active":""}}" href="{{route('stocks.index')}}
                         ">Stocks & Expiry</a>
-                    </li>
-                    <li>
-                        <a class="{{$current_route == 'stocks.closingStockList' ? "active":""}}" href="{{route('stocks.closingStockList')}}
+                        </li>
+                        <li>
+                            <a class="{{$current_route == 'stocks.closingStockList' ? "active":""}}" href="{{route('stocks.closingStockList')}}
                         ">Closing Stock</a>
-                    </li>
-                    <li>
-                        <a class="{{$current_route == 'stocks.stockLogs' ? "active":""}}" href="{{route('stocks.stockLogs')}}
+                        </li>
+                        <li>
+                            <a class="{{$current_route == 'stocks.stockLogs' ? "active":""}}" href="{{route('stocks.stockLogs')}}
                         ">StockLogs</a>
-                    </li>
-                    <li>
-                        <a class="{{$current_route == 'stock_transfers.index' ? "active":""}}" href="{{route('stock_transfers.index')}}
+                        </li>
+                        <li>
+                            <a class="{{$current_route == 'stock_transfers.index' ? "active":""}}" href="{{route('stock_transfers.index')}}
                         ">Stock Transfers</a>
-                    </li>
+                        </li>
 
 
-                </ul>
-            </li>
+                    </ul>
+                </li>
             @endif
 
             @if(\App\Helpers\CustomHelper::isAllowedSection('pos','list'))
+
                 <li>
-                    <a class="{{$current_route == 'pos.index' ? "active":""}}" href="{{route('pos.index')}}">
+                    <a href="#">
                     <span class="nav-link-icon">
-                        <i class="bi bi-gift"></i>
+                        <i class="bi bi-map"></i>
                     </span>
                         <span>POS</span>
                     </a>
+                    <ul>
+                        <li>
+                            <a class="{{$current_route == 'pos.add' ? "active":""}}" href="{{route('pos.add', ['back_url' => $BackUrl])}}
+                      ">New</a>
+                        </li>
+                        <li>
+                            <a class="{{$current_route == 'pos.index' ? "active":""}}" href="{{route('pos.index')}}
+                        ">Orders List </a>
+                        </li>
+                    </ul>
                 </li>
             @endif
             @if(\App\Helpers\CustomHelper::isAllowedSection('abandoned_cart','list'))
 
-            <li>
-                <a class="{{$current_route == 'abandoned_cart.index' ? "active":""}}"
-                   href="{{route('abandoned_cart.index')}}">
+                <li>
+                    <a class="{{$current_route == 'abandoned_cart.index' ? "active":""}}"
+                       href="{{route('abandoned_cart.index')}}">
                     <span class="nav-link-icon">
                         <i class="bi bi-shop"></i>
                     </span>
-                    <span>Abandoned Cart</span>
-                </a>
-            </li>
+                        <span>Abandoned Cart</span>
+                    </a>
+                </li>
             @endif
             @if(\App\Helpers\CustomHelper::isAllowedSection('orders','list'))
 
-            <li>
-                <a class="{{$current_route == 'orders.index' ? "active":""}}" href="{{route('orders.index')}}">
+                <li>
+                    <a class="{{$current_route == 'orders.index' ? "active":""}}" href="{{route('orders.index')}}">
                     <span class="nav-link-icon">
                         <i class="bi bi-shop"></i>
                     </span>
-                    <span>Orders</span>
-                </a>
-            </li>
+                        <span>Orders</span>
+                    </a>
+                </li>
             @endif
             @if(\App\Helpers\CustomHelper::isAllowedSection('transaction','list'))
 
-            <li>
-                <a class="{{$current_route == 'transaction.index' ? "active":""}}"
-                   href="{{route('transaction.index')}}">
+                <li>
+                    <a class="{{$current_route == 'transaction.index' ? "active":""}}"
+                       href="{{route('transaction.index')}}">
                     <span class="nav-link-icon">
                         <i class="bi bi-shop"></i>
                     </span>
-                    <span>Transaction</span>
-                </a>
-            </li>
+                        <span>Transaction</span>
+                    </a>
+                </li>
             @endif
             @if(\App\Helpers\CustomHelper::isAllowedSection('return_request','list'))
 
@@ -963,14 +974,14 @@ $current_route = Route::currentRouteName();
             @endif
             @if(\App\Helpers\CustomHelper::isAllowedSection('users','list'))
 
-            <li>
-                <a class="{{$current_route == 'users.index' ? "active":""}}" href="{{route('users.index')}}">
+                <li>
+                    <a class="{{$current_route == 'users.index' ? "active":""}}" href="{{route('users.index')}}">
                     <span class="nav-link-icon">
                         <i class="bi bi-person-badge"></i>
                     </span>
-                    <span>Users</span>
-                </a>
-            </li>
+                        <span>Users</span>
+                    </a>
+                </li>
             @endif
 
             @if(\App\Helpers\CustomHelper::isAllowedSection('ratings','list'))
@@ -984,46 +995,46 @@ $current_route = Route::currentRouteName();
                 </li>
             @endif
             @if(\App\Helpers\CustomHelper::isAllowedSection('faqs','list'))
-            <li>
-                <a class="{{$current_route == 'faqs.index' ? "active":""}}" href="{{route('faqs.index')}}">
+                <li>
+                    <a class="{{$current_route == 'faqs.index' ? "active":""}}" href="{{route('faqs.index')}}">
                     <span class="nav-link-icon">
                         <i class="bi bi-question"></i>
                     </span>
-                    <span>FAQ</span>
-                </a>
-            </li>
+                        <span>FAQ</span>
+                    </a>
+                </li>
             @endif
             @if(\App\Helpers\CustomHelper::isAllowedSection('support_tickets','list'))
-            <li>
-                <a href="#">
+                <li>
+                    <a href="#">
                     <span class="nav-link-icon">
                         <i class="bi bi-map"></i>
                     </span>
-                    <span>Support Tickets</span>
-                </a>
-                <ul>
-                    <li>
-                        <a class="{{$current_route == 'support_tickets.index' ? "active":""}}" href="{{route('support_tickets.index')}}
+                        <span>Support Tickets</span>
+                    </a>
+                    <ul>
+                        <li>
+                            <a class="{{$current_route == 'support_tickets.index' ? "active":""}}" href="{{route('support_tickets.index')}}
                         ">Support Ticket</a>
-                    </li>
-                </ul>
-            </li>
+                        </li>
+                    </ul>
+                </li>
             @endif
             @if(\App\Helpers\CustomHelper::isAllowedSection('notifications','list'))
-            <li>
-                <a href="#">
+                <li>
+                    <a href="#">
                     <span class="nav-link-icon">
                         <i class="bi bi-map"></i>
                     </span>
-                    <span>Notifications</span>
-                </a>
-                <ul>
-                    <li>
-                        <a class="{{$current_route == 'notifications.index' ? "active":""}}" href="{{route('notifications.index')}}
+                        <span>Notifications</span>
+                    </a>
+                    <ul>
+                        <li>
+                            <a class="{{$current_route == 'notifications.index' ? "active":""}}" href="{{route('notifications.index')}}
                         ">Notifications</a>
-                    </li>
-                </ul>
-            </li>
+                        </li>
+                    </ul>
+                </li>
             @endif
 
             {{--            <li>--}}
@@ -1649,21 +1660,21 @@ $current_route = Route::currentRouteName();
         var _token = '{{ csrf_token() }}';
         var category_id = $('#category_id').val();
         var product_id = '{{ $ajax_pro_id }}';
-        $.ajax({
-            url: "{{ route('admin.get_sub_category') }}",
-            type: "POST",
-            data: {category_id: category_id},
-            dataType: "HTML",
-            headers: {'X-CSRF-TOKEN': _token},
-            cache: false,
-            success: function (resp) {
-                $('#subcategory_id').html(resp);
-                if (product_id == "") {
-                    getTags(category_id);
-                }
+            $.ajax({
+                url: "{{ route('admin.get_sub_category') }}",
+                type: "POST",
+                data: {category_id: category_id},
+                dataType: "HTML",
+                headers: {'X-CSRF-TOKEN': _token},
+                cache: false,
+                success: function (resp) {
+                    $('#subcategory_id').html(resp);
+                    if (product_id == "") {
+                        getTags(category_id);
+                    }
 
-            }
-        });
+                }
+            });
     });
 
     function getTags(category_id) {
@@ -1750,6 +1761,11 @@ $current_route = Route::currentRouteName();
                 },
                 processResults: function (data, params) {
                     params.page = params.page || 1;
+                    data.items.unshift({
+                        id: 'add_customer',
+                        text: '➕ Add Customer'
+                    });
+
                     return {
                         results: data.items, // Adjust according to your API response
                         pagination: {
@@ -1763,8 +1779,61 @@ $current_route = Route::currentRouteName();
             placeholder: 'Search for Users...',
             allowClear: true
         });
+        $('.select2user').on('select2:select', function (e) {
+            let data = e.params.data;
+            console.log("Selected:", data); // Debug
+            if (data.id === 'add_customer') {
+                // Reset select2 value
+                $(this).val(null).trigger('change');
+
+                // Open Add User modal
+                $('#addUserModal').modal('show');
+            } else {
+                // Call getUserDetails for normal users
+
+            }
+            getUserDetails(data.id);
+        });
+
+// Optional: detect when selection is cleared
+        $('.select2user').on('change', function() {
+            if (!$(this).val()) {
+                console.log('User selection cleared');
+            }
+        });
 
     });
+    function getUserDetails(id) {
+        var _token = '{{ csrf_token() }}';
+        $.ajax({
+            url: "{{ route('users.getUserDetails') }}",
+            type: "POST",
+            data: {id: id},
+            headers: {'X-CSRF-TOKEN': _token},
+            success: function (resp) {
+                if (resp.success) {
+                    let user = resp.user;
 
+                    $("#lastVisited").text(user.last_visited || "--");
+                    $("#totalPurchase").text("₹" + (user.total_spent || 0));
+
+                    // Membership status + color
+                    if (user.membership_status === "Subscribed") {
+                        $("#membershipStatus").text("Active").removeClass("text-danger").addClass("text-success");
+                    } else {
+                        $("#membershipStatus").text("Inactive").removeClass("text-success").addClass("text-danger");
+                    }
+
+                    $("#membershipEndDate").text(user.subscription_end || "--");
+                    $("#cashBalance").text("₹" + (user.cashback_wallet || 0));
+                    $("#ncCashBalance").text("₹" + (user.cashback_wallet || 0));
+                    $("#coupon").text("₹0"); // default, you can update later
+                    $("#lastBillNo").text(user.id || "--"); // replace with actual bill no if available
+                    $("#lastBillAmount").text("₹" + (user.lat_bill_amount || 0));
+                }
+            }
+
+        });
+    }
 
 </script>

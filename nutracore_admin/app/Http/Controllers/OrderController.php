@@ -24,7 +24,7 @@ use Illuminate\Http\Request;
 
 use Storage;
 use Validator;
-use PDF;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class OrderController extends Controller
 {
@@ -319,23 +319,25 @@ class OrderController extends Controller
 
     public function generateInvoicePdf(Request $request)
     {
-        $data = [];
-        $pdf = PDF::loadView('orders.saleinvoice_a4_new', $data)
-            ->setPaper('a4')
-            ->setOrientation('portrait')
-            ->setOption('enable-local-file-access', true)
-            ->setOption('margin-top', '10mm')
-            ->setOption('margin-bottom', '10mm')
-            ->setOption('margin-left', '10mm')
-            ->setOption('margin-right', '10mm')
-            ->setOption('zoom', 1.2); // increases content scale
-
-
+        $orderID = $request->id;
+        $orders = Order::where('id', $orderID)->first();
+        $seller_details = Vendors::where('id', $orders->id)->first();
+        if($orders->status == "DELIVERED"){
+//            CustomHelper::generateInvoiceNo();
+        }
+        $data = [
+            'orders' => $orders,
+            'seller_details' => $seller_details
+        ];
+//        return view('orders.saleinvoice_a4_new', $data);
+        $pdf = Pdf::loadView('orders.saleinvoice_a4_new', $data)
+            ->setPaper('a4')->setOptions([
+                'isRemoteEnabled' => true, // <-- enable remote images
+            ]);
         $filename = 'Invoice_order_' . rand(111, 999999) . time() . '.pdf';
 
         return $pdf->stream($filename);
     }
-
 
     public function get_varients(Request $request)
     {
@@ -665,6 +667,14 @@ class OrderController extends Controller
         $order_id = $request->order_id ?? '';
         $order = Order::find($order_id);
         $book_shipment = CustomHelper::cancelPorterShipment($order);
+        return back();
+
+    }
+
+    public function get_courier_data(Request $request)
+    {
+        $order_id = $request->id ?? '';
+        CustomHelper::getPorterData($order_id);
         return back();
 
     }

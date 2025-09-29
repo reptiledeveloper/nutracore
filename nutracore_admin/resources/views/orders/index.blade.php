@@ -53,6 +53,7 @@
                             <th>Items</th>
                             <th>Total amount</th>
                             <th>Payment</th>
+                            <th>Order From</th>
                             <th>Status</th>
                             <th>Date</th>
 
@@ -67,7 +68,7 @@
                             $count_order_items = count($order_items);
                             ?>
                         <tr>
-                            <td># {{ $order->id ?? '' }}</td>
+                            <td># {{ $order->unique_id ?? '' }}</td>
 
                             <td>{{\App\Helpers\CustomHelper::getVendorName($order->vendor_id??'')}}</td>
                             <td class="text-wrap">
@@ -95,6 +96,7 @@
                             <td>{{$count_order_items??''}}</td>
                             <td>₹ {{$order->total_amount??''}}</td>
                             <td>{{$order->payment_method??''}}</td>
+                            <td>{{$order->order_from??''}}</td>
                             <td>{!! \App\Helpers\CustomHelper::getOrderStatus($order->id) !!}</td>
                             <td>{{ date('d M Y h:i A',strtotime($order->created_at)) }}</td>
                             <td class="text-end">

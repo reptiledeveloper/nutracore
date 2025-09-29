@@ -26,7 +26,7 @@
                 <div class="card mb-4">
                     <div class="card-body">
                         <div class="mb-5 d-flex align-items-center justify-content-between">
-                            <span>Order No : <a href="#">#{{$orders->id}}</a></span>
+                            <span>Order No : <a href="#">#{{ $orders->unique_id }}</a></span>
                             {!! \App\Helpers\CustomHelper::getOrderStatus($orders->id) !!}
                         </div>
                         <div class="row mb-5 g-4">
@@ -219,7 +219,7 @@
                         <div class="row justify-content-center mb-3">
                             <div class="col-6 text-end">Invoice No :</div>
                             <div class="col-6">
-                                <a href="#">#5355619</a>
+                                <a href="#">#{{$orders->invoice_no??''}}</a>
                             </div>
                         </div>
                         <div class="row justify-content-center mb-3">

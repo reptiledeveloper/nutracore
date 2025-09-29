@@ -337,21 +337,21 @@ class UserController extends Controller
         $itemArr = [];
         $pagination = false;
         if (!empty($search)) {
-            $products = User::where('status', 1)->where('is_delete', 0);
-            $products->where('name', 'like', '%' . $search . '%');
-            $products->orWhere('phone', 'like', '%' . $search . '%');
-            $products = $products->paginate(10);
-            if (!empty($products)) {
-                foreach ($products as $product) {
+            $users = User::where('status', 1)->where('is_delete', 0);
+            $users->where('name', 'like', '%' . $search . '%');
+            $users->orWhere('phone', 'like', '%' . $search . '%');
+            $users = $users->paginate(10);
+            if (!empty($users)) {
+                foreach ($users as $user) {
                     $dbArray = [];
-                    $dbArray['id'] = $product->id ?? '';
-                    $name = $product->name ?? '';
-                    $name .= '-' . $product->phone ?? '';
+                    $dbArray['id'] = $user->id ?? '';
+                    $name = $user->phone ?? '';
+                    $name .= '-' . $user->name ?? '';
                     $dbArray['text'] = $name ?? '';
                     $itemArr[] = $dbArray;
                 }
             }
-            if ($products->lastPage() > 1) {
+            if ($users->lastPage() > 1) {
                 $pagination = true;
             }
         }
@@ -374,4 +374,53 @@ class UserController extends Controller
         }
         return back()->with('success', 'User imported successfully!');
     }
+
+    public function save_user(Request $request)
+    {
+        $request->validate([
+            'name'  => 'required|string|max:255',
+            'phone' => 'required|string|max:20|unique:users,phone',
+            'email' => '',
+        ]);
+
+        $user = User::create([
+            'name'  => $request->name,
+            'phone' => $request->phone,
+            'email' => $request->email,
+            'status' => 1,
+            'is_delete' => 0,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'phone' => $user->phone
+            ]
+        ]);
+    }
+    public function getUserDetails(Request $request)
+    {
+        $id = $request->id??'';
+        $user = User::where('id',$id)->first();
+        $customer_subs_data = \App\Helpers\CustomHelper::getUserSubsData($user);
+        $order = Order::where('userID',$user->id)->latest()->first();
+        return response()->json([
+            'success' => true,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'phone' => $user->phone,
+                'last_visited' => !empty($order->created_at) ? date('Y-m-d h:i A',strtotime($order->created_at)) : "",
+                'lat_bill_amount' => $order->total_amount??0,
+                'cashback_wallet' => $user->cashback_wallet,
+                'subscription_end' => $user->subscription_end,
+                'total_spent' => $customer_subs_data['total_spent'] ?? 0,
+                'membership_status' => $customer_subs_data['membership_status'] ?? '',
+            ]
+        ]);
+
+    }
+
 }

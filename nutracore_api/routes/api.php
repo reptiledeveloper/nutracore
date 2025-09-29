@@ -24,11 +24,12 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 
 Route::match(['get', 'post'], '/update_payment_status', [ApiController::class, 'update_payment_status'])->name('update_payment_status');
-Route::match(['get', 'post'], '/porter_webhook', [ApiController::class, 'porter_webhook'])->name('porter_webhook');
+
+Route::match(['get', 'post'], '/envia_webhook', [ApiController::class, 'envia_webhook'])->name('envia_webhook');
 
 Route::prefix('v1/')->group(function () {
     Route::match(['get', 'post'], '/update_payment_status', [ApiController::class, 'update_payment_status'])->name('update_payment_status');
-
+    Route::match(['get', 'post'], '/porter_webhook', [ApiController::class, 'porter_webhook'])->name('porter_webhook');
     //////10/10/2024
     Route::post('/splash_screens', [ApiController::class, 'splash_screens']);
     Route::post('/send_test_notitication', [ApiController::class, 'send_test_notitication']);
@@ -42,6 +43,7 @@ Route::prefix('v1/')->group(function () {
     Route::match(['get', 'post'], '/login', [ApiController::class, 'login'])->name('login');
     Route::match(['get', 'post'], '/skip_login', [ApiController::class, 'skip_login'])->name('skip_login');
     Route::post('/settings', [ApiController::class, 'settings']);
+    Route::post('/validatePincode', [ApiController::class, 'validatePincode']);
 
 
 
