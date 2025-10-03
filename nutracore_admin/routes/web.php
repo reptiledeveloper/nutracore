@@ -87,6 +87,12 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'user_search', 'POSController@user_search')->name('.user_search');
             Route::match(['get', 'post'], 'getFreebiesProduct', 'POSController@getFreebiesProduct')->name('.getFreebiesProduct');
             Route::match(['get', 'post'], 'getMembershipPlans', 'POSController@getMembershipPlans')->name('.getMembershipPlans');
+            Route::match(['get', 'post'], 'getCoupons', 'POSController@getCoupons')->name('.getCoupons');
+            Route::match(['get', 'post'], 'getFreebiesProductDetails', 'POSController@getFreebiesProductDetails')->name('.getFreebiesProductDetails');
+            Route::match(['get', 'post'], 'applyCoupon', 'POSController@applyCoupon')->name('.applyCoupon');
+            Route::match(['get', 'post'], 'send_redeem_nc_cash_otp', 'POSController@send_redeem_nc_cash_otp')->name('.send_redeem_nc_cash_otp');
+            Route::match(['get', 'post'], 'verify_redeem_nc_cash_otp', 'POSController@verify_redeem_nc_cash_otp')->name('.verify_redeem_nc_cash_otp');
+            Route::match(['get', 'post'], 'savePos', 'POSController@savePos')->name('.savePos');
         });
 
 

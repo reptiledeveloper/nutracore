@@ -128,6 +128,21 @@ class CustomHelper
         return $dbarray;
 
     }
+    public static function checkSubscription($user)
+    {
+
+        $is_active = 0;
+        $exist_subscription = Subscriptions::where('user_id', $user->id)->where('paid_status', 1)->latest()->first();
+        if (!empty($exist_subscription)) {
+            $current_date = date('Y-m-d');
+            if (!empty($user->subscription_end)) {
+                if (strtotime($user->subscription_end) >= strtotime($current_date)) {
+                    $is_active = 1;
+                }
+            }
+        }
+        return $is_active;
+    }
 
     public static function getNoOfStock($product_id, $varient_id, $vendor_id)
     {
@@ -295,9 +310,7 @@ class CustomHelper
     {
         $productArr = [];
 
-        $products = Products::with('variants') // eager load variants
-        ->select('id', 'name', 'sku')
-            ->where('status', 1)
+        $products = Products::where('status', 1)
             ->where('is_delete', 0)
             ->get();
 
@@ -314,7 +327,7 @@ class CustomHelper
                             'unit' => $varient->unit ?? '',
                             'subscription_price' => $varient->subscription_price ?? 0,
                             'varient_sku' => $varient->varient_sku ?? '',
-                            'varient_id' => $varient->id ?? 0,
+                            'variant_id' => $varient->id ?? 0,
                             'discount' => (int)$varient->mrp -(int) $varient->selling_price,
                         ];
                     }
@@ -324,13 +337,13 @@ class CustomHelper
                         'product_id' => $product->id,
                         'product_name' => $product->name,
                         'product_sku' => $product->sku,
-                        'mrp' => $product->mrp ?? 0,
-                        'selling_price' => $product->selling_price ?? 0,
+                        'mrp' => $product->product_mrp ?? 0,
+                        'selling_price' => $product->product_selling_price ?? 0,
                         'unit' => '',
-                        'subscription_price' => $product->subscription_price ?? 0,
+                        'subscription_price' => $product->product_subscription_price ?? 0,
                         'varient_sku' => $product->sku,
-                        'varient_id' => 0,
-                        'discount' => (int)$product->mrp -(int) $product->selling_price,
+                        'variant_id' => 0,
+                        'discount' => (int)$product->product_mrp -(int) $product->product_selling_price,
                     ];
                 }
             }

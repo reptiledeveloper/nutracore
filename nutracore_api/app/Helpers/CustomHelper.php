@@ -604,6 +604,34 @@ class CustomHelper
         return $is_active;
     }
 
+    public static function checkOutofStock($product_id, $varient_id)
+    {
+        $is_out_of_stock = 0;
+        $query = DB::table('stock_batches as sl')
+            ->join('product_varients as pv', 'pv.id', '=', 'sl.variant_id')
+            ->join('products as p', 'p.id', '=', 'pv.product_id')
+            ->select(
+                'p.id as product_id',
+                'pv.id as variant_id',
+                DB::raw('SUM(sl.quantity) as closing_stock')
+            )
+            ->where('sl.is_delete', 0)
+            ->where('p.id', $product_id);
+
+        // If variant_id provided, filter by it
+        if (!empty($varient_id)) {
+            $query->where('pv.id', $varient_id);
+        }
+
+        $stock = $query->groupBy('p.id', 'pv.id')->first();
+
+        // ✅ If no stock found → Out of Stock
+        if (!$stock || $stock->closing_stock <= 0) {
+            $is_out_of_stock = 1 ;// Out of Stock
+        }
+        return $is_out_of_stock;
+    }
+
     public static function calculateDiscountPer($originalPrice, $discountedPrice)
     {
         if ($originalPrice <= 0) {
@@ -654,7 +682,7 @@ class CustomHelper
         $cart_list = Cart::where('user_id', $user_id)->get();
         if (!empty($cart_list)) {
             foreach ($cart_list as $cart) {
-                $cart->type = $request->type??'normal';
+                $cart->type = $request->type ?? 'normal';
                 $cart->save();
                 $is_available = 0;
                 $product = ProductVarient::where('product_id', $cart->product_id)->where('id', $cart->variant_id)->first();
@@ -740,7 +768,7 @@ class CustomHelper
                 $discount = (int)$mrp - (int)$selling_price;
                 $total_discount = (int)$cart->qty * (int)$discount;
                 $dbArray['total_price'] = $total_cart_price;
-                $dbArray['type'] = $cart->type??'';
+                $dbArray['type'] = $cart->type ?? '';
                 $cartArr[] = $dbArray;
                 $cart_total += $total_cart_price;
                 $cart_discount += $total_discount;
@@ -989,11 +1017,13 @@ class CustomHelper
 
         return $user;
     }
+
     public static function getAdminProductSingleVarients($product_id, $varient_id)
     {
         $varients = ProductVarient::where('product_id', $product_id)->where('id', $varient_id)->where('is_delete', 0)->first();
         return $varients;
     }
+
     public static function getLiveClassTypes()
     {
         $types = config('custom.live_class_types');
@@ -1375,7 +1405,7 @@ class CustomHelper
             ->whereRaw('? BETWEEN CAST(order_amount AS UNSIGNED) AND CAST(order_amount2 AS UNSIGNED)', [$total_amount])
             ->first();
 
-        if((int)$total_amount <= 999){
+        if ((int)$total_amount <= 999) {
             $delivery_charge = 99;
         }
 
@@ -4043,7 +4073,7 @@ class CustomHelper
 
     }
 
-    public static function Membership_Purchase($mobile, $order_id,$endate)
+    public static function Membership_Purchase($mobile, $order_id, $endate)
     {
         $user_name = "User";
         $curl = curl_init();
@@ -4068,7 +4098,7 @@ class CustomHelper
 
     }
 
-    public static function Redeeming_NC_Cash($mobile, $balance,$remaining_balance)
+    public static function Redeeming_NC_Cash($mobile, $balance, $remaining_balance)
     {
         $user_name = "User";
         $curl = curl_init();

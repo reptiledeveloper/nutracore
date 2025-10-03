@@ -320,7 +320,10 @@
                     <div>Discount: -₹{{ $total_discount }}</div>
                     <div>Taxable Value: ₹{{ $taxable_value }}</div>
 
-                    @if($address->state == 'TG')
+                    @if(!empty($address) && $address->state == 'TG')
+                        <div>CGST {{ $product->tax / 2 }}%: ₹{{ $cgst }}</div>
+                        <div>SGST {{ $product->tax / 2 }}%: ₹{{ $sgst }}</div>
+                    @elseif($orders->order_from == 'POS')
                         <div>CGST {{ $product->tax / 2 }}%: ₹{{ $cgst }}</div>
                         <div>SGST {{ $product->tax / 2 }}%: ₹{{ $sgst }}</div>
                     @else

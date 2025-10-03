@@ -464,6 +464,25 @@ $current_route = Route::currentRouteName();
         <a href="#" class="btn btn-primary">All Settings</a>
     </div>
 </div>
+
+<style>
+    /* Default: no margin for mobile/tablet */
+.layout-wrapper {
+    margin-left: 0;
+}
+ .menu {
+    z-index: 998;
+    width: 270px;
+}
+/* Desktop only */
+@media (min-width: 992px) {
+    .layout-wrapper {
+        margin-left: 250px;
+    }
+}
+
+   
+</style>
 <!-- ./ settings sidebar -->
 
 <!-- search sidebar -->
@@ -576,7 +595,7 @@ $current_route = Route::currentRouteName();
 <!-- ./ sidebars -->
 
 <!-- menu -->
-<div class="menu">
+<div class="menu collapsed" >
     <div class="menu-header">
         <a href="{{url('/admin')}}" class="menu-header-logo">
             <img src="{{logo()}}" alt="logo">
@@ -1549,7 +1568,6 @@ $current_route = Route::currentRouteName();
 
 <!-- layout-wrapper -->
 <div class="layout-wrapper">
-
     <!-- header -->
     <div class="header">
         <div class="menu-toggle-btn"> <!-- Menu close button for mobile devices -->
@@ -1763,7 +1781,8 @@ $current_route = Route::currentRouteName();
                     params.page = params.page || 1;
                     data.items.unshift({
                         id: 'add_customer',
-                        text: '➕ Add Customer'
+                        text: '➕ Add Customer',
+                        searched: params.term
                     });
 
                     return {
@@ -1779,13 +1798,22 @@ $current_route = Route::currentRouteName();
             placeholder: 'Search for Users...',
             allowClear: true
         });
+
+        $(document).on('input', '.select2-search__field', function () {
+            // keep only digits
+            this.value = this.value.replace(/[^0-9]/g, '');
+            // limit to 10 digits
+            if (this.value.length > 10) {
+                this.value = this.value.slice(0, 10);
+            }
+        });
         $('.select2user').on('select2:select', function (e) {
             let data = e.params.data;
             console.log("Selected:", data); // Debug
             if (data.id === 'add_customer') {
                 // Reset select2 value
                 $(this).val(null).trigger('change');
-
+                $('#addCustomerForm input[name="phone"]').val(data.searched || '');
                 // Open Add User modal
                 $('#addUserModal').modal('show');
             } else {
@@ -1813,7 +1841,7 @@ $current_route = Route::currentRouteName();
             success: function (resp) {
                 if (resp.success) {
                     let user = resp.user;
-
+                    $('#user_id').val(id);
                     $("#lastVisited").text(user.last_visited || "--");
                     $("#totalPurchase").text("₹" + (user.total_spent || 0));
 
@@ -1825,8 +1853,11 @@ $current_route = Route::currentRouteName();
                     }
 
                     $("#membershipEndDate").text(user.subscription_end || "--");
+                    $("#membership_active").val(user.membership_status);
                     $("#cashBalance").text("₹" + (user.cashback_wallet || 0));
                     $("#ncCashBalance").text("₹" + (user.cashback_wallet || 0));
+                    $("#ncCash").val(user.cashback_wallet);
+                    $("#userPhone").val(user.phone);
                     $("#coupon").text("₹0"); // default, you can update later
                     $("#lastBillNo").text(user.id || "--"); // replace with actual bill no if available
                     $("#lastBillAmount").text("₹" + (user.lat_bill_amount || 0));
@@ -1836,4 +1867,10 @@ $current_route = Route::currentRouteName();
         });
     }
 
+
+
+
+
 </script>
+
+

@@ -2469,6 +2469,7 @@ class ApiController extends Controller
                     $nc_cash = self::getNcCashPercent($user, $varient->selling_price ?? '');
 
                     $varient->nc_cash = $nc_cash;
+                    $is_out_of_stock = CustomHelper::checkOutofStock($product->id,$varient->id);
                     $varient->is_out_of_stock = $is_out_of_stock;
 
                 }
@@ -2492,6 +2493,7 @@ class ApiController extends Controller
                 if (!empty($user)) {
                     $qty = CustomHelper::getCartQty($user_id, $product->id, 0);
                 }
+                $is_out_of_stock = CustomHelper::checkOutofStock($product->id,0);
                 $varients = [[
                     'id' => 0, // You can keep it product_id or generate a fake ID
                     'product_id' => $product->id,
