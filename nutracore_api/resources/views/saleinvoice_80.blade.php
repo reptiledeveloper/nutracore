@@ -14,7 +14,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <link rel="shortcut icon" href="">
+    <link rel="shortcut icon" href="{{favicon()}}">
     <title>Invoice </title>
     <style>
         /* A4 page sizing for print */
@@ -244,57 +244,82 @@
             $taxable_value = 0;
             $cgst = 0;
             $igst = 0;
-            $delivery_charge = $orders->delivery_charge??0;
+            $delivery_charge = $orders->delivery_charges??0;
             $sgst = 0;
             $grand_total = 0;
         @endphp
-        @if(!empty($order_items))
-            @foreach ($order_items as $i => $value)
-                @php
-
-                    $product = CustomHelper::getProductDeatils($value->product_id);
-                    $tax = $product->tax ?? 0;
-                    $varients = CustomHelper::getAdminProductSingleVarients($value->product_id, $value->variant_id);
-                     if(!empty($varients)){
-                    $discount = (int)$varients->mrp??0 - (int)$value->price??0;
-
-                    $amountIncludingTax = (int)$value->price;
-                    $taxRate = $product->tax ?? 0;
-                    $tax_amount = 0;
-                    $taxableAmount = 0;
-                    if($taxRate > 0){
-                       $amountIncludingTax;
-                         $taxableAmount = $amountIncludingTax / (1 + $taxRate/100);
-                   $taxableAmount = round($taxableAmount);
-                   $tax_amount = (int)$value->price -(int) $taxableAmount;
-                    }
+        @foreach ($order_items as $i => $value)
+            @php
+                $product = CustomHelper::getProductDeatils($value->product_id);
+                $image = CustomHelper::getImageUrl('products', $product->image??'');
+                $varients = CustomHelper::getAdminProductSingleVarients($value->product_id, $value->variant_id);
+                $discount = 0;
+                if(!empty($varients)){
+                    $discount = (int)$varients->mrp - (int)$value->price;
+                }
 
 
-                   $sub_total+=(int)$varients->mrp* (int)$value->qty;
-                   $total_discount+=(int)$discount* (int)$value->qty;
-                   $taxable_value+=(int)$taxableAmount;
-                   $cgst+=(int)$tax_amount/2;
-                   $sgst+=(int)$tax_amount/2;
-                   $igst+=(int)$tax_amount;
-                   $grand_total+=(int)$value->net_price;
+                $amountIncludingTax = (int)$value->price;
+                $taxRate = $product->tax ?? 0;
+                $tax_amount = 0;
+                $taxableAmount = 0;
+                if($taxRate > 0){
+                 $amountIncludingTax;
+                 $taxableAmount = $amountIncludingTax / (1 + $taxRate/100);
+                 $taxableAmount = round($taxableAmount);
+                 $tax_amount = (int)$value->price -(int) $taxableAmount;
+             }
 
-                @endphp
-                <tr>
-                    <td>{{$i+1}}</td>
-                    <td>{{ $product->name }}<br><small>{{ $varients->unit ??'' }} {{ $varients->unit_value ??'' }}</small>
-                    </td>
-                    <td class="qty">{{ $value->qty ??'' }}</td>
-                    <td class="">₹ {{ $varients->mrp ??0}}</td>
-                    <td class="">₹ {{ $taxableAmount ??''}}</td>
-                    <td class="">₹ {{$discount??0 }}</td>
-                    <td class="">{{$product->tax??0 }} %</td>
-                    <td class="">₹ {{$tax_amount}}</td>
-                    <td class="">₹{{ $value->net_price ??'' }}</td>
-                </tr>
-                <?php }?>
-            @endforeach
+             if(!empty($varients)){
+                 $sub_total+=(int)$varients->mrp* (int)$value->qty;
+             }
+             $total_discount+=(int)$discount* (int)$value->qty;
+             $taxable_value+=(int)$taxableAmount;
+             $cgst+=(int)$tax_amount/2;
+             $sgst+=(int)$tax_amount/2;
+             $igst+=(int)$tax_amount;
+             $grand_total+=(int)$value->net_price;
 
+            @endphp
+            <tr>
+                <td>{{$i+1}}</td>
+                <td>{{ $product->name??'' }}<br><small>{{ $varients->unit ??'' }} {{ $varients->unit_value ??'' }}</small>
+                </td>
+                <td class="qty">{{ $value->qty ??'' }}</td>
+                <td class="">₹ {{ $varients->mrp ??0}}</td>
+                <td class="">₹ {{ $taxableAmount ??''}}</td>
+                <td class="">₹ {{$discount??0 }}</td>
+                <td class="">{{$product->tax??0 }} %</td>
+                <td class="">₹ {{$tax_amount}}</td>
+                <td class="">₹{{ $value->net_price ??'' }}</td>
+            </tr>
+        @endforeach
+
+
+        @if(!empty($orders->freebees_id) && $orders->freebees_id != "null")
+            @php
+                $freebees_product = \App\Models\FreeProduct::where('id',$orders->freebees_id)->first();
+                    $pro = \App\Models\Products::where('id',$freebees_product->product_id)->first();
+
+                    $image = \App\Helpers\CustomHelper::getImageUrl('products',$pro->image??'');
+            @endphp
+
+
+
+            <tr>
+                <td>{{$i+1}}</td>
+                <td>{{ $pro->name??'' }}
+                </td>
+                <td class="qty">{{ $value->qty ??'' }}</td>
+                <td class="">₹ 0</td>
+                <td class="">₹ 0</td>
+                <td class="">₹ 0</td>
+                <td class="">0 %</td>
+                <td class="">₹ 0</td>
+                <td class="">₹ 0</td>
+            </tr>
         @endif
+
         </tbody>
 
     </table>
@@ -324,8 +349,28 @@
                     <div>Sub Total: ₹{{ $sub_total }}</div>
                     <div>Discount: -₹{{ $total_discount }}</div>
                     <div>Taxable Value: ₹{{ $taxable_value }}</div>
+                    <div>NC Cash: ₹{{ $orders->applied_cashback??0 }}</div>
+                    <div>Flat Discount({{$orders->flat_discount_percent??0}} %):
+                        ₹{{ (int)$orders->flatDiscountValue??0 }}</div>
 
-                    @if($address->state == 'TG')
+
+                    @php
+                        $final_total = (int)$grand_total + (int)$delivery_charge - (int)$orders->applied_cashback - (int)$orders->flatDiscountValue;
+ $subscription_price = 0;
+ $tax = $product->tax ?? 0;
+                    @endphp
+
+                    @if(!empty($orders->subscription_id) && $orders->subscription_id != "null")
+                        @php
+                            $subscription = \App\Models\SubscriptionPlans::find($orders->subscription_id);
+                            $subscription_price= $subscription->price ?? 0;
+                        @endphp
+                    @endif
+                    <div>Membership Price: ₹{{ $subscription_price??0 }}</div>
+                    @if(!empty($address) && $address->state == 'TG')
+                        <div>CGST {{ $tax / 2 }}%: ₹{{ $cgst }}</div>
+                        <div>SGST {{ $tax / 2 }}%: ₹{{ $sgst }}</div>
+                    @elseif($orders->order_from == 'POS')
                         <div>CGST {{ $tax / 2 }}%: ₹{{ $cgst }}</div>
                         <div>SGST {{ $tax / 2 }}%: ₹{{ $sgst }}</div>
                     @else
@@ -334,7 +379,7 @@
 
                     <div>Delivery Charge: ₹{{ $delivery_charge }}</div>
                     <div style="font-weight:bold; font-size:13px;">Grand Total:
-                        ₹{{ (int)$grand_total + (int)$delivery_charge }}</div>
+                        ₹{{ $final_total }}</div>
 
                 </td>
             </tr>
@@ -345,7 +390,7 @@
             <div class="row">
                 <div>Amount in words:</div>
                 <div>
-                    <em>{{ucfirst(CustomHelper::convert_number_to_words((int)$grand_total+(int)$delivery_charge))}}</em>
+                    <em>{{ucfirst(CustomHelper::convert_number_to_words($final_total))}}</em>
                 </div>
             </div>
         </div>

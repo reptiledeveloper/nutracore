@@ -87,7 +87,7 @@
                             <tr>
                                 <td>{{ $stocks->firstItem() + $i }}</td>
                                 <td>{{ $stock->seller_name ??''}}</td>
-                                <td>{{ $stock->sku??'' }}</td>
+                                <td>{{ $stock->sku??$stock->product_sku??'' }}</td>
                                 <td>{{ $stock->product_name ??''}}</td>
                                 <td>{{ $stock->unit ?? '-' }}</td>
                                 <td>{{ $stock->closing_stock }}</td>

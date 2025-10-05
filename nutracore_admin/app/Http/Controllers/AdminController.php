@@ -33,7 +33,7 @@ class AdminController extends Controller
 
     public function index(Request $request)
     {
-        $admins = Admin::where('vendor_id', null)->where('role_id', '!=', 0)->latest()->paginate(10);
+        $admins = Admin::where('role_id', '!=', 0)->where('is_delete',0)->latest()->paginate(10);
         $data['admins'] = $admins;
         return view('admins.index', $data);
     }
@@ -201,11 +201,11 @@ class AdminController extends Controller
         $is_delete = '';
 
         if (is_numeric($id) && $id > 0) {
-            $is_delete = Roles::where('id', $id)->delete();
+            $is_delete = Admin::where('id', $id)->update(['is_delete'=>1]);
         }
 
         if (!empty($is_delete)) {
-            return back()->with('alert-success', 'Roles has been deleted successfully.');
+            return back()->with('alert-success', 'Admin has been deleted successfully.');
         } else {
             return back()->with('alert-danger', 'something went wrong, please try again...');
         }

@@ -46,7 +46,7 @@
                         <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Seller Name</th>
+                            <th>Store Name</th>
                             <th>Item</th>
                             <th>Name</th>
                             <th>Address</th>

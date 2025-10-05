@@ -395,11 +395,11 @@ class POSController extends Controller
         $user_name = "User";
         $mobile = $request->userPhone ?? '';
 //        $code = $request->nc_cash_val ?? '';
-        $code = rand(1111,9999);
+        $otp = rand(1111,9999);
         User::updateOrCreate([
             'phone' => $mobile,
         ], [
-            'otp' => $code,
+            'otp' => $otp,
         ]);
         $curl = curl_init();
         curl_setopt_array($curl, [
@@ -410,7 +410,7 @@ class POSController extends Controller
             CURLOPT_TIMEOUT => 30,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => "POST",
-            CURLOPT_POSTFIELDS => "{\n  \"flow_id\": \"689227c998d5cf4ec72f5c53\",\n  \"sender\": \"NUTRCR\",\n  \"mobiles\": \"91$mobile\",\n  \"otp\": \"$code\",\n  \"user_name\": \"$user_name\"}",
+            CURLOPT_POSTFIELDS => "{\n  \"flow_id\": \"68df609a695f0d275a15d4f5\",\n  \"sender\": \"NUTRCR\",\n  \"mobiles\": \"91$mobile\",\n  \"var\": \"$otp\"}",
             CURLOPT_HTTPHEADER => [
                 "authkey: 431621ABncLfiKpzo6875ff9bP1",
                 "content-type: application/JSON"
@@ -459,6 +459,7 @@ class POSController extends Controller
             // Validate required fields
             $request->validate([
                 'user_id'        => 'required|integer',
+                'order_type'        => 'required',
                 'subtotal'       => 'required|numeric',
                 'payment_method' => 'required',
                 'items'          => 'required|array|min:1',
@@ -499,6 +500,9 @@ class POSController extends Controller
             $order->subscription_id = $request->subscription_id ?? null;
             $order->wallet          =  0;
             $order->applied_cashback = $request->appliedncCash ?? 0;
+            $order->flatDiscountValue = $request->flatDiscountValue ?? 0;
+            $order->flat_discount_percent = $request->flat_discount_percent ?? 0;
+            $order->order_type = $request->order_type ?? '';
             $order->payment_method_values = json_encode($request->payment_method_values)??'';
             $order->save();
 
@@ -565,13 +569,16 @@ class POSController extends Controller
                 }
             }
 
-
-
+            $invoice_url = '';
+            if($request->is_print == 1){
+                $invoice_url = route('orders.generateInvoicePdf',['id'=>$order->id]);
+            }
 
 
             return response()->json([
                 'success'  => true,
                 'order_id' => $order->id,
+                'invoice_url' => $invoice_url,
                 'message'  => 'Order saved successfully'
             ]);
 

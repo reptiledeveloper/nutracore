@@ -103,6 +103,7 @@
                                         <button type="submit" class="btn btn-primary">Save</button>
                                     </div>
                                 </div>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -154,17 +155,17 @@
             <td><input type="text" name="sku[]" class="form-control sku-input" required></td>
             <td>
                 <select name="product_id[]" class="form-control product-select select2" required>
-                    <option value="">-- Select Product --</option>
-                    ${products.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
-                </select>
+    <option value="">-- Select Product --</option>
+    ${products.map((p, index) => `<option value="${p.id}">${index + 1}. ${p.name}</option>`).join('')}
+</select>
             </td>
             <td>
-                <select name="variant_id[]" class="form-control variant-select" required>
+                <select name="variant_id[]" class="form-control variant-select" >
                     <option value="">-- Select Variant --</option>
                 </select>
             </td>
              <td>
-            <select class="form-select batch-select" name="batch_id[]" required>
+            <select class="form-select batch-select" name="batch_id[]" >
                 <option value="">-- Select Batch --</option>
             </select>
         </td>
@@ -181,26 +182,70 @@
 
 
         // Load variants when product changes
+        // document.addEventListener('change', function(e) {
+        //     if (e.target.classList.contains('product-select')) {
+        //         let productId = e.target.value;
+        //         let row = e.target.closest('tr');
+        //         let variantSelect = row.querySelector('.variant-select');
+        //         let skuInput = row.querySelector('.sku-input');
+        //
+        //         variantSelect.innerHTML = '<option value="" selected>-- Select Variant --</option>';
+        //         let product = products.find(p => p.id == productId);
+        //
+        //         if (product && product.variants) {
+        //             product.variants.forEach(v => {
+        //                 variantSelect.innerHTML += `<option value="${v.id}" data-sku="${v.varient_sku}">${v.unit} - ₹${v.selling_price}</option>`;
+        //             });
+        //         }
+        //
+        //         // Reset SKU when product changes
+        //         skuInput.value = '';
+        //     }
+        // });
+
+
         document.addEventListener('change', function(e) {
             if (e.target.classList.contains('product-select')) {
                 let productId = e.target.value;
                 let row = e.target.closest('tr');
                 let variantSelect = row.querySelector('.variant-select');
                 let skuInput = row.querySelector('.sku-input');
+                let batchSelect = row.querySelector('.batch-select');
 
-                variantSelect.innerHTML = '<option value="" selected>-- Select Variant --</option>';
+                // Reset fields
+                variantSelect.innerHTML = '<option value="">-- Select Variant --</option>';
+                batchSelect.innerHTML = '<option value="">-- Select Batch --</option>';
+                skuInput.value = '';
+
                 let product = products.find(p => p.id == productId);
 
-                if (product && product.variants) {
+                if (!product) return;
+
+                if (product.variants && product.variants.length > 0) {
+                    // Populate variants
                     product.variants.forEach(v => {
                         variantSelect.innerHTML += `<option value="${v.id}" data-sku="${v.varient_sku}">${v.unit} - ₹${v.selling_price}</option>`;
                     });
-                }
+                } else {
+                    // No variants → fill SKU with product SKU
+                    skuInput.value = product.sku ?? '';
 
-                // Reset SKU when product changes
-                skuInput.value = '';
+                    // Load batches for product only
+                    const stockKey = productId + '_'; // variant id empty
+                    const stockItem = stockMap.find(s => s.key === stockKey) || null;
+
+                    if (stockItem && stockItem.batches) {
+                        stockItem.batches.forEach(b => {
+                            const label = `Batch: ${b.batch} | Qty: ${b.qty} ${b.exp ? '| Exp: ' + b.exp : ''}`;
+                            batchSelect.innerHTML += `<option value="${b.id}">${label}</option>`;
+                        });
+                    } else {
+                        batchSelect.innerHTML = `<option value="">-- No Batch Found --</option>`;
+                    }
+                }
             }
         });
+
 
         document.addEventListener('change', function(e) {
             if (e.target.classList.contains('variant-select')) {
@@ -268,6 +313,40 @@
         });
 
         // When SKU is typed → auto-select product & variant
+        // document.addEventListener('input', function(e) {
+        //     if (e.target.classList.contains('sku-input')) {
+        //         let sku = e.target.value.trim();
+        //         let row = e.target.closest('tr');
+        //         let productSelect = row.querySelector('.product-select');
+        //         let variantSelect = row.querySelector('.variant-select');
+        //
+        //         if (sku.length > 0) {
+        //             let foundProduct = null, foundVariant = null;
+        //
+        //             // Search SKU in variants
+        //             products.forEach(p => {
+        //                 p.variants.forEach(v => {
+        //                     if (v.varient_sku == sku) {
+        //                         foundProduct = p;
+        //                         foundVariant = v;
+        //                     }
+        //                 });
+        //             });
+        //
+        //             if (foundProduct && foundVariant) {
+        //                 // Select product
+        //                 productSelect.value = foundProduct.id;
+        //
+        //                 // Rebuild variants
+        //                 variantSelect.innerHTML = '<option value="">-- Select Variant --</option>';
+        //                 foundProduct.variants.forEach(v => {
+        //                     // variantSelect.innerHTML += `<option value="${v.id}" data-sku="${v.varient_sku}" ${v.id == foundVariant.id ? 'selected' : ''}>${v.unit} - ₹${v.selling_price}</option>`;
+        //                     variantSelect.innerHTML += `<option value="${v.id}" data-sku="${v.varient_sku}" >${v.unit} - ₹${v.selling_price}</option>`;
+        //                 });
+        //             }
+        //         }
+        //     }
+        // });
         document.addEventListener('input', function(e) {
             if (e.target.classList.contains('sku-input')) {
                 let sku = e.target.value.trim();
@@ -278,30 +357,42 @@
                 if (sku.length > 0) {
                     let foundProduct = null, foundVariant = null;
 
-                    // Search SKU in variants
                     products.forEach(p => {
-                        p.variants.forEach(v => {
-                            if (v.varient_sku == sku) {
+                        if (p.variants && p.variants.length > 0) {
+                            // Check in variants
+                            p.variants.forEach(v => {
+                                if (v.varient_sku == sku) {
+                                    foundProduct = p;
+                                    foundVariant = v;
+                                }
+                            });
+                        } else {
+                            // If no variants, match product SKU
+                            if (p.sku == sku) {
                                 foundProduct = p;
-                                foundVariant = v;
                             }
-                        });
+                        }
                     });
 
-                    if (foundProduct && foundVariant) {
+                    if (foundProduct) {
                         // Select product
                         productSelect.value = foundProduct.id;
 
-                        // Rebuild variants
-                        variantSelect.innerHTML = '<option value="">-- Select Variant --</option>';
-                        foundProduct.variants.forEach(v => {
-                            // variantSelect.innerHTML += `<option value="${v.id}" data-sku="${v.varient_sku}" ${v.id == foundVariant.id ? 'selected' : ''}>${v.unit} - ₹${v.selling_price}</option>`;
-                            variantSelect.innerHTML += `<option value="${v.id}" data-sku="${v.varient_sku}" >${v.unit} - ₹${v.selling_price}</option>`;
-                        });
+                        // If product has variants
+                        if (foundProduct.variants && foundProduct.variants.length > 0) {
+                            variantSelect.innerHTML = '<option value="">-- Select Variant --</option>';
+                            foundProduct.variants.forEach(v => {
+                                variantSelect.innerHTML += `<option value="${v.id}" data-sku="${v.varient_sku}" ${foundVariant && v.id == foundVariant.id ? 'selected' : ''}>${v.unit} - ₹${v.selling_price}</option>`;
+                            });
+                        } else {
+                            // No variants → clear or disable variant dropdown
+                            variantSelect.innerHTML = '<option value="">No Variant</option>';
+                        }
                     }
                 }
             }
         });
+
 
         // Auto-calc row totals & subtotal
         function calculateRow(row) {

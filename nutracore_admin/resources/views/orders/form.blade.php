@@ -241,7 +241,7 @@
                             @php
                                 $freebies_price = 0;
                             @endphp
-                            @if(!empty($orders->freebees_id) && $orders->freebees_id != "null")
+                            @if(!empty($orders->freebees_id) || $orders->freebees_id != "null")
                                 @php
 
                                     $freebees_product = \App\Models\FreeProduct::where('id',$orders->freebees_id)->first();
@@ -377,7 +377,7 @@
                             </tr>
                             </thead>
                             <tbody>
-                            @forelse ($order_items as $i => $value)
+                            @foreach($order_items as $i => $value)
                                 @php
                                     $product = CustomHelper::getProductDeatils($value->product_id);
                                     $image = CustomHelper::getImageUrl('products', $product->image);
@@ -405,19 +405,20 @@
                                     </td>
                                     <td><!-- Actions --></td>
                                 </tr>
-                            @empty
+                            @endforeach
 
                                 @if(!empty($orders->freebees_id) && $orders->freebees_id != "null")
                                     @php
                                         $freebees_product = \App\Models\FreeProduct::where('id',$orders->freebees_id)->first();
                                             $pro = \App\Models\Products::where('id',$freebees_product->product_id)->first();
 
-                $image = \App\Helpers\CustomHelper::getImageUrl('products',$pro->image??'');
+                                            $image = \App\Helpers\CustomHelper::getImageUrl('products',$pro->image??'');
                                     @endphp
 
 
 
                                     <tr>
+                                        <td>{{ $i + 2 }}</td>
                                         <td>
                                             <a href="#">
                                                 <img src="{{$image}}" class="rounded" width="60"
@@ -432,10 +433,6 @@
                                     </tr>
                                 @endif
 
-                                <tr>
-                                    <td colspan="9">No items found.</td>
-                                </tr>
-                            @endforelse
                             </tbody>
                         </table>
                     </div>

@@ -607,27 +607,30 @@ class CustomHelper
     public static function checkOutofStock($product_id, $varient_id)
     {
         $is_out_of_stock = 0;
-        $query = DB::table('stock_batches as sl')
-            ->join('product_varients as pv', 'pv.id', '=', 'sl.variant_id')
-            ->join('products as p', 'p.id', '=', 'pv.product_id')
-            ->select(
-                'p.id as product_id',
-                'pv.id as variant_id',
-                DB::raw('SUM(sl.quantity) as closing_stock')
-            )
-            ->where('sl.is_delete', 0)
+        $query = DB::table('products as p')
+            ->leftJoin('product_varients as pv', 'pv.product_id', '=', 'p.id')
+            ->leftJoin('stock_batches as sl', function ($join) {
+                $join->on('sl.variant_id', '=', 'pv.id')
+                    ->orOn(function ($q) {
+                        // Allow stock_batches.product_id = p.id for products with no variant
+                        $q->whereColumn('sl.product_id', 'p.id');
+                    })
+                    ->where('sl.is_delete', 0);
+            })
             ->where('p.id', $product_id);
 
-        // If variant_id provided, filter by it
-        if (!empty($varient_id)) {
-            $query->where('pv.id', $varient_id);
+        // If variant_id is provided, filter by it
+        if (!empty($variant_id)) {
+            $query->where('pv.id', $variant_id);
         }
 
-        $stock = $query->groupBy('p.id', 'pv.id')->first();
+        // Sum closing stock
+        $stock = $query->select(DB::raw('COALESCE(SUM(sl.quantity), 0) as closing_stock'))
+            ->first();
 
-        // ✅ If no stock found → Out of Stock
+// ✅ If no stock entry or closing_stock <= 0 → Out of Stock
         if (!$stock || $stock->closing_stock <= 0) {
-            $is_out_of_stock = 1 ;// Out of Stock
+            $is_out_of_stock = 1; // Out of Stock
         }
         return $is_out_of_stock;
     }

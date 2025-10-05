@@ -156,7 +156,36 @@ class CustomHelper
         return $user->name ?? '';
 
     }
+    public static function checkOutofStock($product_id, $varient_id)
+    {
+        $is_out_of_stock = 0;
+        $query = DB::table('products as p')
+            ->leftJoin('product_varients as pv', 'pv.product_id', '=', 'p.id')
+            ->leftJoin('stock_batches as sl', function ($join) {
+                $join->on('sl.variant_id', '=', 'pv.id')
+                    ->orOn(function ($q) {
+                        // Allow stock_batches.product_id = p.id for products with no variant
+                        $q->whereColumn('sl.product_id', 'p.id');
+                    })
+                    ->where('sl.is_delete', 0);
+            })
+            ->where('p.id', $product_id);
 
+        // If variant_id is provided, filter by it
+        if (!empty($variant_id)) {
+            $query->where('pv.id', $variant_id);
+        }
+
+        // Sum closing stock
+        $stock = $query->select(DB::raw('COALESCE(SUM(sl.quantity), 0) as closing_stock'))
+            ->first();
+
+// ✅ If no stock entry or closing_stock <= 0 → Out of Stock
+        if (!$stock || $stock->closing_stock <= 0) {
+            $is_out_of_stock = 1; // Out of Stock
+        }
+        return $is_out_of_stock;
+    }
     public static function logStock($product_id, $variant_id, $store_id, $action, $quantity, $related_id = null, $related_type = null)
     {
         // Current closing stock from StockBatch
@@ -177,6 +206,48 @@ class CustomHelper
             'created_by' => auth()->id(),
         ]);
     }
+
+    public static function updateStock($order_id)
+    {
+        $order = Order::find($order_id);
+        if (!empty($order)) {
+            $order_items = OrderItems::where('order_id', $order_id)->get();
+            if (!empty($order_items)) {
+                foreach ($order_items as $order_item) {
+                    $product_id = $order_item->product_id ?? '';
+                    $variant_id = $order_item->variant_id ?? '';
+                    $qty = $order_item->qty ?? '';
+                    $exist = DB::table('stock_batches')->where('product_id', $product_id);
+                    if (!empty($variant_id)) {
+                        $exist->where('variant_id', $variant_id);
+                    }
+                    $exist = $exist->where('quantity', '>', 0)->orderBy('mfg_date', 'ASC')->first();
+                    if (!empty($exist)) {
+                        if ((int)$exist->quantity <= (int)$qty) {
+                            $new_qty = (int)$exist->quantity - (int)$qty;
+                            DB::table('stock_batches')->where('id', $exist->id)->update(['qty' => $new_qty]);
+                            StockLog::create([
+                                'product_id' => $product_id,
+                                'variant_id' => $variant_id,
+                                'store_id' => $exist->store_id ?? '',
+                                'action' => "sale",
+                                'quantity' => $qty,
+                                'closing_stock' => $new_qty,
+                                'related_id' => 0,
+                                'related_type' => "Sale",
+                                'created_by' => auth()->id(),
+                                'order_id' => $order_id,
+                            ]);
+                        } else {
+
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
 
     public static function generateGiftCardCode(
         int     $length = 12,
@@ -321,7 +392,7 @@ class CustomHelper
                         $productArr[] = [
                             'product_id' => $product->id,
                             'product_name' => $product->name,
-                            'product_sku' => $product->sku,
+                            'product_sku' => $varient->varient_sku ?? $product->sku ??'',
                             'mrp' => $varient->mrp ?? 0,
                             'selling_price' => $varient->selling_price ?? 0,
                             'unit' => $varient->unit ?? '',
@@ -336,7 +407,7 @@ class CustomHelper
                     $productArr[] = [
                         'product_id' => $product->id,
                         'product_name' => $product->name,
-                        'product_sku' => $product->sku,
+                        'product_sku' => $product->sku ??'',
                         'mrp' => $product->product_mrp ?? 0,
                         'selling_price' => $product->product_selling_price ?? 0,
                         'unit' => '',
@@ -618,13 +689,13 @@ class CustomHelper
     public static function getLoginCompanyId()
     {
         $user = Auth::guard('admin')->user();
-        $company_id = 0;
+        $vendor_id = 0;
         if ($user->role_id == 0) {
-            $company_id = 0;
+            $vendor_id = 0;
         } else {
-            $company_id = $user->company_id;
+            $vendor_id = $user->vendor_id;
         }
-        return $company_id;
+        return $vendor_id;
     }
 
     public static function getLoginRoleId()
@@ -677,12 +748,12 @@ class CustomHelper
     public static function isAllowedSection($sectionName, $type = '')
     {
         $roleId = Auth::guard('admin')->user()->role_id;
-        $company_id = Auth::guard('admin')->user()->company_id;
+        $vendor_id = Auth::guard('admin')->user()->vendor_id;
         $isAllowed = false;
         if ($roleId == 0) {
             $isAllowed = true;
         } else {
-            $sectionpermission = Permission::where('role_id', $roleId)->where('company_id', $company_id)->where('section', $sectionName)->where($type, 1)->first();
+            $sectionpermission = Permission::where('role_id', $roleId)->where('section', $sectionName)->where($type, 1)->first();
             if (!empty($sectionpermission)) {
                 $isAllowed = true;
             } else {
@@ -696,7 +767,7 @@ class CustomHelper
     public static function saveActivityLogs($data)
     {
         $dbArray = [];
-        $dbArray['company_id'] = $data->company_id ?? '';
+        $dbArray['company_id'] = $data->vendor_id ?? '';
         $dbArray['emp_id'] = $data->emp_id ?? '';
         $dbArray['remarks'] = $data->remarks ?? '';
         $dbArray['latitude'] = $data->latitude ?? '';

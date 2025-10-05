@@ -953,6 +953,7 @@ class OrderController extends Controller
 
                 $error = $shipment_data->error ?? '';
                 if (empty($error)) {
+                    $dbArray['trackingNumber'] =  $shipment_data['data'][0]['trackingNumber'] ??'';
                     $dbArray['envia_data'] = json_encode($shipment_data);
                 }
             }

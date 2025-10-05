@@ -112,39 +112,54 @@ class StockController extends Controller
     public function closingStockList(Request $request)
     {
         $sellerId = $request->input('vendor_id');
-        $search = $request->input('search');
-        $query = DB::table('stock_batches as sl')
-            ->join('product_varients as pv', 'pv.id', '=', 'sl.variant_id')
-            ->join('products as p', 'p.id', '=', 'pv.product_id')
-            ->join('vendors as s', 's.id', '=', 'sl.store_id')
+        $search   = $request->input('search');
+
+        $query = DB::table('products as p')
+            ->leftJoin('product_varients as pv', 'pv.product_id', '=', 'p.id')
+            ->leftJoin('stock_batches as sl', function ($join) {
+                $join->on('sl.variant_id', '=', 'pv.id')
+                    ->orOn(function ($q) {
+                        // Allow stock_batches.product_id = p.id for products with no variant
+                        $q->whereColumn('sl.product_id', 'p.id');
+                    })
+                    ->where('sl.is_delete', 0);
+            })
+            ->leftJoin('vendors as s', 's.id', '=', 'sl.store_id')
             ->select(
-                's.id as seller_id',
-                's.name as seller_name',
+                DB::raw('COALESCE(s.id, 0) as seller_id'),
+                DB::raw('COALESCE(s.name, "N/A") as seller_name'),
                 'p.id as product_id',
                 'p.name as product_name',
-                'pv.id as variant_id',
-                'pv.varient_sku as sku',
-                'pv.unit',
-                DB::raw('SUM(sl.quantity) as closing_stock') // sum of all batches
+                DB::raw('COALESCE(pv.id, 0) as variant_id'),
+                'p.sku as product_sku',
+                DB::raw('COALESCE(pv.varient_sku, p.sku) as sku'),
+                DB::raw('COALESCE(pv.unit, "-") as unit'),
+                DB::raw('COALESCE(SUM(sl.quantity), 0) as closing_stock')
             )
-            ->where('sl.is_delete', 0)
-            ->groupBy('s.id', 'p.id', 'pv.id');
-
+            ->groupBy(
+                'seller_id', 'seller_name',
+                'p.id', 'p.name', 'p.sku',
+                'pv.id', 'pv.varient_sku', 'pv.unit'
+            );
+            $query->where('sl.is_delete',0);
+        // ✅ filter by vendor
         if (!empty($sellerId)) {
             $query->where('s.id', $sellerId);
         }
 
+        // ✅ search by SKU
         if (!empty($search)) {
             $query->where('pv.varient_sku', $search);
+            $query->orWhere('p.sku', $search);
         }
 
-        $stocks = $query->paginate(10);
-
+        $stocks = $query->paginate(500);
 
         $sellers = CustomHelper::getVendors(); // For filter dropdown
 
         return view('stocks.closing_stock', compact('stocks', 'sellers'));
     }
+
     public function closing_stock_export(Request $request)
     {
         $sellerId = $request->input('vendor_id');

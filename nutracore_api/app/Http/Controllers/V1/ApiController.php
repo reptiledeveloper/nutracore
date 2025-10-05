@@ -19,8 +19,10 @@ use App\Models\OrderItems;
 use App\Models\OrderStatus;
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Models\ProductVarient;
 use App\Models\RazorpayOrders;
 use App\Models\Setting;
+use App\Models\StockLog;
 use App\Models\SubscriptionPlans;
 use App\Models\Subscriptions;
 use App\Models\Suppliments;
@@ -38,6 +40,7 @@ use Illuminate\Support\Facades\Cache;
 
 use Carbon\Carbon;
 use DB;
+use Storage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -134,7 +137,7 @@ class ApiController extends Controller
         ], 200);
     }
 
-    public  function generateNextInvoiceNo()
+    public function generateNextInvoiceNo()
     {
         // Get the last invoice number among non-deleted orders
         $lastOrder = Order::where('is_delete', 0)
@@ -143,7 +146,7 @@ class ApiController extends Controller
 
         if ($lastOrder && $lastOrder->invoice_no) {
             // Extract the numeric part and increment
-            $lastNumber = (int) substr($lastOrder->invoice_no, 3);
+            $lastNumber = (int)substr($lastOrder->invoice_no, 3);
             $nextNumber = $lastNumber + 1;
         } else {
             $nextNumber = 1; // start from 1 if no previous orders
@@ -164,7 +167,21 @@ class ApiController extends Controller
     public function envia_webhook(Request $request)
     {
         DB::table('new')->insert(['data' => json_encode($request->toArray())]);
-
+        $response = $request->toArray();
+        if(!empty($response)){
+            $trackingNumber = $response->trackingNumber??'';
+            $status = $response->status??'';
+            $exist = DB::table('order_courier')->where('trackingNumber',$trackingNumber)->first();
+            if(!empty($exist)){
+                $order_id = $exist->order_id??'';
+                $order = Order::find($order_id);
+                if(!empty($order)){
+                    if($status == 'Picked Up'){
+                        $order->status = 'CONFIRM';
+                    }
+                }
+            }
+        }
     }
 
     public function send_message($mobile, $code)
@@ -1220,7 +1237,7 @@ class ApiController extends Controller
                                             CustomHelper::sendPlaceNewOrder($user->phone ?? '', $exist->order_id ?? '');
                                             self::updateNCCashAfterOrder($order_id);
                                             self::sendOrderNotification($exist->order_id ?? '');
-
+                                            self::updateStock($order_id);
                                         }
                                     }
                                 }
@@ -1391,6 +1408,49 @@ class ApiController extends Controller
             "success" => json_decode($success)
         ], 200);
     }
+
+
+    public function updateStock($order_id)
+    {
+        $order = Order::find($order_id);
+        if (!empty($order)) {
+            $order_items = OrderItems::where('order_id', $order_id)->get();
+            if (!empty($order_items)) {
+                foreach ($order_items as $order_item) {
+                    $product_id = $order_item->product_id ?? '';
+                    $variant_id = $order_item->variant_id ?? '';
+                    $qty = $order_item->qty ?? '';
+                    $exist = DB::table('stock_batches')->where('product_id', $product_id);
+                    if (!empty($variant_id)) {
+                        $exist->where('variant_id', $variant_id);
+                    }
+                    $exist = $exist->where('quantity', '>', 0)->orderBy('mfg_date', 'ASC')->first();
+                    if (!empty($exist)) {
+                        if ((int)$exist->quantity <= (int)$qty) {
+                            $new_qty = (int)$exist->quantity - (int)$qty;
+                            DB::table('stock_batches')->where('id', $exist->id)->update(['qty' => $new_qty]);
+                            StockLog::create([
+                                'product_id' => $product_id,
+                                'variant_id' => $variant_id,
+                                'store_id' => $exist->store_id ?? '',
+                                'action' => "sale",
+                                'quantity' => $qty,
+                                'closing_stock' => $new_qty,
+                                'related_id' => 0,
+                                'related_type' => "Sale",
+                                'created_by' => auth()->id(),
+                                'order_id' => $order_id,
+                            ]);
+                        } else {
+
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
 
     public function checkGuest($user)
     {
@@ -2469,7 +2529,7 @@ class ApiController extends Controller
                     $nc_cash = self::getNcCashPercent($user, $varient->selling_price ?? '');
 
                     $varient->nc_cash = $nc_cash;
-                    $is_out_of_stock = CustomHelper::checkOutofStock($product->id,$varient->id);
+                    $is_out_of_stock = CustomHelper::checkOutofStock($product->id, $varient->id);
                     $varient->is_out_of_stock = $is_out_of_stock;
 
                 }
@@ -2493,7 +2553,7 @@ class ApiController extends Controller
                 if (!empty($user)) {
                     $qty = CustomHelper::getCartQty($user_id, $product->id, 0);
                 }
-                $is_out_of_stock = CustomHelper::checkOutofStock($product->id,0);
+                $is_out_of_stock = CustomHelper::checkOutofStock($product->id, 0);
                 $varients = [[
                     'id' => 0, // You can keep it product_id or generate a fake ID
                     'product_id' => $product->id,
@@ -4069,9 +4129,13 @@ class ApiController extends Controller
                     $itemsArr['status'] = 'PLACED';
                     $itemsArr['vendor_id'] = $seller_id;
                     OrderItems::insert($itemsArr);
-                    Order::where('id',$order_id)->update(['delivery_speed' => $value['type'] ??'']);
+                    Order::where('id', $order_id)->update(['delivery_speed' => $value['type'] ?? '']);
                 }
             }
+        }
+
+        if($payment_method == 'COD'){
+            self::updateStock($order_id);
         }
         self::updateOrderStatus($order_id, "PLACED");
 
@@ -4283,13 +4347,13 @@ class ApiController extends Controller
             $order_items = CustomHelper::getOrderItemsWithProduct($orders->id);
             if (!empty($order_items)) {
                 foreach ($order_items as $order_item) {
-                    $varients = VendorProductPrice::where('id', $order_item['variant_id'])->first();
+                    $varients = ProductVarient::where('id', $order_item['variant_id'])->first();
                     $product = Product::where('id', $order_item['id'])->first();
                     $image = CustomHelper::getImageUrl('products', $product->image ?? '');
                     $order_item->subscription_price = $varients->subscription_price ?? 0;
                     $order_item->mrp = $varients->mrp ?? 0;
-                    $order_item->unit = $varients->unit ?? 0;
-                    $order_item->unit_value = $varients->unit_value ?? 0;
+                    $order_item->unit = $varients->unit ?? "";
+                    $order_item->unit_value = $varients->unit_value ?? "";
                     $images = [];
                     if (!empty($product)) {
                         $images = ProductImage::select('id', 'image')->where('product_id', $product->id)->where('status', 1)->where('is_delete', 0)->first();
@@ -5027,6 +5091,11 @@ class ApiController extends Controller
         $filename = 'Invoice_' . $orderID . 'order' . rand(111, 999999) . time() . '.pdf';
 
         $pdfContent = $pdf->output();
+        $path = 'invoices/' . $filename; // Folder in S3
+        Storage::disk('s3')->put($path, $pdfContent);
+
+        // Get the public URL
+        $url = Storage::disk('s3')->url($path);
 
         $base64Pdf = base64_encode($pdfContent);
 
@@ -5034,8 +5103,8 @@ class ApiController extends Controller
             'result' => true,
             'message' => "Successfully",
             "data" => $data,
+            'url' => $url,
             'link' => $base64Pdf,
-
         ], 200);
     }
 

@@ -2,6 +2,7 @@
 @section('content')
 
     <?php
+        use App\Helpers\CustomHelper;
     $BackUrl = \App\Helpers\CustomHelper::BackUrl();
     $routeName = \App\Helpers\CustomHelper::getAdminRouteName();
     $order_items = \App\Helpers\CustomHelper::getOrderItemsWithProduct($orders->id);
@@ -110,62 +111,64 @@
                     <h5 class="card-header">Order Items</h5>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-custom mb-0">
-                                <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>IMAGE</th>
-                                    <th>PRODUCT</th>
-                                    <th>PRICE</th>
-                                    <th>Unit/Unit Value</th>
-                                    <th>QUANTITY</th>
-                                    <th>SUBTOTAL</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                @forelse ($order_items as $i => $value)
-                                    @php
-                                        $product = \App\Helpers\CustomHelper::getProductDeatils($value->product_id);
-                                        $image = \App\Helpers\CustomHelper::getImageUrl('products', $product->image);
-                                        $varients = \App\Helpers\CustomHelper::getAdminProductSingleVarients($value->product_id, $value->variant_id);
-                                    @endphp
+                            <div class="table-responsive mt-3">
+                                <table class="table table-custom mb-0">
+                                    <thead>
                                     <tr>
-                                        <td>{{ $i + 1 }}</td>
-                                        <td><img src="{{ $image }}" class="rounded" width="60" alt="..."></td>
-                                        <td>{{ $product->name }}</td>
-                                        <td>₹ {{ $value->price }}</td>
-                                        <td>{{ $varients->unit ??'' }} {{ $varients->unit_value ??'' }}</td>
-                                        <td>{{ $value->qty ??'' }}</td>
-                                        <td class="text-right">₹ {{ $value->net_price ??'' }}</td>
-                                        <td>
-                                            <select class="form-control"
-                                                    onchange="update_order_status('{{ $value->order_items_id }}', this.value, '')">
-                                                <option value="">Select Status</option>
-                                                @foreach($order_status_arr as $stat => $val)
-                                                    <option
-                                                        value="{{ $stat }}" {{ $stat == $value->status ? 'selected' : '' }}>
-                                                        {{ $val }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </td>
-                                        <td><!-- Actions --></td>
+                                        <th>#</th>
+                                        <th>IMAGE</th>
+                                        <th>PRODUCT</th>
+                                        <th>PRICE</th>
+                                        <th>Unit/Unit Value</th>
+                                        <th>QUANTITY</th>
+                                        <th>SUBTOTAL</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
                                     </tr>
-                                @empty
+                                    </thead>
+                                    <tbody>
+                                    @foreach($order_items as $i => $value)
+                                        @php
+                                            $product = CustomHelper::getProductDeatils($value->product_id);
+                                            $image = CustomHelper::getImageUrl('products', $product->image);
+                                            $varients = CustomHelper::getAdminProductSingleVarients($value->product_id, $value->variant_id);
+                                        @endphp
+                                        <tr>
+                                            <td>{{ $i + 1 }}</td>
+                                            <td><img src="{{ $image }}" class="rounded" width="60" alt="..."></td>
+                                            <td>{{ $product->name }}</td>
+                                            <td>₹ {{ $value->price }}</td>
+                                            <td>{{ $varients->unit ??'' }} {{ $varients->unit_value ??'' }}</td>
+                                            <td>{{ $value->qty ??'' }}</td>
+                                            <td class="text-right">₹ {{ $value->net_price ??'' }}</td>
+                                            <td>
+                                                <select class="form-control"
+                                                        onchange="update_order_status('{{ $value->order_items_id }}', this.value, '')">
+                                                    <option value="">Select Status</option>
+                                                    @foreach($order_status_arr as $stat => $val)
+                                                        <option
+                                                            value="{{ $stat }}" {{ $stat == $value->status ? 'selected' : '' }}>
+                                                            {{ $val }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </td>
+                                            <td><!-- Actions --></td>
+                                        </tr>
+                                    @endforeach
 
                                     @if(!empty($orders->freebees_id) && $orders->freebees_id != "null")
                                         @php
                                             $freebees_product = \App\Models\FreeProduct::where('id',$orders->freebees_id)->first();
                                                 $pro = \App\Models\Products::where('id',$freebees_product->product_id)->first();
 
-                    $image = \App\Helpers\CustomHelper::getImageUrl('products',$pro->image??'');
+                                                $image = \App\Helpers\CustomHelper::getImageUrl('products',$pro->image??'');
                                         @endphp
 
 
 
                                         <tr>
+                                            <td>{{ $i + 2 }}</td>
                                             <td>
                                                 <a href="#">
                                                     <img src="{{$image}}" class="rounded" width="60"
@@ -180,12 +183,9 @@
                                         </tr>
                                     @endif
 
-                                    <tr>
-                                        <td colspan="9">No items found.</td>
-                                    </tr>
-                                @endforelse
-                                </tbody>
-                            </table>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
