@@ -43,16 +43,16 @@ class StockTransferController extends Controller
 
     public function index(Request $request)
     {
-        $q = StockTransfer::with([
-            'stock.product',
-            'stock.variant'
-        ])->latest();
+        $q = StockTransfer::with('product', 'variant')->latest();
+
 
         if ($request->filled('status')) {
             $q->where('status', $request->status);
         }
 
         $transfers = $q->paginate(20)->withQueryString();
+
+
         return view('stock_transfers.index', compact('transfers'));
     }
 
@@ -73,12 +73,16 @@ class StockTransferController extends Controller
         if ($request->isMethod('post')) {
             $back_url = $this->ADMIN_ROUTE_NAME . '/stock_transfers';
 
+//            echo "<pre>";
+//            print_r($request->all());
+//            die;
             $rules = [
-                'items' => 'required|array|min:1',
-                'items.*.stock_id' => 'required|exists:stocks,id',
-                'items.*.from_location' => 'required|string|max:120',
-                'items.*.to_location' => 'required|string|max:120|different:items.*.from_location',
-                'items.*.quantity' => 'required|integer|min:1',
+//                'items' => 'required|array|min:1',
+//                'items.*.stock_id' => 'required|exists:stocks,id',
+                'to_location' => 'required',
+                'from_location' => 'required',
+                'batch_id' => 'required',
+                'product_id' => 'required',
             ];
 
             $request->validate($rules);
@@ -106,20 +110,42 @@ class StockTransferController extends Controller
         return view('stock_transfers.form', $data);
     }
 
+//    public function save(Request $request, $id = 0)
+//    {
+//        // No bulk update logic for now — only insert new transfers
+//        foreach ($request->items as $row) {
+//            $transfer = new StockTransfer();
+//            $transfer->stock_id = $row['stock_id'];
+//            $transfer->from_location = $row['from_location'];
+//            $transfer->to_location = $row['to_location'];
+//            $transfer->quantity = $row['quantity'];
+//            $transfer->status = 'pending';
+//            $transfer->save();
+//        }
+//
+//        return true;
+//    }
+
     public function save(Request $request, $id = 0)
     {
-        // No bulk update logic for now — only insert new transfers
-        foreach ($request->items as $row) {
+        $from = $request->input('from_location');
+        $to   = $request->input('to_location');
+
+        // Loop through product_id or sku indexes
+        foreach ($request->product_id as $index => $productId) {
             $transfer = new StockTransfer();
-            $transfer->stock_id = $row['stock_id'];
-            $transfer->from_location = $row['from_location'];
-            $transfer->to_location = $row['to_location'];
-            $transfer->quantity = $row['quantity'];
-            $transfer->status = 'pending';
+            $transfer->from_location = $from;
+            $transfer->to_location   = $to;
+            $transfer->product_id    = $productId;
+            $transfer->variant_id    = $request->variant_id[$index] ?? 0;
+            $transfer->stock_id      = $request->batch_id[$index] ?? '';
+            $transfer->sku           = $request->sku[$index] ?? '';
+            $transfer->quantity      = $request->qty[$index] ?? 0;
+            $transfer->status        = 'pending';
             $transfer->save();
         }
 
-        return true;
+        return redirect($request->back_url)->with('success', 'Stock Transfer saved successfully');
     }
 
 

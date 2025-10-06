@@ -10,6 +10,7 @@
     $tag = $_GET['tag'] ?? '';
     $type = $_GET['type'] ?? '';
     $product_id = $_GET['product_id'] ?? '';
+    $payment_method = $_GET['payment_method'] ?? '';
 
     $current_url = url()->current();
 
@@ -93,6 +94,21 @@ $products = \App\Helpers\CustomHelper::getProducts();
                                     <option value="" selected>Select Registered By</option>
                                     <option value="app" {{$type == "app"?"selected":""}}>App</option>
                                     <option value="website" {{$type == "website"?"selected":""}}>Website</option>
+
+                                </select>
+                            </div>
+                        @endif
+                            @if(!empty($payment_method_show))
+                            <div class="col-md-4 mt-2">
+                                <label class="form-label">Payment Method</label>
+                                <select class="form-control" name="payment_method" id="payment_method">
+                                    <option value="" selected>Select Payment Method</option>
+                                    <option value="online" {{$type == "online"?"selected":""}}>Online</option>
+                                    <option value="cod" {{$type == "cod"?"selected":""}}>COD</option>
+                                    <option value="Multipay" {{$type == "Multipay"?"selected":""}}>Multipay</option>
+                                    <option value="UPI" {{$type == "UPI"?"selected":""}}>UPI</option>
+                                    <option value="Cash" {{$type == "Cash"?"selected":""}}>Cash</option>
+                                    <option value="Card" {{$type == "Card"?"selected":""}}>Card</option>
 
                                 </select>
                             </div>

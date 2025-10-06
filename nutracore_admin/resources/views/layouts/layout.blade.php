@@ -481,7 +481,7 @@ $current_route = Route::currentRouteName();
     }
 }
 
-   
+
 </style>
 <!-- ./ settings sidebar -->
 
@@ -1801,11 +1801,11 @@ $current_route = Route::currentRouteName();
 
         $(document).on('input', '.select2-search__field', function () {
             // keep only digits
-            this.value = this.value.replace(/[^0-9]/g, '');
-            // limit to 10 digits
-            if (this.value.length > 10) {
-                this.value = this.value.slice(0, 10);
-            }
+            // this.value = this.value.replace(/[^0-9]/g, '');
+            // // limit to 10 digits
+            // if (this.value.length > 10) {
+            //     this.value = this.value.slice(0, 10);
+            // }
         });
         $('.select2user').on('select2:select', function (e) {
             let data = e.params.data;

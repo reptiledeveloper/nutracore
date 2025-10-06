@@ -255,7 +255,11 @@
                 $varients = CustomHelper::getAdminProductSingleVarients($value->product_id, $value->variant_id);
                 $discount = 0;
                 if(!empty($varients)){
-                    $discount = (int)$varients->mrp - (int)$value->price;
+                       $discount = (int)$varients->mrp - (int)$value->price;
+
+                }else{
+//                     $discount = (int)$product->product_mrp - (int)$product->product_selling_price;
+                     $discount = (int)$product->product_mrp - (int)$product->product_subscription_price;
                 }
 
 
@@ -271,7 +275,18 @@
              }
 
              if(!empty($varients)){
-                 $sub_total+=(int)$varients->mrp* (int)$value->qty;
+                 if($orders->is_subscribe == 1 ){
+                    $sub_total+=(int)$varients->subscription_price* (int)$value->qty;
+                 } else{
+                         $sub_total+=(int)$varients->selling_price* (int)$value->qty;
+                     }
+
+             }else{
+                if($orders->is_subscribe == 1 ){
+                      $sub_total+=(int)$product->product_subscription_price* (int)$value->qty;
+                  }else{
+                      $sub_total+=(int)$product->selling_price* (int)$value->qty;
+                  }
              }
              $total_discount+=(int)$discount* (int)$value->qty;
              $taxable_value+=(int)$taxableAmount;

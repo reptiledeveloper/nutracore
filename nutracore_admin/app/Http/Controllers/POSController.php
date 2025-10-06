@@ -10,6 +10,7 @@ use App\Models\POS;
 use App\Models\POSDailyCash;
 use App\Models\Products;
 use App\Models\SubscriptionPlans;
+use App\Models\Transaction;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Http\Request;
@@ -527,6 +528,11 @@ class POSController extends Controller
                 if (!empty($user)) {
                     $subscription_start = $user->subscription_start ?? '';
                     $subscription_end = $user->subscription_end ?? '';
+
+                    $order->is_subscribe = 1;
+                    $order->save();
+
+
                     $subscription_plans = SubscriptionPlans::where('id', $request->subscription_id)->first();
                     if (!empty($subscription_plans)) {
                         $duration = (int)$subscription_plans->duration ?? 0;
@@ -573,7 +579,7 @@ class POSController extends Controller
             if($request->is_print == 1){
                 $invoice_url = route('orders.generateInvoicePdf',['id'=>$order->id]);
             }
-
+            $this->updateNCCashAfterOrder($order->id);
 
             return response()->json([
                 'success'  => true,
@@ -590,6 +596,44 @@ class POSController extends Controller
             ], 200);
         }
 
+    }
+
+    public function updateNCCashAfterOrder($order_id)
+    {
+        $order = Order::find($order_id);
+        if((int)$order->applied_cashback > 0){
+            $user_data = User::find($order->userID);
+            $new_wallet = (int)$user_data->cashback_wallet - (int)$order->applied_cashback;
+            User::where('id', $user_data->id)->update(['cashback_wallet' => $new_wallet]);
+            ///////Save Transaction Needed
+            ////Save Transaction////
+            $dbArray = [];
+            $dbArray['userID'] = $user_data->id;
+            $dbArray['type'] = 'DEBIT';
+            $dbArray['amount'] = (int)$order->applied_cashback ?? 0;
+            $dbArray['against_for'] = 'cashback_wallet';
+            $dbArray['wallet_type'] = 'cashback_wallet';
+            $dbArray['remarks'] = "Amount Debited From NC Cash";
+            $transaction_id = Transaction::insertGetId($dbArray);
+            Transaction::where('id', $transaction_id)->update(['txn_no' => "NC" . rand(111111, 9999999999)]);
+        }
+
+//        if (!empty($order)) {
+//            $user_data = User::find($order->userID);
+//            $new_wallet = (int)$user_data->cashback_wallet - (int)$order->applied_cashback;
+//            User::where('id', $user_data->id)->update(['cashback_wallet' => $new_wallet]);
+//            ///////Save Transaction Needed
+//            ////Save Transaction////
+//            $dbArray = [];
+//            $dbArray['userID'] = $user_data->id;
+//            $dbArray['type'] = 'DEBIT';
+//            $dbArray['amount'] = (int)$order->applied_cashback ?? 0;
+//            $dbArray['against_for'] = 'cashback_wallet';
+//            $dbArray['wallet_type'] = 'cashback_wallet';
+//            $dbArray['remarks'] = "Amount Debited From NC Cash";
+//            $transaction_id = Transaction::insertGetId($dbArray);
+//            Transaction::where('id', $transaction_id)->update(['txn_no' => "NC" . rand(111111, 9999999999)]);
+//        }
     }
 
 }

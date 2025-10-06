@@ -604,36 +604,40 @@ class CustomHelper
         return $is_active;
     }
 
-    public static function checkOutofStock($product_id, $varient_id)
+    public static function checkOutofStock($product_id, $variant_id = null)
     {
+        // Default: in stock
         $is_out_of_stock = 0;
-        $query = DB::table('products as p')
-            ->leftJoin('product_varients as pv', 'pv.product_id', '=', 'p.id')
-            ->leftJoin('stock_batches as sl', function ($join) {
-                $join->on('sl.variant_id', '=', 'pv.id')
-                    ->orOn(function ($q) {
-                        // Allow stock_batches.product_id = p.id for products with no variant
-                        $q->whereColumn('sl.product_id', 'p.id');
-                    })
-                    ->where('sl.is_delete', 0);
-            })
-            ->where('p.id', $product_id);
 
-        // If variant_id is provided, filter by it
         if (!empty($variant_id)) {
-            $query->where('pv.id', $variant_id);
+            // Product with a variant: sum stock for that variant
+            $stock = DB::table('stock_batches as sl')
+                ->where('sl.variant_id', $variant_id)
+                ->where('sl.product_id', $product_id)
+                ->where('sl.is_delete', 0)
+                ->select(DB::raw('COALESCE(SUM(sl.quantity), 0) as closing_stock'))
+                ->first();
+        } else {
+            // Product without variant: sum stock at product level
+            $stock = DB::table('stock_batches as sl')
+                ->where('sl.product_id', $product_id)
+                ->where(function ($q) {
+                    $q->whereNull('sl.variant_id')
+                        ->orWhere('sl.variant_id', 0);
+                })
+                ->where('sl.is_delete', 0)
+                ->select(DB::raw('COALESCE(SUM(sl.quantity), 0) as closing_stock'))
+                ->first();
         }
 
-        // Sum closing stock
-        $stock = $query->select(DB::raw('COALESCE(SUM(sl.quantity), 0) as closing_stock'))
-            ->first();
-
-// ✅ If no stock entry or closing_stock <= 0 → Out of Stock
+        // Check if out of stock
         if (!$stock || $stock->closing_stock <= 0) {
             $is_out_of_stock = 1; // Out of Stock
         }
+
         return $is_out_of_stock;
     }
+
 
     public static function calculateDiscountPer($originalPrice, $discountedPrice)
     {

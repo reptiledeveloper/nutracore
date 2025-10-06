@@ -49,6 +49,7 @@ class OrderController extends Controller
         $orderID = $request->orderID ?? '';
         $date = $request->date ?? '';
         $agent_id = $request->agent_id ?? '';
+        $payment_method = $request->payment_method ?? '';
         $orders = Order::where('is_delete', 0)->orderBy('id', 'desc');
         if (!empty($order_status)) {
             $orders->where('status', $order_status);
@@ -61,6 +62,9 @@ class OrderController extends Controller
         }
         if (!empty($agent_id)) {
             $orders->where('agent_id', $agent_id);
+        }
+        if (!empty($payment_method)) {
+            $orders->where('payment_method', $payment_method);
         }
         if (!empty($date)) {
             //            $orders->whereDate('delivery_date',$date);

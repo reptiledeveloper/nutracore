@@ -57,11 +57,13 @@
                             $i = 1;
                         @endphp
                         @foreach($transfers as $i => $t)
+
                             <tr>
                                 <td>{{ $transfers->firstItem() + $i }}</td>
-                                <td>{{ $t->stock?->product->name??'' }}</td>
-                                <td>{{ $t->stock?->variant->unit??'' }}</td>
-                                <td>{{ $t->stock?->batch_number }}</td>
+                                <td>{{ $t->product->name??'' }}</td>
+                                <td>{{ $t->variant->unit??'' }}</td>
+                                <td>{{ $t->batch_number }}</td>
+
                                 <td>{{ \App\Helpers\CustomHelper::getVendorName($t->from_location??'') }}</td>
                                 <td>{{ \App\Helpers\CustomHelper::getVendorName($t->to_location??'') }}</td>
 

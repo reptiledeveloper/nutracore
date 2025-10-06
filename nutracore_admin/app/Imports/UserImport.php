@@ -19,10 +19,10 @@ class UserImport implements ToCollection, WithHeadingRow
 //        print_r($rows);
 //        die;
         foreach ($rows as $row) {
-            $phone = trim($row['phone']) ?? 0;
+            $phone = trim($row['phone']) ?? "";
             $email = trim($row['email']) ?? '';
             $existing = DB::table('users')->where('phone', $phone)->first();
-            $cashbackAmount = (int) ($row['nccash'] ?? 0);
+            $cashbackAmount = (int) ($row['nc_cash'] ?? 0);
             if ($existing) {
                 \DB::enableQueryLog(); // Enable query log
 
@@ -41,7 +41,7 @@ class UserImport implements ToCollection, WithHeadingRow
                     'phone' => $phone,
                     'name' => $row['name'] ?? '',
                     'email' => $row['email'] ?? '',
-                    'cashback_wallet' => $row['nccash'] ?? 0,
+                    'cashback_wallet' => (int)$row['nc_cash'] ?? 0,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
@@ -49,7 +49,7 @@ class UserImport implements ToCollection, WithHeadingRow
 
 // Then pass a pseudo-user object to creditNcCash
             $user = (object)['id' => $userId];
-            self::creditNcCash($user, $row['nccash'] ?? 0);
+            self::creditNcCash($user, $row['nc_cash'] ?? 0);
 
         }
 
@@ -59,16 +59,18 @@ class UserImport implements ToCollection, WithHeadingRow
 
     public function creditNcCash($user, $amount)
     {
-        $dbArray1 = [];
-        $dbArray1['userID'] = $user->id;
-        $dbArray1['txn_no'] = "NC" . rand(1111, 9999999);
-        $dbArray1['amount'] = $amount;
-        $dbArray1['wallet_type'] = "cashback_wallet";
-        $dbArray1['type'] = "CREDIT";
-        $dbArray1['note'] = "Earn NC Cash From Import ";
-        $dbArray1['against_for'] = 'cashback_wallet';
-        $dbArray1['paid_by'] = 'admin';
-        $dbArray1['orderID'] = 0;
-        CustomHelper::SaveTransaction($dbArray1);
+        if((int)$amount > 0){
+            $dbArray1 = [];
+            $dbArray1['userID'] = $user->id;
+            $dbArray1['txn_no'] = "NC" . rand(1111, 9999999);
+            $dbArray1['amount'] = $amount;
+            $dbArray1['wallet_type'] = "cashback_wallet";
+            $dbArray1['type'] = "CREDIT";
+            $dbArray1['note'] = "Earn NC Cash From Import ";
+            $dbArray1['against_for'] = 'cashback_wallet';
+            $dbArray1['paid_by'] = 'admin';
+            $dbArray1['orderID'] = 0;
+            CustomHelper::SaveTransaction($dbArray1);
+        }
     }
 }

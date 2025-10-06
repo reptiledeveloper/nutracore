@@ -26,7 +26,7 @@
             </nav>
         </div>
 
-        @include('layouts.filter',['search_show'=>'search_show','vendor_show'=>'vendor_show','date_show'=>'date_show','delivery_agents_show'=>'delivery_agents_show'])
+        @include('layouts.filter',['search_show'=>'search_show','payment_method_show'=>'payment_method_show','vendor_show'=>'vendor_show','date_show'=>'date_show','delivery_agents_show'=>'delivery_agents_show'])
         <div class="row">
             <div class="col-md-12">
                 <div class="card">

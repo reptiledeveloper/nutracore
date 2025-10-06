@@ -13,4 +13,14 @@ class StockTransfer extends Model{
         return $this->belongsTo(Stock::class);
     }
 
+    public function product()
+    {
+        return $this->belongsTo(Products::class, 'product_id');
+    }
+
+    public function variant()
+    {
+        return $this->belongsTo(ProductVarient::class, 'variant_id');
+    }
+
 }
