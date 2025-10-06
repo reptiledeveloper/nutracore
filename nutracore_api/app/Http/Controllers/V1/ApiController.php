@@ -1191,7 +1191,8 @@ class ApiController extends Controller
                                             Transaction::where('id', $transaction_id)->update(['txn_no' => $txn_id]);
                                             /////Subscription Check/////////////
                                             if (!empty($order->subscription_id)) {
-
+                                                $order->is_subscribe = 1;
+                                                $order->save();
                                                 $subscription_start = $user->subscription_start ?? '';
                                                 $subscription_end = $user->subscription_end ?? '';
                                                 $subscription_plans = SubscriptionPlans::where('id', $order->subscription_id)->first();
@@ -4163,8 +4164,6 @@ class ApiController extends Controller
             Transaction::where('id', $transaction_id)->update(['txn_no' => "NC" . rand(111111, 9999999999)]);
             CustomHelper::Redeeming_NC_Cash($user_data->phone, $order->applied_cashback ?? '', $new_wallet ?? '');
         }
-
-
     }
 
     public function sendOrderNotification($order_id)
