@@ -165,32 +165,38 @@
 
     <script>
         const products = @json($products);
-        // Structure: [{id, name, variants:[{id, varient_sku, unit, selling_price}]}]
+        // products: [{id, name, sku, variants:[{id, varient_sku, unit, selling_price}]}]
 
         function addRow() {
             let row = `
-        <tr>
-            <td><input type="text" name="sku[]" class="form-control sku-input" required></td>
-            <td>
-                <select name="product_id[]" class="form-control product-select select2" required>
-                    <option value="">-- Select Product --</option>
-                    ${products.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
-                </select>
-            </td>
-            <td>
-                <select name="variant_id[]" class="form-control variant-select" required>
-                    <option value="">-- Select Variant --</option>
-                </select>
-            </td>
-            <td><input type="text" name="batch[]" class="form-control" required></td>
-            <td><input type="date" name="mfg[]" class="form-control" required></td>
-            <td><input type="date" name="expiry[]" class="form-control" required></td>
-            <td><input type="number" name="qty[]" class="form-control qty" min="1" required></td>
-            <td><input type="number" name="purchase_price[]" class="form-control price" step="0.01" required></td>
-            <td><input type="number" name="total_price[]" class="form-control total" step="0.01" readonly></td>
-            <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)">X</button></td>
-        </tr>`;
-            document.querySelector("#itemsTable tbody").insertAdjacentHTML('beforeend', row);
+    <tr>
+        <td><input type="text" name="sku[]" class="form-control sku-input" required></td>
+        <td>
+            <select name="product_id[]" class="form-control product-select select2" required>
+                <option value="">-- Select Product --</option>
+                ${products.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+            </select>
+        </td>
+        <td>
+            <select name="variant_id[]" class="form-control variant-select">
+                <option value="">-- Select Variant --</option>
+            </select>
+        </td>
+        <td><input type="text" name="batch[]" class="form-control" required></td>
+        <td><input type="date" name="mfg[]" class="form-control" required></td>
+        <td><input type="date" name="expiry[]" class="form-control" required></td>
+        <td><input type="number" name="qty[]" class="form-control qty" min="1" required></td>
+        <td><input type="number" name="purchase_price[]" class="form-control price" step="0.01" required></td>
+        <td><input type="number" name="total_price[]" class="form-control total" step="0.01" readonly></td>
+        <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)">X</button></td>
+    </tr>`;
+            let tbody = document.querySelector("#itemsTable tbody");
+            tbody.insertAdjacentHTML('beforeend', row);
+
+            // ✅ Reinitialize Select2 for new product dropdown
+            $(tbody).find('.select2').select2({
+                width: '100%' // adjust as needed
+            });
         }
 
         function removeRow(button) {
@@ -198,77 +204,88 @@
             calculateSubtotal();
         }
 
-        // Load variants when product changes
+        // Product selection → load variants or auto-fill SKU
         document.addEventListener('change', function(e) {
             if (e.target.classList.contains('product-select')) {
-                let productId = e.target.value;
                 let row = e.target.closest('tr');
+                let productId = e.target.value;
+                let product = products.find(p => p.id == productId);
                 let variantSelect = row.querySelector('.variant-select');
                 let skuInput = row.querySelector('.sku-input');
 
+                // Reset variant and SKU
                 variantSelect.innerHTML = '<option value="">-- Select Variant --</option>';
-                let product = products.find(p => p.id == productId);
+                skuInput.value = '';
 
-                if (product && product.variants) {
+                if (!product) return;
+
+                if (product.variants && product.variants.length > 0) {
+                    // Product has variants → populate variant dropdown
                     product.variants.forEach(v => {
                         variantSelect.innerHTML += `<option value="${v.id}" data-sku="${v.varient_sku}">${v.unit} - ₹${v.selling_price}</option>`;
                     });
+                } else {
+                    // Product without variants → auto-fill SKU
+                    skuInput.value = product.sku ?? '';
+                    variantSelect.innerHTML = '<option value="">No Variant</option>';
                 }
-
-                // Reset SKU when product changes
-                skuInput.value = '';
             }
-        });
 
-        // When variant changes → update SKU automatically
-        document.addEventListener('change', function(e) {
+            // Variant change → update SKU
             if (e.target.classList.contains('variant-select')) {
                 let row = e.target.closest('tr');
                 let selectedOption = e.target.options[e.target.selectedIndex];
                 let skuInput = row.querySelector('.sku-input');
-
                 if (selectedOption && selectedOption.dataset.sku) {
                     skuInput.value = selectedOption.dataset.sku;
                 }
             }
         });
 
-        // When SKU is typed → auto-select product & variant
+        // SKU input → auto-select product & variant
         document.addEventListener('input', function(e) {
-            if (e.target.classList.contains('sku-input')) {
-                let sku = e.target.value.trim();
-                let row = e.target.closest('tr');
-                let productSelect = row.querySelector('.product-select');
-                let variantSelect = row.querySelector('.variant-select');
+            if (!e.target.classList.contains('sku-input')) return;
 
-                if (sku.length > 0) {
-                    let foundProduct = null, foundVariant = null;
+            let sku = e.target.value.trim();
+            let row = e.target.closest('tr');
+            let productSelect = row.querySelector('.product-select');
+            let variantSelect = row.querySelector('.variant-select');
 
-                    // Search SKU in variants
-                    products.forEach(p => {
-                        p.variants.forEach(v => {
-                            if (v.varient_sku == sku) {
-                                foundProduct = p;
-                                foundVariant = v;
-                            }
-                        });
+            if (!sku) return;
+
+            let foundProduct = null;
+            let foundVariant = null;
+
+            products.forEach(p => {
+                if (p.variants && p.variants.length > 0) {
+                    p.variants.forEach(v => {
+                        if (v.varient_sku == sku) {
+                            foundProduct = p;
+                            foundVariant = v;
+                        }
                     });
-
-                    if (foundProduct && foundVariant) {
-                        // Select product
-                        productSelect.value = foundProduct.id;
-
-                        // Rebuild variants
-                        variantSelect.innerHTML = '<option value="">-- Select Variant --</option>';
-                        foundProduct.variants.forEach(v => {
-                            variantSelect.innerHTML += `<option value="${v.id}" data-sku="${v.varient_sku}" ${v.id == foundVariant.id ? 'selected' : ''}>${v.unit} - ₹${v.selling_price}</option>`;
-                        });
-                    }
+                } else if (p.sku == sku) {
+                    foundProduct = p;
                 }
+            });
+
+            if (!foundProduct) return;
+
+            // Set product
+            productSelect.value = foundProduct.id;
+
+            if (foundProduct.variants && foundProduct.variants.length > 0) {
+                // Populate variants
+                variantSelect.innerHTML = '<option value="">-- Select Variant --</option>';
+                foundProduct.variants.forEach(v => {
+                    variantSelect.innerHTML += `<option value="${v.id}" data-sku="${v.varient_sku}" ${foundVariant && v.id == foundVariant.id ? 'selected' : ''}>${v.unit} - ₹${v.selling_price}</option>`;
+                });
+            } else {
+                variantSelect.innerHTML = '<option value="">No Variant</option>';
             }
         });
 
-        // Auto-calc row totals & subtotal
+        // Calculate row total & subtotal
         function calculateRow(row) {
             let qty = parseFloat(row.querySelector(".qty")?.value) || 0;
             let price = parseFloat(row.querySelector(".price")?.value) || 0;
@@ -280,19 +297,18 @@
         function calculateSubtotal() {
             let rows = document.querySelectorAll("#itemsTable tbody tr");
             let subtotal = 0;
-            rows.forEach(row => {
-                subtotal += calculateRow(row);
-            });
+            rows.forEach(row => subtotal += calculateRow(row));
             document.getElementById("subtotal").value = subtotal.toFixed(2);
         }
 
-        // Listen for qty/price input
+        // Listen for qty/price changes
         document.addEventListener("input", function(e) {
             if (e.target.classList.contains("qty") || e.target.classList.contains("price")) {
                 calculateSubtotal();
             }
         });
     </script>
+
 
 
 @endsection

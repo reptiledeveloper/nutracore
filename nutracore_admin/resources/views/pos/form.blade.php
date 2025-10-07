@@ -1369,6 +1369,11 @@
 
         $('#posForm').on('submit', function (e) {
             e.preventDefault();
+
+            let $submitBtn = $(this).find('button[type="submit"], input[type="submit"]');
+            if ($submitBtn.prop('disabled')) return; // already clicked, do nothing
+            $submitBtn.prop('disabled', true);
+
             let orderType = $('input[name="order_type"]:checked').val();
             let items = [];
             $("#cartBody tr").each(function () {
@@ -1421,7 +1426,12 @@
                         window.location.reload();
                     } else {
                         alert('Error: ' + res.message);
+                        $submitBtn.prop('disabled', false); // Re-enable on error
                     }
+                },
+                error: function () {
+                    alert('Something went wrong.');
+                    $submitBtn.prop('disabled', false); // Re-enable on error
                 }
             });
         });

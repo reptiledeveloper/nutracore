@@ -9,6 +9,7 @@ use App\Models\OrderItems;
 use App\Models\POS;
 use App\Models\POSDailyCash;
 use App\Models\Products;
+use App\Models\StockLog;
 use App\Models\SubscriptionPlans;
 use App\Models\Transaction;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -580,6 +581,10 @@ class POSController extends Controller
                 $invoice_url = route('orders.generateInvoicePdf',['id'=>$order->id]);
             }
             $this->updateNCCashAfterOrder($order->id);
+            $this->updateStock($order->id);
+
+            $order_data = Order::find($order->id);
+            CustomHelper::sendInvoiceWP($user, $order_data);
 
             return response()->json([
                 'success'  => true,
@@ -594,6 +599,49 @@ class POSController extends Controller
                 'success' => false,
                 'message' => $e->getMessage()
             ], 200);
+        }
+
+    }
+
+
+
+    public function updateStock($order_id)
+    {
+        $order = Order::find($order_id);
+        if (!empty($order)) {
+            $order_items = OrderItems::where('order_id', $order_id)->get();
+            if (!empty($order_items)) {
+                foreach ($order_items as $order_item) {
+                    $product_id = $order_item->product_id ?? '';
+                    $variant_id = $order_item->variant_id ?? '';
+                    $qty = $order_item->qty ?? '';
+                    $exist = DB::table('stock_batches')->where('product_id', $product_id);
+                    if (!empty($variant_id)) {
+                        $exist->where('variant_id', $variant_id);
+                    }
+                    $exist = $exist->where('quantity', '>', 0)->orderBy('mfg_date', 'ASC')->first();
+                    if (!empty($exist)) {
+                        if ((int)$exist->quantity <= (int)$qty) {
+                            $new_qty = (int)$exist->quantity - (int)$qty;
+                            DB::table('stock_batches')->where('id', $exist->id)->update(['qty' => $new_qty]);
+                            StockLog::create([
+                                'product_id' => $product_id,
+                                'variant_id' => $variant_id,
+                                'store_id' => $exist->store_id ?? '',
+                                'action' => "sale",
+                                'quantity' => $qty,
+                                'closing_stock' => $new_qty,
+                                'related_id' => 0,
+                                'related_type' => "Sale",
+                                'created_by' => auth()->id(),
+                                'order_id' => $order_id,
+                            ]);
+                        } else {
+
+                        }
+                    }
+                }
+            }
         }
 
     }

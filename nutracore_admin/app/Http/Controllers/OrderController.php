@@ -25,6 +25,8 @@ use Illuminate\Http\Request;
 use Storage;
 use Validator;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Response;
+
 
 class OrderController extends Controller
 {
@@ -333,14 +335,16 @@ class OrderController extends Controller
             'orders' => $orders,
             'seller_details' => $seller_details
         ];
-//        return view('orders.saleinvoice_a4_new', $data);
         $pdf = Pdf::loadView('orders.saleinvoice_a4_new', $data)
             ->setPaper('a4')->setOptions([
                 'isRemoteEnabled' => true, // <-- enable remote images
             ]);
         $filename = 'Invoice_order_' . rand(111, 999999) . time() . '.pdf';
 
-        return $pdf->stream($filename);
+        return Response::make($pdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => "inline; filename=\"{$filename}\""
+        ]);
     }
 
     public function get_varients(Request $request)
@@ -506,6 +510,7 @@ class OrderController extends Controller
             $this->creditNcCash($order);
 
             CustomHelper::orderDelivered($user->phone ?? '', $order_id);
+            CustomHelper::sendInvoiceWP($user, $order);
         }
         if ($status == 'CANCEL') {
             $user = User::where('id', $order->userID)->first();

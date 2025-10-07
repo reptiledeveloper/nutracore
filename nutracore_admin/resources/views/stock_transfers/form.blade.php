@@ -172,7 +172,14 @@
             <td><input type="number" name="qty[]" class="form-control qty" min="1" required></td>
             <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)">X</button></td>
         </tr>`;
-            document.querySelector("#transferTable tbody").insertAdjacentHTML('beforeend', row);
+
+            let tbody = document.querySelector("#transferTable tbody");
+            tbody.insertAdjacentHTML('beforeend', row);
+
+            // ✅ Reinitialize Select2 for new product dropdown
+            $(tbody).find('.select2').select2({
+                width: '100%' // adjust as needed
+            });
         }
 
         function removeRow(button) {

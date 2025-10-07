@@ -128,6 +128,7 @@ class CustomHelper
         return $dbarray;
 
     }
+
     public static function checkSubscription($user)
     {
 
@@ -156,6 +157,7 @@ class CustomHelper
         return $user->name ?? '';
 
     }
+
     public static function checkOutofStock($product_id, $varient_id)
     {
         $is_out_of_stock = 0;
@@ -186,6 +188,7 @@ class CustomHelper
         }
         return $is_out_of_stock;
     }
+
     public static function logStock($product_id, $variant_id, $store_id, $action, $quantity, $related_id = null, $related_type = null)
     {
         // Current closing stock from StockBatch
@@ -383,6 +386,7 @@ class CustomHelper
 
         $products = Products::where('status', 1)
             ->where('is_delete', 0)
+            ->orderBy('name')
             ->get();
 
         if ($products->isNotEmpty()) {
@@ -392,14 +396,14 @@ class CustomHelper
                         $productArr[] = [
                             'product_id' => $product->id,
                             'product_name' => $product->name,
-                            'product_sku' => $varient->varient_sku ?? $product->sku ??'',
+                            'product_sku' => $varient->varient_sku ?? $product->sku ?? '',
                             'mrp' => $varient->mrp ?? 0,
                             'selling_price' => $varient->selling_price ?? 0,
                             'unit' => $varient->unit ?? '',
                             'subscription_price' => $varient->subscription_price ?? 0,
                             'varient_sku' => $varient->varient_sku ?? '',
                             'variant_id' => $varient->id ?? 0,
-                            'discount' => (int)$varient->mrp -(int) $varient->selling_price,
+                            'discount' => (int)$varient->mrp - (int)$varient->selling_price,
                         ];
                     }
                 } else {
@@ -407,14 +411,14 @@ class CustomHelper
                     $productArr[] = [
                         'product_id' => $product->id,
                         'product_name' => $product->name,
-                        'product_sku' => $product->sku ??'',
+                        'product_sku' => $product->sku ?? '',
                         'mrp' => $product->product_mrp ?? 0,
                         'selling_price' => $product->product_selling_price ?? 0,
                         'unit' => '',
                         'subscription_price' => $product->product_subscription_price ?? 0,
                         'varient_sku' => $product->sku,
                         'variant_id' => 0,
-                        'discount' => (int)$product->product_mrp -(int) $product->product_selling_price,
+                        'discount' => (int)$product->product_mrp - (int)$product->product_selling_price,
                     ];
                 }
             }
@@ -435,6 +439,50 @@ class CustomHelper
         return strtoupper($acronym);
     }
 
+    public static function sendInvoiceWP($user, $order)
+    {
+        $data = [
+            'countryCode' => '+91',
+            'phoneNumber' => $user->phone ?? '',
+            'fullPhoneNumber' => '',
+            'campaignId' => '',
+            'callbackData' => '',
+            'type' => 'Template',
+            'template' => [
+                'name' => 'invoice_vasy',
+                'languageCode' => 'en',
+                'headerValues' => [
+                    'https://admin.nutracore.in/send_pdf/' . $order->id
+                ],
+                'bodyValues' => [
+                    $user->name ?? "User",
+                    $order->total_amount ?? 0
+                ]
+            ]
+        ];
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://api.interakt.ai/v1/public/message/',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => json_encode($data),
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: application/json',
+                'Authorization: Basic UHRmVkdXamE3NVYzQmFRYVhaZjVPaW1TbEk0QllKbUx3eTc1WTlEeFp6VTo='
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        return $response;
+
+    }
 
     public static function getEMIStatus($emis)
     {
@@ -1651,7 +1699,7 @@ class CustomHelper
         curl_close($curl);
         $response = json_decode($response);
         if (!empty($response)) {
-            $exist = DB::table('order_courier')->where("order_id",$orders->id)->first();
+            $exist = DB::table('order_courier')->where("order_id", $orders->id)->first();
 
 
             $dbArray = [];
@@ -1663,15 +1711,15 @@ class CustomHelper
             $dbArray['tracking_url'] = $response->tracking_url ?? '';
             $dbArray['porter_data'] = json_encode($response);
             $dbArray['order_details_porter'] = null;
-            if(empty($exist)){
+            if (empty($exist)) {
                 DB::table('order_courier')->insert($dbArray);
-            }else{
-                DB::table('order_courier')->where('id',$exist->id)->update($dbArray);
+            } else {
+                DB::table('order_courier')->where('id', $exist->id)->update($dbArray);
             }
 
             /////Confirm Order///////
             $status = 'CONFIRM';
-            $order_id = $orders->id?? '';
+            $order_id = $orders->id ?? '';
             $dbArray = [];
             $dbArray['order_id'] = $order_id;
             $dbArray['status'] = $status;
@@ -1788,7 +1836,6 @@ class CustomHelper
         }
         return true;
     }
-
 
 
     public static function getPropertyOwnersType()
@@ -3972,8 +4019,8 @@ class CustomHelper
         $order_items = OrderItems::where('order_id', $orders->id)->get();
         $vendor = Vendors::where('id', $orders->vendor_id)->first();
         $address = UserAddress::where('id', $orders->address_id)->first();
-        self::updatePincodeData($address->pincode  ??'', $orders->address_id??'');
-        $envia_data = json_decode($address->envia_data ??'') ?? '';
+        self::updatePincodeData($address->pincode ?? '', $orders->address_id ?? '');
+        $envia_data = json_decode($address->envia_data ?? '') ?? '';
         $packages = [];
         $response = null;
         if (!empty($order_items)) {
@@ -3999,7 +4046,7 @@ class CustomHelper
                 }
             }
         }
-        if(!empty($address) && !empty($envia_data)){
+        if (!empty($address) && !empty($envia_data)) {
             $data = [
                 'origin' => [
                     'name' => $vendor->name ?? '',

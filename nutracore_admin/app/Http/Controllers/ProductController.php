@@ -45,31 +45,50 @@ class ProductController extends Controller
         $brand_id = $request->brand_id ?? '';
         $tag = $request->tag ?? '';
         $vendor_id = $request->vendor_id ?? '';
+
         $products = Products::where('is_delete', 0)->latest();
+
         if (!empty($category_id)) {
             $products->where('category_id', $category_id);
         }
+
         if (!empty($subcategory_id)) {
             $products->where('subcategory_id', $subcategory_id);
         }
+
         if (!empty($brand_id)) {
             $products->where('brand_id', $brand_id);
         }
+
         if (!empty($vendor_id)) {
             $product_ids = CustomHelper::getVendorProductIds($vendor_id);
             $products->whereIn('id', $product_ids);
         }
+
         if (!empty($tag)) {
             $products->whereRaw("FIND_IN_SET(?, tags)", [$tag]);
         }
+
         if (!empty($search)) {
-            $products->where('name', 'like', '%' . $search . '%');
+            $products->where(function($q) use ($search) {
+                // Search in variants SKU
+                $product_ids = ProductVarient::where('varient_sku', 'like', '%' . $search . '%')
+                    ->pluck('product_id')
+                    ->toArray();
+                if (!empty($product_ids)) {
+                    $q->whereIn('id', $product_ids);
+                }
+                // Search in product name
+                $q->orWhere('sku', 'like', '%' . $search . '%');
+                $q->orWhere('name', 'like', '%' . $search . '%');
+            });
         }
 
         $products = $products->paginate(50);
-        $data['products'] = $products;
-        return view('products.index', $data);
+
+        return view('products.index', ['products' => $products]);
     }
+
 
 
     public function add(Request $request)

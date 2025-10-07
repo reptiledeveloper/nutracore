@@ -20,6 +20,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
     Route::match(['get', 'post'], '/googlecallback', 'GoogleController@googlecallback')->name('admin.googlecallback');
     Route::match(['get', 'post'], '/sendFCM', 'GoogleController@sendFCM')->name('admin.sendFCM');
 
+    Route::match(['get', 'post'], 'send_pdf/{id}', 'OrderController@generateInvoicePdf')->name('.send_pdf');
+
     Route::group(['prefix' => $ADMIN_ROUTE_NAME, 'middleware' => ['authadmin']], function () {
         Route::match(['get', 'post'], '/', 'HomeController@index')->name('home');
         Route::match(['get', 'post'], '/profile', 'HomeController@profile')->name('profile');
