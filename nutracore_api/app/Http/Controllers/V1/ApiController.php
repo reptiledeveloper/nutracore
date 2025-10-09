@@ -2389,6 +2389,32 @@ class ApiController extends Controller
             ->first();
     }
 
+    public function checkExpressEligible($user_id)
+    {
+        if (!empty($user_id)) {
+            $user = User::find($user_id);
+            $latitude = $user->latitude ?? '17.44757253036007';
+            $longitude = $user->longitude ?? '78.30504618870073';
+            if (!empty($user->addressID)) {
+                $address = UserAddress::where('id', $user->addressID)->first();
+                if (!empty($address)) {
+                    $latitude = $address->latitude ?? '17.44757253036007';
+                    $longitude = $address->longitude ?? '78.30504618870073';
+                }
+            }
+            $pincode = $user->pincode ?? '';
+            if (empty($pincode)) {
+                $pincode = $address->pincode ?? '';
+            }
+            $seller = self::getNearestSeller($latitude, $longitude, 2, 40);
+
+            if (!empty($seller)) {
+               return true;
+            }
+        }
+        return false;
+    }
+
     public function getProductDetails($product_id, $user_id = null)
     {
         $user = [];
@@ -3272,7 +3298,7 @@ class ApiController extends Controller
         $slot_date = $request->slot_date ?? '';
         $subscription_id = $request->subscription_id ?? '';
         $slot_time = $request->slot_time ?? '';
-        $delivery_type = $request->delivery_type ?? '';
+        $delivery_type = $request->delivery_type ?? 'normal';
         $cart_data = CustomHelper::cartData($user->id, $coupon_code, $request, $user);
         $cartValue = $cart_data['cartValue'] ?? '';
         $cart_price = $cartValue['cart_price'] ?? '';
@@ -3385,14 +3411,19 @@ class ApiController extends Controller
         if (!empty($user_address)) {
             $cart_price = $cartValue['cart_price'] ?? 0;
             // Express slot
-            $expressSlot = DB::table('delivery_charges')
-                ->where('type', 'express')
-                ->where('status', 1)
-                ->where('is_delete', 0)
-                ->whereRaw('? BETWEEN order_amount AND order_amount2', [$cart_price])
-                ->first();
+            $expressSlot = null;
 
-// Normal slot
+            $check = self::checkExpressEligible($user->id);
+            if($check){
+                $expressSlot = DB::table('delivery_charges')
+                    ->where('type', 'express')
+                    ->where('status', 1)
+                    ->where('is_delete', 0)
+                    ->whereRaw('? BETWEEN order_amount AND order_amount2', [$cart_price])
+                    ->first();
+            }
+
+
             $normalSlot = DB::table('delivery_charges')
                 ->where('type', 'normal')
                 ->where('status', 1)

@@ -1413,10 +1413,12 @@ class CustomHelper
 
     }
 
-    public static function calculateDeliveryCharge($user, $total_amount, $type = "express")
+    public static function calculateDeliveryCharge($user, $total_amount, $type)
     {
         $delivery_charge = 0;
-
+        if(empty($type)){
+            $type = "normal";
+        }
         $delivery_charges = DeliveryCharges::where('type', $type)
             ->whereRaw('? BETWEEN CAST(order_amount AS UNSIGNED) AND CAST(order_amount2 AS UNSIGNED)', [$total_amount])
             ->first();
