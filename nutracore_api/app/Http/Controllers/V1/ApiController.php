@@ -1428,7 +1428,7 @@ class ApiController extends Controller
                     if (!empty($exist)) {
                         if ((int)$exist->quantity <= (int)$qty) {
                             $new_qty = (int)$exist->quantity - (int)$qty;
-                            DB::table('stock_batches')->where('id', $exist->id)->update(['qty' => $new_qty]);
+                            DB::table('stock_batches')->where('id', $exist->id)->update(['quantity' => $new_qty]);
                             StockLog::create([
                                 'product_id' => $product_id,
                                 'variant_id' => $variant_id,
@@ -2625,7 +2625,7 @@ class ApiController extends Controller
             $exist_subscription = Subscriptions::where('user_id', $user->id)->where('paid_status', 1)->latest()->first();
             if (!empty($exist_subscription)) {
                 $current_date = date('Y-m-d');
-                if (strtotime($exist_subscription->end_date) >= strtotime($current_date)) {
+                if (strtotime($user->subscription_end) >= strtotime($current_date)) {
                     $is_active = 1;
 
                 }
@@ -2640,7 +2640,7 @@ class ApiController extends Controller
             ->where('to_amount', '>=', $amount)
             ->first();
         if (!empty($active_loyalty)) {
-            return round(($amount * (int)$active_loyalty->cashback) / 100);
+            return round(((int)$amount * (int)$active_loyalty->cashback) / 100);
         }
         return 0;
 

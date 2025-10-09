@@ -272,7 +272,18 @@
             if (!foundProduct) return;
 
             // Set product
-            productSelect.value = foundProduct.id;
+            // productSelect.value = foundProduct.id;
+            //
+            // if (foundProduct.variants && foundProduct.variants.length > 0) {
+            //     // Populate variants
+            //     variantSelect.innerHTML = '<option value="">-- Select Variant --</option>';
+            //     foundProduct.variants.forEach(v => {
+            //         variantSelect.innerHTML += `<option value="${v.id}" data-sku="${v.varient_sku}" ${foundVariant && v.id == foundVariant.id ? 'selected' : ''}>${v.unit} - ₹${v.selling_price}</option>`;
+            //     });
+            // } else {
+            //     variantSelect.innerHTML = '<option value="">No Variant</option>';
+            // }
+            $(productSelect).val(foundProduct.id).trigger('change');
 
             if (foundProduct.variants && foundProduct.variants.length > 0) {
                 // Populate variants
@@ -280,6 +291,11 @@
                 foundProduct.variants.forEach(v => {
                     variantSelect.innerHTML += `<option value="${v.id}" data-sku="${v.varient_sku}" ${foundVariant && v.id == foundVariant.id ? 'selected' : ''}>${v.unit} - ₹${v.selling_price}</option>`;
                 });
+
+                // ✅ Auto-select the variant in dropdown
+                if (foundVariant) {
+                    $(variantSelect).val(foundVariant.id).trigger('change');
+                }
             } else {
                 variantSelect.innerHTML = '<option value="">No Variant</option>';
             }

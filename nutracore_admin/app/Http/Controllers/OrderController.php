@@ -601,7 +601,7 @@ class OrderController extends Controller
             $exist_subscription = Subscriptions::where('user_id', $user->id)->where('paid_status', 1)->latest()->first();
             if (!empty($exist_subscription)) {
                 $current_date = date('Y-m-d');
-                if (strtotime($user->end_date) >= strtotime($current_date)) {
+                if (strtotime($user->subscription_end) >= strtotime($current_date)) {
                     $is_active = 1;
                 }
             }
@@ -610,27 +610,20 @@ class OrderController extends Controller
         $type = ($is_active == 1) ? 'subscribe' : 'not_subscribe';
         \DB::enableQueryLog(); // Enable query log
 
+        $total_order_amount = Order::where('userID', $user->id)->where('status', 'DELIVERED')->sum('total_amount');
         $active_loyalty = DB::table('loyality_system')
             ->where('status', 1)
-            ->where('type', $type)
             ->where('is_delete', 0)
-            ->where(function ($q) use ($amount) {
-                $q->where(function ($q2) use ($amount) {
-                    $q2->where('from_amount', '<=', $amount)
-                        ->where('to_amount', '>=', $amount);
-                })->orWhere(function ($q3) use ($amount) {
-                    $q3->where('from_amount', '<=', $amount)
-                        ->whereNull('to_amount');
-                });
+            ->where('type', $type)
+            ->where('from_amount', '<=', $total_order_amount)
+            ->where(function ($q) use ($total_order_amount) {
+                $q->where('to_amount', '>=', $total_order_amount)
+                    ->orWhereNull('to_amount'); // for open-ended slabs like Platinum
             })
-            ->orderBy('from_amount', 'ASC')
+            ->orderBy('from_amount', 'desc') // pick the highest matching tier
             ->first();
         if (!empty($active_loyalty)) {
-            $amount = round(($amount * (int)$active_loyalty->cashback) / 100);
-            if ((int)$amount >= (int)$active_loyalty->max_cashback) {
-                $amount = $active_loyalty->max_cashback ?? 0;
-            }
-            return $amount;
+            return round(((int)$amount * (int)$active_loyalty->cashback) / 100);
         }
         return 0;
 

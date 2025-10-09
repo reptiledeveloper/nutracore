@@ -31,6 +31,7 @@ use Yajra\DataTables\DataTables;
 use Storage;
 use DB;
 use Hash;
+use Illuminate\Support\Facades\Cache;
 
 
 class POSController extends Controller
@@ -457,6 +458,17 @@ class POSController extends Controller
     }
     public function savePos(Request $request)
     {
+
+        $lockKey = 'pos_lock_user_' . $request->user_id;
+        $lock = Cache::lock($lockKey, 10); // 5 seconds lock
+
+        if (!$lock->get()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please wait a few seconds before submitting again.'
+            ], 200); // Too Many Requests
+        }
+
         try {
             // Validate required fields
             $request->validate([
@@ -506,6 +518,7 @@ class POSController extends Controller
             $order->flat_discount_percent = $request->flat_discount_percent ?? 0;
             $order->order_type = $request->order_type ?? '';
             $order->payment_method_values = json_encode($request->payment_method_values)??'';
+            $order->is_subscribe = CustomHelper::checkSubscription($user);
             $order->save();
 
             // Save Order Items
@@ -532,8 +545,6 @@ class POSController extends Controller
 
                     $order->is_subscribe = 1;
                     $order->save();
-
-
                     $subscription_plans = SubscriptionPlans::where('id', $request->subscription_id)->first();
                     if (!empty($subscription_plans)) {
                         $duration = (int)$subscription_plans->duration ?? 0;
@@ -584,6 +595,7 @@ class POSController extends Controller
             $this->updateStock($order->id);
 
             $order_data = Order::find($order->id);
+            $this->creditNcCash($order_data);
             CustomHelper::sendInvoiceWP($user, $order_data);
 
             return response()->json([
@@ -623,7 +635,7 @@ class POSController extends Controller
                     if (!empty($exist)) {
                         if ((int)$exist->quantity <= (int)$qty) {
                             $new_qty = (int)$exist->quantity - (int)$qty;
-                            DB::table('stock_batches')->where('id', $exist->id)->update(['qty' => $new_qty]);
+                            DB::table('stock_batches')->where('id', $exist->id)->update(['quantity' => $new_qty]);
                             StockLog::create([
                                 'product_id' => $product_id,
                                 'variant_id' => $variant_id,
@@ -665,23 +677,66 @@ class POSController extends Controller
             $transaction_id = Transaction::insertGetId($dbArray);
             Transaction::where('id', $transaction_id)->update(['txn_no' => "NC" . rand(111111, 9999999999)]);
         }
+    }
 
-//        if (!empty($order)) {
-//            $user_data = User::find($order->userID);
-//            $new_wallet = (int)$user_data->cashback_wallet - (int)$order->applied_cashback;
-//            User::where('id', $user_data->id)->update(['cashback_wallet' => $new_wallet]);
-//            ///////Save Transaction Needed
-//            ////Save Transaction////
-//            $dbArray = [];
-//            $dbArray['userID'] = $user_data->id;
-//            $dbArray['type'] = 'DEBIT';
-//            $dbArray['amount'] = (int)$order->applied_cashback ?? 0;
-//            $dbArray['against_for'] = 'cashback_wallet';
-//            $dbArray['wallet_type'] = 'cashback_wallet';
-//            $dbArray['remarks'] = "Amount Debited From NC Cash";
-//            $transaction_id = Transaction::insertGetId($dbArray);
-//            Transaction::where('id', $transaction_id)->update(['txn_no' => "NC" . rand(111111, 9999999999)]);
-//        }
+    public function creditNcCash($order)
+    {
+        $user = User::find($order->userID);
+        $amount = self::getNcCashPercent($user, $order->order_amount ?? '');
+        $cashback_wallet = $user->cashback_wallet ?? 0;
+        $new_wallet = (int)$cashback_wallet + (int)$amount;
+        $user->cashback_wallet = $new_wallet;
+        $user->save();
+        $order->nc_cash_earned = $amount;
+        $order->save();
+        $dbArray1 = [];
+        $dbArray1['userID'] = $user->id;
+        $dbArray1['txn_no'] = "NC" . rand(1111, 9999999);
+        $dbArray1['amount'] = $amount;
+        $dbArray1['wallet_type'] = "cashback_wallet";
+        $dbArray1['type'] = "CREDIT";
+        $dbArray1['note'] = "Earn NC Cash From Order " . $order->id ?? '';
+        $dbArray1['against_for'] = 'cashback_wallet';
+        $dbArray1['paid_by'] = 'order';
+        $dbArray1['orderID'] = 0;
+        CustomHelper::SaveTransaction($dbArray1);
+    }
+
+    public function getNcCashPercent($user, $amount)
+    {
+        $is_active = 0;
+
+        $subscription_end_date = '';
+        if (!empty($user)) {
+            $exist_subscription = Subscriptions::where('user_id', $user->id)->where('paid_status', 1)->latest()->first();
+            if (!empty($exist_subscription)) {
+                $current_date = date('Y-m-d');
+                if (strtotime($user->subscription_end) >= strtotime($current_date)) {
+                    $is_active = 1;
+                }
+            }
+        }
+
+        $type = ($is_active == 1) ? 'subscribe' : 'not_subscribe';
+        \DB::enableQueryLog(); // Enable query log
+
+        $total_order_amount = Order::where('userID', $user->id)->where('status', 'DELIVERED')->sum('total_amount');
+        $active_loyalty = DB::table('loyality_system')
+            ->where('status', 1)
+            ->where('is_delete', 0)
+            ->where('type', $type)
+            ->where('from_amount', '<=', $total_order_amount)
+            ->where(function ($q) use ($total_order_amount) {
+                $q->where('to_amount', '>=', $total_order_amount)
+                    ->orWhereNull('to_amount'); // for open-ended slabs like Platinum
+            })
+            ->orderBy('from_amount', 'desc') // pick the highest matching tier
+            ->first();
+        if (!empty($active_loyalty)) {
+            return round(((int)$amount * (int)$active_loyalty->cashback) / 100);
+        }
+        return 0;
+
     }
 
 }

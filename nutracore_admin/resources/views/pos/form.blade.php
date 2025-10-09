@@ -1423,7 +1423,7 @@
                         if (res.invoice_url) {
                             window.open(res.invoice_url, '_blank'); // Opens in a new tab
                         }
-                        window.location.reload();
+                        // window.location.reload();
                     } else {
                         alert('Error: ' + res.message);
                         $submitBtn.prop('disabled', false); // Re-enable on error
