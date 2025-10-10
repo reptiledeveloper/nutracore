@@ -80,6 +80,15 @@ class POSController extends Controller
         $data['orders'] = $orders;
         return view('orders.index', $data);
     }
+    public function cash_management(Request $request)
+    {
+        $data = [];
+        $pos_daily_cash = POSDailyCash::orderBy('date', 'desc');
+
+        $pos_daily_cash = $pos_daily_cash->paginate(30);
+        $data['pos_daily_cash'] = $pos_daily_cash;
+        return view('pos.cash_management', $data);
+    }
 
 
     public function add(Request $request)
@@ -214,8 +223,12 @@ class POSController extends Controller
         $date = $request->date ?? '';
         $store_id = $request->store_id ?? '';
         $today_balance = $request->today_balance ?? '';
-        $exist = POSDailyCash::whereDate('date', $date)->first();
+        $exist = POSDailyCash::whereDate('date', $date)->where('store_id',$store_id)->first();
         if (empty($exist)) {
+            $store_id_session = session('store_id');
+            if(empty($store_id_session)){
+                session(['store_id' => $store_id]);
+            }
             $pos = new POSDailyCash();
             $pos->date = $date;
             $pos->today_balance = $today_balance;
@@ -225,6 +238,40 @@ class POSController extends Controller
         return back();
 
     }
+
+    public function close(Request $request)
+    {
+        $request->validate([
+            'today_last_balance' => 'required|numeric',
+        ], [
+            'today_last_balance.required' => 'Please enter the physical drawer amount.',
+        ]);
+        $date = now()->toDateString(); // You can also pass $request->date if needed
+        // Find or create daily record
+        $store_id = $request->store_id??'';
+        $pos = POSDailyCash::firstOrNew([
+            'date' => $date,
+            'store_id' => $store_id,
+        ]);
+
+        $pos->today_last_balance = $request->today_last_balance ?? 0;
+        $pos->closing_note = $request->closing_note ?? null;
+        $pos->save();
+
+        // Store session for superadmin convenience
+        session(['store_id' => $store_id]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'POS closed successfully.',
+            'data' => [
+                'store_id' => $store_id,
+                'date' => $date,
+                'today_balance' => $pos->today_balance,
+            ]
+        ]);
+    }
+
 
     public function user_search(Request $request)
     {
@@ -472,6 +519,7 @@ class POSController extends Controller
         try {
             // Validate required fields
             $request->validate([
+                'vendor_id'        => 'required',
                 'user_id'        => 'required|integer',
                 'order_type'        => 'required',
                 'subtotal'       => 'required|numeric',
@@ -484,9 +532,13 @@ class POSController extends Controller
             DB::beginTransaction();
             $user = User::find($request->user_id);
             // Create Order
+            $order_status = 'PLACED';
+            if($request->order_type == 'walk_in'){
+                $order_status = 'DELIVERED';
+            }
             $order = new Order();
             $order->userID          = $request->user_id;
-            $order->vendor_id       = 0; // if vendor_id available, map it here
+            $order->vendor_id       = $request->vendor_id??''; // if vendor_id available, map it here
             $order->address_id      = 0; // if using address system, replace
             $order->delivery_type   = 'home_delivery'; // or pickup_store
             $order->customer_name   = $user->name??'Guest'; // replace with user table if needed
@@ -503,8 +555,9 @@ class POSController extends Controller
             $order->order_amount    = $request->subtotal;
             $order->total_amount    = $request->subtotal - ($request->coupon_discount ?? 0) + ($request->delivery_charges ?? 0);
             $order->payment_method  = $request->payment_method;
+            $order->delivery_date  = date('Y-m-d');
             $order->instruction     = '';
-            $order->status          = 'DELIVERED';
+            $order->status          = $order_status;
             $order->freebees_id     = $request->freebie_id ?? null;
             $order->freebees_price  = 0;
             $order->invoice_no  = self::generateNextInvoiceNo();
@@ -517,7 +570,7 @@ class POSController extends Controller
             $order->flatDiscountValue = $request->flatDiscountValue ?? 0;
             $order->flat_discount_percent = $request->flat_discount_percent ?? 0;
             $order->order_type = $request->order_type ?? '';
-            $order->payment_method_values = json_encode($request->payment_method_values)??'';
+            $order->payment_method_values = $request->payment_method_values??'';
             $order->is_subscribe = CustomHelper::checkSubscription($user);
             $order->save();
 

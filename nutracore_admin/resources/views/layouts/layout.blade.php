@@ -932,6 +932,10 @@ $current_route = Route::currentRouteName();
                             <a class="{{$current_route == 'pos.index' ? "active":""}}" href="{{route('pos.index')}}
                         ">Orders List </a>
                         </li>
+                        <li>
+                            <a class="{{$current_route == 'pos.cash_management' ? "active":""}}" href="{{route('pos.cash_management')}}
+                        ">Cash Management</a>
+                        </li>
                     </ul>
                 </li>
             @endif
@@ -1861,6 +1865,8 @@ $current_route = Route::currentRouteName();
                     $("#coupon").text("₹0"); // default, you can update later
                     $("#lastBillNo").text(user.id || "--"); // replace with actual bill no if available
                     $("#lastBillAmount").text("₹" + (user.lat_bill_amount || 0));
+                    $("#credit_amount").text("₹" + (user.credit_balance || 0));
+                    $("#credit_balance").val(user.credit_balance || 0);
                 }
             }
 

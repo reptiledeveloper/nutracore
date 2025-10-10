@@ -27,7 +27,34 @@
 
     $products = \App\Helpers\CustomHelper::getProductsWithVarients();
     $customers = [];
-    $exist = \App\Models\POSDailyCash::where('date', date('Y-m-d'))->first();
+//    $exist = \App\Models\POSDailyCash::where('date', date('Y-m-d'))->first();
+    $vendor_id_selected = '';
+    $admin = Auth::guard('admin')->user();
+    if ($admin->role_id === 0) {
+        // Superadmin: use session or request store_id
+        $vendor_id_selected = session('store_id') ?? ($request->store_id ?? null);
+    } else {
+        // Normal vendor/admin: use own vendor_id
+        $vendor_id_selected = $admin->vendor_id ?? null;
+    }
+    $exist = \App\Models\POSDailyCash::whereDate('date', date('Y-m-d'))->where('store_id',$vendor_id_selected)->first();
+    $order_amount = \App\Models\Order::where('delivery_date',date('Y-m-d'))->where('order_from','POS')->where('payment_method','Cash')->sum('total_amount');
+    $orders = \App\Models\Order::where('delivery_date',date('Y-m-d'))->where('order_from','Multipay')->where('payment_method','Cash')->get();
+    if(!empty($orders)){
+        foreach ($orders as $order){
+            $payment_method_values = json_decode($order->payment_method_values)??'';
+            if(!empty($payment_method_values)){
+                if((int)$payment_method_values->cash > 0){
+                    $order_amount+=(float)$payment_method_values->cash;
+                }
+            }
+        }
+    }
+    $total_cash = 0;
+    if(!empty($exist)){
+        $total_cash = (float)$exist->today_balance + (float)$order_amount;
+    }
+
     ?>
     <style>
         .transaction-details {
@@ -139,6 +166,51 @@
         }
 
     </style>
+
+    <div class="modal fade" id="closeStore" tabindex="-1" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Current Register</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <form id="closePos" action="{{ route('pos.close') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="store_id" value="{{$vendor_id_selected}}">
+                    <div class="modal-body">
+                        <div class="row">
+                            <h4>Opening Cash : ₹ {{$exist->today_balance??0}}</h4>
+                            <h4>Cash Payment : ₹ {{$order_amount??0}}</h4>
+                            <h4>Total Cash Left In Drawer : ₹ <span id="total_cash_display">{{ $total_cash }}</span></h4>
+
+
+                            <div class="col-md-12 mt-3">
+                                <label>Physical Drawer <span style="color:red">*</span></label>
+                                <div class="input-group">
+                                    <input type="number" name="today_last_balance" id="today_last_balance" class="form-control"
+                                           placeholder="Physical Drawer" oninput="checkCashDifference()">
+                                </div>
+                            </div>
+                            <span id="cash_remark" style="font-weight:600;"></span>
+                            <div class="col-md-12 mt-3">
+                                <label>Closing Note</label>
+                                <div class="input-group">
+                                    <input type="text" name="closing_note" class="form-control" placeholder="Closing Note">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="bsubmit" onclick="submitclosePos()" class="btn btn-primary">Save</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
     <form class="card-body" action="#" id="posForm" method="post" accept-chartset="UTF-8"
           enctype="multipart/form-data" role="form">
         {{ csrf_field() }}
@@ -177,11 +249,36 @@
                         </div>
                     </div>
 
+
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-md-flex gap-4 align-items-center">
+                                <div class="d-none d-md-flex"></div>
+
+                                <div class="dropdown ms-auto">
+                                    <a href="#" data-bs-toggle="modal"
+                                       data-bs-target="#closeStore" class="btn btn-danger"><i
+                                            class="fa fa-times"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
                     <div class="card mt-3">
                         <div class="card-body">
                             <div class="row">
 
                                 <div class="col-md-4">
+                                    <label>Select Store</label>
+                                    <select name="vendor_id" class="form-control" id="vendor_id">
+                                        <option value="" selected>Select Store</option>
+                                        @foreach($vendors as $vendor)
+                                            <option
+                                                value="{{$vendor->id??""}}" {{$vendor_id_selected == $vendor->id ?"selected":""}}>{{$vendor->name??""}}</option>
+                                        @endforeach
+                                    </select>
+                                    <br>
                                     <select name="user_id" class="form-control select2user" id="user_id">
                                         <option value="" selected>Walk-in Customer</option>
                                     </select>
@@ -190,11 +287,13 @@
                                     <div class="form-group mt-3">
                                         <label>Order Type:</label><br>
                                         <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="order_type" id="walkin" value="walk_in" checked>
+                                            <input class="form-check-input" type="radio" name="order_type" id="walkin"
+                                                   value="walk_in" checked>
                                             <label class="form-check-label" for="walkin">Walk In</label>
                                         </div>
                                         <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="order_type" id="delivery" value="delivery">
+                                            <input class="form-check-input" type="radio" name="order_type" id="delivery"
+                                                   value="delivery">
                                             <label class="form-check-label" for="delivery">Delivery</label>
                                         </div>
                                     </div>
@@ -247,6 +346,17 @@
                                                 </div>
                                             </a>
                                         </div>
+{{--                                        <div class="col-md-12 mt-3">--}}
+{{--                                            <a href="#" onclick="applyCredit(event)">--}}
+{{--                                                <div class="card text-center shadow-sm small-card" id="creditCard">--}}
+{{--                                                    <div class="card-body p-2">--}}
+{{--                                                        <h6 class="card-title mb-0 small">--}}
+{{--                                                            Add Credit <span id="credit_amount">(₹ 0.00)</span>--}}
+{{--                                                        </h6>--}}
+{{--                                                    </div>--}}
+{{--                                                </div>--}}
+{{--                                            </a>--}}
+{{--                                        </div>--}}
 
                                     </div>
 
@@ -484,6 +594,8 @@
         <input type="hidden" id="payment_method_values" name="payment_method_values" value="">
         <input type="hidden" id="flatDiscountValue" name="flatDiscountValue" value="">
         <input type="hidden" id="flat_discount_percent" name="flat_discount_percent" value="">
+        <input type="hidden" id="credit_balance" name="credit_balance" value="">
+        <input type="hidden" id="is_applied_credit_balance" name="is_applied_credit_balance" value="0">
 
 
         <input type="hidden" id="cashback_wallet_use" name="cashback_wallet_use"
@@ -734,6 +846,18 @@
                     <input type="hidden" name="date" value="{{date('Y-m-d')}}">
                     <div class="modal-body">
                         <div class="row">
+                            @if(empty($vendor_id_selected))
+                                <label>Select Store</label>
+                                <select name="store_id" class="form-control">
+                                    <option value="" selected>Select Store</option>
+                                    @foreach($vendors as $vendor)
+                                        <option
+                                            value="{{$vendor->id??""}}" {{$vendor_id_selected == $vendor->id ?"selected":""}}>{{$vendor->name??""}}</option>
+                                    @endforeach
+                                </select>
+                            @else
+                                <input type="hidden" name="store_id" value="{{$vendor_id_selected}}">
+                            @endif
                             <div class="col-md-12 mt-3">
                                 <label class="form-label">Cash In Hand
                                 </label>
@@ -1369,7 +1493,6 @@
 
         $('#posForm').on('submit', function (e) {
             e.preventDefault();
-
             let $submitBtn = $(this).find('button[type="submit"], input[type="submit"]');
             if ($submitBtn.prop('disabled')) return; // already clicked, do nothing
             $submitBtn.prop('disabled', true);
@@ -1397,6 +1520,7 @@
                     _token: "{{ csrf_token() }}",
                     user_id: $('#user_id').val(),
                     subtotal: $('#subtotal').val(),
+                    vendor_id: $('#vendor_id').val(),
                     payment_method: $('#payment_method').val(),
                     coupon_code: $('#appliedCoupon').val() || '',
                     coupon_discount: $('#couponDiscount').val() || 0,
@@ -1415,6 +1539,7 @@
                     is_print: $('#is_print').val(),
                     flatDiscountValue: $('#flatDiscountValue').val(),
                     flat_discount_percent: $('#flat_discount_percent').val(),
+                    is_applied_credit_balance: $('#is_applied_credit_balance').val(),
                     order_type: orderType
                 },
                 success: function (res) {
@@ -1423,7 +1548,7 @@
                         if (res.invoice_url) {
                             window.open(res.invoice_url, '_blank'); // Opens in a new tab
                         }
-                        // window.location.reload();
+                        window.location.reload();
                     } else {
                         alert('Error: ' + res.message);
                         $submitBtn.prop('disabled', false); // Re-enable on error
@@ -1568,6 +1693,89 @@
             console.log("Cash:", cash, "Card:", card, "UPI:", upi);
             $('#multiplayModal').modal('hide');
         }
+
+    </script>
+
+    <script>
+        function applyCredit(e) {
+            e.preventDefault(); // prevent link from jumping
+            var creditCard = document.getElementById('creditCard');
+            var isApplied = document.getElementById('is_applied_credit_balance');
+
+            if (isApplied.value == "0") {
+                // Apply color
+                creditCard.style.backgroundColor = "#11AEAE";
+                creditCard.style.color = "white";
+                isApplied.value = "1";
+            } else {
+                // Remove color
+                creditCard.style.backgroundColor = "";
+                creditCard.style.color = "";
+                isApplied.value = "0";
+            }
+        }
+    </script>
+
+
+    <script>
+        function checkCashDifference() {
+            const totalCash = parseFloat(document.getElementById('total_cash_display').innerText) || 0;
+            const physicalCash = parseFloat(document.getElementById('today_last_balance').value) || 0;
+            const remarkEl = document.getElementById('cash_remark');
+
+            const difference = physicalCash - totalCash;
+
+            if (difference < 0) {
+                remarkEl.innerHTML = `Short : ₹ ${Math.abs(difference).toFixed(2)}`;
+                remarkEl.style.color = 'red';
+            } else if (difference > 0) {
+                remarkEl.innerHTML = `Excess : ₹ ${difference.toFixed(2)}`;
+                remarkEl.style.color = 'green';
+            } else {
+                remarkEl.innerHTML = `Matched ✅`;
+                remarkEl.style.color = 'blue';
+            }
+        }
+
+
+    </script>
+
+    <script>
+        $('#closePos').on('submit', function (e) {
+            e.preventDefault();
+            const physicalCash = parseFloat($('#today_last_balance').val()) || 0;
+            // Prepare data
+            let data = {
+                _token: $('input[name="_token"]').val(),
+                today_last_balance: physicalCash,
+                closing_note: $('input[name="closing_note"]').val(),
+                store_id: $('input[name="store_id"]').val() || null
+            };
+
+            $.ajax({
+                url: $(this).attr('action'),
+                type: 'POST',
+                dataType: 'JSON',
+                data: data,
+                success: function (res) {
+                    if (res.status) {
+                        alert(res.message || 'POS closed successfully!');
+                        $('#closePos')[0].reset();
+                        $('#cash_remark').text('');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (res.message || 'Failed to close POS.'));
+                    }
+                },
+                error: function (xhr) {
+                    console.error(xhr.responseText);
+                    alert('Something went wrong while closing POS!');
+                },
+                complete: function () {
+
+                }
+            });
+        });
 
     </script>
 
