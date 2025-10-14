@@ -11,6 +11,7 @@
     $type = $_GET['type'] ?? '';
     $product_id = $_GET['product_id'] ?? '';
     $payment_method = $_GET['payment_method'] ?? '';
+    $pos_cancel_type = $_GET['pos_cancel_type'] ?? '';
 
     $current_url = url()->current();
 
@@ -109,6 +110,19 @@ $products = \App\Helpers\CustomHelper::getProducts();
                                     <option value="UPI" {{$type == "UPI"?"selected":""}}>UPI</option>
                                     <option value="Cash" {{$type == "Cash"?"selected":""}}>Cash</option>
                                     <option value="Card" {{$type == "Card"?"selected":""}}>Card</option>
+
+                                </select>
+                            </div>
+                        @endif
+
+                            @if(!empty($pos_cancel_type_show))
+                            <div class="col-md-4 mt-2">
+                                <label class="form-label">POS Cancel Type</label>
+                                <select class="form-control" name="pos_cancel_type" id="pos_cancel_type">
+                                    <option value="" selected>Select </option>
+                                    <option value="exchange" {{$type == "exchange"?"selected":""}}>Exchange</option>
+                                    <option value="return" {{$type == "return"?"selected":""}}>Return</option>
+
 
                                 </select>
                             </div>

@@ -10,6 +10,7 @@ use App\Imports\ClosingStockDataImport;
 use App\Imports\ProductImport;
 use App\Imports\StockDataImport;
 use App\Models\Products;
+use App\Models\ProductVarient;
 use App\Models\Stock;
 use App\Models\StockBatch;
 use App\Models\StockLog;
@@ -108,11 +109,55 @@ class StockController extends Controller
         return back()->with('alert-success', 'Selected stock items deleted successfully.');
     }
 
-
     public function closingStockList(Request $request)
     {
-        $sellerId  = $request->input('vendor_id');
-        $search    = $request->input('search');
+        $vendor_id = $request->input('vendor_id');
+        $search = $request->input('search');
+
+        $stocks = DB::table('stock_logs as sl')
+            ->leftJoin('vendors as s', 's.id', '=', 'sl.store_id')
+            ->leftJoin('products as p', 'p.id', '=', 'sl.product_id')
+            ->leftJoin('product_varients as pv', 'pv.id', '=', 'sl.variant_id')
+            ->where('sl.is_delete', 0)
+            ->select([
+                'sl.id as id',
+                'p.id as product_id',
+                'pv.id as varient_id',
+                's.id as vendor_id',
+                's.name as store_name',
+                'p.sku as product_sku',
+                'p.name as product_name',
+                'pv.unit as variant_name',
+                'pv.varient_sku as sku',
+                'sl.closing_stock as closing_stock',
+            ]);
+
+// 🔍 Apply search filter
+        if (!empty($search)) {
+            $stocks->where(function ($q) use ($search) {
+                $q->where('pv.varient_sku', 'like', '%' . $search . '%')
+                    ->orWhere('p.sku', 'like', '%' . $search . '%')
+                    ->orWhere('p.name', 'like', '%' . $search . '%')
+                    ->orWhere('s.name', 'like', '%' . $search . '%');
+            });
+        }
+
+// 🏪 Filter by vendor (store)
+        if (!empty($vendor_id)) {
+            $stocks->where('s.id', $vendor_id);
+        }
+
+// ✅ Order and paginate
+        $stocks = $stocks->groupBy('sl.store_id', 'sl.product_id', 'sl.variant_id')->orderBy('sl.id', 'asc')->paginate(100);
+
+        $sellers = CustomHelper::getVendors();
+        return view('stocks.closing_stock', compact('stocks', 'sellers'));
+    }
+
+    public function closingStockListOld(Request $request)
+    {
+        $sellerId = $request->input('vendor_id');
+        $search = $request->input('search');
         $productId = $request->input('product_id');
 
         // 1️⃣ Products WITH variants
@@ -154,7 +199,7 @@ class StockController extends Controller
                       FROM stock_batches
                       WHERE product_id = p.id AND (variant_id IS NULL OR variant_id = 0) AND is_delete = 0) as closing_stock')
             )
-            ->whereNotExists(function($query){
+            ->whereNotExists(function ($query) {
                 $query->select(DB::raw(1))
                     ->from('product_varients as pv')
                     ->whereRaw('pv.product_id = p.id');
@@ -164,7 +209,7 @@ class StockController extends Controller
         if (!empty($search)) {
             $variantStocks->where(function ($q) use ($search) {
                 $q->where('pv.varient_sku', $search)
-                    ->orWhere('p.sku', $search);
+                    ->orWhere('p.sku', $search)->orWhere('p.name', 'like', '%' . $search . '%');
             });
             $noVariantStocks->where('p.sku', $search);
         }
@@ -190,14 +235,12 @@ class StockController extends Controller
     }
 
 
-
-
     public function closing_stock_export(Request $request)
     {
         $sellerId = $request->input('vendor_id');
-        $search   = $request->input('search');
+        $search = $request->input('search');
 
-        $fileName = 'closing_stock_'.date('Ymd_His').'.xlsx';
+        $fileName = 'closing_stock_' . date('Ymd_His') . '.xlsx';
         return Excel::download(new ClosingStockExport($sellerId, $search), $fileName);
 
     }
@@ -208,17 +251,28 @@ class StockController extends Controller
         $product_id = $request->product_id ?? '';
         $vendor_id = $request->vendor_id ?? '';
         $search = $request->search ?? '';
-        if(!empty($search)){
-            $product_id = Products::where('sku', $search)->first()->id ?? '';
-        }
-        $logs = StockLog::with(['product', 'variant', 'store'])
+
+        $logs = StockLog::select('stock_logs.*')
+            ->leftJoin('products', 'products.id', '=', 'stock_logs.product_id')
+            ->leftJoin('product_varients', 'product_varients.id', '=', 'stock_logs.variant_id')
+            ->with(['product', 'variant', 'store'])
             ->latest();
+
+        if (!empty($search)) {
+            $logs->where(function ($q) use ($search) {
+                $q->where('products.sku', $search)
+                    ->orWhere('product_varients.varient_sku', $search);
+            });
+        }
+
         if (!empty($product_id)) {
-            $logs->where('product_id', $product_id);
+            $logs->where('stock_logs.product_id', $product_id);
         }
+
         if (!empty($vendor_id)) {
-            $logs->where('store_id', $vendor_id);
+            $logs->where('stock_logs.store_id', $vendor_id);
         }
+
         $logs = $logs->paginate(20);
 
         return view('stocks.logs', compact('logs'));
@@ -242,6 +296,7 @@ class StockController extends Controller
         return back()->with('success', 'Imported successfully!');
 
     }
+
     public function update_closing_stock(Request $request)
     {
         $data = [];

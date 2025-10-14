@@ -42,6 +42,7 @@
                         <tr>
                             <th>Sr. No.</th>
                             <th>Date</th>
+                            <th>User</th>
                             <th>Store Name</th>
                             <th>Opening Balance</th>
                             <th>Closing Balance</th>
@@ -54,6 +55,7 @@
                                 <tr>
                                     <td>{{ $po->id }}</td>
                                     <td>{{ \Carbon\Carbon::parse($po->date)->format('d-m-Y') }}</td>
+                                    <td>{{\App\Helpers\CustomHelper::getAdminName($po->updated_by??"'")}}</td>
                                     <td>{{ \App\Helpers\CustomHelper::getVendorName($po->store_id??'') }}</td>
                                     <td>{{ $po->today_balance??0 }}</td>
                                     <td>{{ $po->today_last_balance??0 }}</td>

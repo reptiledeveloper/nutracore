@@ -40,7 +40,7 @@ class ClosingStockDataImport implements ToModel, WithHeadingRow
 
             // Update StockBatch
             $stock_batch->update([
-                'quantity' => $new_qty,
+                'quantity' => $closing_stock,
             ]);
 
             // Log the adjustment

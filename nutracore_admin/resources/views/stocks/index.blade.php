@@ -110,8 +110,8 @@
 
                                 <tr class="{{ $s->expiry_date && \Illuminate\Support\Carbon::parse($s->expiry_date)->isBefore(now()->addDays(30)) ? 'table-warning' : '' }}">
                                     <td><input type="checkbox" name="stock_ids[]" value="{{$s->id??''}}"></td>
-                                    <td>{{ \App\Helpers\CustomHelper::getVendorName($s->store_id??'')??'' }}</td>
                                     <td>{{ $stocks->firstItem() + $i }}</td>
+                                    <td>{{ \App\Helpers\CustomHelper::getVendorName($s->store_id??'')??'' }}</td>
                                     <td>{{ $s->variant?->varient_sku ?? $s->product?->sku ??'N/A' }}</td>
                                     <td>{{ $s->product?->name ?? 'N/A' }}</td>
 

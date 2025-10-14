@@ -55,6 +55,7 @@ use Carbon\Carbon;
 use DateTime;
 use DB;
 use Google\Auth\AccessToken\AccessToken;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Image;
 use League\OAuth2\Client\Provider\GenericProvider;
@@ -187,6 +188,86 @@ class CustomHelper
             $is_out_of_stock = 1; // Out of Stock
         }
         return $is_out_of_stock;
+    }
+
+
+    public function closingStockList(Request $request)
+    {
+        $sellerId = $request->input('vendor_id');
+        $search = $request->input('search');
+        $productId = $request->input('product_id');
+
+        // 1️⃣ Products WITH variants
+        $variantStocks = DB::table('products as p')
+            ->join('product_varients as pv', 'pv.product_id', '=', 'p.id')
+            ->leftJoin('stock_batches as sl', function ($join) {
+                $join->on('sl.variant_id', '=', 'pv.id')
+                    ->where('sl.is_delete', 0);
+            })
+            ->leftJoin('vendors as s', 's.id', '=', 'sl.store_id')
+            ->select(
+                DB::raw('COALESCE(s.id, 0) as seller_id'),
+                DB::raw('COALESCE(s.name, "N/A") as seller_name'),
+                'p.id as product_id',
+                'p.name as product_name',
+                DB::raw('pv.id as variant_id'),
+                DB::raw('pv.varient_sku as sku'),
+                DB::raw('pv.unit as unit'),
+                DB::raw('COALESCE(SUM(sl.quantity), 0) as closing_stock')
+            )
+            ->groupBy(
+                'seller_id', 'seller_name',
+                'p.id', 'p.name',
+                'pv.id', 'pv.varient_sku', 'pv.unit'
+            );
+
+        // 2️⃣ Products WITHOUT variants
+        $noVariantStocks = DB::table('products as p')
+            ->leftJoin('vendors as s', 's.id', '=', DB::raw('0')) // dummy join to keep seller columns
+            ->select(
+                DB::raw('0 as seller_id'),
+                DB::raw('"N/A" as seller_name'),
+                'p.id as product_id',
+                'p.name as product_name',
+                DB::raw('0 as variant_id'),
+                'p.sku as sku',
+                DB::raw('"-" as unit'),
+                DB::raw('(SELECT COALESCE(SUM(quantity),0)
+                      FROM stock_batches
+                      WHERE product_id = p.id AND (variant_id IS NULL OR variant_id = 0) AND is_delete = 0) as closing_stock')
+            )
+            ->whereNotExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('product_varients as pv')
+                    ->whereRaw('pv.product_id = p.id');
+            });
+
+        // Apply filters
+        if (!empty($search)) {
+            $variantStocks->where(function ($q) use ($search) {
+                $q->where('pv.varient_sku', $search)
+                    ->orWhere('p.sku', $search);
+            });
+            $noVariantStocks->where('p.sku', $search);
+        }
+
+        if (!empty($productId)) {
+            $variantStocks->where('p.id', $productId);
+            $noVariantStocks->where('p.id', $productId);
+        }
+
+        if (!empty($sellerId)) {
+            $variantStocks->where('s.id', $sellerId);
+            // for noVariantStocks, seller is always 0/N/A
+        }
+
+        // Merge results
+        $stocks = $variantStocks->unionAll($noVariantStocks)
+            ->orderBy('product_name')
+            ->paginate(500);
+
+
+        return view('stocks.closing_stock', compact('stocks', 'sellers'));
     }
 
     public static function logStock($product_id, $variant_id, $store_id, $action, $quantity, $related_id = null, $related_type = null)
@@ -380,7 +461,7 @@ class CustomHelper
         return $products;
     }
 
-    public static function getProductsWithVarients()
+    public static function getProductsWithVarients($vendor_id)
     {
         $productArr = [];
 
@@ -388,11 +469,30 @@ class CustomHelper
             ->where('is_delete', 0)
             ->orderBy('name')
             ->get();
+        $stockQuery = DB::table('stock_batches')
+            ->select(
+                DB::raw('product_id'),
+                DB::raw('COALESCE(variant_id, 0) as variant_id'),
+                DB::raw('SUM(quantity) as total_qty')
+            )
+            ->where('is_delete', 0)
+            ->when($vendor_id, function ($q) use ($vendor_id) {
+                $q->where('store_id', $vendor_id);
+            })
+            ->groupBy('product_id', 'variant_id')
+            ->get();
+
+        // ✅ Convert stock to lookup map for fast access
+        $stockMap = [];
+        foreach ($stockQuery as $s) {
+            $stockMap[$s->product_id . '_' . $s->variant_id] = (float)$s->total_qty;
+        }
 
         if ($products->isNotEmpty()) {
             foreach ($products as $product) {
                 if (!empty($product->variants) && count($product->variants) > 0) {
                     foreach ($product->variants as $varient) {
+                        $availableQty = $stockMap[$product->id . '_' . $varient->id] ?? 0;
                         $productArr[] = [
                             'product_id' => $product->id,
                             'product_name' => $product->name,
@@ -404,9 +504,11 @@ class CustomHelper
                             'varient_sku' => $varient->varient_sku ?? '',
                             'variant_id' => $varient->id ?? 0,
                             'discount' => (int)$varient->mrp - (int)$varient->selling_price,
+                            'available_qty' => $availableQty,
                         ];
                     }
                 } else {
+                    $availableQty = $stockMap[$product->id . '_0'] ?? 0;
                     // product without variants
                     $productArr[] = [
                         'product_id' => $product->id,
@@ -419,6 +521,7 @@ class CustomHelper
                         'varient_sku' => $product->sku,
                         'variant_id' => 0,
                         'discount' => (int)$product->product_mrp - (int)$product->product_selling_price,
+                        'available_qty' => $availableQty,
                     ];
                 }
             }
@@ -4225,6 +4328,25 @@ class CustomHelper
         curl_close($curl);
         return json_decode($response);
 
+    }
+
+    public static function getClosingStock($product_id, $varient_id, $vendor_id)
+    {
+        $closing = 0;
+        $stock_logs = StockLog::where('is_delete', 0)->latest();
+        if (!empty($product_id)) {
+            $stock_logs->where('product_id', $product_id);
+        }
+        if (!empty($varient_id)) {
+            $stock_logs->where('variant_id', $varient_id);
+        }
+        if (!empty($vendor_id)) {
+            $stock_logs->where('store_id', $vendor_id);
+        }
+        $total_in = $stock_logs->whereIn('action',['purchase','stock_in'])->sum('quantity');
+        $total_out = $stock_logs->whereIn('action',['sale','stock_out'])->sum('quantity');
+        $closing = $total_in - $total_out;
+        return $closing;
     }
 
     /* End of helper class */

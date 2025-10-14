@@ -97,6 +97,13 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'savePos', 'POSController@savePos')->name('.savePos');
             Route::match(['get', 'post'], 'close', 'POSController@close')->name('.close');
             Route::match(['get', 'post'], 'cash_management', 'POSController@cash_management')->name('.cash_management');
+            Route::match(['get', 'post'], 'credit_note', 'POSController@credit_note')->name('.credit_note');
+            Route::match(['get', 'post'], 'cancel_order', 'POSController@cancel_order')->name('.cancel_order');
+            Route::match(['get', 'post'], 'cancel_order_save', 'POSController@cancel_order_save')->name('.cancel_order_save');
+            Route::match(['get', 'post'], 'expense', 'POSController@expense')->name('.expense');
+            Route::match(['get', 'post'], 'edit_expense/{id}', 'POSController@add_expense')->name('.edit_expense');
+            Route::match(['get', 'post'], 'delete_expense/{id}', 'POSController@delete_expense')->name('.delete_expense');
+            Route::match(['get', 'post'], 'add_expense', 'POSController@add_expense')->name('.add_expense');
         });
 
 

@@ -16,7 +16,7 @@ class StockLog extends Model{
     }
 
     public function variant() {
-        return $this->belongsTo(ProductVarient::class);
+        return $this->belongsTo(ProductVarient::class,'variant_id');
     }
 
     public function store() {

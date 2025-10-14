@@ -56,7 +56,7 @@
                             <tr>
                                 <td>{{ $log->created_at->format('d-m-Y H:i') }}</td>
                                 <td>{{ $log->store->name ?? '-' }}</td>
-                                <td>{{ $log->product->sku ?? '-' }}</td>
+                                <td>{{ $log->variant->varient_sku ??$log->product->sku ?? '-' }}</td>
                                 <td>{{ $log->product->name ?? '-' }}</td>
                                 <td>{{ $log->variant->name ?? '-' }}</td>
                                 <td>{{ ucfirst($log->action) }}</td>

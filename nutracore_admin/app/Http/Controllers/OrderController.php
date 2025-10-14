@@ -50,6 +50,7 @@ class OrderController extends Controller
         $vendor_id = $request->vendor_id ?? '';
         $orderID = $request->orderID ?? '';
         $date = $request->date ?? '';
+        $pos_cancel_type = $request->pos_cancel_type ?? '';
         $agent_id = $request->agent_id ?? '';
         $payment_method = $request->payment_method ?? '';
         $orders = Order::where('is_delete', 0)->orderBy('id', 'desc');
@@ -58,6 +59,9 @@ class OrderController extends Controller
         }
         if (!empty($search)) {
             $orders->where('id', $search);
+        }
+        if (!empty($pos_cancel_type)) {
+            $orders->where('pos_cancel_type', $pos_cancel_type);
         }
         if (!empty($vendor_id)) {
             $orders->where('vendor_id', $vendor_id);
@@ -117,6 +121,26 @@ class OrderController extends Controller
         OrderItems::where('id', $items_id)->where('order_id', $order_id)->update(['is_delete' => 1]);
         $this->updateOrder($order_id);
         echo 1;
+    }
+
+    public function delete(Request $request)
+    {
+
+        //prd($request->toArray());
+
+        $id = (isset($request->id)) ? $request->id : 0;
+
+        $is_delete = '';
+
+        if (is_numeric($id) && $id > 0) {
+            $is_delete = Order::where('id', $id)->update(['is_delete' => 1]);
+        }
+
+        if (!empty($is_delete)) {
+            return back()->with('alert-success', 'Order has been deleted successfully.');
+        } else {
+            return back()->with('alert-danger', 'something went wrong, please try again...');
+        }
     }
 
     public function update_items(Request $request)
@@ -934,6 +958,7 @@ class OrderController extends Controller
 
     public function book_envia_shipment(Request $request)
     {
+
         $id = $request->id ?? '';
         $service = $request->service ?? '';
         $courier = $request->courier ?? '';
@@ -942,6 +967,7 @@ class OrderController extends Controller
         $delivery_date = $request->delivery_date ?? '';
         $order_courier = DB::table('order_courier')->where('order_id', $id)->first();
         if (!empty($order_courier)) {
+
             $orders = Order::find($id);
             $dbArray = [];
             $dbArray['service'] = $service;
@@ -952,10 +978,10 @@ class OrderController extends Controller
             ////Book Shipment
             $shipment_data = CustomHelper::bookShipmentEnvia($orders, $carrier, $service);
             if (!empty($shipment_data)) {
-
+                DB::table('order_courier')->where('order_id', $id)->update(['envia_data'=>json_encode($shipment_data)]);
                 $error = $shipment_data->error ?? '';
                 if (empty($error)) {
-                    $dbArray['trackingNumber'] =  $shipment_data['data'][0]['trackingNumber'] ??'';
+//                    $dbArray['trackingNumber'] =  $shipment_data['data'][0]['trackingNumber'] ??'';
                     $dbArray['envia_data'] = json_encode($shipment_data);
                 }
             }

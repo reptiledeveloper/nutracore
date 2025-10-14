@@ -929,12 +929,20 @@ $current_route = Route::currentRouteName();
                       ">New</a>
                         </li>
                         <li>
+                            <a class="{{$current_route == 'pos.credit_note' ? "active":""}}" href="{{route('pos.credit_note')}}
+                        ">Credit Note </a>
+                        </li>
+                        <li>
                             <a class="{{$current_route == 'pos.index' ? "active":""}}" href="{{route('pos.index')}}
                         ">Orders List </a>
                         </li>
                         <li>
                             <a class="{{$current_route == 'pos.cash_management' ? "active":""}}" href="{{route('pos.cash_management')}}
                         ">Cash Management</a>
+                        </li>
+                        <li>
+                            <a class="{{$current_route == 'pos.expense' ? "active":""}}" href="{{route('pos.expense')}}
+                        ">Expense</a>
                         </li>
                     </ul>
                 </li>

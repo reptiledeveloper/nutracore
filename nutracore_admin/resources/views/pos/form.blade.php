@@ -24,8 +24,6 @@
     $categories = \App\Helpers\CustomHelper::getCategories();
     $vendors = \App\Helpers\CustomHelper::getVendors();
     $brands = \App\Helpers\CustomHelper::getBrands();
-
-    $products = \App\Helpers\CustomHelper::getProductsWithVarients();
     $customers = [];
 //    $exist = \App\Models\POSDailyCash::where('date', date('Y-m-d'))->first();
     $vendor_id_selected = '';
@@ -37,9 +35,25 @@
         // Normal vendor/admin: use own vendor_id
         $vendor_id_selected = $admin->vendor_id ?? null;
     }
-    $exist = \App\Models\POSDailyCash::whereDate('date', date('Y-m-d'))->where('store_id',$vendor_id_selected)->first();
-    $order_amount = \App\Models\Order::where('delivery_date',date('Y-m-d'))->where('order_from','POS')->where('payment_method','Cash')->sum('total_amount');
-    $orders = \App\Models\Order::where('delivery_date',date('Y-m-d'))->where('order_from','Multipay')->where('payment_method','Cash')->get();
+    $pos_session_id = session('pos_session_id') ??'';
+    $exist = \App\Models\POSDailyCash::where('store_id', $vendor_id_selected)
+        ->where('session_id', $pos_session_id)
+        ->first();
+    $lastUpdate = $exist->updated_at ?? date('Y-m-d 00:00:00');
+
+    $order_amount = \App\Models\Order::where('delivery_date', date('Y-m-d'))
+        ->where('order_from', 'POS')
+        ->where('payment_method', 'Cash')
+        ->where('created_at', '>', $lastUpdate) // only after last update
+        ->sum('total_amount');
+
+// 3️⃣ Multipay Orders since last update
+    $orders = \App\Models\Order::where('delivery_date', date('Y-m-d'))
+        ->where('order_from', 'Multipay')
+        ->where('payment_method', 'Cash')
+        ->where('created_at', '>', $lastUpdate) // only after last update
+        ->get();
+
     if(!empty($orders)){
         foreach ($orders as $order){
             $payment_method_values = json_decode($order->payment_method_values)??'';
@@ -51,8 +65,9 @@
         }
     }
     $total_cash = 0;
+    $expense = \App\Models\Expense::whereDate('expense_date',date('Y-m-d'))->where('is_delete',0)->sum('amount');
     if(!empty($exist)){
-        $total_cash = (float)$exist->today_balance + (float)$order_amount;
+        $total_cash = (float)$exist->today_balance + (float)$order_amount - (float)$expense;
     }
 
     ?>
@@ -179,11 +194,13 @@
                 <form id="closePos" action="{{ route('pos.close') }}" method="POST">
                     @csrf
                     <input type="hidden" name="store_id" value="{{$vendor_id_selected}}">
+                    <input type="hidden" name="session_id" value="{{$pos_session_id}}">
                     <div class="modal-body">
                         <div class="row">
                             <h4>Opening Cash : ₹ {{$exist->today_balance??0}}</h4>
-                            <h4>Cash Payment : ₹ {{$order_amount??0}}</h4>
-                            <h4>Total Cash Left In Drawer : ₹ <span id="total_cash_display">{{ $total_cash }}</span></h4>
+                            <h4>Cash In (Sales/Receipt) : ₹ {{$order_amount??0}}</h4>
+                            <h4>Cash Out (Expenses): ₹ {{$expense??0}}</h4>
+                            <h4>Closing Cash Balance : ₹ <span id="total_cash_display">{{ $total_cash }}</span></h4>
 
 
                             <div class="col-md-12 mt-3">
@@ -195,9 +212,9 @@
                             </div>
                             <span id="cash_remark" style="font-weight:600;"></span>
                             <div class="col-md-12 mt-3">
-                                <label>Closing Note</label>
+                                <label>Closing Note  <span style="color:red">*</span></label>
                                 <div class="input-group">
-                                    <input type="text" name="closing_note" class="form-control" placeholder="Closing Note">
+                                    <input type="text" name="closing_note" class="form-control" placeholder="Closing Note" required>
                                 </div>
                             </div>
                         </div>
@@ -270,15 +287,20 @@
                             <div class="row">
 
                                 <div class="col-md-4">
-                                    <label>Select Store</label>
-                                    <select name="vendor_id" class="form-control" id="vendor_id">
-                                        <option value="" selected>Select Store</option>
-                                        @foreach($vendors as $vendor)
-                                            <option
-                                                value="{{$vendor->id??""}}" {{$vendor_id_selected == $vendor->id ?"selected":""}}>{{$vendor->name??""}}</option>
-                                        @endforeach
-                                    </select>
-                                    <br>
+                                    @if($admin->role_id == 0)
+                                        <label>Select Store</label>
+                                        <select name="vendor_id" class="form-control" id="vendor_id">
+                                            <option value="" selected>Select Store</option>
+                                            @foreach($vendors as $vendor)
+                                                <option
+                                                    value="{{$vendor->id??""}}" {{$vendor_id_selected == $vendor->id ?"selected":""}}>{{$vendor->name??""}}</option>
+                                            @endforeach
+                                        </select>
+                                        <br>
+                                    @else
+                                        <input type="hidden" name="vendor_id" id="vendor_id" value="{{$vendor_id_selected}}">
+                                        <br>
+                                    @endif
                                     <select name="user_id" class="form-control select2user" id="user_id">
                                         <option value="" selected>Walk-in Customer</option>
                                     </select>
@@ -346,17 +368,17 @@
                                                 </div>
                                             </a>
                                         </div>
-{{--                                        <div class="col-md-12 mt-3">--}}
-{{--                                            <a href="#" onclick="applyCredit(event)">--}}
-{{--                                                <div class="card text-center shadow-sm small-card" id="creditCard">--}}
-{{--                                                    <div class="card-body p-2">--}}
-{{--                                                        <h6 class="card-title mb-0 small">--}}
-{{--                                                            Add Credit <span id="credit_amount">(₹ 0.00)</span>--}}
-{{--                                                        </h6>--}}
-{{--                                                    </div>--}}
-{{--                                                </div>--}}
-{{--                                            </a>--}}
-{{--                                        </div>--}}
+                                        <div class="col-md-12 mt-3">
+                                            <a href="#" onclick="applyCredit(event)">
+                                                <div class="card text-center shadow-sm small-card" id="creditCard">
+                                                    <div class="card-body p-2">
+                                                        <h6 class="card-title mb-0 small">
+                                                            Add Credit <span id="credit_amount">(₹ 0.00)</span>
+                                                        </h6>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </div>
 
                                     </div>
 
@@ -891,7 +913,7 @@
 
 
         let rowCount = 0;
-        const products = @json(\App\Helpers\CustomHelper::getProductsWithVarients());
+        const products = @json(\App\Helpers\CustomHelper::getProductsWithVarients($vendor_id_selected));
         $(document).ready(function () {
             const $input = $('#product_search');
             const $suggestions = $('#product_suggestions');
@@ -913,6 +935,20 @@
                     const $item = $('<a href="#" class="list-group-item list-group-item-action"></a>');
                     $item.text(text);
                     $item.data('product', p);
+
+                    // ✅ Handle out-of-stock condition
+                    if (p.available_qty <= 0) {
+                        $item.addClass('bg-danger text-white'); // red background, white text
+                        $item.css('cursor', 'not-allowed'); // visually show disabled
+                        $item.on('click', function (e) {
+                            e.preventDefault(); // disable click
+                        });
+                        // Optionally show stock info
+                        $item.append(' (Out of Stock)');
+                    } else {
+                        $item.addClass('text-dark'); // normal clickable
+                    }
+
                     $suggestions.append($item);
                 });
             });
@@ -946,8 +982,16 @@
                 const query = skuOrName.toLowerCase().trim();
                 const match = products.find(p => (p.product_sku || '').toLowerCase() === query);
                 var match_val = false;
+
                 if (match) {
                     match_val = true;
+
+                    // Check available stock
+                    if (match.available_qty <= 0) {
+                        alert('This product is out of stock!');
+                        return match_val;
+                    }
+
                     let product = {
                         id: match.product_id,
                         variant_id: match.variant_id,
@@ -959,21 +1003,33 @@
                         discount: parseFloat(match.discount),
                         varient_sku: match.varient_sku,
                         membership_price: parseFloat(match.subscription_price),
-                        mrp: parseFloat(match.mrp)
+                        mrp: parseFloat(match.mrp),
+                        available_qty: match.available_qty // ✅ Include stock
                     };
+
                     addProductRow(product); // Add to cart
                     $('#product_search').val(''); // Clear search box
                     $('#product_suggestions').empty();
                 }
+
                 return match_val;
             }
+
 
 
             // Click on suggestion
             $suggestions.on('click', '.list-group-item', function (e) {
                 e.preventDefault();
+
                 const p = $(this).data('product');
-                console.log(p);
+
+                // 🛑 Prevent click if product is out of stock
+                if (!p || p.available_qty <= 0) {
+                    // Optional: show alert or toast
+                    alert('This product is out of stock!');
+                    return;
+                }
+
                 let product = {
                     id: p.product_id,
                     variant_id: p.variant_id,
@@ -984,16 +1040,19 @@
                     type: "product",
                     discount: parseFloat(p.discount),
                     varient_sku: p.varient_sku,
+                    available_qty: p.available_qty,
                     membership_price: parseFloat(p.subscription_price),
                     mrp: parseFloat(p.mrp)
                 };
 
+                // ✅ Add to cart/list only if available
                 addProductRow(product);
 
-                // Clear search box & suggestions
+                // ✅ Clear search box & suggestions
                 $input.val('');
                 $suggestions.empty();
             });
+
 
             // Optional: close suggestions on outside click
             $(document).on('click', function (e) {
@@ -1014,12 +1073,13 @@
                 let qty = parseInt($qtyInput.val()) || 1;
                 $qtyInput.val(qty + 1);
             } else {
+                let availableQty = product.available_qty || 0;
                 // Product does not exist → add new row
                 rowCount++;
                 let row = `<tr data-id="${rowCount}"
                     data-product-id="${product.id}"
                     data-variant-id="${product.variant_id || 0}"
-                    data-subscription-price="${product.membership_price}" data-selling-price="${product.selling_price}"  data-type="${product.type}">
+                    data-subscription-price="${product.membership_price}" data-available-qty="${availableQty}" data-selling-price="${product.selling_price}"  data-type="${product.type}">
             <td>${rowCount}</td>
             <td>${product.code}</td>
             <td>${product.name} <br> ${product.unit}</td>
@@ -1048,9 +1108,17 @@
 
         // Quantity +/- handler
         $(document).on("click", ".qty-plus", function () {
-            let input = $(this).siblings(".qty");
-            input.val(parseInt(input.val()) + 1);
-            recalc();
+            let $input = $(this).siblings(".qty");
+            let $row = $(this).closest("tr");
+            let availableQty = parseFloat($row.data("available-qty")) || 0;
+            let qty = parseInt($input.val()) || 1;
+
+            if (qty < availableQty) {
+                $input.val(qty + 1);
+                recalc();
+            } else {
+                alert(`Maximum available quantity is ${availableQty}`);
+            }
         });
         $(document).on("click", ".qty-minus", function () {
             let input = $(this).siblings(".qty");
@@ -1750,6 +1818,7 @@
                 today_last_balance: physicalCash,
                 closing_note: $('input[name="closing_note"]').val(),
                 store_id: $('input[name="store_id"]').val() || null
+                session_id: $('input[name="session_id"]').val() || null
             };
 
             $.ajax({
