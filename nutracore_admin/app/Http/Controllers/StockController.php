@@ -109,7 +109,7 @@ class StockController extends Controller
         return back()->with('alert-success', 'Selected stock items deleted successfully.');
     }
 
-    public function closingStockList(Request $request)
+    public function closingStockListold(Request $request)
     {
         $vendor_id = $request->input('vendor_id');
         $search = $request->input('search');
@@ -154,7 +154,7 @@ class StockController extends Controller
         return view('stocks.closing_stock', compact('stocks', 'sellers'));
     }
 
-    public function closingStockListOld(Request $request)
+    public function closingStockList(Request $request)
     {
         $sellerId = $request->input('vendor_id');
         $search = $request->input('search');
@@ -231,7 +231,7 @@ class StockController extends Controller
 
         $sellers = CustomHelper::getVendors(); // For filter dropdown
 
-        return view('stocks.closing_stock', compact('stocks', 'sellers'));
+        return view('stocks.closing_stockold', compact('stocks', 'sellers'));
     }
 
 

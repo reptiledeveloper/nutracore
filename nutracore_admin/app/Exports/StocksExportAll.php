@@ -56,6 +56,7 @@ class StocksExportAll implements FromQuery, WithHeadings, WithMapping
     {
         return [
             'S.No',
+            'STORE NAME',
             'SKU',
             'Product',
             'Variant',
@@ -71,6 +72,7 @@ class StocksExportAll implements FromQuery, WithHeadings, WithMapping
     {
         return [
             '', // S.No placeholder, will be added in controller or can be skipped
+            \App\Helpers\CustomHelper::getVendorName($stock->store_id??'')??'',
             $stock->variant?->varient_sku ?? $stock->product?->sku ?? 'N/A',
             $stock->product?->name ?? 'N/A',
             $stock->variant?->unit ?? '-',

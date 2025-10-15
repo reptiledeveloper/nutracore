@@ -4343,9 +4343,19 @@ class CustomHelper
         if (!empty($vendor_id)) {
             $stock_logs->where('store_id', $vendor_id);
         }
+
+
         $total_in = $stock_logs->whereIn('action',['purchase','stock_in'])->sum('quantity');
         $total_out = $stock_logs->whereIn('action',['sale','stock_out'])->sum('quantity');
-        $closing = $total_in - $total_out;
+//        $adjust = $stock_logs->whereIn('action',['adjust'])->sum('quantity');
+        $adjust = 0;
+        $adjust = $stock_logs->where('action',['adjust'])->latest()->first();
+        if(!empty($adjust)){
+            $closing = (int)$adjust;
+        }else{
+            $closing = (int)$total_in - (int)$total_out;
+        }
+
         return $closing;
     }
 
