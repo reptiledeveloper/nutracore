@@ -58,6 +58,8 @@
                             <div class="d-none d-md-flex">All Closing Stock</div>
 
                             <div class="dropdown ms-auto">
+                                <a href="{{ route('stocks.update_cs_batch', ['back_url' => $BackUrl]) }}"
+                                   class="btn btn-primary"><i class="fa fa-plus"></i></a>
                                 <a data-bs-toggle="modal"
                                    data-bs-target="#stockUpdate"
                                    class="btn btn-primary" title=" "> <i class="bi bi-file-text"></i></a>

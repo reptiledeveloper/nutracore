@@ -312,6 +312,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'delete_data', 'StockController@delete_data')->name('.delete_data');
             Route::match(['get', 'post'], 'closing_stock_export', 'StockController@closing_stock_export')->name('.closing_stock_export');
             Route::match(['get', 'post'], 'update_closing_stock', 'StockController@update_closing_stock')->name('.update_closing_stock');
+            Route::match(['get', 'post'], 'update_cs_batch', 'StockController@update_cs_batch')->name('.update_cs_batch');
+            Route::match(['get', 'post'], 'get_closing_stock', 'StockController@get_closing_stock')->name('.get_closing_stock');
 
         });
 ////return_request

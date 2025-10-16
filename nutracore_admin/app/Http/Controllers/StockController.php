@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Exports\ClosingStockExport;
+use App\Exports\ClosingStockExport1;
 use App\Exports\SampleExport;
+use App\Exports\StockBatchExport;
 use App\Exports\StocksExport;
 use App\Exports\StocksExportAll;
 use App\Imports\ClosingStockDataImport;
@@ -14,6 +16,7 @@ use App\Models\ProductVarient;
 use App\Models\Stock;
 use App\Models\StockBatch;
 use App\Models\StockLog;
+use App\Models\StockTransfer;
 use Attribute;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -186,32 +189,47 @@ class StockController extends Controller
 
         // 2️⃣ Products WITHOUT variants
         $noVariantStocks = DB::table('products as p')
-            ->leftJoin('vendors as s', 's.id', '=', DB::raw('0')) // dummy join to keep seller columns
+            ->leftJoin('stock_batches as sl', function ($join) {
+                $join->on('sl.product_id', '=', 'p.id')
+                    ->where(function ($q) {
+                        $q->whereNull('sl.variant_id')
+                            ->orWhere('sl.variant_id', 0);
+                    })
+                    ->where('sl.is_delete', 0);
+            })
+            ->leftJoin('vendors as s', 's.id', '=', 'sl.store_id')
             ->select(
-                DB::raw('0 as seller_id'),
-                DB::raw('"N/A" as seller_name'),
+                DB::raw('COALESCE(s.id, 0) as seller_id'),
+                DB::raw('COALESCE(s.name, "N/A") as seller_name'),
                 'p.id as product_id',
                 'p.name as product_name',
                 DB::raw('0 as variant_id'),
                 'p.sku as sku',
-                DB::raw('"-" as unit'),
-                DB::raw('(SELECT COALESCE(SUM(quantity),0)
-                      FROM stock_batches
-                      WHERE product_id = p.id AND (variant_id IS NULL OR variant_id = 0) AND is_delete = 0) as closing_stock')
+                DB::raw(' "" as unit'),
+                DB::raw('COALESCE(SUM(sl.quantity), 0) as closing_stock')
             )
             ->whereNotExists(function ($query) {
                 $query->select(DB::raw(1))
                     ->from('product_varients as pv')
                     ->whereRaw('pv.product_id = p.id');
-            });
+            })
+            ->groupBy(
+                'seller_id', 'seller_name',
+                'p.id', 'p.name', 'p.sku'
+            );
 
-        // Apply filters
+        // 🔍 Apply filters
         if (!empty($search)) {
             $variantStocks->where(function ($q) use ($search) {
                 $q->where('pv.varient_sku', $search)
-                    ->orWhere('p.sku', $search)->orWhere('p.name', 'like', '%' . $search . '%');
+                    ->orWhere('p.sku', $search)
+                    ->orWhere('p.name', 'like', '%' . $search . '%');
             });
-            $noVariantStocks->where('p.sku', $search);
+
+            $noVariantStocks->where(function ($q) use ($search) {
+                $q->where('p.sku', $search)
+                    ->orWhere('p.name', 'like', '%' . $search . '%');
+            });
         }
 
         if (!empty($productId)) {
@@ -241,7 +259,7 @@ class StockController extends Controller
         $search = $request->input('search');
 
         $fileName = 'closing_stock_' . date('Ymd_His') . '.xlsx';
-        return Excel::download(new ClosingStockExport($sellerId, $search), $fileName);
+        return Excel::download(new StockBatchExport($sellerId, $search), $fileName);
 
     }
 
@@ -370,5 +388,77 @@ class StockController extends Controller
 
     }
 
+    public function update_cs_batch(Request $request)
+    {
+        $data = [];
+        $id = (isset($request->id)) ? $request->id : 0;
+
+        $transfer = null;
+        if ($request->isMethod('post')) {
+
+            $rules = [
+                'to_location' => 'required',
+                'from_location' => 'required',
+                'batch_id' => 'required',
+                'product_id' => 'required',
+            ];
+
+            $request->validate($rules);
+//
+            $saved = $this->updateCS($request, $id);
+//
+//            if ($saved) {
+//                $alert_msg = 'Stock transfer(s) added successfully.';
+//                if ($id > 0) {
+//                    $alert_msg = 'Stock transfer(s) updated successfully.';
+//                }
+//                return back()->with('alert-success', $alert_msg);
+//            } else {
+//                return back()->with('alert-danger', 'Something went wrong, please try again or emails the administrator.');
+//            }
+        }
+
+        $page_heading = 'Update Closing Stock';
+        $data['page_heading'] = $page_heading;
+        $data['id'] = $id;
+        $data['transfer'] = $transfer;
+        $data['stocks'] = Stock::latest()->get();
+        $data['products'] = Products::with('variants')->orderBy('name','ASC')->get();
+
+        return view('stocks.update_cs_update',$data);
+
+    }
+    public function updateCS($request,$id = 0)
+    {
+        $sku = $request->sku??'';
+        $product_id = $request->product_id??'';
+        $variant_id = $request->variant_id??'';
+        $batch_id = $request->batch_id??'';
+        $qty = $request->qty??'';
+
+    }
+    public function get_closing_stock(Request $request)
+    {
+        $productId = $request->product_id;
+        $variantId = $request->varient_id;
+        $batchId = $request->batch_id;
+        $storeId = $request->store_id;
+
+        $stock = Stock::where('id',$batchId)->first();
+        $batch_no = '';
+        if(!empty($stock)){
+            $batch_no = $stock->batch_number??'';
+        }
+
+
+        $qty = \DB::table('stock_batches')
+            ->where('product_id', $productId)
+            ->when($variantId, fn($q) => $q->where('variant_id', $variantId))
+            ->when($batch_no, fn($q) => $q->where('batch_number', $batch_no))
+            ->where('store_id', $storeId)
+            ->sum('quantity');
+
+        return response()->json(['stock' => $qty]);
+    }
 
 }

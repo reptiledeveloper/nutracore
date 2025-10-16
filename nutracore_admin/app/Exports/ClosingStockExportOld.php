@@ -7,7 +7,7 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use DB;
 
-class ClosingStockExportOld implements FromCollection, WithHeadings
+class ClosingStockExport implements FromCollection, WithHeadings
 {
     protected $search;
     protected $vendor_id;
