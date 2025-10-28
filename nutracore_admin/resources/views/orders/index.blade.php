@@ -27,7 +27,7 @@
         </div>
         @include('snippets.errors')
         @include('snippets.flash')
-        @include('layouts.filter',['search_show'=>'search_show','pos_cancel_type_show'=>'pos_cancel_type_show','payment_method_show'=>'payment_method_show','vendor_show'=>'vendor_show','date_show'=>'date_show','delivery_agents_show'=>'delivery_agents_show'])
+        @include('layouts.filter',['order_from_show'=>'order_from_show','order_status_show'=>'order_status_show','pos_cancel_type_show'=>'pos_cancel_type_show','payment_method_show'=>'payment_method_show','vendor_show'=>'vendor_show','date_show'=>'date_show'])
         <div class="row">
             <div class="col-md-12">
                 <div class="card">

@@ -70,7 +70,7 @@ class ProductController extends Controller
         }
 
         if (!empty($search)) {
-            $products->where(function($q) use ($search) {
+            $products->where(function ($q) use ($search) {
                 // Search in variants SKU
                 $product_ids = ProductVarient::where('varient_sku', 'like', '%' . $search . '%')
                     ->pluck('product_id')
@@ -88,7 +88,6 @@ class ProductController extends Controller
 
         return view('products.index', ['products' => $products]);
     }
-
 
 
     public function add(Request $request)
@@ -201,6 +200,8 @@ class ProductController extends Controller
         $varient_sku = $request->varient_sku ?? [];
         $varient_weight = $request->varient_weight ?? [];
 
+        ProductVarient::where('product_id', $product->id)->update(['is_delete' => 1]);
+
         foreach ($variant_name as $key => $name) {
             if (!empty($name) && !empty($selling_price[$key])) {
                 $dbArray = [];
@@ -211,7 +212,7 @@ class ProductController extends Controller
                 $dbArray['subscription_price'] = $subscription_price[$key] ?? null;
                 $dbArray['varient_sku'] = $varient_sku[$key] ?? null;
                 $dbArray['varient_weight'] = $varient_weight[$key] ?? null;
-
+                $dbArray['is_delete'] = 0;
                 // Check if updating or inserting
                 if (!empty($variant_ids[$key])) {
                     $variant = ProductVarient::find($variant_ids[$key]);

@@ -104,7 +104,7 @@ class StockTransferController extends Controller
         $data['page_heading'] = $page_heading;
         $data['id'] = $id;
         $data['transfer'] = $transfer;
-        $data['stocks'] = Stock::latest()->get();
+        $data['stocks'] = Stock::where('is_delete',0)->latest()->get();
         $data['products'] = Products::with('variants')->orderBy('name','ASC')->get();
 
         return view('stock_transfers.form', $data);

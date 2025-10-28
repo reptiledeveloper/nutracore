@@ -11,6 +11,7 @@ use App\Exports\StocksExportAll;
 use App\Imports\ClosingStockDataImport;
 use App\Imports\ProductImport;
 use App\Imports\StockDataImport;
+use App\Models\ClosingStockVerify;
 use App\Models\Products;
 use App\Models\ProductVarient;
 use App\Models\Stock;
@@ -80,7 +81,13 @@ class StockController extends Controller
             $q->where('variant_id', $request->variant_id);
         }
         if ($request->filled('search')) {
-            $q->where('sku', $request->search);
+            $search = $request->search;
+            $q->where(function ($query) use ($search) {
+                $query->where('sku', 'like', '%' . $search . '%')
+                    ->orWhereHas('product', function ($productQuery) use ($search) {
+                        $productQuery->where('name', 'like', '%' . $search . '%');
+                    });
+            });
         }
         if ($request->filled('vendor_id')) {
             $q->where('store_id', $request->vendor_id);
@@ -279,7 +286,7 @@ class StockController extends Controller
         if (!empty($search)) {
             $logs->where(function ($q) use ($search) {
                 $q->where('products.sku', $search)
-                    ->orWhere('product_varients.varient_sku', $search);
+                    ->orWhere('product_varients.varient_sku', $search) ->orWhere('products.name','like', '%'.$search.'%');
             });
         }
 
@@ -395,59 +402,144 @@ class StockController extends Controller
 
         $transfer = null;
         if ($request->isMethod('post')) {
-
             $rules = [
-                'to_location' => 'required',
                 'from_location' => 'required',
                 'batch_id' => 'required',
+                'updated_qty' => 'required',
                 'product_id' => 'required',
             ];
 
             $request->validate($rules);
-//
-            $saved = $this->updateCS($request, $id);
-//
-//            if ($saved) {
-//                $alert_msg = 'Stock transfer(s) added successfully.';
-//                if ($id > 0) {
-//                    $alert_msg = 'Stock transfer(s) updated successfully.';
-//                }
-//                return back()->with('alert-success', $alert_msg);
-//            } else {
-//                return back()->with('alert-danger', 'Something went wrong, please try again or emails the administrator.');
-//            }
-        }
 
+            $this->updateCS($request, $id);
+            return back();
+        }
         $page_heading = 'Update Closing Stock';
         $data['page_heading'] = $page_heading;
         $data['id'] = $id;
         $data['transfer'] = $transfer;
-        $data['stocks'] = Stock::latest()->get();
-        $data['products'] = Products::with('variants')->orderBy('name','ASC')->get();
+        $data['stocks'] = Stock::where('is_delete',0)->latest()->get();
+        $data['products'] = Products::with('variants')->orderBy('name', 'ASC')->get();
 
-        return view('stocks.update_cs_update',$data);
+        return view('stocks.update_cs_update', $data);
 
     }
-    public function updateCS($request,$id = 0)
+
+    public
+    function updateCS($request, $id = 0)
     {
-        $sku = $request->sku??'';
-        $product_id = $request->product_id??'';
-        $variant_id = $request->variant_id??'';
-        $batch_id = $request->batch_id??'';
-        $qty = $request->qty??'';
+        $sku = $request->sku ?? '';
+        $product_id = $request->product_id ?? '';
+        $variant_id = $request->variant_id ?? '';
+        $batch_id = $request->batch_id ?? '';
+        $qty = $request->qty ?? '';
+        $updated_qty = $request->updated_qty ?? '';
+        $from_location = $request->from_location ?? '';
+//        echo "<pre>";
+//        print_r($request->toArray());
+//        die;
+        if (!empty($sku)) {
+            foreach ($sku as $key => $value) {
+                if (!empty($product_id[$key]) && !empty($batch_id[$key]) && !empty($updated_qty[$key]) && !empty($from_location)) {
+                    $stocks = Stock::where('id', $batch_id[$key])->where('is_delete', 0)->first();
+                    if (!empty($stocks)) {
+                        $exist = StockBatch::where('stock_id', $batch_id[$key])->where('store_id', $from_location)->where('product_id', $product_id[$key])->first();
+                        DB::table('closing_stock_verify')->insert([
+                            "product_id" => $product_id[$key] ?? '',
+                            "variant_id" => $variant_id[$key] ?? '',
+                            "store_id" => $from_location ?? '',
+                            "batch_number" => $exist->batch_number ?? '',
+                            "quantity" => $qty[$key] ?? '',
+                            "updated_qty" => $updated_qty[$key] ?? '',
+                            "status" => 0,
+                            "stock_batch_id" => $exist->id ?? '',
+                        ]);
+                    }
+                }
+            }
+        }
+    }
+
+
+    public function verify_closing_stock(Request $request)
+    {
+        $data = [];
+        $method = $request->method();
+        if ($method == 'POST' || $method == "post") {
+            $stock_ids = $request->stock_ids ?? '';
+            if (!empty($stock_ids)) {
+                $valueToRemove = 'all'; // Example value
+                if (($key = array_search($valueToRemove, $stock_ids)) !== false) {
+                    unset($stock_ids[$key]);
+                }
+                if (!empty($stock_ids)) {
+                    foreach ($stock_ids as $stock_id) {
+                        $exist = ClosingStockVerify::where('id', $stock_id)->where('status', 0)->first();
+                        if (!empty($exist)) {
+                            $stock_batch = StockBatch::where('id', $exist->stock_batch_id)->where('store_id', $exist->store_id)->first();
+                            if (!empty($stock_batch)) {
+                                StockBatch::where('id', $stock_batch->id)->update(['quantity' => $exist->updated_qty]);
+                                // Log the adjustment
+                                CustomHelper::logStock(
+                                    $stock_batch->product_id,
+                                    $stock_batch->variant_id,
+                                    $stock_batch->store_id,
+                                    'adjust',
+                                    $exist->updated_qty,
+                                    $stock_batch->related_id,
+                                    'Adjust'
+                                );
+                            } else {
+                                $dbArray = [];
+                                $dbArray['product_id'] = $exist->product_id ?? '';
+                                $dbArray['variant_id'] = $exist->variant_id ?? '';
+                                $dbArray['store_id'] = $exist->store_id ?? '';
+                                $dbArray['batch_number'] = $exist->batch_number ?? '';
+                                $dbArray['type'] = 'adjust';
+                                $dbArray['mfg_date'] = $exist->mfg_date ?? '';
+                                $dbArray['expiry_date'] = $exist->expiry_date ?? '';
+                                $dbArray['quantity'] = $exist->updated_qty;
+                                $dbArray['stock_id'] = '';
+                                StockBatch::insert($dbArray);
+
+                                CustomHelper::logStock(
+                                    $exist->product_id,
+                                    $exist->variant_id,
+                                    $exist->store_id,
+                                    'adjust',
+                                    $exist->updated_qty,
+                                    "",
+                                    'Adjust'
+                                );
+                            }
+                            $exist->status = 1;
+                            $exist->save();
+                        }
+                    }
+                }
+            }
+
+
+            return back();
+        }
+        $closing_stock_verify = ClosingStockVerify::where('status', 0)->get();
+        $data['stocks'] = $closing_stock_verify;
+        return view('stocks.verify_closing_stock', $data);
 
     }
-    public function get_closing_stock(Request $request)
+
+    public
+    function get_closing_stock(Request $request)
     {
         $productId = $request->product_id;
         $variantId = $request->varient_id;
         $batchId = $request->batch_id;
         $storeId = $request->store_id;
 
-        $stock = Stock::where('id',$batchId)->first();
+        $stock = Stock::where('id', $batchId)->first();
         $batch_no = '';
-        if(!empty($stock)){
-            $batch_no = $stock->batch_number??'';
+        if (!empty($stock)) {
+            $batch_no = $stock->batch_number ?? '';
         }
 
 
@@ -459,6 +551,32 @@ class StockController extends Controller
             ->sum('quantity');
 
         return response()->json(['stock' => $qty]);
+    }
+
+    public
+    function update_stock_batch(Request $request)
+    {
+        $stocks = Stock::where('is_delete', 0)->get();
+        $stockArr = [];
+        if (!empty($stocks)) {
+            foreach ($stocks as $stock) {
+                $exist = StockBatch::where(['product_id' => $stock->product_id, 'variant_id' => $stock->variant_id, 'store_id' => $stock->store_id, 'batch_number' => $stock->batch_number, 'is_delete' => 0])->first();
+                if (empty($exist)) {
+                    $dbArray = [];
+                    $dbArray['product_id'] = $stock->product_id ?? '';
+                    $dbArray['variant_id'] = $stock->variant_id ?? '';
+                    $dbArray['store_id'] = $stock->store_id ?? '';
+                    $dbArray['batch_number'] = $stock->batch_number ?? '';
+                    $dbArray['type'] = 'stock_in';
+                    $dbArray['mfg_date'] = $stock->mfg_date ?? '';
+                    $dbArray['expiry_date'] = $stock->expiry_date ?? '';
+                    $dbArray['quantity'] = $stock->quantity ?? '';
+                    $dbArray['stock_id'] = $stock->id ?? '';
+                    $dbArray['is_update'] = 1;
+                    StockBatch::insert($dbArray);
+                }
+            }
+        }
     }
 
 }

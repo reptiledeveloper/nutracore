@@ -50,7 +50,9 @@ class OrderController extends Controller
         $vendor_id = $request->vendor_id ?? '';
         $orderID = $request->orderID ?? '';
         $date = $request->date ?? '';
+        $status = $request->status ?? '';
         $pos_cancel_type = $request->pos_cancel_type ?? '';
+        $order_from = $request->order_from ?? '';
         $agent_id = $request->agent_id ?? '';
         $payment_method = $request->payment_method ?? '';
         $orders = Order::where('is_delete', 0)->orderBy('id', 'desc');
@@ -63,8 +65,14 @@ class OrderController extends Controller
         if (!empty($pos_cancel_type)) {
             $orders->where('pos_cancel_type', $pos_cancel_type);
         }
+        if (!empty($order_from)) {
+            $orders->where('order_from', $order_from);
+        }
         if (!empty($vendor_id)) {
             $orders->where('vendor_id', $vendor_id);
+        }
+        if (!empty($status)) {
+            $orders->where('status', $status);
         }
         if (!empty($agent_id)) {
             $orders->where('agent_id', $agent_id);
@@ -563,7 +571,7 @@ class OrderController extends Controller
                 $txn_id = "NC" . rand(111111, 9999999);
                 $subsc = new Subscriptions();
                 $subsc->user_id = $user->id ?? '';
-                $subsc->subscription_id = $exist->subscription_id ?? '';
+                $subsc->subscription_id = $subscription_plans->subscription_id ?? '';
                 $subsc->txn_id = $txn_id ?? '';
                 $subsc->paid_status = 1;
                 $subsc->taken_by = "Self";

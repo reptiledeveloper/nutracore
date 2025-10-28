@@ -109,11 +109,10 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
 
         ////reports
         Route::group(['prefix' => 'reports', 'as' => 'reports', 'middleware' => ['allowedmodule:reports,list']], function () {
-            Route::get('/delivery_agent', 'ExportController@delivery_agent')->name('.delivery_agent');
-            Route::get('/sellers', 'ExportController@sellers')->name('.sellers');
-            Route::get('/categories', 'ExportController@categories')->name('.categories');
-            Route::get('/subcategories', 'ExportController@subcategories')->name('.subcategories');
-            Route::get('/users', 'ExportController@users')->name('.users');
+            Route::get('/', 'ExportController@index')->name('.index');
+            Route::get('/sales', 'ExportController@sales')->name('.sales');
+            Route::get('/sales_register_tax_report', 'ExportController@sales_register_tax_report')->name('.sales_register_tax_report');
+            Route::get('/supplier_bill', 'ExportController@supplier_bill')->name('.supplier_bill');
 
         });
 
@@ -314,6 +313,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'update_closing_stock', 'StockController@update_closing_stock')->name('.update_closing_stock');
             Route::match(['get', 'post'], 'update_cs_batch', 'StockController@update_cs_batch')->name('.update_cs_batch');
             Route::match(['get', 'post'], 'get_closing_stock', 'StockController@get_closing_stock')->name('.get_closing_stock');
+            Route::match(['get', 'post'], 'update_stock_batch', 'StockController@update_stock_batch')->name('.update_stock_batch');
+            Route::match(['get', 'post'], 'verify_closing_stock', 'StockController@verify_closing_stock')->name('.verify_closing_stock');
 
         });
 ////return_request

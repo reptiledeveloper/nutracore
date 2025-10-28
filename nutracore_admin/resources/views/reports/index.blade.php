@@ -17,7 +17,7 @@
                             <i class="bi bi-globe2 small me-2"></i> Dashboard
                         </a>
                     </li>
-                    <li class="breadcrumb-item active" aria-current="page">Banners</li>
+                    <li class="breadcrumb-item active" aria-current="page">Reports</li>
                 </ol>
             </nav>
         </div>
@@ -27,66 +27,118 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="d-md-flex gap-4 align-items-center">
-                            <div class="d-none d-md-flex">All Banners</div>
+                            <div class="d-none d-md-flex">All Reports</div>
 
                             <div class="dropdown ms-auto">
-                                <a href="{{ route('banners.add', ['back_url' => $BackUrl]) }}"
-                                   class="btn btn-primary"><i class="fa fa-plus"></i></a>
+
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-custom table-lg mb-0" id="products">
-                        <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Image</th>
-                            <th>Vendor Name</th>
-                            <th>Status</th>
-                            <th class="text-end">Actions</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <?php if (!empty($banners)){
-                        foreach ($banners as $banner) {
-                            $image = \App\Helpers\CustomHelper::getImageUrl('banners', $banner->banner_img);
-                            ?>
-                        <tr>
-                            <td>{{ $banner->banner_name ?? '' }}</td>
-                            <td><a href="{{$image}}" target="_blank"><img height="100px" width="200px" src="{{$image}}"
-                                                                          alt=""/></a>
-                            </td>
-                            <td>{{ \App\Helpers\CustomHelper::getVendorName($banner->vendor_id) }}</td>
-                            <td>{{ \App\Helpers\CustomHelper::getStatusStr($banner->status) }}</td>
-                            <td class="text-end">
-                                <div class="d-flex">
-                                    <div class="dropdown ms-auto">
-                                        <a href="#" data-bs-toggle="dropdown" class="btn btn-floating"
-                                           aria-haspopup="true" aria-expanded="false">
-                                            <i class="bi bi-three-dots"></i>
-                                        </a>
-                                        <div class="dropdown-menu dropdown-menu-end">
-                                            <a href="{{route('banners.edit',$banner->id.'?back_url='.$BackUrl)}}"
-                                               class="dropdown-item">Edit</a>
-                                            <a href="{{route('banners.delete',$banner->id.'?back_url='.$BackUrl)}}"
-                                               onclick="return confirm('Are you Want To Delete?')"
-                                               class="dropdown-item">Delete</a>
-                                        </div>
-                                    </div>
+
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-md-flex gap-4 align-items-center">
+                            <div class="d-none d-md-flex"> Sales-Summary-Report</div>
+
+                            <div class="dropdown ms-auto">
+
+                            </div>
+                        </div>
+                        <form action="{{route('reports.sales')}}" method="">
+                            <div class="row mt-3">
+                                <div class="col-md-4">
+                                    <label>Start Date</label>
+                                    <input type="date" name="start_date" class="form-control" value="">
                                 </div>
-                            </td>
-                        </tr>
-                        <?php }
-                        } ?>
+                                <div class="col-md-4">
+                                    <label>End Date</label>
+                                    <input type="date" name="end_date" class="form-control" value="">
+                                </div>
+                                <div class="col-md-4" style="margin-top:20px">
+                                    <button class="btn btn-primary" type="submit">Download</button>
+                                </div>
 
-                        </tbody>
-                    </table>
+                            </div>
 
-                    {{ $banners->appends(request()->input())->links('pagination') }}
-
-
+                        </form>
+                    </div>
                 </div>
+
+            </div>
+        </div>
+
+
+
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-md-flex gap-4 align-items-center">
+                            <div class="d-none d-md-flex">Sales Register Tax Report</div>
+
+                            <div class="dropdown ms-auto">
+
+                            </div>
+                        </div>
+                        <form action="{{route('reports.sales_register_tax_report')}}" method="">
+                            <div class="row mt-3">
+                                <div class="col-md-4">
+                                    <label>Start Date</label>
+                                    <input type="date" name="start_date" class="form-control" value="">
+                                </div>
+                                <div class="col-md-4">
+                                    <label>End Date</label>
+                                    <input type="date" name="end_date" class="form-control" value="">
+                                </div>
+                                <div class="col-md-4" style="margin-top:20px">
+                                    <button class="btn btn-primary" type="submit">Download</button>
+                                </div>
+
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-md-flex gap-4 align-items-center">
+                            <div class="d-none d-md-flex">Supplier Bills</div>
+
+                            <div class="dropdown ms-auto">
+
+                            </div>
+                        </div>
+                        <form action="{{route('reports.supplier_bill')}}" method="">
+                            <div class="row mt-3">
+                                <div class="col-md-4">
+                                    <label>Start Date</label>
+                                    <input type="date" name="start_date" class="form-control" value="">
+                                </div>
+                                <div class="col-md-4">
+                                    <label>End Date</label>
+                                    <input type="date" name="end_date" class="form-control" value="">
+                                </div>
+                                <div class="col-md-4" style="margin-top:20px">
+                                    <button class="btn btn-primary" type="submit">Download</button>
+                                </div>
+
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>

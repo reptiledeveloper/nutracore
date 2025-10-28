@@ -89,7 +89,7 @@
                             <td>₹ {{$order->total_amount??''}}</td>
                             <td>{{$order->payment_method??''}}</td>
                             <td>{!! \App\Helpers\CustomHelper::getReturnOrderStatus($order->id) !!}</td>
-                            <td>{{$order->admin_remarks??''}}</td>
+                            <td class="text-wrap">{{$order->admin_remarks??''}}</td>
                             <td>{{ date('d M Y h:i A',strtotime($order->created_at)) }}</td>
                             <td class="text-end">
                                 <div class="d-flex">

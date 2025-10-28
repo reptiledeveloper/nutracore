@@ -80,7 +80,8 @@
                                             <th>Product</th>
                                             <th>Variant</th>
                                             <th>Batch</th>
-                                            <th>Qty</th>
+                                            <th>Available Qty</th>
+                                            <th>Updated Qty</th>
                                             <th>Remove</th>
                                         </tr>
                                         </thead>
@@ -160,7 +161,8 @@
                 <option value="">-- Select Batch --</option>
             </select>
         </td>
-            <td><input type="number" name="qty[]" class="form-control qty" required></td>
+            <td><input type="number" name="qty[]" class="form-control qty" readonly required></td>
+            <td><input type="number" name="updated_qty[]" class="form-control updated_qty" required></td>
             <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)">X</button></td>
         </tr>`;
 

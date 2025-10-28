@@ -472,7 +472,6 @@ class POSController extends Controller
         $user = User::where('id', $request->user_id)->first();
         $subscription_plansArr = [];
         if (CustomHelper::checkSubscription($user) == 0) {
-
             $subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->orderBy('duration', "ASC")->get();
             if (!empty($subscription_plans)) {
                 foreach ($subscription_plans as $subs_plan) {

@@ -9,4 +9,11 @@ class Supplier extends Model{
 
     protected $guarded = ['id'];
 
+
+
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class, 'supplier_id', 'id');
+    }
+
 }

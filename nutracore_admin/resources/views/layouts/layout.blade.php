@@ -875,7 +875,7 @@ $current_route = Route::currentRouteName();
                     </a>
                 </li>
             @endif
-            @if(\App\Helpers\CustomHelper::isAllowedSection('suppliers','list') || \App\Helpers\CustomHelper::isAllowedSection('stocks','list'))
+            @if(\App\Helpers\CustomHelper::isAllowedSection('stocks','list') || \App\Helpers\CustomHelper::isAllowedSection('stocks','list'))
                 <li>
                     <a href="#">
                     <span class="nav-link-icon">
@@ -900,14 +900,22 @@ $current_route = Route::currentRouteName();
                             <a class="{{$current_route == 'stocks.closingStockList' ? "active":""}}" href="{{route('stocks.closingStockList')}}
                         ">Closing Stock</a>
                         </li>
+                        @if(\App\Helpers\CustomHelper::isAllowedSection('stock_verify','list'))
+                        <li>
+                            <a class="{{$current_route == 'stocks.verify_closing_stock' ? "active":""}}" href="{{route('stocks.verify_closing_stock')}}
+                        ">Verify Closing Stock</a>
+                        </li>
+                        @endif
                         <li>
                             <a class="{{$current_route == 'stocks.stockLogs' ? "active":""}}" href="{{route('stocks.stockLogs')}}
                         ">StockLogs</a>
                         </li>
+                        @if(\App\Helpers\CustomHelper::isAllowedSection('stock_transfer_approval','list'))
                         <li>
                             <a class="{{$current_route == 'stock_transfers.index' ? "active":""}}" href="{{route('stock_transfers.index')}}
                         ">Stock Transfers</a>
                         </li>
+                        @endif
 
 
                     </ul>
@@ -1068,20 +1076,20 @@ $current_route = Route::currentRouteName();
                 </li>
             @endif
 
-            {{--            <li>--}}
-            {{--                <a href="#">--}}
-            {{--                    <span class="nav-link-icon">--}}
-            {{--                        <i class="bi bi-map"></i>--}}
-            {{--                    </span>--}}
-            {{--                    <span>Reports</span>--}}
-            {{--                </a>--}}
-            {{--                <ul>--}}
-            {{--                    <li>--}}
-            {{--                        <a class="{{$current_route == 'reports.index' ? "active":""}}" href="{{route('reports.index')}}--}}
-            {{--                        ">Reports</a>--}}
-            {{--                    </li>--}}
-            {{--                </ul>--}}
-            {{--            </li>--}}
+                        <li>
+                            <a href="#">
+                                <span class="nav-link-icon">
+                                    <i class="bi bi-map"></i>
+                                </span>
+                                <span>Reports</span>
+                            </a>
+                            <ul>
+                                <li>
+                                    <a class="{{$current_route == 'reports.index' ? "active":""}}" href="{{route('reports.index')}}
+                                    ">Reports</a>
+                                </li>
+                            </ul>
+                        </li>
 
             <li>
                 <a class="" href="{{route('admin.logout')}}">

@@ -38,4 +38,18 @@ class Order extends Model{
         return $prefix . $newOrderNumberFormatted;
     }
 
+
+    // ✅ One order has many items
+    public function items()
+    {
+        return $this->hasMany(OrderItems::class, 'order_id', 'id');
+    }
+
+    // ✅ Each order belongs to one address
+    public function userAddress()
+    {
+        return $this->belongsTo(UserAddress::class, 'address_id', 'id');
+    }
+
+
 }
