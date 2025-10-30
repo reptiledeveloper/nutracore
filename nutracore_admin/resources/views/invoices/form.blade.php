@@ -20,17 +20,24 @@
             overflow-x: auto; /* enables left-right scrolling */
         }
 
-        #itemsTable {
-            width: auto;              /* shrink/expand based on content */
-            border-collapse: collapse;
-            min-width: 100%;          /* still fill full width if content small */
-        }
+        /*#itemsTable {*/
+        /*    width: auto;              !* shrink/expand based on content *!*/
+        /*    border-collapse: collapse;*/
+        /*    min-width: 100%;          !* still fill full width if content small *!*/
+        /*}*/
 
         #itemsTable th,
         #itemsTable td {
             padding: 8px;
             border: 1px solid #ccc;
             white-space: nowrap;      /* prevent wrapping */
+        }
+        #itemsTable-wrapper {
+            overflow-x: auto;
+            width: 100%;
+        }
+        #itemsTable {
+            min-width: 900px; /* Adjust as per your column width */
         }
 
     </style>
@@ -78,7 +85,7 @@
 
                                 <div class="form-group col-md-6 mt-3">
                                     <label for="inputEmail4" class="form-label">Supplier</label>
-                                    <select name="supplier_id" class="form-control select2" required>
+                                    <select name="supplier_id" class="form-control " required>
                                         <option value="">-- Select Supplier --</option>
                                         @foreach($suppliers as $s)
                                             <option value="{{ $s->id }}">{{ $s->name }}</option>
@@ -119,18 +126,18 @@
                                     <button type="button" class="btn btn-sm btn-outline-primary" onclick="addRow()">+ Add Item</button>
                                 </div>
                                 <div id="itemsTable-wrapper">
-                                    <table id="itemsTable" class="table table-bordered">
+                                    <table id="itemsTable" class="table table-bordered table-sm">
                                         <thead>
                                         <tr>
-                                            <th>SKU</th>
-                                            <th>Product</th>
-                                            <th>Variant</th>
-                                            <th>Batch</th>
-                                            <th>MFG</th>
-                                            <th>Expiry</th>
-                                            <th>Qty</th>
-                                            <th>Purchase Price</th>
-                                            <th>Total Price</th>
+                                            <th style=" min-width: 170px;">SKU</th>
+                                            <th style=" min-width: 200px;">Product</th>
+                                            <th style=" min-width: 200px;">Variant</th>
+                                            <th style=" min-width: 200px;">Batch</th>
+                                            <th style=" min-width: 150px;">MFG</th>
+                                            <th style=" min-width: 150px;">Expiry</th>
+                                            <th style=" min-width: 100px;">Qty</th>
+                                            <th style=" min-width: 100px;">Purchase Price</th>
+                                            <th style=" min-width: 100px;">Total Price</th>
                                             <th></th>
                                         </tr>
                                         </thead>
@@ -172,7 +179,7 @@
     <tr>
         <td><input type="text" name="sku[]" class="form-control sku-input" required></td>
         <td>
-            <select name="product_id[]" class="form-control product-select select2" required>
+            <select name="product_id[]" class="form-control product-select " required>
                 <option value="">-- Select Product --</option>
                 ${products.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
             </select>

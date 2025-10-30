@@ -461,8 +461,7 @@ class POSController extends Controller
         return response()->json($product);
     }
 
-    public
-    function getMembershipPlans(Request $request)
+    public function getMembershipPlans(Request $request)
     {
         $user_id = $request->user_id ?? null;
         if (empty($user_id)) {

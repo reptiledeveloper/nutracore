@@ -113,6 +113,12 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::get('/sales', 'ExportController@sales')->name('.sales');
             Route::get('/sales_register_tax_report', 'ExportController@sales_register_tax_report')->name('.sales_register_tax_report');
             Route::get('/supplier_bill', 'ExportController@supplier_bill')->name('.supplier_bill');
+            Route::get('/delivery_agent', 'ExportController@delivery_agent')->name('.delivery_agent');
+            Route::get('/sellers', 'ExportController@sellers')->name('.sellers');
+            Route::get('/categories', 'ExportController@categories')->name('.categories');
+            Route::get('/subcategories', 'ExportController@subcategories')->name('.subcategories');
+            Route::get('/users', 'ExportController@users')->name('.users');
+
 
         });
 

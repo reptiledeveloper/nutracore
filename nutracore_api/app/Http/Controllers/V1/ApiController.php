@@ -3300,6 +3300,7 @@ class ApiController extends Controller
         $slot_time = $request->slot_time ?? '';
         $delivery_type = $request->delivery_type ?? 'normal';
         $cart_data = CustomHelper::cartData($user->id, $coupon_code, $request, $user);
+
         $cartValue = $cart_data['cartValue'] ?? '';
         $cart_price = $cartValue['cart_price'] ?? '';
         $cart_products = $cartValue['cart_products'] ?? '';
@@ -3436,12 +3437,12 @@ class ApiController extends Controller
         }
         $subscription_plans = null;
         if (CustomHelper::checkSubscription($user) == 0) {
-            $subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->where('is_show', "0")->first();
+            //$subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->where('is_show', "0")->first();
         }
 
         $subscription_plans_new = [];
         if (CustomHelper::checkSubscription($user) == 0) {
-            $subscription_plans_new = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->orderBy('duration', "ASC")->get();
+            $subscription_plans_new = self::getMembershipPlans($user->id);
         }
 
         $delivery_details['delivery_time'] = 10;
@@ -3464,6 +3465,34 @@ class ApiController extends Controller
             'subscription_plans_new' => $subscription_plans_new,
             'is_subscribe' => CustomHelper::checkSubscription($user),
         ], 200);
+    }
+
+
+    public function getMembershipPlans($user_id)
+    {
+        if (empty($user_id)) {
+            $cartValue['message'] = "User ID is required";
+            return response()->json($cartValue, 200);
+        }
+        $user = User::where('id', $user_id)->first();
+        $subscription_plansArr = [];
+        if (CustomHelper::checkSubscription($user) == 0) {
+            $subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->orderBy('duration', "ASC")->get();
+            if (!empty($subscription_plans)) {
+                foreach ($subscription_plans as $subs_plan) {
+                    if (!empty($subs_plan->max_applied_time)) {
+                        $exist_count = Subscriptions::where('user_id', $user_id)->where('subscription_id', $subs_plan->id)->count();
+                        if ($exist_count < $subs_plan->max_applied_time) {
+                            $subscription_plansArr[] = $subs_plan;
+                        }
+                    } else {
+                        $subscription_plansArr[] = $subs_plan;
+                    }
+                }
+            }
+        }
+
+      return $subscription_plansArr;
     }
 
     public function user_address(Request $request): \Illuminate\Http\JsonResponse
