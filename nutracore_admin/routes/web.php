@@ -97,6 +97,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'savePos', 'POSController@savePos')->name('.savePos');
             Route::match(['get', 'post'], 'close', 'POSController@close')->name('.close');
             Route::match(['get', 'post'], 'cash_management', 'POSController@cash_management')->name('.cash_management');
+            Route::match(['get', 'post'], 'cash_transactions', 'POSController@cash_transactions')->name('.cash_transactions');
             Route::match(['get', 'post'], 'credit_note', 'POSController@credit_note')->name('.credit_note');
             Route::match(['get', 'post'], 'cancel_order', 'POSController@cancel_order')->name('.cancel_order');
             Route::match(['get', 'post'], 'cancel_order_save', 'POSController@cancel_order_save')->name('.cancel_order_save');
@@ -118,6 +119,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::get('/categories', 'ExportController@categories')->name('.categories');
             Route::get('/subcategories', 'ExportController@subcategories')->name('.subcategories');
             Route::get('/users', 'ExportController@users')->name('.users');
+            Route::get('/consultation', 'ExportController@consultation')->name('.consultation');
+            Route::get('/cash_management', 'ExportController@cash_management')->name('.cash_management');
 
 
         });
@@ -128,6 +131,13 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'add', 'AppSettingController@add')->name('.add');
             Route::match(['get', 'post'], 'edit/{id}', 'AppSettingController@add')->name('.edit');
             Route::match(['get', 'post'], 'delete/{id}', 'AppSettingController@delete')->name('.delete');
+        });
+
+        ////consultation
+        Route::group(['prefix' => 'consultation', 'as' => 'consultation', 'middleware' => ['allowedmodule:consultation,list']], function () {
+            Route::match(['get', 'post'], '/enquiry', 'ConsultationController@enquiry')->name('.enquiry');
+            Route::match(['get', 'post'], '/update_user', 'ConsultationController@update_user')->name('.update_user');
+
         });
 ////pincode
         Route::group(['prefix' => 'pincode', 'as' => 'pincode', 'middleware' => ['allowedmodule:pincode,list']], function () {

@@ -187,7 +187,9 @@ foreach ($subscription_plans as $plan) {
         $subscriptionsArr['total_order_amount'] = $total_order_amount;
         $subscriptionsArr['tire_system'] = $tire_system;
         $subscriptionsArr['active_loyalty'] = $active_loyalty;
-
+        if($user->is_ban == 1){
+            $subscriptionsArr = null;
+        }
         return response()->json([
             'result' => true,
             'message' => "Successfully",
@@ -286,6 +288,13 @@ foreach ($subscription_plans as $plan) {
             ], 200);
         }
         $order_id = "";
+        $is_ban = $user->is_ban ?? 0;
+        if($is_ban == 1){
+            return response()->json([
+                'result' => false,
+                'message' => "User is Ban",
+            ], 200);
+        }
         $amount = $subscription_plans->price ?? 0;
         $orders = $this->generateRazorpayOrder($amount, $user->id);
         if (!empty($orders)) {

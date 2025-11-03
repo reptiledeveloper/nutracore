@@ -1,10 +1,13 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Exports\SampleExport;
 use App\Helpers\CustomHelper;
+use App\Models\Admin;
 use App\Models\Category;
 
+use App\Models\POSDailyCashTransaction;
 use App\Models\StockDataImport;
 use App\Models\Order;
 
@@ -27,9 +30,6 @@ use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 
 
-
-
-
 class ExportController extends Controller
 {
 
@@ -43,21 +43,22 @@ class ExportController extends Controller
 
     }
 
-    public function index(Request $request){
+    public function index(Request $request)
+    {
         $data = [];
 
 
-        return view('reports.index',$data);
+        return view('reports.index', $data);
     }
 
     public function sales(Request $request)
     {
-        $start_date = $request->start_date??'';
-        $end_date = $request->end_date??'';
+        $start_date = $request->start_date ?? '';
+        $end_date = $request->end_date ?? '';
         $exportArr = [];
 
         // You can apply filters if needed (date range, payment mode, etc.)
-        $orders = \App\Models\Order::where('is_delete', 0)->where('status','DELIVERED')->where('is_delete',0);
+        $orders = \App\Models\Order::where('is_delete', 0)->where('status', 'DELIVERED')->where('is_delete', 0);
         // ✅ Apply date range filter (if both provided)
         if (!empty($start_date) && !empty($end_date)) {
             $orders->whereBetween(\DB::raw('DATE(created_at)'), [$start_date, $end_date]);
@@ -78,11 +79,11 @@ class ExportController extends Controller
                 $paymentValues = json_decode($order->payment_method_values, true) ?? [];
                 if ($order->payment_method == "Multipay") {
                     // If multiple payments are used, values will come from JSON
-                    $cash   = $paymentValues['cash'] ?? 0;
-                    $card   = $paymentValues['card'] ?? 0;
-                    $upi    = $paymentValues['upi'] ?? 0;
+                    $cash = $paymentValues['cash'] ?? 0;
+                    $card = $paymentValues['card'] ?? 0;
+                    $upi = $paymentValues['upi'] ?? 0;
                     $wallet = $paymentValues['wallet'] ?? 0;
-                    $bank   = $paymentValues['bank'] ?? 0;
+                    $bank = $paymentValues['bank'] ?? 0;
                     $sodexo = $paymentValues['sodexo'] ?? 0;
                     $cheque = $paymentValues['cheque'] ?? 0;
                     $paylater = $paymentValues['paylater'] ?? 0;
@@ -132,6 +133,8 @@ class ExportController extends Controller
 
                     $paymentModeDisplay = ucfirst($order->payment_method ?? '');
                 }
+                $admin_data = Admin::where('id', $order->created_by)->first();
+
                 $excelArr['Sr No.'] = $order->id;
                 $excelArr['Invoice No'] = $order->invoice_no ?? '';
                 $excelArr['Date'] = $order->created_at ? $order->created_at->format('Y-m-d') : '';
@@ -149,9 +152,9 @@ class ExportController extends Controller
                 $excelArr['Cheque'] = $cheque;
                 $excelArr['Paylater'] = $paylater;
                 $excelArr['Credit Apply'] = $credit_apply;
-                $excelArr['Created By'] = $order->user->name ?? 'System'; // assuming relation exists
+                $excelArr['Created By'] = $admin_data->name ?? 'User'; // assuming relation exists
                 $excelArr['Order From'] = strtoupper($order->order_from ?? '');
-                $excelArr['Location'] = $order->location ?? '';
+                $excelArr['Location'] = $order->vendor->name ?? '';
 
                 $exportArr[] = $excelArr;
             }
@@ -177,7 +180,7 @@ class ExportController extends Controller
 //        $orders = Order::with(['order_items.product', 'userAddress'])
 //            ->whereBetween('created_at', [$start_date, $end_date])
 //            ->get();
-        $orders = \App\Models\Order::where('is_delete', 0)->where('status','DELIVERED')->where('is_delete',0)
+        $orders = \App\Models\Order::where('is_delete', 0)->where('status', 'DELIVERED')->where('is_delete', 0)
             ->whereBetween('created_at', [$start_date, $end_date])
             ->get();
 
@@ -192,11 +195,11 @@ class ExportController extends Controller
 
             foreach ($order->items as $item) {
                 $product = $item->product;
-                $variant = $item->variant??null;
+                $variant = $item->variant ?? null;
                 // 💡 Skip if product not found
                 if (!$product) continue;
                 $place_of_supply = ($address->state ?? '') . ', ' . ($address->pincode ?? '');
-                if($order->order_from == "POS"){
+                if ($order->order_from == "POS") {
                     $place_of_supply = "TG";
 
                 }
@@ -209,11 +212,11 @@ class ExportController extends Controller
                 $excelArr['Customer Name'] = $order->customer_name ?? '';
                 $excelArr['Customer Type (B2C/B2B)'] = 'B2C';
                 $excelArr['Customer GSTIN'] = $order->gstin ?? '';
-                $excelArr['Place of Supply (State, Code)'] = $place_of_supply   ;
+                $excelArr['Place of Supply (State, Code)'] = $place_of_supply;
                 $excelArr['HSN Code'] = $variant->variant_sku ?? $product->sku ?? '';
                 $excelArr['SKU / Product Name'] = $product->name ?? '';
                 $excelArr['Qty'] = $item->qty ?? 0;
-                $excelArr['UOM'] = $variant->unit??'';
+                $excelArr['UOM'] = $variant->unit ?? '';
                 $excelArr['MRP (₹)'] = $item->price ?? 0;
                 $excelArr['Selling Price / Unit (₹)'] = round(($item->net_price / max($item->qty, 1)), 2);
                 $excelArr['Gross Amount (₹)'] = $item->net_price ?? 0;
@@ -357,7 +360,6 @@ class ExportController extends Controller
     }
 
 
-
     public function sellers(Request $request)
     {
 
@@ -421,7 +423,7 @@ class ExportController extends Controller
 
         $agents = Category::where('status', 1)->where('parent_id', '!=', 0)->where('is_delete', 0);
 
-        $agents = Category::where('status', 1)->where('parent_id','!=',0)->where('is_delete', 0);
+        $agents = Category::where('status', 1)->where('parent_id', '!=', 0)->where('is_delete', 0);
 
         $agents->chunk(50, function ($agents) use (&$exportArr) {
             foreach ($agents as $agent) {
@@ -475,6 +477,7 @@ class ExportController extends Controller
 
                 // Type
                 $excelArr['Join Through'] = $agent->type ?? '';
+                $excelArr['IS Ban'] = $agent->is_ban == 1 ? "Yes" : 'No';
 
                 // Subscription data
                 $excelArr['Loyalty Tier'] = $customer_subs_data['loyality'] ?? '';
@@ -498,8 +501,44 @@ class ExportController extends Controller
         }
     }
 
+    public function consultation(Request $request)
+    {
+        $exportArr = [];
 
+        $agents = User::where('status', 1)->where('is_delete', 0);
+        $agents->whereNotNull('gender')->where('gender', '!=', '')
+            ->whereNotNull('height')->where('height', '!=', '')
+            ->whereNotNull('weight')->where('weight', '!=', '')
+            ->whereNotNull('health_profile')->where('health_profile', '!=', '')
+            ->whereNotNull('activity')->where('activity', '!=', '')
+            ->whereNotNull('food_choice')->where('food_choice', '!=', '');
+        $agents->chunk(50, function ($agents) use (&$exportArr) {
+            foreach ($agents as $user) {
+                $row = [];
+                $row['Name'] = $user->name ?? '';
+                $row['Email'] = $user->email ?? '';
+                $row['Phone'] = $user->phone ?? '';
+                $row['DOB'] = !empty($user->dob) ? date('Y-m-d', strtotime($user->dob)) : '';
+                $row['Gender'] = $user->gender ?? '';
+                $row['Height'] = $user->height ?? '';
+                $row['Weight'] = $user->weight ?? '';
+                $row['Health Profile'] = $user->health_profile ?? '';
+                $row['Daily Activity'] = $user->activity ?? '';
+                $row['Food Choice'] = $user->food_choice ?? '';
+                $row['Lead Status'] = $user->lead_status ?? '';
 
+                $exportArr[] = $row;
+            }
+        });
+
+        if (!empty($exportArr)) {
+            $fileNames = array_keys($exportArr[0]); // Get headers from the first row
+            $fileName = 'Users-Consultation' . date('Y-m-d-H-i-s') . '.xlsx';
+            return Excel::download(new SampleExport($exportArr, $fileNames), $fileName);
+        } else {
+            return back()->with('error', 'No users found to export.');
+        }
+    }
 
 
     public function stock_data(Request $request): \Symfony\Component\HttpFoundation\BinaryFileResponse|\Illuminate\Http\RedirectResponse
@@ -527,12 +566,12 @@ class ExportController extends Controller
                         $excelArr = [];
                         $excelArr['ID'] = $product->id ?? '';
                         $excelArr['VarientID'] = $varient->id ?? '';
-                        $excelArr['VendorID'] = (string) $vendor_id;
+                        $excelArr['VendorID'] = (string)$vendor_id;
                         $excelArr['Category'] = CustomHelper::getCategoryName($product->category_id ?? '');
                         $excelArr['SubCategory'] = CustomHelper::getCategoryName($product->subcategory_id ?? '');
                         $excelArr['ProductName'] = $product->name ?? '';
                         $excelArr['Varient'] = $varient->unit ?? '';
-                        $excelArr['StockAvailable'] = (string) $stock_avail ?? 0;
+                        $excelArr['StockAvailable'] = (string)$stock_avail ?? 0;
                         $exportArr[] = $excelArr;
                     }
                 }
@@ -599,6 +638,55 @@ class ExportController extends Controller
             return back();
         }
 
+    }
+
+    public function cash_management(Request $request)
+    {
+        $start_date = $request->start_date ?? '';
+        $end_date = $request->end_date ?? '';
+        $exportArr = [];
+
+        $records = POSDailyCashTransaction::select(
+            'date',
+            'vendor_id',
+            DB::raw("SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END) as total_sales"),
+            DB::raw("SUM(CASE WHEN type = 'debit' THEN amount ELSE 0 END) as total_expense"),
+            DB::raw('COUNT(id) as total_transactions')
+        )
+            ->where('is_delete', 0);
+
+        if (!empty($start_date)) {
+            $records->whereDate('date', '>=', $start_date);
+        }
+
+        if (!empty($end_date)) {
+            $records->whereDate('date', '<=', $end_date);
+        }
+
+        $records->groupBy('date', 'vendor_id')
+            ->orderByDesc('date')
+            ->chunk(100, function ($rows) use (&$exportArr) {
+                foreach ($rows as $row) {
+                    $vendor = \App\Helpers\CustomHelper::getVendorDetails($row->vendor_id);
+                    $excelArr = [];
+
+                    $excelArr['Date'] = $row->date ? date('d M Y', strtotime($row->date)) : '';
+                    $excelArr['Vendor Name'] = $vendor->name ?? '';
+                    $excelArr['Total Sales (Credit)'] = number_format($row->total_sales ?? 0, 2);
+                    $excelArr['Total Expense (Debit)'] = number_format($row->total_expense ?? 0, 2);
+                    $excelArr['Total Transactions'] = $row->total_transactions ?? 0;
+
+                    $exportArr[] = $excelArr;
+                }
+            });
+
+        if (!empty($exportArr)) {
+            $headings = array_keys($exportArr[0]);
+            $fileName = 'Cash-Transactions-' . date('Y-m-d-H-i-s') . '.xlsx';
+            return Excel::download(new \App\Exports\StockDataExport($exportArr, $headings), $fileName);
+        } else {
+            return back()->with('error', 'No transaction data found for export.');
+        }
     }
 
 

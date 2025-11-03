@@ -10,6 +10,7 @@ use App\Models\OrderItems;
 use App\Models\OrderStatus;
 use App\Models\POS;
 use App\Models\POSDailyCash;
+use App\Models\POSDailyCashTransaction;
 use App\Models\Products;
 use App\Models\StockLog;
 use App\Models\SubscriptionPlans;
@@ -35,7 +36,7 @@ use DB;
 use Hash;
 use Str;
 use Illuminate\Support\Facades\Cache;
-
+use Carbon\Carbon;
 
 class POSController extends Controller
 {
@@ -75,7 +76,7 @@ class POSController extends Controller
         } else {
             // Add new expense
             $expense = new Expense();
-            $expense->created_by = Auth::guard('admin')->user()->id??""; // optional: track who added
+            $expense->created_by = Auth::guard('admin')->user()->id ?? ""; // optional: track who added
         }
 
         // 3️⃣ Assign fields
@@ -88,6 +89,21 @@ class POSController extends Controller
 
         // 4️⃣ Save expense
         $expense->save();
+        $date = date('Y-m-d');
+
+        DB::table('pos_daily_cash_transaction')->insert(
+            [
+                'vendor_id' => $request->store_id ?? 0,
+                'amount' => $request->amount ?? 0,
+                'remarks' =>  $request->description??'',
+                'date' => $date,
+                'type' => 'debit',
+                'status' => 1,
+                'is_delete' => 0,
+                'updated_at' => now(),
+            ]
+        );
+
 
         // 5️⃣ Return response
         return redirect()->back()->with('success', $request->id ? 'Expense updated successfully.' : 'Expense added successfully.');
@@ -112,6 +128,7 @@ class POSController extends Controller
             return back()->with('alert-danger', 'something went wrong, please try again...');
         }
     }
+
     public function index(Request $request)
     {
         $data = [];
@@ -142,6 +159,14 @@ class POSController extends Controller
             $orders->where('id', $orderID);
         }
         $orders = $orders->paginate(30);
+
+
+        $ordersData = Order::where('is_delete', 0)->where('order_from', 'POS')->get();
+        foreach ($ordersData as $order) {
+            self::update_pos_daily_cash_transaction($order);
+        }
+
+
         $data['orders'] = $orders;
         return view('orders.index', $data);
     }
@@ -156,10 +181,39 @@ class POSController extends Controller
         return view('pos.cash_management', $data);
     }
 
+    public function cash_transactions(Request $request)
+    {
+
+        $startDate = Carbon::now()->subMonths(3)->startOfDay();
+        $endDate = Carbon::now()->endOfDay();
+        $startDate = $request->start_date ?? $startDate;
+        $endDate = $request->end_date ?? $endDate;
+        // Get all active records grouped by date and vendor
+        $records = POSDailyCashTransaction::select(
+            'date',
+            'vendor_id',
+            DB::raw("SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END) as total_sales"),
+            DB::raw("SUM(CASE WHEN type = 'debit' THEN amount ELSE 0 END) as total_expense"),
+            DB::raw('COUNT(id) as total_transactions')
+        )
+            ->where('is_delete', 0)
+            ->whereBetween('date', [$startDate, $endDate])
+            ->groupBy('date', 'vendor_id')
+            ->orderByDesc('date')
+            ->get();
+
+        // Group by date for Blade looping
+        $daily_cash_transactions = $records->groupBy('date');
+        // Group by date for Blade looping
+        $daily_cash_transactions = $records->groupBy('date');
+
+        return view('pos.cash_transactions', compact('daily_cash_transactions'));
+    }
+
     public function expense(Request $request)
     {
         $data = [];
-        $expenses = Expense::where('is_delete',0)->latest();
+        $expenses = Expense::where('is_delete', 0)->latest();
 
         $expenses = $expenses->paginate(30);
         $data['expenses'] = $expenses;
@@ -379,10 +433,11 @@ class POSController extends Controller
 
         $store_id = $request->store_id;
         $session_id = $request->session_id;
+        $date = $request->date??date('Y-m-d');
 
         // Find the specific open session
         $pos = POSDailyCash::where('store_id', $store_id)
-            ->where('session_id', $session_id)
+            ->where('date', $date)
             ->first();
 
         if (!$pos) {
@@ -699,6 +754,7 @@ class POSController extends Controller
             $order->freebees_id = $request->freebie_id ?? null;
             $order->freebees_price = 0;
             $order->invoice_no = self::generateNextInvoiceNo();
+            $order->created_by = Auth::guard('admin')->user()->id??'';
             $order->unique_id = Order::generateOrderId();
 
             $order->order_from = 'POS';
@@ -720,6 +776,8 @@ class POSController extends Controller
                 $orderItem->variant_id = $item['variant_id'] ?? 0;
                 $orderItem->qty = $item['qty'];
                 $orderItem->price = $item['price'];
+                $orderItem->discount = $item['discount']??0;
+                $orderItem->mrp = $item['mrp']??0;
                 $orderItem->net_price = $item['net_price'];
                 $orderItem->subscription_price = $item['subscription_price'] ?? null;
                 $orderItem->net_subscription_price = $item['net_subscription_price'] ?? null;
@@ -789,6 +847,9 @@ class POSController extends Controller
             $this->creditNcCash($order_data);
             CustomHelper::sendInvoiceWP($user, $order_data);
 
+            self::update_pos_daily_cash_transaction($order);
+
+
             return response()->json([
                 'success' => true,
                 'order_id' => $order->id,
@@ -803,7 +864,45 @@ class POSController extends Controller
                 'message' => $e->getMessage()
             ], 200);
         }
+    }
 
+    public function update_pos_daily_cash_transaction($order)
+    {
+        $date = date('Y-m-d', strtotime($order->created_at));
+        $vendorId = $order->vendor_id;
+        $paymentMethod = strtolower($order->payment_method);
+        $is_delete = $order->is_delete ?? 0;
+        if ($paymentMethod === 'cod') {
+            DB::table('pos_daily_cash_transaction')->updateOrInsert(
+                ['order_id' => $order->id], // condition (unique by order_id)
+                [
+                    'vendor_id' => $vendorId,
+                    'amount' => $order->total_amount,
+                    'date' => $date,
+                    'type' => 'credit',
+                    'status' => 1,
+                    'is_delete' => $is_delete,
+                    'updated_at' => now(),
+                ]
+            );
+        }
+        if ($paymentMethod === 'multipay') {
+            $payment_method_values = json_decode($order->payment_method_values);
+            if (!empty($payment_method_values->cash) && (float)$payment_method_values->cash > 0) {
+                DB::table('pos_daily_cash_transaction')->updateOrInsert(
+                    ['order_id' => $order->id],
+                    [
+                        'vendor_id' => $vendorId,
+                        'amount' => $payment_method_values->cash,
+                        'date' => $date,
+                        'type' => 'credit',
+                        'status' => 1,
+                        'is_delete' => $is_delete,
+                        'updated_at' => now(),
+                    ]
+                );
+            }
+        }
     }
 
 
@@ -949,9 +1048,9 @@ class POSController extends Controller
         // 2️⃣ Retrieve order
         $order = \App\Models\Order::find($request->order_id);
 
-        if(empty($order->pos_cancel_type)){
+        if (empty($order->pos_cancel_type)) {
             $refund_amount = 0;
-            $order_items = OrderItems::where('order_id', $request->order_id)->where('status','!=','CANCEL')->get();
+            $order_items = OrderItems::where('order_id', $request->order_id)->where('status', '!=', 'CANCEL')->get();
             if (!empty($order_items)) {
                 foreach ($order_items as $order_item) {
                     $qty = $order_item->qty ?? 0;
@@ -973,12 +1072,12 @@ class POSController extends Controller
             $order->is_refund = 1;
             $order->save();
 
-            $user = User::where('id',$order->userID)->first();
+            $user = User::where('id', $order->userID)->first();
             $new_credit_balance = $user->credit_balance + $refund_amount;
             $user->credit_balance = $new_credit_balance;
             $user->save();
             $dbArray = [];
-            $dbArray['userID'] = $order->userID??'';
+            $dbArray['userID'] = $order->userID ?? '';
             $dbArray['type'] = 'CREDIT';
             $dbArray['amount'] = (int)$refund_amount ?? 0;
             $dbArray['against_for'] = 'credit_balance';

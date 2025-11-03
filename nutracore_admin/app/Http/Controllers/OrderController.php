@@ -989,7 +989,8 @@ class OrderController extends Controller
                 DB::table('order_courier')->where('order_id', $id)->update(['envia_data'=>json_encode($shipment_data)]);
                 $error = $shipment_data->error ?? '';
                 if (empty($error)) {
-//                    $dbArray['trackingNumber'] =  $shipment_data['data'][0]['trackingNumber'] ??'';
+
+                    $dbArray['trackingNumber'] =  $shipment_data->data[0]->trackingNumber ??'';
                     $dbArray['envia_data'] = json_encode($shipment_data);
                 }
             }

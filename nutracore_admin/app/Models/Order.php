@@ -51,5 +51,10 @@ class Order extends Model{
         return $this->belongsTo(UserAddress::class, 'address_id', 'id');
     }
 
+    public function vendor()
+    {
+        return $this->belongsTo(Vendors::class, 'vendor_id');
+    }
+
 
 }

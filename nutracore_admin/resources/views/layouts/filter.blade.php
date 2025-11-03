@@ -14,6 +14,10 @@
     $pos_cancel_type = $_GET['pos_cancel_type'] ?? '';
     $order_from = $_GET['order_from'] ?? '';
     $status = $_GET['status'] ?? '';
+    $start_date = $_GET['start_date'] ?? '';
+    $end_date = $_GET['end_date'] ?? '';
+    $is_ban = $_GET['is_ban'] ?? '';
+    $low_stock = $_GET['low_stock'] ?? '';
 
     $current_url = url()->current();
 
@@ -87,6 +91,28 @@ $products = \App\Helpers\CustomHelper::getProducts();
                                 </select>
                             </div>
                         @endif
+                        @if(!empty($is_ban_show))
+                            <div class="col-md-4 mt-2">
+                                <label class="form-label">Is Ban</label>
+                                <select class="form-control" name="is_ban" id="is_ban">
+                                    <option value="" selected>Select</option>
+                                    <option value="1" {{$is_ban == "1" ?"selected":""}}>Yes</option>
+                                    <option value="0" {{$is_ban == "0" ?"selected":""}}>No</option>
+                                </select>
+                            </div>
+                        @endif
+                        @if(!empty($low_stock_show))
+                            <div class="col-md-4 mt-2">
+                                <label class="form-label">Low Stock</label>
+                                <select class="form-control" name="low_stock" id="low_stock">
+                                    <option value="" selected>Select</option>
+                                    @for($i=0;$i<=10;$i++)
+                                        <option value="{{$i}}" {{$i == $low_stock ?"selected":""}}>{{$i}}</option>
+                                    @endfor
+
+                                </select>
+                            </div>
+                        @endif
                         @if(!empty($categories_show))
                             <div class="col-md-4 mt-2">
                                 <label class="form-label">Category</label>
@@ -112,20 +138,20 @@ $products = \App\Helpers\CustomHelper::getProducts();
                                 </select>
                             </div>
                         @endif
-                            @if(!empty($order_status_show))
-                                <div class="col-md-4 mt-2">
-                                    <label class="form-label">Order Status :</label>
-                                    <select class="form-control" name="status">
-                                        <option value="">Select Status</option>
-                                        @foreach($order_status_arr as $stat => $val)
-                                            <option
-                                                value="{{ $stat }}" {{ $stat == $status ? 'selected' : '' }}>
-                                                {{ $val }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            @endif
+                        @if(!empty($order_status_show))
+                            <div class="col-md-4 mt-2">
+                                <label class="form-label">Order Status :</label>
+                                <select class="form-control" name="status">
+                                    <option value="">Select Status</option>
+                                    @foreach($order_status_arr as $stat => $val)
+                                        <option
+                                            value="{{ $stat }}" {{ $stat == $status ? 'selected' : '' }}>
+                                            {{ $val }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
                         @if(!empty($payment_method_show))
                             <div class="col-md-4 mt-2">
                                 <label class="form-label">Payment Method</label>
@@ -230,6 +256,18 @@ $products = \App\Helpers\CustomHelper::getProducts();
                             <div class="col-md-4 mt-2">
                                 <label class="form-label">Date</label>
                                 <input type="date" class="form-control" name="date" value="{{ $date }}">
+                            </div>
+                        @endif
+                        @if(!empty($start_date_show))
+                            <div class="col-md-4 mt-2">
+                                <label class="form-label">Start Date</label>
+                                <input type="date" class="form-control" name="start_date" value="{{ $start_date }}">
+                            </div>
+                        @endif
+                        @if(!empty($end_date_show))
+                            <div class="col-md-4 mt-2">
+                                <label class="form-label">End Date</label>
+                                <input type="date" class="form-control" name="end_date" value="{{ $end_date }}">
                             </div>
                         @endif
 

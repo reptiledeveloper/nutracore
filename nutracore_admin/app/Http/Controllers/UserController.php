@@ -45,6 +45,7 @@ class UserController extends Controller
     {
         $search = $request->search ?? '';
         $type = $request->type ?? '';
+        $is_ban = $request->is_ban ?? '';
         $users = User::where('is_delete', 0)->latest();
         if (!empty($search)) {
             $users->where('name', 'like', '%' . $search . '%');
@@ -52,6 +53,9 @@ class UserController extends Controller
         }
         if(!empty($type)){
             $users->where('type',$type);
+        }
+        if(isset($is_ban)){
+            $users->where('is_ban',$is_ban);
         }
         $users = $users->paginate(20);
         $data['users'] = $users;

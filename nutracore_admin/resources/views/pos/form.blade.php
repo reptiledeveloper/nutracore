@@ -35,9 +35,8 @@
         // Normal vendor/admin: use own vendor_id
         $vendor_id_selected = $admin->vendor_id ?? null;
     }
-    $pos_session_id = session('pos_session_id') ??'';
     $exist = \App\Models\POSDailyCash::where('store_id', $vendor_id_selected)
-        ->where('session_id', $pos_session_id)
+        ->where('date', date('Y-m-d'))
         ->first();
     $lastUpdate = $exist->updated_at ?? date('Y-m-d 00:00:00');
 
@@ -194,7 +193,6 @@
                 <form id="closePos" action="{{ route('pos.close') }}" method="POST">
                     @csrf
                     <input type="hidden" name="store_id" value="{{$vendor_id_selected}}">
-                    <input type="hidden" name="session_id" value="{{$pos_session_id}}">
                     <div class="modal-body">
                         <div class="row">
                             <h4>Opening Cash : ₹ {{$exist->today_balance??0}}</h4>
@@ -228,6 +226,70 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="addExpense" tabindex="-1" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Add Expense</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <form action="{{route('pos.add_expense')}}" method="post">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="row">
+                            <!-- Expense Amount -->
+                            <div class="col-md-12 mt-3">
+                                <label for="expense_amount" class="form-label">Amount</label>
+                                <div class="input-group">
+                                    <input type="number" step="0.01" name="amount" id="expense_amount" class="form-control" placeholder="Enter Amount" required>
+                                </div>
+                            </div>
+                            <!-- Expense Description -->
+                            <div class="col-md-12 mt-3">
+                                <label for="expense_description" class="form-label">Description</label>
+                                <textarea name="description" id="expense_description" class="form-control" rows="2" placeholder="Enter Description"></textarea>
+                            </div>
+
+                            <!-- Payment Method -->
+                            <div class="col-md-6 mt-3">
+                                <label for="payment_method" class="form-label">Payment Method</label>
+                                <select name="payment_method" id="payment_method1" class="form-control" required>
+                                    <option value="Cash">Cash</option>
+                                </select>
+                            </div>
+
+                            <!-- Store / Vendor -->
+                            <div class="col-md-6 mt-3">
+                                @if($admin->role_id == 0)
+                                    <label>Select Store</label>
+                                    <select name="store_id" class="form-control" id="store_id">
+                                        <option value="" selected>Select Store</option>
+                                        @foreach($vendors as $vendor)
+                                            <option
+                                                value="{{$vendor->id??""}}" {{$vendor_id_selected == $vendor->id ?"selected":""}}>{{$vendor->name??""}}</option>
+                                        @endforeach
+                                    </select>
+                                    <br>
+                                @else
+                                    <input type="hidden" name="store_id" id="vendor_id" value="{{$vendor_id_selected}}">
+                                    <br>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary" >Save</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
     <form class="card-body" action="#" id="posForm" method="post" accept-chartset="UTF-8"
           enctype="multipart/form-data" role="form">
         {{ csrf_field() }}
@@ -255,13 +317,17 @@
                         <div class="card-body">
                             <div class="d-md-flex gap-4 align-items-center">
                                 <div class="d-none d-md-flex">{{$page_heading}}</div>
-                                <?php if (request()->has('back_url')){
-                                    $back_url = request('back_url'); ?>
+
                                 <div class="dropdown ms-auto">
+
+
+                                    <?php if (request()->has('back_url')){
+                                        $back_url = request('back_url'); ?>
                                     <a href="{{ url($back_url) }}" class="btn btn-primary"><i
                                             class="fa fa-arrow-left"></i></a>
+                                    <?php } ?>
                                 </div>
-                                <?php } ?>
+
                             </div>
                         </div>
                     </div>
@@ -273,6 +339,8 @@
                                 <div class="d-none d-md-flex"></div>
 
                                 <div class="dropdown ms-auto">
+                                    <a data-bs-toggle="modal"
+                                       data-bs-target="#addExpense" class="btn btn-primary">Expense</a>
                                     <a href="#" data-bs-toggle="modal"
                                        data-bs-target="#closeStore" class="btn btn-danger"><i
                                             class="fa fa-times"></i></a>
@@ -1075,6 +1143,7 @@
             } else {
                 let availableQty = product.available_qty || 0;
                 // Product does not exist → add new row
+                console.log("product.selling_price.toFixed(2)"+product.selling_price.toFixed(2));
                 rowCount++;
                 let row = `<tr data-id="${rowCount}"
                     data-product-id="${product.id}"
@@ -1093,7 +1162,11 @@
             <td class="mrp">${product.mrp.toFixed(2)}</td>
             <td class="selling_price">${product.selling_price.toFixed(2)}</td>
             <td class="membership_price">${product.membership_price.toFixed(2)}</td>
-            <td class="discount">${product.discount.toFixed(2)}</td>
+             <td>
+                <input type="number" class="form-control form-control-sm text-end discount"
+                       value="${product.discount.toFixed(2)}" min="0" style="width:80px;" max=""
+       step="0.01">
+            </td>
             <td class="unit-cost">${product.selling_price.toFixed(2)}</td>
             <td class="net-amount">${product.selling_price.toFixed(2)}</td>
             <td><a class="btn btn-danger btn-sm remove-row">X</a></td>
@@ -1101,10 +1174,44 @@
                 $("#cartBody").append(row);
             }
 
-            // Recalculate totals
+
             recalc();
         }
 
+        $(document).on('input', '.discount', function () {
+            let $row = $(this).closest('tr');
+            recalcRow($row);
+            recalc();
+        });
+        function recalcRow($row) {
+            let qty = parseFloat($row.find('.qty').val()) || 1;
+
+            // Extract numeric price safely (remove ₹ or commas)
+            let priceText = $row.find('.mrp').text().replace(/[^0-9.]/g, '');
+            let price = parseFloat(priceText) || 0;
+            console.log("pricepriceprice"+price);
+
+            // Get discount from input
+            let discount = parseFloat($row.find('.discount').val()) || 0;
+            console.log("discountdiscountdiscountdiscount"+discount);
+            // ✅ Prevent discount from exceeding price
+            if (discount > price) {
+                discount = price;
+                $row.find('.discount').val(price.toFixed(2)); // reset input visually
+            }
+
+            // Calculate unit and total
+            let unit = price - discount;
+            console.log("unitunitunit"+unit);
+            let net = unit * qty;
+            console.log("netnetnetnetnet"+net);
+            // Update UI
+            $row.find('.unit-cost').text(unit.toFixed(2));
+            $row.find('.net-amount').text(net.toFixed(2));
+
+            // Optional console debugging
+            // console.log({ qty, price, discount, unit, net });
+        }
 
         // Quantity +/- handler
         $(document).on("click", ".qty-plus", function () {
@@ -1115,15 +1222,18 @@
 
             if (qty < availableQty) {
                 $input.val(qty + 1);
+                recalcRow($row);
                 recalc();
             } else {
                 alert(`Maximum available quantity is ${availableQty}`);
             }
         });
         $(document).on("click", ".qty-minus", function () {
-            let input = $(this).siblings(".qty");
-            let val = parseInt(input.val());
-            if (val > 1) input.val(val - 1);
+            let $row = $(this).closest('tr');
+            let $qty = $row.find('.qty');
+            let val = (parseInt($qty.val()) || 1);
+            if (val > 1) $qty.val(val - 1);
+            recalcRow($row);
             recalc();
         });
 
@@ -1141,6 +1251,7 @@
         // Recalculate totals
         // Recalculate totals
         function recalc() {
+
             let subtotal = 0; // initialize subtotal
             let total_qty = 0; // initialize subtotal
             let total_mrp = 0; // initialize subtotal
@@ -1154,10 +1265,10 @@
                 let mrp = parseFloat($(this).find(".mrp").text());
                 let selling_price = parseFloat($(this).find(".selling_price").text());
                 let membership_price = parseFloat($(this).find(".membership_price").text());
-                let discount = parseFloat($(this).find(".discount").text());
+                let discount = parseFloat($(this).find(".discount").val());
                 let addDisc = parseFloat($(this).find(".add-disc").val()) || 0;
 
-
+            console.log("selling_priceselling_priceselling_price"+selling_price);
                 let unitCost = 0;
                 let netAmount = 0;
                 let totalAmount = 0;
@@ -1165,10 +1276,12 @@
                     unitCost = membership_price;
                 } else {
                     unitCost = mrp - discount;
+                    // unitCost = selling_price - discount;
                     unitCost -= (unitCost * addDisc / 100);
                 }
                 netAmount = unitCost * qty;
                 totalAmount = mrp * qty;
+                // totalAmount = selling_price * qty;
                 $(this).find(".unit-cost").text(unitCost.toFixed(2));
                 $(this).find(".net-amount").text(netAmount.toFixed(2));
 
@@ -1574,6 +1687,8 @@
                     type: $(this).data('type'),
                     qty: $(this).find('.qty').val(),
                     price: $(this).find('.unit-cost').text(),
+                    mrp: $(this).find('.mrp').text(),
+                    discount: $(this).find('.discount').val(),
                     net_price: $(this).find('.net-amount').text(),
                     subscription_price: $(this).data('subscription-price') || null,
                     net_subscription_price: null
@@ -1818,7 +1933,6 @@
                 today_last_balance: physicalCash,
                 closing_note: $('input[name="closing_note"]').val(),
                 store_id: $('input[name="store_id"]').val() || null
-                session_id: $('input[name="session_id"]').val() || null
             };
 
             $.ajax({

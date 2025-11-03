@@ -21,7 +21,7 @@
                 </ol>
             </nav>
         </div>
-        @include('layouts.filter',['vendor_show'=>'vendor_show','search_show'=>'search_show'])
+        @include('layouts.filter',['vendor_show'=>'vendor_show','search_show'=>'search_show','low_stock_show'=>'low_stock_show'])
 
         <div class="modal fade" id="stockUpdate" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
             <div class="modal-dialog">

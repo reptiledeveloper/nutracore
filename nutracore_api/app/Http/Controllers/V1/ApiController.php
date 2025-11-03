@@ -168,17 +168,36 @@ class ApiController extends Controller
     {
         DB::table('new')->insert(['data' => json_encode($request->toArray())]);
         $response = $request->toArray();
-        if(!empty($response)){
-            $trackingNumber = $response->trackingNumber??'';
-            $status = $response->status??'';
-            $exist = DB::table('order_courier')->where('trackingNumber',$trackingNumber)->first();
-            if(!empty($exist)){
-                $order_id = $exist->order_id??'';
+        if (!empty($response)) {
+            $trackingNumber = $response->trackingNumber ?? '';
+            $status = $response->status ?? '';
+            $exist = DB::table('order_courier')->where('trackingNumber', $trackingNumber)->first();
+            if (!empty($exist)) {
+                $order_id = $exist->order_id ?? '';
                 $order = Order::find($order_id);
-                if(!empty($order)){
-                    if($status == 'Picked Up'){
-                        $order->status = 'CONFIRM';
+                $orderstatus = '';
+                if (!empty($order)) {
+                    if ($status == 'Picked Up') {
+                        $orderstatus = 'CONFIRM';
                     }
+                    if ($status == 'Shipped') {
+                        $orderstatus = 'CONFIRM';
+                    }
+                    if ($status == 'Delivered') {
+                        $orderstatus = 'DELIVERED';
+                    }
+                    if ($status == 'Canceled') {
+                        $orderstatus = 'CANCEL';
+                    }
+                    if ($status == 'Out for Delivery') {
+                        $orderstatus = 'OUT_FOR_DELIVERY';
+                    }
+                    if (!empty($orderstatus)) {
+                        $order->status = $orderstatus;
+                        $order->save();
+                        OrderItems::where('order_id', $order->id)->where('status', '!=', 'CANCEL')->update(['status' => $orderstatus]);
+                    }
+
                 }
             }
         }
@@ -2409,7 +2428,7 @@ class ApiController extends Controller
             $seller = self::getNearestSeller($latitude, $longitude, 2, 40);
 
             if (!empty($seller)) {
-               return true;
+                return true;
             }
         }
         return false;
@@ -3415,7 +3434,7 @@ class ApiController extends Controller
             $expressSlot = null;
 
             $check = self::checkExpressEligible($user->id);
-            if($check){
+            if ($check) {
                 $expressSlot = DB::table('delivery_charges')
                     ->where('type', 'express')
                     ->where('status', 1)
@@ -3441,6 +3460,7 @@ class ApiController extends Controller
         }
 
         $subscription_plans_new = [];
+
         if (CustomHelper::checkSubscription($user) == 0) {
             $subscription_plans_new = self::getMembershipPlans($user->id);
         }
@@ -3476,7 +3496,7 @@ class ApiController extends Controller
         }
         $user = User::where('id', $user_id)->first();
         $subscription_plansArr = [];
-        if (CustomHelper::checkSubscription($user) == 0) {
+        if (CustomHelper::checkSubscription($user) == 0 && $user->is_ban == 0) {
             $subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->orderBy('duration', "ASC")->get();
             if (!empty($subscription_plans)) {
                 foreach ($subscription_plans as $subs_plan) {
@@ -3492,7 +3512,7 @@ class ApiController extends Controller
             }
         }
 
-      return $subscription_plansArr;
+        return $subscription_plansArr;
     }
 
     public function user_address(Request $request): \Illuminate\Http\JsonResponse
@@ -4113,8 +4133,6 @@ class ApiController extends Controller
             $dbArray['is_subscribe'] = CustomHelper::checkSubscription($user_data);
 
 
-
-
             $dbArray['status'] = 'PLACED';
             $dbArray['order_from'] = 'APP';
             if ($payment_method == 'COD') {
@@ -4199,7 +4217,7 @@ class ApiController extends Controller
             }
         }
 
-        if($payment_method == 'COD'){
+        if ($payment_method == 'COD') {
             self::updateStock($order_id);
         }
         self::updateOrderStatus($order_id, "PLACED");

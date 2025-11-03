@@ -63,6 +63,7 @@ return [
                 'stock_transfer_approval',
                 'stock_verify',
                 'pos',
+                'consultation',
 
 
         ],
@@ -129,6 +130,7 @@ return [
                 'collections' => 'Collections',
                 'stock_transfer_approval' => 'Stock Transfer Approval',
                 'stock_verify' => 'Stock Verify',
+                'consultation' => 'Consultation',
                 'pos' => 'POS',
         ],
 

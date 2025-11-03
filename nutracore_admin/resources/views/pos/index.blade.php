@@ -30,6 +30,7 @@
                             <div class="d-none d-md-flex">All POS Order List</div>
 
                             <div class="dropdown ms-auto">
+
                                 <a href="{{ route('pos.add', ['back_url' => $BackUrl]) }}"
                                    class="btn btn-primary"><i class="fa fa-plus"></i></a>
                             </div>

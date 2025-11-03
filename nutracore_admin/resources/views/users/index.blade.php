@@ -53,7 +53,7 @@
             </div>
         </div>
 
-        @include('layouts.filter',['search_show'=>'search_show','register_by_show'=>'register_by_show'])
+        @include('layouts.filter',['search_show'=>'search_show','register_by_show'=>'register_by_show','is_ban_show'=>'is_ban_show'])
         <div class="row">
             <div class="col-md-12">
                 <div class="card">
@@ -91,6 +91,7 @@
                             <th>Total Spent</th>
                             <th>Total Orders</th>
                             <th>Join On</th>
+                            <th>Is Ban</th>
                             <th class="text-end">Actions</th>
                         </tr>
                         </thead>
@@ -120,6 +121,7 @@
                             <td>{{$customer_subs_data['total_spent'] ??''}}</td>
                             <td>{{$customer_subs_data['total_order'] ??''}}</td>
                             <td>{{date('d M Y',strtotime($user->created_at))??''}}</td>
+                            <td>{{$user->is_ban == 0?"No":'Yes'}}</td>
                             <td class="text-end">
                                 <div class="d-flex">
                                     <div class="dropdown ms-auto">

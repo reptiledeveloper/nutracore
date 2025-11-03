@@ -169,6 +169,7 @@ class StockController extends Controller
         $sellerId = $request->input('vendor_id');
         $search = $request->input('search');
         $productId = $request->input('product_id');
+        $low_stock = $request->input('low_stock');
 
         // 1️⃣ Products WITH variants
         $variantStocks = DB::table('products as p')
@@ -248,13 +249,17 @@ class StockController extends Controller
             $variantStocks->where('s.id', $sellerId);
             // for noVariantStocks, seller is always 0/N/A
         }
-
+        // ⚡️ Apply low stock filter (HAVING)
+        if (isset($low_stock)) {
+            $variantStocks->havingRaw('COALESCE(SUM(sl.quantity), 0) = ?', [$low_stock]);
+            $noVariantStocks->havingRaw('COALESCE(SUM(sl.quantity), 0) = ?', [$low_stock]);
+        }
         // Merge results
         $stocks = $variantStocks->unionAll($noVariantStocks)
             ->orderBy('product_name')
             ->paginate(500);
 
-        $sellers = CustomHelper::getVendors(); // For filter dropdown
+        $sellers = CustomHelper::getVendors();
 
         return view('stocks.closing_stockold', compact('stocks', 'sellers'));
     }

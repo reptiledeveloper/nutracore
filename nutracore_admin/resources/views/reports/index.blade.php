@@ -141,6 +141,41 @@
 
             </div>
         </div>
+
+
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-md-flex gap-4 align-items-center">
+                            <div class="d-none d-md-flex">Cash Management & Expenses Export</div>
+
+                            <div class="dropdown ms-auto">
+
+                            </div>
+                        </div>
+                        <form action="{{route('reports.cash_management')}}" method="">
+                            <div class="row mt-3">
+                                <div class="col-md-4">
+                                    <label>Start Date</label>
+                                    <input type="date" name="start_date" class="form-control" value="">
+                                </div>
+                                <div class="col-md-4">
+                                    <label>End Date</label>
+                                    <input type="date" name="end_date" class="form-control" value="">
+                                </div>
+                                <div class="col-md-4" style="margin-top:20px">
+                                    <button class="btn btn-primary" type="submit">Download</button>
+                                </div>
+
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </div>
 
 @endsection

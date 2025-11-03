@@ -949,9 +949,32 @@ $current_route = Route::currentRouteName();
                         ">Cash Management</a>
                         </li>
                         <li>
+                            <a class="{{$current_route == 'pos.cash_transactions' ? "active":""}}" href="{{route('pos.cash_transactions')}}
+                        ">Cash Transactions</a>
+                        </li>
+                        <li>
                             <a class="{{$current_route == 'pos.expense' ? "active":""}}" href="{{route('pos.expense')}}
                         ">Expense</a>
                         </li>
+                    </ul>
+                </li>
+            @endif
+
+            @if(\App\Helpers\CustomHelper::isAllowedSection('consultation','list'))
+
+                <li>
+                    <a href="#">
+                    <span class="nav-link-icon">
+                        <i class="bi bi-map"></i>
+                    </span>
+                        <span>Consultation</span>
+                    </a>
+                    <ul>
+                        <li>
+                            <a class="{{$current_route == 'consultation.enquiry' ? "active":""}}" href="{{route('consultation.enquiry', ['back_url' => $BackUrl])}}
+                      ">Enquiry</a>
+                        </li>
+
                     </ul>
                 </li>
             @endif
