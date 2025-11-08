@@ -20,7 +20,7 @@
         $delivery_agents = CustomHelper::getDeliveryAgents();
         $vendors = CustomHelper::getVendors();
         $products = [];
-
+$image = \App\Helpers\CustomHelper::getImageUrl('users', $user->image ?? '');
     @endphp
 
     <div class="content">
@@ -54,6 +54,10 @@
                 </div>
                 @include('snippets.errors')
                 @include('snippets.flash')
+
+
+
+
                 <div class="card mt-3">
                     <div class="card-body pt-0">
                         <form class="card-body" action="" method="get" accept-chartset="UTF-8"
@@ -76,6 +80,26 @@
 
 
                @if(!empty($orders))
+
+                    <div class="card mt-5">
+                        <div class="profile-cover bg-image mb-4"
+                             style="height: 0%">
+                            <div
+                                class="container d-flex align-items-center justify-content-center h-100 flex-column flex-md-row text-center text-md-start">
+                                <div class="avatar avatar-xl me-3">
+                                    <img src="{{$image}}" class="rounded-circle img-fluid" alt="...">
+                                </div>
+                                <div class="my-4 my-md-0">
+                                    <h3 class="mb-1">{{$user->name??'Guest User'}}</h3>
+                                    <h5 class="mb-1">{{$user->phone??''}}</h5>
+                                    <h5 class="mb-1">Credit Balance : ₹ {{$user->credit_balance??0}}</h5>
+                                    <h5 class="mb-1">NC Cash : ₹ {{$user->cashback_wallet??0}}</h5>
+                                    <h5 class="mb-1">Ban : {{$user->is_ban == 1?"Yes":"No"}}</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row mt-3">
                         <div class="card widget">
                             <div class="card-body">

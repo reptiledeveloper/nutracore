@@ -95,7 +95,7 @@ class POSController extends Controller
             [
                 'vendor_id' => $request->store_id ?? 0,
                 'amount' => $request->amount ?? 0,
-                'remarks' =>  $request->description??'',
+                'remarks' => $request->description ?? '',
                 'date' => $date,
                 'type' => 'debit',
                 'status' => 1,
@@ -138,6 +138,7 @@ class POSController extends Controller
         $orderID = $request->orderID ?? '';
         $date = $request->date ?? '';
         $agent_id = $request->agent_id ?? '';
+        $pos_cancel_type = $request->pos_cancel_type ?? '';
         $orders = Order::where('is_delete', 0)->where('order_from', 'POS')->orderBy('id', 'desc');
         if (!empty($order_status)) {
             $orders->where('status', $order_status);
@@ -150,6 +151,9 @@ class POSController extends Controller
         }
         if (!empty($agent_id)) {
             $orders->where('agent_id', $agent_id);
+        }
+        if (!empty($pos_cancel_type)) {
+            $orders->where('pos_cancel_type', $pos_cancel_type);
         }
         if (!empty($date)) {
             //            $orders->whereDate('delivery_date',$date);
@@ -261,7 +265,7 @@ class POSController extends Controller
         $orders = [];
         $invoice_no = $request->invoice_no ?? '';
         if (!empty($invoice_no)) {
-            $orders = Order::where('invoice_no', $invoice_no)->first();
+            $orders = Order::where('invoice_no', $invoice_no)->orWhere('unique_id', $invoice_no)->where('order_from', 'POS')->where('is_delete', 0)->first();
         }
 
 
@@ -426,14 +430,14 @@ class POSController extends Controller
             'today_last_balance' => 'required|numeric',
             'store_id' => 'required',
             'closing_note' => 'required',
-            'session_id' => 'required',
+//            'session_id' => 'required',
         ], [
             'today_last_balance.required' => 'Please enter the physical drawer amount.',
         ]);
 
         $store_id = $request->store_id;
         $session_id = $request->session_id;
-        $date = $request->date??date('Y-m-d');
+        $date = $request->date ?? date('Y-m-d');
 
         // Find the specific open session
         $pos = POSDailyCash::where('store_id', $store_id)
@@ -444,7 +448,7 @@ class POSController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'POS session not found.',
-            ], 404);
+            ], 200);
         }
 
         $pos->today_last_balance = $request->today_last_balance;
@@ -452,7 +456,10 @@ class POSController extends Controller
         $pos->updated_by = Auth::guard('admin')->user()->id ?? '';
         $pos->save();
         session(['store_id' => "", 'pos_session_id' => ""]);
-        return back();
+        return response()->json([
+            'status' => true,
+            'message' => 'POS Closed Successfully',
+        ], 200);
     }
 
 
@@ -754,7 +761,7 @@ class POSController extends Controller
             $order->freebees_id = $request->freebie_id ?? null;
             $order->freebees_price = 0;
             $order->invoice_no = self::generateNextInvoiceNo();
-            $order->created_by = Auth::guard('admin')->user()->id??'';
+            $order->created_by = Auth::guard('admin')->user()->id ?? '';
             $order->unique_id = Order::generateOrderId();
 
             $order->order_from = 'POS';
@@ -765,6 +772,9 @@ class POSController extends Controller
             $order->flat_discount_percent = $request->flat_discount_percent ?? 0;
             $order->order_type = $request->order_type ?? '';
             $order->payment_method_values = $request->payment_method_values ?? '';
+            $order->is_applied_credit_balance = $request->is_applied_credit_balance ?? 0;
+            $order->credit_balance = $request->credit_balance ?? '';
+
             $order->is_subscribe = CustomHelper::checkSubscription($user);
             $order->save();
 
@@ -776,8 +786,8 @@ class POSController extends Controller
                 $orderItem->variant_id = $item['variant_id'] ?? 0;
                 $orderItem->qty = $item['qty'];
                 $orderItem->price = $item['price'];
-                $orderItem->discount = $item['discount']??0;
-                $orderItem->mrp = $item['mrp']??0;
+                $orderItem->discount = $item['discount'] ?? 0;
+                $orderItem->mrp = $item['mrp'] ?? 0;
                 $orderItem->net_price = $item['net_price'];
                 $orderItem->subscription_price = $item['subscription_price'] ?? null;
                 $orderItem->net_subscription_price = $item['net_subscription_price'] ?? null;
@@ -1057,17 +1067,34 @@ class POSController extends Controller
                     $price = $order_item->price ?? 0;
                     $subscription_price = $order_item->subscription_price ?? 0;
                     if ($order->is_subscribe == 1) {
+                        $subscription_price = $subscription_price - (int)$order_item->discount;
                         $refund_amount += ($qty * $subscription_price);
+
                     } else {
                         $refund_amount += ($qty * $price);
                     }
                 }
+                $refund_amount = (int)$order->total_amount;
             }
+
             // 3️⃣ Update order fields
+            $status = '';
+            if ($request->pos_cancel_type == 'return') {
+                $status = 'RETURN';
+            }
+            if ($request->pos_cancel_type == 'exchange') {
+                $status = 'EXCHANGE';
+            }
             $order->pos_cancel_type = $request->pos_cancel_type;
             $order->pos_cancel_remarks = $request->pos_cancel_remarks;
+            if (!empty($status)) {
+                $order->status = $status;
+                OrderItems::where('order_id', $request->order_id)->where('status', '!=', 'CANCEL')->update(['status' => $status]);
+            }
+
+
             $order->pos_cancelled_at = now();
-            $order->status = 'CANCEL';
+//            $order->status = 'CANCEL';
             $order->refund_amount = $refund_amount;
             $order->is_refund = 1;
             $order->save();

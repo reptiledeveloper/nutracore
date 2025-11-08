@@ -543,6 +543,11 @@ class OrderController extends Controller
 
             CustomHelper::orderDelivered($user->phone ?? '', $order_id);
             CustomHelper::sendInvoiceWP($user, $order);
+            $event = 'Order Delivered';
+            $traits = [
+
+            ];
+            CustomHelper::trackEvent($user->id, $event, $traits);
         }
         if ($status == 'CANCEL') {
             $user = User::where('id', $order->userID)->first();
@@ -621,6 +626,11 @@ class OrderController extends Controller
         $dbArray1['paid_by'] = 'order';
         $dbArray1['orderID'] = 0;
         CustomHelper::SaveTransaction($dbArray1);
+        $event = 'NC Cash Earned';
+        $traits = [
+            "nc_cash_earned"=>$amount
+        ];
+        CustomHelper::trackEvent($user->id, $event, $traits);
     }
 
 
@@ -972,10 +982,10 @@ class OrderController extends Controller
         $courier = $request->courier ?? '';
         $price = $request->price ?? '';
         $carrier = $request->carrier ?? '';
+
         $delivery_date = $request->delivery_date ?? '';
         $order_courier = DB::table('order_courier')->where('order_id', $id)->first();
         if (!empty($order_courier)) {
-
             $orders = Order::find($id);
             $dbArray = [];
             $dbArray['service'] = $service;
@@ -983,6 +993,7 @@ class OrderController extends Controller
             $dbArray['delivery_date'] = $delivery_date;
             $dbArray['courier'] = $courier;
             $dbArray['carrier'] = $carrier;
+
             ////Book Shipment
             $shipment_data = CustomHelper::bookShipmentEnvia($orders, $carrier, $service);
             if (!empty($shipment_data)) {

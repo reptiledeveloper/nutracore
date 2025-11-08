@@ -161,10 +161,7 @@
 <div class="paper">
     <table class="noborder-table" style="width:100%; border-collapse:collapse; font-size:13px; margin-bottom:10px;">
         <tr>
-            <!-- Left Side: Logo + Company Info + Bill To / Ship To -->
             <td style="width:60%; vertical-align:top;">
-
-                <!-- Logo + Company Info -->
                 <table class="noborder-table" style="width:100%; border-collapse:collapse; margin-bottom:10px;">
                     <tr>
                         <td style="width:80px;">
@@ -229,7 +226,7 @@
             <th>#</th>
             <th> DESCRIPTION OF GOODS</th>
             <th>Qty</th>
-            <th>MRP</th>
+            <th>MRP/Selling Price</th>
             <th>TAXABLE</th>
             <th>DISCOUNT</th>
             <th> TAX</th>
@@ -271,7 +268,9 @@
                  $amountIncludingTax;
                  $taxableAmount = $amountIncludingTax / (1 + $taxRate/100);
                  $taxableAmount = round($taxableAmount);
-                 $tax_amount = (int)$value->price -(int) $taxableAmount;
+                 $taxableAmount = (int)$taxableAmount * (int)$value->qty;
+                 $tot_price = (int)$value->price * (int)$value->qty;
+                 $tax_amount = (int)$tot_price -(int) $taxableAmount;
              }
 
              if(!empty($varients)){
@@ -301,7 +300,8 @@
                 <td>{{ $product->name }}<br><small>{{ $varients->unit ??'' }} {{ $varients->unit_value ??'' }}</small>
                 </td>
                 <td class="qty">{{ $value->qty ??'' }}</td>
-                <td class="">₹ {{ $varients->mrp ??0}}</td>
+                <td class="">₹ {{ (int)$varients->mrp * (int)$value->qty ??0}} /
+                    ₹ {{ (int)$value->price * (int)$value->qty ??0}}</td>
                 <td class="">₹ {{ $taxableAmount ??''}}</td>
                 <td class="">₹ {{$discount??0 }}</td>
                 <td class="">{{$product->tax??0 }} %</td>
@@ -362,7 +362,7 @@
 
                     <strong>Invoice Summary</strong>
                     <div>Sub Total: ₹{{ $sub_total }}</div>
-                    <div>Discount: -₹{{ $total_discount }}</div>
+                    <div>Discount: ₹{{ $total_discount }}</div>
                     <div>Taxable Value: ₹{{ $taxable_value }}</div>
                     <div>NC Cash: ₹{{ $orders->applied_cashback??0 }}</div>
                     <div>Flat Discount({{$orders->flat_discount_percent??0}} %):

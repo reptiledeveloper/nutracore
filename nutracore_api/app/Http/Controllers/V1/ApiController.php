@@ -124,6 +124,23 @@ class ApiController extends Controller
                 Transaction::insert($dbArray);
             }
         }
+
+        CustomHelper::trackUser($exist);
+        if ($register == 1) {
+            $user_id = $exist->id ?? '';
+            $event = 'AppInstalled';
+            $traits = [
+                "phone" => $exist->phone
+            ];
+            CustomHelper::trackEvent($user_id, $event, $traits);
+
+            $event = 'UserSignedUp';
+            $traits = [
+                "phone" => $exist->phone
+            ];
+            CustomHelper::trackEvent($user_id, $event, $traits);
+        }
+
         $response = $this->send_message($phone, $otp);
 
 
@@ -185,9 +202,19 @@ class ApiController extends Controller
                     }
                     if ($status == 'Delivered') {
                         $orderstatus = 'DELIVERED';
+                        $event = 'Order Delivered';
+                        $traits = [
+
+                        ];
+                        CustomHelper::trackEvent($order->userID, $event, $traits);
                     }
                     if ($status == 'Canceled') {
                         $orderstatus = 'CANCEL';
+                        $event = 'Order Canceled';
+                        $traits = [
+
+                        ];
+                        CustomHelper::trackEvent($order->userID, $event, $traits);
                     }
                     if ($status == 'Out for Delivery') {
                         $orderstatus = 'OUT_FOR_DELIVERY';
@@ -699,6 +726,8 @@ class ApiController extends Controller
 
 
         $userData->is_open_suppliment_form = $is_open_suppliment_form;
+
+        CustomHelper::trackUser($userData);
         return response()->json([
             'result' => true,
             'message' => 'User Profile Updated Successfully',
@@ -1137,6 +1166,12 @@ class ApiController extends Controller
                                                 $data['paid_by'] = 'user';
                                                 $data['orderID'] = 0;
                                                 CustomHelper::saveTransaction($data);
+
+                                                $event = 'NutraPass Activated';
+                                                $traits = [
+
+                                                ];
+                                                CustomHelper::trackEvent($exist->user_id, $event, $traits);
                                             }
                                         }
                                     }
@@ -1257,6 +1292,12 @@ class ApiController extends Controller
                                             self::updateNCCashAfterOrder($order_id);
                                             self::sendOrderNotification($exist->order_id ?? '');
                                             self::updateStock($order_id);
+
+                                            $event = 'Place Order';
+                                            $traits = [
+
+                                            ];
+                                            CustomHelper::trackEvent($user->id, $event, $traits);
                                         }
                                     }
                                 }
@@ -3153,7 +3194,14 @@ class ApiController extends Controller
                 }
             }
         }
-
+        $user_id = $user->id;
+        $product = Product::where('id', $product_id)->first();
+        $event = 'Add to Cart';
+        $traits = [
+            "product_name" => $product->name ?? '',
+            "quantity" => $qty ?? '',
+        ];
+        CustomHelper::trackEvent($user_id, $event, $traits);
         return response()->json([
             'result' => true,
             'message' => "Successfully",
@@ -3773,7 +3821,7 @@ class ApiController extends Controller
             if (empty($address->landmark) || empty($address->pincode) || empty($address->latitude) || empty($address->longitude)) {
                 return response()->json([
                     'result' => false,
-                    'message' => 'Address Required',
+                    'message' => 'Please Add a New Address ! This is  Imcomplete Address',
                 ], 200);
             }
         } else {
@@ -3840,6 +3888,11 @@ class ApiController extends Controller
                             Cart::where('user_id', $user->id)->delete();
                         }
                         CustomHelper::sendPlaceNewOrder($user->phone ?? '', $order_id);
+                        $event = 'Place Order';
+                        $traits = [
+
+                        ];
+                        CustomHelper::trackEvent($user->id, $event, $traits);
                     }
                     if ($payment_method == 'ONLINE' || $payment_method == 'online') {
                         $wallet = $user->wallet ?? 0;
@@ -3864,6 +3917,11 @@ class ApiController extends Controller
                             self::sendOrderNotification($order_id);
                             Cart::where('user_id', $user->id)->delete();
                             CustomHelper::sendPlaceNewOrder($user->phone ?? '', $order_id);
+                            $event = 'Place Order';
+                            $traits = [
+
+                            ];
+                            CustomHelper::trackEvent($user->id, $event, $traits);
                         }
                     }
                     if ($payment_method == 'ONLINE' || $payment_method == 'online') {

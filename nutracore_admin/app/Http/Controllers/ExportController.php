@@ -180,8 +180,12 @@ class ExportController extends Controller
 //        $orders = Order::with(['order_items.product', 'userAddress'])
 //            ->whereBetween('created_at', [$start_date, $end_date])
 //            ->get();
-        $orders = \App\Models\Order::where('is_delete', 0)->where('status', 'DELIVERED')->where('is_delete', 0)
-            ->whereBetween('created_at', [$start_date, $end_date])
+        $orders = \App\Models\Order::where('is_delete', 0)
+            ->where('status', 'DELIVERED')
+            ->whereBetween('created_at', [
+                $start_date . ' 00:00:00',
+                $end_date . ' 23:59:59'
+            ])
             ->get();
 
         $exportArr = [];
@@ -192,13 +196,15 @@ class ExportController extends Controller
 
             $address = $order->userAddress ?? null;
             $buyerState = $address->state ?? null; // State code from user_address (e.g., TG, MH)
-
+            if($order->order_from == 'POS'){
+                $buyerState = $unitState;
+            }
             foreach ($order->items as $item) {
                 $product = $item->product;
                 $variant = $item->variant ?? null;
                 // 💡 Skip if product not found
                 if (!$product) continue;
-                $place_of_supply = ($address->state ?? '') . ', ' . ($address->pincode ?? '');
+                $place_of_supply = $address->state ?? '';
                 if ($order->order_from == "POS") {
                     $place_of_supply = "TG";
 
@@ -206,6 +212,7 @@ class ExportController extends Controller
                 $excelArr = [];
                 $excelArr['S.No.'] = $sr++;
                 $excelArr['Order Date'] = $order->created_at->format('d-M-Y');
+                $excelArr['Store Name'] = CustomHelper::getVendorName($order->vendor_id) ??'';
                 $excelArr['Invoice No.'] = $order->invoice_no ?? '';
                 $excelArr['Order No.'] = $order->unique_id ?? '';
                 $excelArr['Channel (Store/App/Web)'] = ucfirst($order->order_from ?? '');
@@ -213,54 +220,58 @@ class ExportController extends Controller
                 $excelArr['Customer Type (B2C/B2B)'] = 'B2C';
                 $excelArr['Customer GSTIN'] = $order->gstin ?? '';
                 $excelArr['Place of Supply (State, Code)'] = $place_of_supply;
-                $excelArr['HSN Code'] = $variant->variant_sku ?? $product->sku ?? '';
+                $excelArr['HSN Code'] = $product->hsn ?? '';
                 $excelArr['SKU / Product Name'] = $product->name ?? '';
                 $excelArr['Qty'] = $item->qty ?? 0;
                 $excelArr['UOM'] = $variant->unit ?? '';
                 $excelArr['MRP (₹)'] = $item->price ?? 0;
                 $excelArr['Selling Price / Unit (₹)'] = round(($item->net_price / max($item->qty, 1)), 2);
-                $excelArr['Gross Amount (₹)'] = $item->net_price ?? 0;
-                $excelArr['Discount (₹)'] = $item->discount ?? 0;
-                $excelArr['Shipping (₹)'] = $order->shipping_amount ?? 0;
 
-                // 🧮 TAX from Product Table (assume product->tax is total GST%)
+                $grossAmount = (float)($item->net_price ?? 0);
+                $discount = (float)($item->discount ?? 0);
+                $shipping = (float)($order->shipping_amount ?? 0);
+//                $finalAmount = max(($grossAmount - $discount), 0);
+                $finalAmount = $grossAmount;
                 $igst_rate = (float)($product->tax ?? 0);
                 $cgst_rate = $igst_rate / 2;
                 $sgst_rate = $igst_rate / 2;
 
-                // 🧾 Determine Buyer State vs Unit State
-                $taxableValue = max(($item->net_price - ($item->discount ?? 0)), 0);
-
+                $taxableValue = round($finalAmount / (1 + ($igst_rate / 100)), 2);
+                $taxAmount = round($finalAmount - $taxableValue, 2);
+//                $grossAmount = max(($item->mrp - ($item->discount ?? 0)), 0);
                 if ($buyerState && strcasecmp($buyerState, $unitState) === 0) {
-                    // ✅ Intra-State: CGST + SGST
-                    $cgst = round(($taxableValue * $cgst_rate) / 100, 2);
-                    $sgst = round(($taxableValue * $sgst_rate) / 100, 2);
-                    $igst = 0;
-                } else {
                     // 🌐 Inter-State: IGST only
-                    $igst = round(($taxableValue * $igst_rate) / 100, 2);
+                    $cgst = round($taxAmount / 2, 2);
+                    $sgst = round($taxAmount / 2, 2);
+                    $igst = 0;
+                    $igst_rate = '';
+
+                } else {
+                    $igst = $taxAmount;
                     $cgst = 0;
                     $sgst = 0;
+                    $cgst_rate = '';
+                    $sgst_rate = '';
                 }
-
-                $totalTax = $cgst + $sgst + $igst;
-                $invoiceValue = $taxableValue + $totalTax;
-
-                // 🧾 Final Report Columns
-                $excelArr['Taxable Value (₹)'] = $taxableValue;
+                $invoiceValue = $finalAmount;
+                $excelArr['Gross Amount (₹)'] = $invoiceValue;
+                $excelArr['Discount (₹)'] = $discount;
+                $excelArr['Shipping (₹)'] = $shipping;
+                $excelArr['Taxable Value (₹)'] = $taxableValue - $taxAmount ;
                 $excelArr['CGST %'] = $cgst_rate;
                 $excelArr['CGST (₹)'] = $cgst;
                 $excelArr['SGST %'] = $sgst_rate;
                 $excelArr['SGST (₹)'] = $sgst;
                 $excelArr['IGST %'] = $igst_rate;
                 $excelArr['IGST (₹)'] = $igst;
-                $excelArr['Total Tax (₹)'] = $totalTax;
+                $excelArr['Total Tax (₹)'] = $taxAmount;
                 $excelArr['Invoice Value (₹)'] = $invoiceValue;
 
                 $excelArr['Payment Mode'] = ucfirst($order->payment_method ?? '');
                 $excelArr['Transaction ID / UTR'] = $order->transaction_id ?? '';
                 $excelArr['Returns / Exchange Ref'] = $item->return_reasons ?? '';
                 $excelArr['Remarks'] = $item->admin_remarks ?? '';
+                $excelArr['Order Status'] = $order->status ?? '';
 
                 $exportArr[] = $excelArr;
             }

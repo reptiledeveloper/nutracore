@@ -4326,6 +4326,8 @@ class CustomHelper
         $response = curl_exec($curl);
 
         curl_close($curl);
+
+
         return json_decode($response);
 
     }
@@ -4357,6 +4359,38 @@ class CustomHelper
         }
 
         return $closing;
+    }
+
+    public static function trackEvent($user_id,$event,$traits)
+    {
+
+        $data = [
+            'userId' => $user_id,
+            'event' => $event,
+            'traits' => $traits
+        ];
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://api.interakt.ai/v1/public/track/events/',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => json_encode($data),
+            CURLOPT_HTTPHEADER => array(
+                'Authorization: Basic UHRmVkdXamE3NVYzQmFRYVhaZjVPaW1TbEk0QllKbUx3eTc1WTlEeFp6VTo=',
+                'Content-Type: application/json'
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        return $response;
+
     }
 
     /* End of helper class */

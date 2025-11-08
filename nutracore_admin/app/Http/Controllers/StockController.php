@@ -440,12 +440,10 @@ class StockController extends Controller
         $qty = $request->qty ?? '';
         $updated_qty = $request->updated_qty ?? '';
         $from_location = $request->from_location ?? '';
-//        echo "<pre>";
-//        print_r($request->toArray());
-//        die;
+
         if (!empty($sku)) {
             foreach ($sku as $key => $value) {
-                if (!empty($product_id[$key]) && !empty($batch_id[$key]) && !empty($updated_qty[$key]) && !empty($from_location)) {
+                if (!empty($product_id[$key]) && !empty($batch_id[$key]) && isset($updated_qty[$key]) && !empty($from_location)) {
                     $stocks = Stock::where('id', $batch_id[$key])->where('is_delete', 0)->first();
                     if (!empty($stocks)) {
                         $exist = StockBatch::where('stock_id', $batch_id[$key])->where('store_id', $from_location)->where('product_id', $product_id[$key])->first();

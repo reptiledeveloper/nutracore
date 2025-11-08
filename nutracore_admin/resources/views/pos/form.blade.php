@@ -1292,6 +1292,16 @@
             // var additionalCharge = parseFloat($('#addtitional_charge').val()) || 0;
             // subtotal += additionalCharge;
             // Display subtotal
+
+            ////////////
+            var is_applied_credit_balance = $('#is_applied_credit_balance').val();
+            var credit_balance = $('#credit_balance').val();
+            if(is_applied_credit_balance === 1){
+                console.log("credit_balance"+credit_balance);
+                subtotal-=parseInt(credit_balance);
+            }
+            console.log("subtotalCallll"+subtotal);
+
             $("#subtotal_html").html(subtotal.toFixed(2));
             $("#subtotal").val(subtotal.toFixed(2));
             $("#total_qty").html(total_qty);
@@ -1326,6 +1336,17 @@
             var flatDiscountValue = (parseInt(total) * parseInt(flatDiscount)) / 100;
 
             total = total - parseInt(flatDiscountValue);
+
+            var is_applied_credit_balance = $('#is_applied_credit_balance').val();
+            var credit_balance = $('#credit_balance').val();
+            console.log(is_applied_credit_balance);
+            if(is_applied_credit_balance === 1 || is_applied_credit_balance === "1"){
+                console.log("credit_balance"+credit_balance);
+                total-=parseInt(credit_balance);
+            }
+            console.log("subtotalCallll"+total);
+
+
             $('#flat_discount_percent').val(flatDiscount);
             $('#flatDiscountValue').val(flatDiscountValue);
             // Update display
@@ -1723,6 +1744,7 @@
                     flatDiscountValue: $('#flatDiscountValue').val(),
                     flat_discount_percent: $('#flat_discount_percent').val(),
                     is_applied_credit_balance: $('#is_applied_credit_balance').val(),
+                    credit_balance: $('#credit_balance').val(),
                     order_type: orderType
                 },
                 success: function (res) {
@@ -1890,11 +1912,13 @@
                 creditCard.style.backgroundColor = "#11AEAE";
                 creditCard.style.color = "white";
                 isApplied.value = "1";
+                calculateTotal();
             } else {
                 // Remove color
                 creditCard.style.backgroundColor = "";
                 creditCard.style.color = "";
                 isApplied.value = "0";
+                calculateTotal();
             }
         }
     </script>
