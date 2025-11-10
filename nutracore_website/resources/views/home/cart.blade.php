@@ -21,9 +21,247 @@
             border-color: #0d6efd; /* Bootstrap primary color */
             background-color: #e7f1ff; /* optional light background on select */
         }
+        .freebies-slider-container {
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 10px 0;
+        }
+
+        .freebies-slider {
+            display: flex;
+            gap: 12px;
+            scroll-snap-type: x mandatory;
+            padding-bottom: 5px;
+        }
+
+        .freebie-card {
+            flex: 0 0 auto;
+            width: 260px;
+            padding: 10px;
+            border-radius: 12px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            scroll-snap-align: start;
+            border: 1px solid #e4e4e4;
+            background: #fff;
+            flex-wrap: nowrap;
+        }
+        .freebie-details strong {
+            white-space: normal !important;
+            display: block;
+        }
+
+
+        .freebie-img {
+            width: 46px;
+            height: 46px;
+            object-fit: contain;
+        }
+
+        .freebie-details {
+            flex-grow: 1;
+            white-space: normal !important;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .btn-freebie {
+            padding: 6px 14px;
+            font-size: 14px;
+            border-radius: 8px;
+            border: none;
+            background: #00c8c8;
+            color: white;
+        }
+
+        .btn-freebie.remove {
+            background: #ff4d4f !important; /* red */
+        }
+        .subscription-slider-container {
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            white-space: nowrap;
+            padding-bottom: 5px;
+        }
+
+        .subscription-slider {
+            display: flex;
+            gap: 12px;
+        }
+
+        .subscription-card {
+            min-width: 210px;
+        }
+
+        .subscription-box {
+            background: #FFF8E1;
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .subscription-box .text-yellow {
+            color: #FFA726;
+        }
+
+        .subscription-btn.remove {
+            background-color: #dc3545 !important;
+            color: white !important;
+        }
+        .subscription-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .subscription-box small {
+            display: block;
+            white-space: normal;     /* ✅ allow wrapping */
+            word-wrap: break-word;   /* ✅ wrap long words if needed */
+            max-width: 70%;          /* ✅ prevent text from pushing button */
+        }
+        .delivery-option {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        .delivery-option.selected {
+            border-color: #00AEEF;
+            background-color: #E9F8FF;
+        }
 
     </style>
+    <style>
+        .delivery-option {
+            border: 2px solid #e6e6e6;
+            border-radius: 10px;
+            padding: 14px 18px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            transition: 0.25s ease-in-out;
+        }
 
+        .delivery-option.selected {
+            border-color: #00AEEF; /* highlight like screenshot */
+            background-color: #ECF9FF;
+        }
+
+        .delivery-title {
+            font-weight: 600;
+            font-size: 16px;
+            display: block;
+        }
+
+        .delivery-sub {
+            font-size: 13px;
+            color: #00AEEF;
+            font-weight: 500;
+        }
+
+        .delivery-badge {
+            border: 1px solid #111;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        /* ✅ Sticky Pay Button */
+        .sticky-pay-btn {
+            position: sticky;
+            bottom: 0;
+            background: #fff;
+            padding: 12px 0;
+            z-index: 999;
+            border-top: 1px solid #ddd;
+        }
+
+        /* ✅ Mobile: make it stick at bottom always and full width */
+        @media (max-width: 768px) {
+            .sticky-pay-btn {
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 60px;
+                width: 100%;
+                padding: 12px;
+                border-radius: 0;
+            }
+            .sticky-pay-btn button {
+                border-radius: 0;
+            }
+        }
+
+
+    </style>
+    <style>
+        .payment-toggle {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            background: #fff;
+            font-weight: 600;
+        }
+
+        .payment-options {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 8px;
+            background: #fff;
+            display: none;
+        }
+
+        .payment-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 8px;
+            transition: 0.2s;
+        }
+
+        .payment-row.selected {
+            background-color: #e9f8ff;
+            border: 1px solid #00AEEF;
+        }
+
+        .payment-row input[type="radio"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #00AEEF; /* Makes radio button colored */
+            cursor: pointer;
+            margin-top: 3px;
+        }
+
+        .payment-title {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .payment-subtitle {
+            font-size: 12px;
+            color: #6c757d;
+        }
+    </style>
     <main class="main">
         <div class="page-header breadcrumb-wrap">
             <div class="container">
@@ -40,7 +278,15 @@
         </div>
     </main>
 
-    <input type="hidden" name="selected_addressID" id="selected_addressID" value="{{$selectedAddress->id??''}}">
+   <form id="cartSubmitForm">
+       <input type="hidden" name="selected_addressID" id="selected_addressID" value="{{$selectedAddress->id??''}}">
+       <input type="hidden" name="subscription_id" id="subscription_id" value="">
+       <input type="hidden" name="coupon_code" id="coupon_code" value="">
+       <input type="hidden" name="freebees_id" id="freebees_id" value="">
+       <input type="hidden" name="delivery_type" id="delivery_type" value="">
+       <input type="hidden" name="apply_cashback" id="apply_cashback" value="">
+       <input type="hidden" id="selected_payment" name="payment_method">
+   </form>
 
     <!-- Address Modal -->
     <div class="modal fade" id="addressModal" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true">
@@ -164,6 +410,7 @@
                                     '<small>' + (addr.location || '') + '</small>';
 
                                 $('#selectedAddress').html(html);
+                                getCartHtml(); // refresh cart
                                 $('#addressModal').modal('hide');
                             }
                         });
@@ -198,7 +445,7 @@
                                 '<small>' + (addr.location || '') + '</small>';
 
                             $('#selectedAddress').html(html);
-
+                            getCartHtml(); // refresh cart
                             // Optionally close the modal if it's open
                             $('#addressModal').modal('hide');
                             $('#addressForm')[0].reset();
@@ -212,6 +459,72 @@
                 });
             });
         });
+
+        $(document).ready(function () {
+            selectFreebees();
+            selectCoupon_code();
+            selectNCCash();
+            setSubscription();
+        });
+        async function selectFreebees() {
+            let freebeeHidden = $("#freebees_id");
+            let selectedID = freebeeHidden.val(); // get selected value on page load
+                if (selectedID !== "") {
+                // find the button with same ID
+                let btn = $(".btn-freebie[data-id='" + selectedID + "']");
+                btn.addClass("remove").text("Remove");
+            }
+        }
+        async  function selectNCCash() {
+            let cashbackHidden = $("#apply_cashback");
+            let cashbackBtn = $("#cashbackApplyBtn");
+            console.log("sadasdasd",cashbackHidden.val());
+            if (cashbackHidden.val() === "true") {
+                cashbackBtn.text("Remove")
+                    .removeClass("btn-warning")
+                    .addClass("btn-danger");
+            } else {
+                cashbackBtn.text("Apply")
+                    .removeClass("btn-danger")
+                    .addClass("btn-warning");
+            }
+        }
+        async function selectCoupon_code() {
+
+            console.log("couponCodecouponCode");
+
+            let couponTextBox = $("#coupon_codeval");
+            let couponCode = $("#coupon_code").val(); // hidden input
+            let couponBtn = $('#couponApplyBtn');
+
+            if (couponCode === "" || couponCode == null) {
+
+                couponTextBox.val("").prop("readonly", false); // allow edit
+
+                couponBtn.text("Apply")
+                    .removeClass("btn-danger")
+                    .addClass("btn-primary");
+
+            } else {
+
+                couponTextBox.val(couponCode).prop("readonly", true); // show applied coupon
+
+                couponBtn.text("Remove")
+                    .removeClass("btn-primary")
+                    .addClass("btn-danger");
+            }
+        }
+    async function setSubscription(){
+        let prevSelectedID = $("#subscription_id").val();
+
+        if (prevSelectedID) {
+            $(`.subscription-btn[data-id="${prevSelectedID}"]`)
+                .addClass("remove")
+                .text("Remove");
+        }
+
+    }
+
     </script>
 
 

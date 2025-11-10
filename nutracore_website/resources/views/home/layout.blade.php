@@ -48,13 +48,41 @@ if (!empty($user)) {
     <link rel="stylesheet" href="{{url('public/assets')}}/css/main2cc5.css?v=5.6"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        rel="stylesheet"
+        type="text/css"
+        href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"
+    />
+    <link
+        rel="stylesheet"
+        type="text/css"
+        href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"
+    />
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
 </head>
 
 <body class="bg-gray-100 min-h-screen flex flex-col justify-between">
 
 <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
+    }
+    :root {
+        --font-main: "Poppins", sans-serif;
+    }
+
+    body {
+        font-family: var(--font-main);
+    }
+
     .action-btn.filled .fi-rs-heart {
         color: red;
     }
@@ -547,6 +575,97 @@ if (!empty($user)) {
 
 </style>
 
+<style>
+    /* Explore button style */
+    .categories-button-active {
+        cursor: pointer;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        color: #333;
+        background: red;
+        padding: 10px 20px;
+        border-radius: 5px;
+    }
+
+    /* Parent wrapper must not clip dropdown */
+    .main-categori-wrap {
+        position: static !important;
+    }
+
+    /* Mega dropdown */
+    .mega-dropdown {
+        position: absolute;
+        top: 86% !important;
+        left: 0;
+        right: 0;
+        width: 100vw;
+        margin-left: calc(-50vw + 50%);
+        background: #fff;
+        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
+        padding: 30px 40px;
+        display: none;
+        z-index: 9999;
+        transition: all 0.3s ease;
+    }
+
+    /* Show dropdown on hover */
+    .main-categori-wrap:hover .mega-dropdown {
+        display: block;
+    }
+
+    /* Left + right structure */
+    .mega-parents .nav-link {
+        color: #333;
+        font-weight: 500;
+        padding: 10px 15px;
+        transition: all 0.3s;
+        border-radius: 4px;
+    }
+
+    .mega-parents .nav-link:hover,
+    .mega-parents .nav-link.active {
+        background: #f7f7f7;
+        color: #ff6600;
+    }
+
+    .mega-children .child-panel {
+        display: none;
+        animation: fadeIn 0.3s ease forwards;
+    }
+
+    .mega-children .child-panel.active {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .mega-children h5 {
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .mega-children ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .mega-children ul li {
+        padding: 5px 0;
+        color: #555;
+    }
+
+    .mega-children ul li:hover {
+        color: #ff6600;
+        cursor: pointer;
+    }
+</style>
+
 
 <header class="header-area header-style-1 header-height-2">
 {{--    <div class="mobile-promotion">--}}
@@ -729,38 +848,117 @@ if (!empty($user)) {
                 </div>
                 <div class="header-nav d-none d-lg-flex">
                     <div class="main-categori-wrap d-none d-lg-block">
-                        <a class="categories-button-active" href="#">
-                            <span class="fi-rs-apps"></span> <span class="et">Explore</span>
-                            <i class="fi-rs-angle-down"></i>
-                        </a>
+                       <!-- Navbar Section -->
+                        <div class="header-nav d-none d-lg-flex">
+                            <div class="main-categori-wrap d-none d-lg-block">
+                                <!-- Explore button -->
+                                <a class="categories-button-active" href="#">
+                                    <span class="fi-rs-apps"></span> <span class="et">Explore</span>
+                                    <i class="fi-rs-angle-down"></i>
+                                </a>
 
-                        <div class="categories-dropdown-wrap categories-dropdown-active-large font-heading">
-                            <div class="d-flex categori-dropdown-inner">
-                                <ul>
+                                <!-- Mega Dropdown -->
+                                <div class="mega-dropdown container-fluid" id="megaDropdown">
+                                    <div class="row">
+                                        <!-- Left: parent list -->
+                                        <div class="col-lg-3 mega-parents">
+                                            <nav class="nav flex-column">
+                                                <a class="nav-link active" href="#" data-target="panel-electronics">Electronics</a>
+                                                <a class="nav-link" href="#" data-target="panel-fashion">Fashion</a>
+                                                <a class="nav-link" href="#" data-target="panel-home">Home & Living</a>
+                                                <a class="nav-link" href="#" data-target="panel-sports">Sports</a>
+                                                <a class="nav-link" href="#" data-target="panel-books">Books</a>
+                                                <a class="nav-link" href="#" data-target="panel-more">More...</a>
+                                            </nav>
+                                        </div>
 
-                                    <li>
-                                        <a href="https://website.nutracore.in/categories">
-                                            Category
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="https://website.nutracore.in/brands">
-                                            Brands
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="https://website.nutracore.in/categories">
-                                            By Goals
-                                        </a>
-                                    </li>
+                                        <!-- Right: dynamic child content -->
+                                        <div class="col-lg-9 mega-children">
+                                            <div id="panel-electronics" class="child-panel active">
+                                                <h5>Electronics</h5>
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <ul>
+                                                            <li>Mobiles</li>
+                                                            <li>Tablets</li>
+                                                            <li>Laptops</li>
+                                                        </ul>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <ul>
+                                                            <li>Headphones</li>
+                                                            <li>Speakers</li>
+                                                            <li>Cameras</li>
+                                                        </ul>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <ul>
+                                                            <li>Accessories</li>
+                                                            <li>Smart Watches</li>
+                                                            <li>Power Banks</li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
 
-                                </ul>
+                                            <div id="panel-fashion" class="child-panel">
+                                                <h5>Fashion</h5>
+                                                <p>Men, Women, Kids — trending collections, new arrivals.</p>
+                                                <div class="d-flex gap-3 flex-wrap">
+                                                    <div class="border p-2 rounded">Shirts</div>
+                                                    <div class="border p-2 rounded">Dresses</div>
+                                                    <div class="border p-2 rounded">Shoes</div>
+                                                </div>
+                                            </div>
 
+                                            <div id="panel-home" class="child-panel">
+                                                <h5>Home & Living</h5>
+                                                <p>Bedsheets, Decor, Kitchen & more.</p>
+                                            </div>
 
+                                            <div id="panel-sports" class="child-panel">
+                                                <h5>Sports</h5>
+                                                <p>Cricket, Football, Fitness gear.</p>
+                                            </div>
 
+                                            <div id="panel-books" class="child-panel">
+                                                <h5>Books</h5>
+                                                <p>Fiction, Non-fiction, Educational.</p>
+                                            </div>
+
+                                            <div id="panel-more" class="child-panel">
+                                                <h5>More Categories</h5>
+                                                <p>Automotive, Garden, Tools...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- /Mega Dropdown -->
                             </div>
-
                         </div>
+
+
+                        <!-- JS to handle hover child panels -->
+                        <script>
+                            const parentLinks = document.querySelectorAll(".mega-parents .nav-link");
+                            const childPanels = document.querySelectorAll(".child-panel");
+
+                            parentLinks.forEach(link => {
+                                link.addEventListener("mouseenter", () => {
+                                    // Remove active class from all
+                                    parentLinks.forEach(l => l.classList.remove("active"));
+                                    childPanels.forEach(p => p.classList.remove("active"));
+
+                                    // Activate the current one
+                                    link.classList.add("active");
+                                    const target = link.getAttribute("data-target");
+                                    document.getElementById(target).classList.add("active");
+                                });
+                            });
+                        </script>
+
+
+
 
                     </div>
                     <div class="main-menu main-menu-padding-1 main-menu-lh-2 d-none d-lg-block font-heading">
@@ -818,12 +1016,12 @@ if (!empty($user)) {
                             @if(!empty($user))
                                 <a href='{{ url('wishlist') }}'>
                                     <img alt="Nest" src="{{url('public/assets')}}/imgs/theme/icons/icon-heart.svg"/>
-                                    <span class="pro-count white">0</span>
+                                    <span class="pro-count white">{{ $total_qty }}</span>
                                 </a>
                             @else
                                 <a onclick="checkLogin()">
                                     <img alt="Nest" src="{{url('public/assets')}}/imgs/theme/icons/icon-heart.svg"/>
-                                    <span class="pro-count white">0</span>
+                                    <span class="pro-count white">{{ $total_qty }}</span>
                                 </a>
                             @endif
                         </div>
@@ -831,12 +1029,12 @@ if (!empty($user)) {
                             @if(!empty($user))
                                 <a class="mini-cart-icon" href="{{ url('cart') }}">
                                     <img alt="Nest" src="{{url('public/assets')}}/imgs/theme/icons/icon-cart.svg"/>
-                                    <span class="pro-count white">0</span>
+                                    <span class="pro-count white">{{ $total_qty }}</span>
                                 </a>
                             @else
                                 <a class="mini-cart-icon" onclick="checkLogin()">
                                     <img alt="Nest" src="{{url('public/assets')}}/imgs/theme/icons/icon-cart.svg"/>
-                                    <span class="pro-count white">0</span>
+                                    <span class="pro-count white">{{ $total_qty }}</span>
                                 </a>
                             @endif
 
@@ -1327,24 +1525,33 @@ if (!empty($user)) {
         });
     }
 
-    function getCartHtml() {
-        var user_id = '{{ $user->id ?? '' }}';
+    async function getCartHtml() {
+
+        var user_id = '{{ $user->id ?? "" }}';
         if (user_id == '') {
             $('#otpLoginModal').modal('show');
+            return null;
         }
+
         var _token = '{{ csrf_token() }}';
-        $.ajax({
+
+        // ✅ return AJAX so async/await receives the response
+        return $.ajax({
             url: "{{ url('getCartHtml') }}",
             type: "POST",
-            data: {},
+            data: $("#cartSubmitForm").serialize(),
             dataType: "JSON",
             headers: {'X-CSRF-TOKEN': _token},
-            cache: false,
-            success: function (resp) {
-                $('#cart_html').html(resp.html);
-            }
+            cache: false
+        }).done(function (resp) {
+            $('#cart_html').html(resp.html);
+            selectFreebees();
+           selectCoupon_code();
+            selectNCCash();
+            setSubscription();
         });
     }
+
 </script>
 
 <script>
@@ -1520,54 +1727,13 @@ if (!empty($user)) {
                 <input type="text" class="form-control mb-2" id="address_search" placeholder="Search address">
                 <input type="hidden" id="latitude">
                 <input type="hidden" id="longitude">
+                <input type="hidden" id="pincode">
                 <div id="map"></div>
             </div>
         </div>
     </div>
 </div>
 
-
-<script>
-
-    $(document).ready(function () {
-        fetchCurrentAddress();
-    });
-
-    function fetchCurrentAddress() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(async position => {
-                {{--const {latitude, longitude} = position.coords;--}}
-                {{--const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);--}}
-                {{--const data = await response.json();--}}
-                {{--const address = data.display_name;--}}
-                {{--$('#address_text').html(address);--}}
-                {{--$.ajax({--}}
-                {{--    url: '{{url('store_location')}}', // your route--}}
-                {{--    type: 'POST',--}}
-                {{--    data: {--}}
-                {{--        _token: $('meta[name="csrf-token"]').attr('content'),--}}
-                {{--        latitude: latitude,--}}
-                {{--        longitude: longitude--}}
-                {{--    },--}}
-                {{--    success: function (res) {--}}
-                {{--        console.log('Location stored in session');--}}
-                {{--    },--}}
-                {{--    error: function (err) {--}}
-                {{--        console.error('Error storing location', err);--}}
-                {{--    }--}}
-                {{--});--}}
-
-                // document.getElementById('full-address').textContent = address;
-            }, error => {
-                // document.getElementById('address_text').html = "Location access denied.";
-            });
-        } else {
-            // document.getElementById('address_text').html = "Geolocation not supported.";
-        }
-
-
-    }
-</script>
 <script
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCENCD7Uzd2YK0IJsUPgFI1gMNiHHPAuRA&libraries=places"></script>
 
@@ -1613,7 +1779,16 @@ if (!empty($user)) {
                 document.getElementById("longitude").value = place.geometry.location.lng();
                 document.getElementById("address_phone").innerHTML = place.formatted_address;
                 document.getElementById("address_text").innerHTML = place.formatted_address;
-                storeLocation(place.geometry.location.lat(), place.geometry.location.lng(), place.formatted_address);
+
+                let pincode = "";
+
+                // ✅ Extract PIN code from address_components
+                results[0].address_components.forEach(component => {
+                    if (component.types.includes("postal_code")) {
+                        pincode = component.long_name;
+                    }
+                });
+                storeLocation(place.geometry.location.lat(), place.geometry.location.lng(), place.formatted_address,pincode);
 
                 map.setCenter(place.geometry.location);
                 marker.setPosition(place.geometry.location);
@@ -1648,6 +1823,7 @@ if (!empty($user)) {
 
 <script>
     function initAutocomplete() {
+        console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
         const input = document.getElementById('locationInput');
         const options = {
             types: ['geocode'], // or 'address' to restrict results
@@ -1665,7 +1841,15 @@ if (!empty($user)) {
             document.getElementById("longitude").value = place.geometry.location.lng();
             document.getElementById("address_phone").innerHTML = place.formatted_address;
             document.getElementById("address_text").innerHTML = place.formatted_address;
-            storeLocation(place.geometry.location.lat(), place.geometry.location.lng(), place.formatted_address);
+            let pincode = "";
+
+            // ✅ Extract PIN code from address_components
+            results[0].address_components.forEach(component => {
+                if (component.types.includes("postal_code")) {
+                    pincode = component.long_name;
+                }
+            });
+            storeLocation(place.geometry.location.lat(), place.geometry.location.lng(), place.formatted_address,pincode);
             console.log("Selected place:", place.formatted_address);
             console.log("Latitude:", place.geometry.location.lat());
             console.log("Longitude:", place.geometry.location.lng());
@@ -1678,7 +1862,7 @@ if (!empty($user)) {
     window.onload = initAutocomplete;
 
 
-    function storeLocation(latitude, longitude, address) {
+    async function storeLocation(latitude, longitude, address,pincode) {
         $.ajax({
             url: '{{url('store_location')}}', // your route
             type: 'POST',
@@ -1687,6 +1871,7 @@ if (!empty($user)) {
                 latitude: latitude,
                 longitude: longitude,
                 address: address,
+                pincode: pincode,
             },
             success: function (res) {
                 console.log('Location stored in session');
@@ -1705,10 +1890,9 @@ if (!empty($user)) {
 <script>
     $(document).ready(function () {
         var address = '{{$address ??''}}';
-        if (address == '') {
+        if (address === '') {
             getCurrentLocation();
         }
-
     });
 
     function getCurrentLocation() {
@@ -1733,13 +1917,24 @@ if (!empty($user)) {
                 if (results[0]) {
                     console.log("Address:", results[0].formatted_address);
                     document.getElementById('locationInput').value = results[0].formatted_address;
+                    var pincode = "";
+
+                    // ✅ Extract PIN code from address_components
+                    results[0].address_components.forEach(component => {
+                        if (component.types.includes("postal_code")) {
+                            console.log("component.typescomponent.types",component.types);
+                            console.log("component.typescomponent.types",component.long_name);
+                            pincode = component.long_name;
+                        }
+                    });
 
 
                     document.getElementById("latitude").value = latitude;
                     document.getElementById("longitude").value = longitude;
                     document.getElementById("address_phone").innerHTML = results[0].formatted_address;
                     document.getElementById("address_text").innerHTML = results[0].formatted_address;
-                    storeLocation(latitude, longitude, results[0].formatted_address);
+                    document.getElementById("pincode").value = pincode;
+                    storeLocation(latitude, longitude, results[0].formatted_address,pincode);
 
 
                 } else {

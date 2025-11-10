@@ -15,11 +15,16 @@
 
     <style>
         .hero-section {
-            background-image: url('{{$nutrapassbanner}}');
-            background-size: cover;
-            background-position: center;
+            background-image: url('{{ $nutrapassbanner }}');
+            background-size: cover;     /* ✅ Image covers entire container */
+            background-repeat: no-repeat; /* ✅ Prevents repeating */
+            background-position: center; /* ✅ Keeps image centered */
+            width: 100%;                /* Ensures it spans full width */
+            min-height: 50vh;          /* ✅ Full screen height */
             color: white;
-            padding: 100px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             text-align: center;
         }
 
@@ -396,7 +401,7 @@
             </div>
         </div>
 
-
+        @if(empty($user) || strtotime($user->end_date) >= strtotime(date('Y-m-d')))
         <section class="hero-section">
             <div class="container">
                 <h1 class="display-5 fw-bold text-white">It’s Time To Gain More Muscles</h1>
@@ -404,6 +409,7 @@
                 <a href="#" class="btn btn-warning text-white w-25">Join Now</a>
             </div>
         </section>
+        @endif
         <section class="nutrapass-section text-white p-4 rounded-4">
             <div class="row align-items-center">
                 <!-- Left Image -->
@@ -466,7 +472,7 @@
                 </div>
             </div>
 
-            <div class="row mt-4 border-top pt-3 text-center" style="background-color: #212828;margin:10px">
+            <div class="row mt-4 border-top pt-3 text-center" style="background-color: #212828;margin:-22px">
                 <div class="col-md-4">
                     <div class="text-muted">Membership Status</div>
                     <div class="fw-bold text-warning fs-5">{{$active_loyalty->title??''}}</div>

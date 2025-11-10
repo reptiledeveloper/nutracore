@@ -11,6 +11,8 @@
     $small_banners = [];
     if (!empty($banners)) {
         foreach ($banners as $banner) {
+
+
             if ($banner->type == 'Fixed_banner1') {
                 $fixed_banner_1 = $banner;
             }
@@ -28,6 +30,8 @@
             }
         }
     }
+
+
     $banner_types = ['', 'product', 'brand', 'category', 'link'];
 
     ?>
@@ -35,7 +39,8 @@
         .single-hero-slider {
             width: 100%;
             height: 600px !important;
-            background-size: 100% 100% !important; /* force stretch width & height */
+            background-size: 100% 100% !important;
+            /* force stretch width & height */
             background-position: center center !important;
             background-repeat: no-repeat !important;
         }
@@ -59,10 +64,12 @@
             background: #000;
         }
 
-        iframe, video {
+        iframe,
+        video {
             border: none;
             object-fit: cover;
-            height: 500px; /* Reel size */
+            height: 500px;
+            /* Reel size */
         }
 
         .start-30 {
@@ -75,7 +82,7 @@
                 <div class="home-slide-cover mt-30">
                     <div class="hero-slider-1 style-4">
                         @foreach($banners as $banner)
-                            @if(in_array($banner->type,$banner_types))
+                            @if(in_array($banner->type, $banner_types))
                                 <div class="single-hero-slider single-animation-wrap"
                                      style="background-image: url({{$banner->banner_img}})">
                                 </div>
@@ -192,13 +199,16 @@
                 <div class="tab-content" id="myTabContent">
                     <div class="tab-pane fade show active" id="tab-one" role="tabpanel" aria-labelledby="tab-one">
                         <div class="row product-grid-4">
-                            @foreach ($fixed_banner_1->products as $product)
-                                @if ($loop->index < 10)
-                                    <div class="col-6 col-sm-6 col-md-4 col-lg-1-5">
-                                        @include('home.single_product', ['product' => $product])
-                                    </div>
-                                @endif
-                            @endforeach
+                           @if(!empty($fixed_banner_1->products))
+                                @foreach ($fixed_banner_1->products as $product)
+                                    @if ($loop->index < 10)
+                                        <div class="col-6 col-sm-6 col-md-4 col-lg-1-5">
+                                            @include('home.single_product', ['product' => $product])
+                                        </div>
+                                    @endif
+                                @endforeach
+                           @endif
+
                             <!--end product card-->
 
                         </div>
@@ -311,15 +321,19 @@
         <style>
             .scroll-container-right {
                 display: flex;
-                overflow-x: auto; /* Horizontal scroll */
-                justify-content: flex-end; /* Align plans to right */
+                overflow-x: auto;
+                /* Horizontal scroll */
+                justify-content: flex-end;
+                /* Align plans to right */
                 gap: 15px;
                 padding: 10px;
-                scroll-behavior: smooth; /* smooth scroll */
+                scroll-behavior: smooth;
+                /* smooth scroll */
             }
 
             .scroll-container-right::-webkit-scrollbar {
-                height: 6px; /* scrollbar height */
+                height: 6px;
+                /* scrollbar height */
             }
 
             .scroll-container-right::-webkit-scrollbar-thumb {
@@ -335,7 +349,8 @@
                 padding: 15px;
                 border-radius: 10px;
                 cursor: pointer;
-                flex-shrink: 0; /* prevent shrinking */
+                flex-shrink: 0;
+                /* prevent shrinking */
             }
 
             .plan.selected {
@@ -354,7 +369,7 @@
 
             .plan.selected h4 {
                 background: linear-gradient(90deg, #f7ce68, #f5b300);
-                color: white
+                color: #0A6A6A
             }
 
             .months {
@@ -374,7 +389,8 @@
             }
 
             .plan:not(:has(h4)) .details {
-                margin-top: 20px; /* or any value that aligns the text properly */
+                margin-top: 20px;
+                /* or any value that aligns the text properly */
             }
         </style>
 
@@ -387,13 +403,15 @@
                             <div class="position-relative banner-img">
                                 <img src="{{url('public/assets/images/refer.png')}}" class="img-fluid w-100 rounded"
                                      alt="Refer Banner"/>
-                                <div class="position-absolute top-50 start-30  translate-middle text-center p-3"
-                                     style="background: rgba(0,0,0,0.5); border-radius: 10px;">
-                                            <span class="d-block text-white fs-5 fw-bold">
-                                                Refer a friend and earn rewards!
-                                            </span>
-                                    <p class="text-white mt-2 mb-3">
-                                        Explore the perfect supplements designed just for you! Start your journey to
+                                <div class="position-absolute top-50 translate-middle text-left"
+                                     style="left: 30%;">
+                                    <span class="d-block text-white fs-5 fw-bold">
+                                        Refer a friend and earn rewards!
+                                    </span>
+                                    <p class="text-white mt-2 mb-3"
+                                       style="font-size: 12px; font-family: 'Lato', sans-serif;">
+                                        Explore the perfect supplements designed just for you! Start <br> your journey
+                                        to
                                         better
                                         health today and find what suits your needs best.
                                     </p>
@@ -403,90 +421,335 @@
 
 
                             <div class="position-relative banner-img" style="position: relative;">
-                                <img src="{{url('public/assets/nutrap.svg')}}" style="width: 100%; display: block;">
+                                <img src="{{url('public/assets/nutrap.svg')}}"
+                                     style="width: 100%; display: block; border-radius: 12px;">
 
                                 <!-- Overlay text -->
                                 <div class="banner-text" style="
-        position: absolute;
-        top: 40%;  /* Adjust vertical position */
-        left: 20px;
-        color: white;
-        font-weight: bold;
-        max-width: 450px;
-    ">
-                                    <h3>Join Wellness+ Membership</h3>
+      position: absolute;
+      top: 52%;
+      left: 30px;
+      color: #333;
+      font-weight: bold;
+      max-width: 320px;
+      transform: translateY(-50%);
+  ">
+                                    <h3 style="font-weight: 700; font-size: 30px;">Join Wellness+ Membership</h3>
                                     <p class="mt-2">🔥 10% OFF every order</p>
                                     <p class="mt-2">🚚 Free Express Delivery</p>
                                     <p class="mt-2">🎁 Monthly Freebie Box</p>
                                     <p class="mt-2">⏰ Early Access & Secret Sales</p>
-                                    <button style="
-            width:100%;
-            border-radius:10px;
-            padding: 10px 20px;
-            background: white;
-            border: none;
-            color: black;
-            cursor: pointer;
-            margin-top:15px;
-        ">Join Now
+                                    <button class="btn" style="
+        width: 80%;
+        border-radius: 8px;
+        padding: 10px 20px;
+        background: #fff;
+        border: none;
+        color: #000;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 15px;
+    ">Join Now
                                     </button>
                                 </div>
 
                                 <!-- Overlay scrollable plans -->
                                 <div class="scroll-container-right" style="
-        position: absolute;
-        bottom: 20px;   /* Position from bottom of image */
-        left: 20px;     /* Start from left */
-        right: 20px;    /* Allow it to stretch horizontally */
-        display: flex;
-        overflow-x: auto;
-        gap: 15px;
-        padding-bottom: 5px;
-    ">
-                                    <div class="plan" onclick="selectPlan(this)">
-                                        <h4>Best Value</h4>
+  position: absolute;
+  bottom: 25px;
+  left: 73%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: flex-start;
+  gap: 20px;
+  padding-bottom: 5px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  width: 400px; /* optional - container width control */
+  scrollbar-color: #ccc transparent;
+">
+                                    <div class="plan active" onclick="selectPlan(this)">
+                                        <h4 class="plan-title">Best Value</h4>
                                         <div class="months">12</div>
-                                        <div class="details">months<br>₹ 100/mo<br><strong>SAVE 20%</strong></div>
+                                        <div class="details">months<br>₹ 800/mo<br><strong>SAVE 47%</strong></div>
                                         <hr>
-                                        <div class="price">₹ 1200</div>
+                                        <div class="price">₹ 8,000</div>
                                     </div>
 
                                     <div class="plan" onclick="selectPlan(this)">
+                                        <h4 class="plan-title highlight">Best Value</h4>
                                         <div class="months">6</div>
-                                        <div class="details">months<br>₹ 150/mo<br><strong>SAVE 10%</strong></div>
+                                        <div class="details">months<br>₹ 800/mo<br><strong>SAVE 47%</strong></div>
                                         <hr>
-                                        <div class="price">₹ 900</div>
+                                        <div class="price">₹ 8,000</div>
                                     </div>
 
                                     <div class="plan" onclick="selectPlan(this)">
-                                        <div class="months">3</div>
-                                        <div class="details">months<br>₹ 200/mo<br><strong>SAVE 0%</strong></div>
+                                        <div class="months"style="padding-top:25px;">12</div>
+                                        <div class="details">months<br>₹ 800/mo<br><strong>SAVE 47%</strong></div>
                                         <hr>
-                                        <div class="price">₹ 600</div>
+                                        <div class="price">₹ 8,000</div>
+                                    </div>
+
+                                    <div class="plan" onclick="selectPlan(this)">
+                                        <div class="months" style="padding-top:25px;">3</div>
+                                        <div class="details">months<br>₹ 1000/mo<br><strong>SAVE 25%</strong></div>
+                                        <hr>
+                                        <div class="price">₹ 3,000</div>
                                     </div>
                                 </div>
+
+                                <style>
+                                    /* General */
+                                    * {
+                                        font-family: "Poppins", sans-serif;
+                                        box-sizing: border-box;
+                                    }
+
+                                    /* Main Container */
+                                    .nutrapass-container {
+                                        display: flex;
+                                        justify-content: space-between;
+                                        align-items: stretch;
+                                        background: linear-gradient(90deg, #f8d57a, #f6c34a);
+                                        border-radius: 16px;
+                                        padding: 30px;
+                                        width: 100%;
+                                        max-width: 850px;
+                                        margin: 50px auto;
+                                        color: #000;
+                                        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+                                    }
+
+                                    /* Left Section */
+                                    .left-section {
+                                        flex: 1;
+                                        display: flex;
+                                        flex-direction: column;
+                                        justify-content: center;
+                                        gap: 8px;
+                                    }
+
+                                    .left-section h3 {
+                                        font-size: 20px;
+                                        font-weight: 700;
+                                    }
+
+                                    .left-section p {
+                                        font-size: 14px;
+                                        margin: 4px 0;
+                                    }
+
+                                    .join-btn {
+                                        margin-top: 10px;
+                                        background: #fff;
+                                        color: #000;
+                                        border: none;
+                                        padding: 10px 20px;
+                                        border-radius: 8px;
+                                        font-weight: 600;
+                                        width: fit-content;
+                                        cursor: pointer;
+                                        transition: all 0.3s ease;
+                                    }
+
+                                    .join-btn:hover {
+                                        background: #fef1c5;
+                                    }
+
+                                    /* Right Section */
+                                    .right-section {
+                                        flex: 1.2;
+                                        display: flex;
+                                        flex-direction: column;
+                                        align-items: center;
+                                        justify-content: space-between;
+                                    }
+
+                                    .logo {
+                                        text-align: center;
+                                        margin-bottom: 10px;
+                                    }
+
+                                    .logo h2 {
+                                        font-size: 22px;
+                                        font-weight: 700;
+                                    }
+
+                                    .nutra {
+                                        color: #fff;
+                                    }
+
+                                    .pass {
+                                        background: #fff;
+                                        color: #f5b700;
+                                        padding: 0 5px;
+                                        border-radius: 4px;
+                                    }
+
+                                    .tagline {
+                                        font-size: 10px;
+                                        color: #333;
+                                        font-weight: 500;
+                                    }
+
+                                    /* Plans Scroll Container */
+                                    .scroll-container-right {
+                                        display: flex;
+                                        justify-content: flex-start;
+                                        gap: 20px;
+                                        overflow-x: auto;
+                                        overflow-y: hidden;
+                                        scroll-behavior: smooth;
+                                        width: 100%;
+                                        padding-bottom: 10px;
+                                        scrollbar-width: none; /* Firefox */
+                                    }
+
+                                    .scroll-container-right::-webkit-scrollbar {
+                                        display: none; /* Chrome/Safari/Edge */
+                                    }
+
+                                    /* Plan Cards */
+                                    .plan {
+                                        background: rgba(255, 255, 255, 0.8);
+                                        color: #333;
+                                        padding: 10px;
+                                        padding-top: 0px;
+                                        border-radius: 12px;
+                                        width: 100px;
+                                        text-align: center;
+                                        cursor: pointer;
+                                        transition: all 0.3s
+                                        ease;
+                                        border: 1px solid transparent;
+                                    }
+
+                                    .plan:hover {
+                                        transform: translateY(-4px);
+                                    }
+
+                                    .plan.active {
+                                        background: #fff;
+                                        border: 2px solid #f5b700;
+                                        color: #000;
+                                        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+                                        transform: scale(1.05);
+                                    }
+
+                                    /* 👇 Highlight "months" text in active plan */
+                                    .plan.active .months {
+                                        color: #f5b700;
+                                    }
+
+                                    .plan .plan-title {
+                                        background: #f6c34a;
+                                        color: white;
+                                        font-size: 12px;
+                                        font-weight: 600;
+                                        /* padding: 3px 6px; */
+                                        border-radius: 3px;
+                                        margin-bottom: 8px;
+                                        display: inline-block;
+                                    }
+
+                                    .plan .months {
+                                        font-size: 26px;
+                                        font-weight: 700;
+                                    }
+
+                                    .plan .details {
+                                        font-size: 12px;
+                                        line-height: 1.4;
+                                        margin-top: 6px;
+                                    }
+
+                                    .plan .price {
+                                        font-weight: 600;
+                                        font-size: 13px;
+                                    }
+
+                                    .highlight {
+                                        background: #f5b700 !important;
+                                    }
+
+                                    .save {
+                                        color: #ff3b3b;
+                                        font-weight: 700;
+                                    }
+
+                                    /* Responsive */
+                                    @media (max-width: 768px) {
+                                        .nutrapass-container {
+                                            flex-direction: column;
+                                            text-align: center;
+                                        }
+
+                                        .left-section,
+                                        .right-section {
+                                            align-items: center;
+                                        }
+
+                                        .scroll-container-right {
+                                            justify-content: center;
+                                        }
+                                    }
+                                </style>
+
                             </div>
+
+                            <script>
+                                document.addEventListener("DOMContentLoaded", function () {
+                                    const plans = document.querySelectorAll(".plan");
+
+                                    // ✅ Default first plan active
+                                    if (plans.length > 0) {
+                                        plans[0].classList.add("active");
+                                        plans[0].querySelector(".months").style.color = "#db6001";
+                                    }
+
+                                    // ✅ Click event for each plan
+                                    plans.forEach(plan => {
+                                        plan.addEventListener("click", function () {
+                                            // sab plans se active class hatao
+                                            plans.forEach(p => {
+                                                p.classList.remove("active");
+                                                p.querySelector(".months").style.color = "#000"; // reset color
+                                            });
+
+                                            // clicked plan ko active karo
+                                            this.classList.add("active");
+                                            this.querySelector(".months").style.color = "#db6001";
+                                        });
+                                    });
+                                });
+                            </script>
 
                         </div>
                     </div>
                     <!-- Right Banner -->
                     <div class="col-md-4 d-flex flex-column">
                         <div class="h-100">
-                            <div class="position-relative banner-img mt-3 mt-md-0" style="min-height: 350px; height: 100%;">
-                                    <img src="{{ url('public/assets/images/consultation.png') }}"
-                                         class="img-fluid w-100 h-100"
-                                         style="object-fit: fill;"
-                                         alt="Consultation Banner"/>
-                                <div class="position-absolute top-50 start-50 translate-middle text-center p-3"
-                                     style="border-radius: 10px; max-width: 90%;">
-                                    <h5 class="text-white fw-bold">Instant Expert Guidance</h5>
-                                    <p class="text-white mb-3">
-                                        Get immediate access to expert advice and insights tailored just for you!
-                                    </p>
-                                    <a class='btn btn-primary' href=''>Connect now</a>
-                                    <p class="text-white mt-2 mb-0">
-                                        Get your customized nutrition and lifestyle plan
-                                    </p>
+                            <div class="position-relative banner-img mt-3 mt-md-0"
+                                 style="min-height: 350px; height: 100%;">
+                                <img src="{{ url('public/assets/images/consultation.png') }}"
+                                     class="img-fluid w-100 h-100"
+                                     style="object-fit: fill;" alt="Consultation Banner"/>
+                                <div class="position-absolute top-50 translate-middle text-center p-3"
+                                     style="border-radius: 10px; left:50%; width:100%; height:100%; display:flex; justify-content: space-between; flex-direction: column;">
+                                    <div style="padding-top: 30px">
+                                        <h5 class="text-white fw-bold">Instant Expert Guidance</h5>
+                                        <p class="text-white mb-3">
+                                            Get immediate access to expert advice and insights tailored just for you!
+                                        </p>
+                                    </div>
+                                    <div style="padding-bottom: 20px">
+                                        <a class='btn btn-primary' href=''>Connect now</a>
+                                        <p class="text-white mt-2 mb-0">
+                                            Get your customized nutrition and lifestyle plan
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -588,20 +851,23 @@
             }
 
             .slide {
-                min-width: 25%; /* default: 3 per row (desktop) */
+                min-width: 25%;
+                /* default: 3 per row (desktop) */
             }
 
             /* Tablet & Mobile (≤ 768px) → show 2 per row */
             @media (max-width: 768px) {
                 .slide {
-                    min-width: 50%; /* 2 per row */
+                    min-width: 50%;
+                    /* 2 per row */
                 }
             }
 
             /* Small Mobile (≤ 480px) → show 1 per row */
             @media (max-width: 480px) {
                 .slide {
-                    min-width: 100%; /* 1 per row */
+                    min-width: 100%;
+                    /* 1 per row */
                 }
             }
 
@@ -637,7 +903,8 @@
                 margin: 0 0 10px;
                 font-size: 18px;
                 font-weight: bold;
-                color: #00e0ff; /* teal highlight for name */
+                color: #00e0ff;
+                /* teal highlight for name */
                 text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
             }
 
@@ -646,7 +913,6 @@
                 font-size: 14px;
                 line-height: 1.4;
             }
-
         </style>
         <section class="popular-categories section-padding">
             <div class="container">
@@ -665,12 +931,10 @@
                         @foreach ($new_updates as $new_update)
                             <div class="slide">
                                 <div class="video-slide">
-                                    <iframe
-                                        src="https://www.youtube.com/embed/{{ $new_update->image }}?rel=0&mute=1"
-                                        title="Reel Video"
-                                        frameborder="0"
-                                        allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowfullscreen>
+                                    <iframe src="https://www.youtube.com/embed/{{ $new_update->image }}?rel=0&mute=1"
+                                            title="Reel Video" frameborder="0"
+                                            allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowfullscreen>
                                     </iframe>
                                 </div>
                             </div>
@@ -698,12 +962,12 @@
                         @foreach ($testimonials as $testimonial)
                             <div class="slide">
                                 <div class="testimonial-card">
-                                    <img src=" {{$testimonial->image??''}}" alt="Surya" style="height: 500px">
+                                    <img src=" {{$testimonial->image ?? ''}}" alt="Surya" style="height: 500px">
                                     <div class="overlay"></div>
                                     <div class="content">
-                                        <h4> {{$testimonial->name??''}}</h4>
+                                        <h4> {{$testimonial->name ?? ''}}</h4>
                                         <p style="color: white">
-                                            {{$testimonial->description??''}}
+                                            {{$testimonial->description ?? ''}}
                                         </p>
                                     </div>
                                 </div>

@@ -50,7 +50,7 @@ $defaultImage = $images[0]['image'] ?? url('public/assets/images/default.png');
     <div class="product-img-action-wrap position-relative">
         <div class="product-img product-img-zoom">
             <a href='{{ url('products/' . $product->slug ?? '') }}'>
-                <img class="default-img" src="{{ $defaultImage }}" alt=""/>
+                <img class="default-img" src="{{ $defaultImage }}" alt="" style="height: 200px"/>
                 <img class="hover-img" src="{{ $defaultImage }}" alt=""/>
             </a>
         </div>
@@ -60,7 +60,7 @@ $defaultImage = $images[0]['image'] ?? url('public/assets/images/default.png');
              style="position: absolute; top: 10px; right: 10px;">
             <span class="stock-status in-stock"
                   style="font-size: 12px; background: #ff0000; color: #fff; padding: 3px 6px; border-radius: 4px;">
-                {{ $selectedVarient->discount_per ?? 0 }}% OFF
+                {{ $selectedVarient->discount_per ?? 0 }} % OFF
             </span>
         </div>
     </div>

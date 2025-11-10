@@ -1072,8 +1072,8 @@ class CustomHelper
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_POSTFIELDS => '{
-    "email": "nutracore.in@gmail.com",
-    "password": "Nutra@5115"
+    "email": "nutracore.in+swiggyminis@gmail.com",
+    "password": "Ov7&vq!%o6rK9SBM"
 }',
             CURLOPT_HTTPHEADER => array(
                 'Content-Type: application/json'

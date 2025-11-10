@@ -51,6 +51,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
     Route::match(['get', 'post'], '/getCartQty', 'HomeController@getCartQty');
     Route::match(['get', 'post'], '/getCartHtml', 'HomeController@getCartHtml');
     Route::match(['get', 'post'], '/createRazorpayOrder', 'HomeController@createRazorpayOrder');
+    Route::match(['get', 'post'], '/TimeToGainMoreVikas', 'HomeController@TimeToGainMoreVikas');
+    Route::match(['get', 'post'], '/place_order', 'HomeController@place_order');
 
 
 });
