@@ -17,6 +17,7 @@
     $banners = $categories->banners ?? '';
     $tags = $categories->tags ?? '';
     $is_subscribe = $categories->is_subscribe ?? 0;
+    $is_popular = $categories->is_popular ?? 0;
     $priority = $categories->priority ?? 0;
     $is_goal = $categories->is_goal ?? 0;
     $mandate_subscription = $categories->mandate_subscription ?? '';
@@ -127,6 +128,15 @@
                                         <option value="" selected>Select</option>
                                         <option value="1" {{$is_goal==1?"selected":""}}>Yes</option>
                                         <option value="0" {{$is_goal==0?"selected":""}}>No</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group col-md-6 mt-3">
+                                    <label for="validationCustom01" class="form-label">Is Popular</label>
+                                    <select class="form-control" name="is_popular">
+                                        <option value="" selected>Select</option>
+                                        <option value="1" {{$is_popular	==0?"selected":""}}>Yes</option>
+                                        <option value="0" {{$is_popular	==0?"selected":""}}>No</option>
                                     </select>
                                 </div>
                                 <div class="form-group col-md-6 mt-3">

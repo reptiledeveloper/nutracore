@@ -193,6 +193,103 @@
         }
 
     </style>
+    <style>
+
+        .nc-table-wrapper {
+            width: 100%;
+            margin-top: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .nc-table-wrapper h4 {
+            background: #e6f7f6;
+            color: #008d7d;
+            padding: 12px 20px;
+            margin: 0;
+            font-weight: 600;
+            border-bottom: 1px solid #cdebea;
+        }
+
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            border: 2px solid #d6eaea;
+            font-size: 14px;
+        }
+
+        th {
+            color: #008d7d;
+            font-weight: 600;
+        }
+
+        td:first-child {
+            text-align: left;
+            color: #333;
+            font-weight: 500;
+        }
+
+
+
+        .check {
+            color: #00b894;
+            font-weight: bold;
+        }.curved-table-container {
+             overflow: hidden;
+             border-radius: 16px; /* curved corners */
+             border: 1px solid #dde5eb;
+         }
+
+        .curved-table {
+            width: 100%;
+            border-collapse: collapse;
+            overflow: hidden;
+            border-radius: 16px;
+        }
+
+        /* Header */
+        .curved-table thead tr {
+            background-color: #00A8A8;
+        }
+
+        .curved-table th {
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        /* Body rows */
+        .curved-table td {
+            padding: 12px;
+            font-size: 14px;
+            border-bottom: 1px solid #eef2f3;
+        }
+
+        /* Last row no border */
+        .curved-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Non-member column color */
+        .curved-table td.non-member {
+            background-color: #9fcec9;
+        }
+
+        /* Optional hover effect */
+        .curved-table tbody tr:hover {
+            background-color: #f7fefe;
+        }
+
+    </style>
     <main class="main pages">
         <div class="page-header breadcrumb-wrap">
             <div class="container">
@@ -215,6 +312,65 @@
                                     <div class="text">Total Rewards Cash</div>
                                 </div>
                             </div>
+                            <h4 class="mt-10">Incorporate NC Cash Tier</h4>
+                            <div class="">
+
+
+                                    <table class="curved-table">
+                                        <thead>
+                                        <tr>
+                                            <th>Benefits</th>
+                                            <th>Member</th>
+                                            <th>Non-Member</th>
+                                        </tr>
+                                        </thead>
+
+                                        <tbody>
+                                        <tr>
+                                            <td>✔ Extra Discount</td>
+                                            <td>Extra 5% Off</td>
+                                            <td class="non-member">Extra 0% Off</td>
+                                        </tr>
+                                        <tr>
+                                            <td>✔ Extra Cashback</td>
+                                            <td>Upto 8% Cash</td>
+                                            <td class="non-member">Upto 6% Cash</td>
+                                        </tr>
+                                        <tr>
+                                            <td>✔ Silver</td>
+                                            <td>4% NC Cash</td>
+                                            <td class="non-member">2% NC Cash</td>
+                                        </tr>
+                                        <tr>
+                                            <td>✔ Gold</td>
+                                            <td>6% NC Cash</td>
+                                            <td class="non-member">4% NC Cash</td>
+                                        </tr>
+                                        <tr>
+                                            <td>✔ Platinum</td>
+                                            <td>8% NC Cash</td>
+                                            <td class="non-member">6% NC Cash</td>
+                                        </tr>
+                                        <tr>
+                                            <td>✔ Free 2-Hour Delivery</td>
+                                            <td>Above 2000</td>
+                                            <td class="non-member">Above 3000</td>
+                                        </tr>
+                                        <tr>
+                                            <td>✔ Birthday Reward</td>
+                                            <td>Yes</td>
+                                            <td class="non-member">No</td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+
+
+                            </div>
+
+
+
+
+
 
                             <div class="transactions-header">
                                 <h3>Transaction Logs</h3>

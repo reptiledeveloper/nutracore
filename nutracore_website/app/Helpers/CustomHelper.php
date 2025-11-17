@@ -103,9 +103,10 @@ class CustomHelper
 
     public static function checkWishlist($user_id, $productID, $varientID)
     {
+
         $exist = Wishlist::where('user_id', $user_id)->where('product_id', $productID)->where('varient_id', $varientID)->first();
         if (!empty($exist)) {
-            return 1;
+            return self::getI();
         } else {
             return 0;
         }
@@ -607,6 +608,11 @@ class CustomHelper
             }
         }
         return $keys;
+    }
+    public static function getAdminProductSingleVarients($product_id, $varient_id)
+    {
+        $varients = ProductVarient::where('product_id', $product_id)->where('id', $varient_id)->where('is_delete', 0)->first();
+        return $varients;
     }
 
     public static function sendPlaceNewOrder($mobile, $orderID)
@@ -1599,6 +1605,25 @@ class CustomHelper
             }
 
         }
+    }
+    public static function getPincodeDataEnvia($pincode)
+    {
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://geocodes.envia.com/zipcode/IN/' . $pincode,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'GET',
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+        return json_decode($response);
+
     }
 
     public static function GetUniqueSlug($tbl_name, $id_field, $row_id = '', $slug = '', &$num = '')
@@ -3668,6 +3693,14 @@ class CustomHelper
         $basePath = dirname(__DIR__, 3) . '/images/';// Example: D:/xampp/htdocs/BuyBuyCart/images
         $basePath = str_replace('\\', '/', $basePath);
         return str_replace($basePath, '', $filePath);
+    }
+
+    /**
+     * @return int
+     */
+    public static function getI(): int
+    {
+        return 1;
     }
 
     function randomNumberOrder($qtd)

@@ -284,7 +284,7 @@
                 if($orders->is_subscribe == 1 ){
                       $sub_total+=(int)$product->product_subscription_price* (int)$value->qty;
                   }else{
-                      $sub_total+=(int)$product->selling_price* (int)$value->qty;
+                      $sub_total+=(int)$product->product_selling_price* (int)$value->qty;
                   }
              }
              $total_discount+=(int)$discount* (int)$value->qty;
@@ -293,14 +293,14 @@
              $sgst+=(int)$tax_amount/2;
              $igst+=(int)$tax_amount;
              $grand_total+=(int)$value->net_price;
-
+                $mrp_data = $value->mrp ?? $varients->mrp ?? 0;
             @endphp
             <tr>
                 <td>{{$i+1}}</td>
                 <td>{{ $product->name }}<br><small>{{ $varients->unit ??'' }} {{ $varients->unit_value ??'' }}</small>
                 </td>
                 <td class="qty">{{ $value->qty ??'' }}</td>
-                <td class="">₹ {{ (int)$varients->mrp * (int)$value->qty ??0}} /
+                <td class="">₹ {{ (int)$mrp_data * (int)$value->qty ??0}} /
                     ₹ {{ (int)$value->price * (int)$value->qty ??0}}</td>
                 <td class="">₹ {{ $taxableAmount ??''}}</td>
                 <td class="">₹ {{$discount??0 }}</td>

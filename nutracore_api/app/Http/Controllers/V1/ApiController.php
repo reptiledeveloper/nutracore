@@ -3786,6 +3786,7 @@ class ApiController extends Controller
     public function place_order(Request $request): \Illuminate\Http\JsonResponse
     {
 
+//        DB::table('new')->insert(['data'=>json_encode($request->toArray())]);
         $messages = [
             'address_id.not_in' => 'Please select a valid address.',
         ];
@@ -4483,7 +4484,8 @@ class ApiController extends Controller
         $ordersArr = [];
         $seller_details = [];
         $order_id = $request->order_id ?? '';
-        $orders = Order::where('userID', $user->id)->where('id', $order_id)->where('is_delete', 0)->first();
+//        $orders = Order::where('userID', $user->id)->where('id', $order_id)->where('is_delete', 0)->first();
+        $orders = Order::where('id', $order_id)->where('is_delete', 0)->first();
         if (!empty($orders)) {
             $order_items = CustomHelper::getOrderItemsWithProduct($orders->id);
             if (!empty($order_items)) {
@@ -4527,6 +4529,7 @@ class ApiController extends Controller
             if (!empty($order_courier)) {
                 if ($order_courier->logistics == 'envia') {
                     $orde = json_decode($order_courier->envia_data ?? '');
+                    $orde = $orde->data[0] ?? '';
                     $order_courierArr['shipmentId'] = $orde->shipmentId ?? '';
                     $order_courierArr['trackingNumber'] = $orde->trackingNumber ?? '';
                     $order_courierArr['trackUrl'] = $orde->trackUrl ?? '';

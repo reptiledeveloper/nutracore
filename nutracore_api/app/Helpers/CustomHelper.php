@@ -4076,7 +4076,7 @@ class CustomHelper
                 'currency' => 'INR'
             ]
         ];
-//        echo json_encode($data);die;
+
         $curl = curl_init();
         curl_setopt_array($curl, array(
             CURLOPT_URL => 'https://api.envia.com/ship/rate/',

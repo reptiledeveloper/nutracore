@@ -15,6 +15,7 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\Products;
 use App\Models\QRCodes;
+use App\Models\Wishlist;
 use App\Models\RazorpayOrders;
 use App\Models\Setting;
 use App\Models\Brand;
@@ -28,9 +29,11 @@ use App\Models\UserAddress;
 use App\Models\VendorProductPrice;
 use App\Models\Vendors;
 use Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Response;
 use Session;
 use Validator;
 use RecursiveDirectoryIterator;
@@ -43,123 +46,128 @@ use Illuminate\Support\Facades\Cache;
 class HomeController extends Controller
 {
 
+    public function searchProducts(Request $request)
+    {
+        $query = $request->input('query');
+        $category_id = $request->input('category_id');
+
+        $products = \App\Models\Product::query()
+            ->when($category_id, function ($q) use ($category_id) {
+                $q->where('category_id', $category_id);
+            })
+            ->where('name', 'like', "%{$query}%")
+            ->limit(5)
+            ->get(['name', 'slug']); // return only necessary fields
+
+        return response()->json($products);
+    }
+
     public function index(Request $request)
     {
-        // 🚫 Removed Cache::flush(); & Cache::remember()
-
+//        Cache::flush();
         $user = Auth::guard('user')->user();
         $homepageArr = [];
 
         /* -------------------------------------------
-         BANNERS + PRODUCT DETAILS
+           CACHEABLE DATA (10 minutes)
         ------------------------------------------- */
-        $banners = Banner::select('id','banner_img','product_id','status')
-            ->where('status', 1)->where('is_delete', 0)
-            ->get()
-            ->map(function ($banner) {
-                $banner->banner_img = CustomHelper::getImageUrl('banners', $banner->banner_img);
+        $cacheKey = 'homepage_data';
+        $cacheTime = 600; // 10 minutes
 
-                $productIds = explode(",", $banner->product_id);
-                $banner->products = collect($productIds)
-                    ->map(fn($pid) => HomeController::getProductDetails($pid, null))
+        $cachedData = Cache::remember($cacheKey, $cacheTime, function () {
+            $data = [];
+
+            // BANNERS + PRODUCTS
+            $banners = Banner::where('status', 1)
+                ->where('is_delete', 0)
+                ->get();
+
+            $allProductIds = collect($banners)
+                ->pluck('product_id')
+                ->flatMap(fn($pids) => explode(',', $pids))
+                ->unique()
+                ->filter()
+                ->toArray();
+
+//            $products = HomeController::getProductsByIds($allProductIds); // fetch all products once
+            $products = []; // fetch all products once
+
+            $data['banners'] = $banners->map(function ($banner) use ($products) {
+                $banner->banner_img = CustomHelper::getImageUrl('banners', $banner->banner_img);
+                $banner->products = collect(explode(',', $banner->product_id))
+                    ->map(fn($pid) => $products[$pid] ?? null)
                     ->filter()
-                    ->values(); // re-index
+                    ->values();
                 return $banner;
             });
 
+            // CATEGORIES
+            $data['categories'] = Category::select('id', 'name', 'image', 'priority', 'slug')
+                ->where(['status' => 1, 'parent_id' => 0, 'is_goal' => 0, 'is_delete' => 0])
+                ->orderBy('priority')
+                ->get()
+                ->map(fn($cat) => tap($cat, fn($c) => $c->image = CustomHelper::getImageUrl('categories', $c->image)));
+
+            $data['goalcategories'] = Category::select('id', 'name', 'image', 'priority', 'slug')
+                ->where(['status' => 1, 'parent_id' => 0, 'is_goal' => 1, 'is_delete' => 0])
+                ->orderBy('priority')
+                ->get()
+                ->map(fn($cat) => tap($cat, fn($c) => $c->image = CustomHelper::getImageUrl('categories', $c->image)));
+
+            // BRANDS
+            $data['brands'] = Brand::select('id', 'brand_img', 'brand_name', 'certificate', 'priority', 'slug')
+                ->where(['status' => 1, 'is_delete' => 0])
+                ->orderBy('priority')
+                ->get()
+                ->map(fn($brand) => tap($brand, function ($b) {
+                    $b->brand_img = CustomHelper::getImageUrl('brands', $b->brand_img);
+                    $b->brand_icon = $b->brand_img;
+                    $b->certificate = CustomHelper::getImageUrl('brands', $b->certificate);
+                }));
+
+            // SUBSCRIPTION PLANS + BEST VALUE
+            $data['subscription_plans'] = SubscriptionPlans::where(['status' => 1, 'is_delete' => 0])
+                ->get()
+                ->map(fn($plan) => tap($plan, function ($p) {
+                    $durationDays = $p->duration * 30.44;
+                    $p->price_per_day = $durationDays > 0 ? ($p->price / $durationDays) : INF;
+                    $p->image = CustomHelper::getImageUrl('subscription_plans', $p->image);
+                }));
+
+            $bestPlanId = $data['subscription_plans']->sortBy('price_per_day')->first()?->id;
+            $data['subscription_plans']->each(fn($p) => $p->is_best_value = ($p->id == $bestPlanId) ? 1 : 0);
+
+            // TESTIMONIALS + NEW UPDATES
+            $data['new_updates'] = DB::table('new_updates')
+                ->where(['is_delete' => 0, 'status' => 1])
+                ->limit(5)
+                ->get()
+                ->map(fn($item) => tap($item, fn($i) => $i->product = HomeController::getProductDetails($i->product_id ?? '', null)));
+
+            $data['testimonials'] = DB::table('testimonial')
+                ->where(['is_delete' => 0, 'status' => 1])
+                ->limit(5)
+                ->get()
+                ->map(fn($item) => tap($item, fn($i) => $i->image = CustomHelper::getImageUrl('testimonials', $i->image)));
+
+            return $data;
+        });
+
+        // Merge cached data
+        $homepageArr = array_merge($homepageArr, $cachedData);
+
         /* -------------------------------------------
-         CATEGORIES & GOAL CATEGORIES
-        ------------------------------------------- */
-        $categories = Category::select('id','name','image','priority')
-            ->where(['status'=>1, 'parent_id'=>0, 'is_goal'=>0, 'is_delete'=>0])
-            ->orderBy('priority')
-            ->get()
-            ->map(function ($cat) {
-                $cat->image = CustomHelper::getImageUrl('categories', $cat->image);
-                return $cat;
-            });
-
-        $goalcategories = Category::select('id','name','image','priority')
-            ->where(['status'=>1, 'parent_id'=>0, 'is_goal'=>1, 'is_delete'=>0])
-            ->orderBy('priority')
-            ->get()
-            ->map(function ($cat) {
-                $cat->image = CustomHelper::getImageUrl('categories', $cat->image);
-                return $cat;
-            });
-
-        /* -------------------------------------------
-         BRANDS
-        ------------------------------------------- */
-        $brands = Brand::select('id','brand_img','certificate','priority')
-            ->where(['status'=>1, 'is_delete'=>0])
-            ->orderBy('priority')
-            ->get()
-            ->map(function ($brand) {
-                $brand->brand_img = CustomHelper::getImageUrl('brands', $brand->brand_img);
-                $brand->brand_icon = $brand->brand_img;
-                $brand->certificate = CustomHelper::getImageUrl('brands', $brand->certificate);
-                return $brand;
-            });
-
-        /* -------------------------------------------
-         SUBSCRIPTION PLANS + BEST VALUE
-        ------------------------------------------- */
-        $subscription_plans = SubscriptionPlans::where(['status'=>1, 'is_delete'=>0])
-            ->get()
-            ->map(function ($plan) {
-                $durationDays = $plan->duration * 30.44;
-                $plan->price_per_day = $durationDays > 0 ? ($plan->price / $durationDays) : INF;
-                $plan->image = CustomHelper::getImageUrl('subscription_plans', $plan->image);
-                return $plan;
-            });
-
-        $bestPlan = $subscription_plans->sortBy('price_per_day')->first();
-        $subscription_plans->map(fn($plan) => $plan->is_best_value = $plan->id == $bestPlan->id ? 1 : 0);
-
-        /* -------------------------------------------
-         COLLECTION PRODUCTS
+           COLLECTION PRODUCTS (dynamic, not cached)
         ------------------------------------------- */
         $homepageArr['best_sellers'] = HomeController::getCollectionProducts(1);
-        $homepageArr['best_deals']   = HomeController::getCollectionProducts(2);
-        $homepageArr['newArrival']   = HomeController::getCollectionProducts(3);
+        $homepageArr['best_deals'] = HomeController::getCollectionProducts(2);
+        $homepageArr['newArrival'] = HomeController::getCollectionProducts(3);
 
         /* -------------------------------------------
-         TESTIMONIALS & NEW UPDATES
-        ------------------------------------------- */
-        $homepageArr['new_updates'] = DB::table('new_updates')
-            ->where(['is_delete'=>0, 'status'=>1])
-            ->limit(5)
-            ->get()
-            ->map(function ($item) {
-                $item->product = HomeController::getProductDetails($item->product_id ?? '', null);
-                return $item;
-            });
-
-        $homepageArr['testimonials'] = DB::table('testimonial')
-            ->where(['is_delete'=>0, 'status'=>1])
-            ->limit(5)
-            ->get()
-            ->map(function ($item) {
-                $item->image = CustomHelper::getImageUrl('testimonials', $item->image);
-                return $item;
-            });
-
-        /* -------------------------------------------
-         ADD DATA TO ARRAY
-        ------------------------------------------- */
-        $homepageArr['banners'] = $banners;
-        $homepageArr['categories'] = $categories;
-        $homepageArr['goalcategories'] = $goalcategories;
-        $homepageArr['brands'] = $brands;
-        $homepageArr['subscription_plans'] = $subscription_plans;
-
-        /* -------------------------------------------
-         USER DATA (NOT CACHED)
+           USER DATA (dynamic, not cached)
         ------------------------------------------- */
         if ($user) {
-            $homepageArr['selected_address'] = CustomHelper::getAddressDetails($user->addressID) ??'';
-
+            $homepageArr['selected_address'] = CustomHelper::getAddressDetails($user->addressID) ?? '';
             $homepageArr['seller_details'] = self::getSellerDetails($user->seller_id, $user->id);
         }
 
@@ -260,7 +268,7 @@ class HomeController extends Controller
 
     public function products(Request $request): \Illuminate\Contracts\View\View|\Illuminate\Contracts\View\Factory|\Illuminate\Foundation\Application
     {
-        $user = [];
+        $user = Auth::user() ?? [];
         $data = [];
         $search = $request->search ?? '';
         $type = $request->type ?? '';
@@ -313,11 +321,11 @@ class HomeController extends Controller
         }
 
 // Order by price
-        if ($order_by_price == 'low_to_high') {
-            $products->orderBy('min_price', 'ASC');
-        } elseif ($order_by_price == 'high_to_low') {
-            $products->orderBy('min_price', 'DESC');
-        }
+//        if ($order_by_price == 'low_to_high') {
+//            $products->orderBy('min_price', 'ASC');
+//        } elseif ($order_by_price == 'high_to_low') {
+//            $products->orderBy('min_price', 'DESC');
+//        }
 
         $products = $products->groupBy('products.id')->paginate(1000);
 
@@ -347,6 +355,42 @@ class HomeController extends Controller
                 }
             }
         }
+
+
+//        echo "<pre>";
+//        print_r($productArr);
+//        die;
+        usort($productArr, function ($a, $b) use ($order_by_price) {
+
+            // Helper to get first variant price only
+            $getPrice = function ($product) {
+                if (is_array($product)) {
+                    // Array type product
+                    if (!empty($product['variants']) && isset($product['variants'][0]['selling_price'])) {
+                        return (float)$product['variants'][0]['selling_price'];
+                    }
+                } else {
+                    // Object type product
+                    if (!empty($product->variants) && isset($product->variants[0]->selling_price)) {
+                        return (float)$product->variants[0]->selling_price;
+                    }
+                }
+
+                // No variant found
+                return 0.0;
+            };
+
+            $priceA = $getPrice($a);
+            $priceB = $getPrice($b);
+
+            // Normalize order input
+            $order = $order_by_price ?: 'low_to_high';
+
+            return $order === "high_to_low"
+                ? ($priceB <=> $priceA)   // Descending order
+                : ($priceA <=> $priceB);  // Ascending order
+        });
+
 
         $categories = Category::where('status', 1)
             ->orderBy('name', 'asc')
@@ -419,231 +463,187 @@ class HomeController extends Controller
     public static function getProductDetails($product_id, $user_id = null)
     {
         date_default_timezone_set("Asia/Kolkata");
-        $user = [];
-        $address = [];
-        $seller = [];
-        $estimated_day = "";
-        $estimated_day_user = "";
+
+        // 1️⃣ User & Address
+        $user = $user_id ? User::find($user_id) : null;
         $latitude = session('latitude') ?? '17.44757253036007';
         $longitude = session('longitude') ?? '78.30504618870073';
         $pincode = session('pincode') ?? '';
 
-        if (!empty($user_id)) {
-            $user = User::find($user_id);
-            if (!empty($user->addressID)) {
-                $address = UserAddress::where('id', $user->addressID)->first();
-                if (!empty($address)) {
-                    $latitude = $address->latitude ?? $latitude;
-                    $longitude = $address->longitude ?? $longitude;
-                }
-            }
-            $pincode = $user->pincode ?? '';
-            if (empty($pincode)) {
-                $pincode = $address->pincode ?? '';
-            }
-            $seller = self::getNearestSeller($latitude, $longitude, 2, 40);
-            if (!empty($seller)) {
-                $cutoff_time = CustomHelper::getSettingKey('cutoff_time');
-                $user->seller_id = $seller->id ?? "";
-                $user->save();
-                if (date('H:i:s') < $cutoff_time) {
-                    // Add 2 hours to current time
-                    $nextHour = strtotime('+1 hour', strtotime(date('Y-m-d H:00:00')));
-                    // Add 2 hours to delivery time
-                    $delivery_time = date('h:i A', strtotime('+2 hours', $nextHour));
-                    $day_time_text = "Today " . $delivery_time;
-                } else {
-                    $day_time_text = "Tomorrow 11 AM";
-                }
-//                $day_time_text = (date('H:i:s') < $cutoff_time) ? 'Today 8 PM' : 'Tomorrow 11 AM';
-                $estimated_day = "Get it By " . $day_time_text;
+        if ($user) {
+            $address = $user->addressID ? UserAddress::find($user->addressID) : null;
+            $latitude = $address->latitude ?? $latitude;
+            $longitude = $address->longitude ?? $longitude;
+            $pincode = $user->pincode ?? $address->pincode ?? $pincode;
+        }
+//        Cache::flush();
+        // 2️⃣ Nearest seller (cache 5 minutes)
+        $seller = Cache::remember("nearest_seller_{$user_id}_{$latitude}_{$longitude}", 300, function () use ($latitude, $longitude) {
+            return self::getNearestSeller($latitude, $longitude, 2, 40);
+        });
 
-            }
-        } else {
-            $seller = self::getNearestSeller($latitude, $longitude, 2, 40);
-            if (!empty($seller)) {
-                $cutoff_time = CustomHelper::getSettingKey('cutoff_time');
-                if (date('H:i:s') < $cutoff_time) {
-                    $nextHour = strtotime('+1 hour', strtotime(date('Y-m-d H:00:00')));
-                    $delivery_time = date('h:i A', strtotime('+2 hours', $nextHour));
-                    $day_time_text = "Today " . $delivery_time;
-                } else {
-                    $day_time_text = "Tomorrow 11 AM";
-                }
-                $estimated_day = "Get it By " . $day_time_text;
-            }
+        // 3️⃣ Estimated delivery day (cache 10 minutes per user or pincode)
+        $estimated_day = self::getEstimatedDayCached($user, $seller, $pincode);
+
+        // 4️⃣ Product + variants with eager loading
+        $product = Product::with(['varients' => fn($q) => $q->where('status', 1)->where('is_delete', 0)])
+            ->find($product_id);
+        if (!$product) return null;
+
+        // 5️⃣ Product images in batch
+        $product_images = DB::table('product_images')
+            ->where('product_id', $product->id)
+            ->get()
+            ->groupBy('varient_id');
+
+        // 6️⃣ Brand
+        $brand = $product->brand_id ? Brand::find($product->brand_id) : null;
+
+        // 7️⃣ Map variants
+        $product_varients = [];
+        foreach ($product->varients as $varient) {
+
+            $varient_images = collect($product_images[$varient->id] ?? [])
+                ->map(fn($img) => ['id' => $img->id, 'image' => CustomHelper::getImageUrl('products', $img->image)])
+                ->toArray();
+            $varient_images[] = ['id' => 0, 'image' => CustomHelper::getImageUrl('products', $product->image)];
+
+            $product_varients[] = [
+                'id' => $varient->id,
+                'product_id' => $product->id,
+                'mrp' => $varient->mrp,
+                'selling_price' => $varient->selling_price,
+                'subscription_price' => $varient->subscription_price,
+                'unit' => $varient->unit,
+                'qty' => $user ? CustomHelper::getCartQty($user_id, $product->id, $varient->id) : 0,
+                'discount_per' => self::calculateDiscountPer($varient->mrp, $varient->selling_price),
+                'is_wishlist' => $user ? CustomHelper::checkWishlist($user_id, $product->id, $varient->id) : 0,
+                'images' => $varient_images,
+                'nc_cash' => self::getNcCashPercent($user, $varient->selling_price),
+                'is_out_of_stock' => CustomHelper::checkOutofStock($product->id, $varient->id),
+            ];
         }
 
-        if (empty($estimated_day) && empty($user->estimated_day)) {
-            if (empty($pincode)) {
-                $pincode = session('pincode');
-            }
-            $shipment_data = CustomHelper::checkDelivery($pincode ?? '');
-            if (!empty($shipment_data)) {
-                $data = json_decode($shipment_data, true);
+        // 8️⃣ Product-level images
+        $images = collect($product_images[0] ?? [])
+            ->map(fn($img) => ['id' => $img->id, 'image' => CustomHelper::getImageUrl('products', $img->image)])
+            ->toArray();
+        $images[] = ['id' => 0, 'image' => CustomHelper::getImageUrl('products', $product->image)];
 
-                if (!empty($data['data']['available_courier_companies'])) {
-                    foreach ($data['data']['available_courier_companies'] as $courier) {
-                        $days = $courier['estimated_delivery_days'] ?? '';
-                        if (!empty($user)) {
-                            $user->estimated_day = $days;
-                            $user->save();
-                        }
-                        $estimated_day_user = $days;
-                    }
-                }
-            }
-        } else {
-            $estimated_day_user = $user->estimated_day ?? '';
+        // 9️⃣ Final product object
+        if (empty($product_varients)) {
+
+            $product_varients[] = [
+                'id' => 0,
+                'product_id' => $product->id,
+                'mrp' => $product->product_mrp,
+                'unit' => "",
+                'subscription_price' => $product->product_subscription_price,
+                'selling_price' => $product->product_selling_price,
+                'qty' => $user ? CustomHelper::getCartQty($user_id, $product->id, 0) : 0,
+                'discount_per' => $product->product_mrp && $product->product_selling_price
+                    ? round((($product->product_mrp - $product->product_selling_price) / $product->product_mrp) * 100)
+                    : 0,
+                'is_wishlist' => $user ? CustomHelper::checkWishlist($user_id, $product->id, 0) : 0,
+                'images' => $images,
+                'nc_cash' => self::getNcCashPercent($user, $product->product_selling_price),
+                'is_out_of_stock' => CustomHelper::checkOutofStock($product->id, 0),
+            ];
         }
 
+        $product->varients = $product_varients;
+        $product->images = $images;
+        $product->image = CustomHelper::getImageUrl('products', $product->image);
+        $product->seller = $seller;
+        $product->estimated_day = $estimated_day;
+        $product->certificate = CustomHelper::getImageUrl('brands', $brand->certificate ?? '');
+        $product->options = CustomHelper::getProductOptions($product->id, $product->option_name ?? '');
+        $product->rating = "0";
 
-        if (!empty($estimated_day_user)) {
-            $estimated_day = "Get it Within " . $estimated_day_user . " Days";
-        }
-
-
-
-
-        $product = Product::where('id', $product_id)->first();
-        if (!empty($product)) {
-            $share_link = '';
-            $product->share_link = $share_link;
-            $dbArray = [];
-            $images = [];
-            $dbArray['id'] = 0;
-            $is_out_of_stock = 0;
-            $dbArray['image'] = CustomHelper::getImageUrl('products', $product->image);
-            $images[] = $dbArray;
-            $varients = $product->varients()->where('is_delete', 0)->where('status', 1)->get();
-            $product->estimated_day = $estimated_day;
-            if (!empty($varients) && count($varients) > 0) {
-                foreach ($varients as $varient) {
-                    $qty = 0;
-                    if (!empty($user)) {
-                        $qty = CustomHelper::getCartQty($user_id, $product->id, $varient->id);
-                    }
-                    $varient->qty = $qty;
-                    $varient->discount_per = self::calculateDiscountPer($varient->mrp ?? 0, $varient->selling_price ?? 0);
-                    $is_wishlist = 0;
-                    if (!empty($user)) {
-                        $is_wishlist = CustomHelper::checkWishlist($user_id, $product->id, $varient->id);
-                    }
-                    $varient_images = [];
-                    $varient->is_wishlist = $is_wishlist;
-                    $dbArray = [];
-                    $dbArray['id'] = 0;
-                    $dbArray['image'] = CustomHelper::getImageUrl('products', $product->image);
-                    $varient_images[] = $dbArray;
-                    $product_images = DB::table('product_images')->where('product_id', $product->id)->where('varient_id', $varient->id)->get();
-                    if (!empty($product_images)) {
-                        foreach ($product_images as $product_image) {
-                            $dbArray = [];
-                            $dbArray['id'] = $product_image->id ?? '';
-                            $dbArray['image'] = CustomHelper::getImageUrl('products', $product_image->image);
-                            $varient_images[] = $dbArray;
-                        }
-                    }
-
-                    $product_images = DB::table('product_images')->where('product_id', $product->id)->where('varient_id', null)->get();
-                    if (!empty($product_images)) {
-                        foreach ($product_images as $product_image) {
-                            $dbArray = [];
-                            $dbArray['id'] = $product_image->id ?? '';
-                            $dbArray['image'] = CustomHelper::getImageUrl('products', $product_image->image);
-                            $varient_images[] = $dbArray;
-                        }
-                    }
-                    $varient->images = $varient_images;
-                    $nc_cash = self::getNcCashPercent($user, $varient->selling_price ?? '');
-
-                    $varient->nc_cash = $nc_cash;
-                    $is_out_of_stock = CustomHelper::checkOutofStock($product->id, $varient->id);
-                    $varient->is_out_of_stock = $is_out_of_stock;
-
-                }
-            } else {
-                $varient_images = [];
-                $dbArray = [];
-                $dbArray['id'] = 0;
-                $dbArray['image'] = CustomHelper::getImageUrl('products', $product->image);
-                $varient_images[] = $dbArray;
-                $nc_cash = self::getNcCashPercent($user, $product->product_selling_price ?? '');
-                $product_images = DB::table('product_images')->where('product_id', $product->id)->get();
-                if (!empty($product_images)) {
-                    foreach ($product_images as $product_image) {
-                        $dbArray = [];
-                        $dbArray['id'] = $product_image->id ?? '';
-                        $dbArray['image'] = CustomHelper::getImageUrl('products', $product_image->image);
-                        $varient_images[] = $dbArray;
-                    }
-                }
-                $qty = 0;
-                if (!empty($user)) {
-                    $qty = CustomHelper::getCartQty($user_id, $product->id, 0);
-                }
-                $is_out_of_stock = CustomHelper::checkOutofStock($product->id, 0);
-                $varients = [[
-                    'id' => 0, // You can keep it product_id or generate a fake ID
-                    'product_id' => $product->id,
-                    'mrp' => $product->product_mrp,
-                    'selling_price' => $product->product_selling_price,
-                    'actual_price' => null,
-                    'unit' => null, // You can set this dynamically if available
-                    'unit_value' => null,
-                    'subscription_price' => $product->product_subscription_price,
-                    'reward_points' => null,
-                    'status' => $product->status,
-                    'is_delete' => $product->is_delete,
-                    'created_at' => $product->created_at,
-                    'updated_at' => $product->updated_at,
-                    'varient_sku' => $product->sku,
-                    'qty' => $qty,
-                    'discount_per' => $product->product_mrp && $product->product_selling_price
-                        ? round((($product->product_mrp - $product->product_selling_price) / $product->product_mrp) * 100)
-                        : 0,
-                    'is_wishlist' => 0,
-                    'images' => $varient_images,
-                    'nc_cash' => $nc_cash,
-                    'is_out_of_stock' => $is_out_of_stock,
-                ]];
-            }
-            $product_images = DB::table('product_images')->where('product_id', $product->id)->get();
-            if (!empty($product_images)) {
-                foreach ($product_images as $product_image) {
-                    $dbArray = [];
-                    $dbArray['id'] = $product_image->id ?? '';
-                    $dbArray['image'] = CustomHelper::getImageUrl('products', $product_image->image);
-                    $images[] = $dbArray;
-                }
-            }
-            $product->images = $images;
-            $product->image = CustomHelper::getImageUrl('products', $product->image);
-
-
-            $product->varients = $varients;
-
-            $product->options = CustomHelper::getProductOptions($product->id ?? '', $product->option_name ?? '');
-            $attribute_values = explode(',', $product->attribute_values ?? '');
-            $option_name = explode(',', $product->option_name ?? '');
-            $product->get_no_coins = 0;
-            $brand = [];
-            if (!empty($product->brand_id)) {
-                $brand = Brand::find($product->brand_id);
-            }
-            $product->rating = "0";
-            $product->seller = $seller;
-            $nc_cash = 0;
-
-            $product->certificate = CustomHelper::getImageUrl('brands', $brand->certificate ?? '');
-//            if (!empty($varients) && count($varients) > 0) {
-//                return $product;
-//            }
-            return $product;
-        }
-
-        return null;
+        return $product;
     }
+
+    public static function calculateEstimatedDay($user = null, $seller = null, $pincode = null)
+    {
+        date_default_timezone_set("Asia/Kolkata");
+
+        // Default
+        $estimated_day = '';
+
+        // Get cutoff time once
+        $cutoff_time = CustomHelper::getSettingKey('cutoff_time') ?? '17:00:00';
+        $current_time = date('H:i:s');
+
+        // 1️⃣ If seller is available, calculate fast delivery
+        if (!empty($seller)) {
+            if ($current_time < $cutoff_time) {
+                $nextHour = strtotime('+1 hour', strtotime(date('Y-m-d H:00:00')));
+                $delivery_time = date('h:i A', strtotime('+2 hours', $nextHour));
+                $day_time_text = "Today " . $delivery_time;
+            } else {
+                $day_time_text = "Tomorrow 11 AM";
+            }
+
+            $estimated_day = "Get it By " . $day_time_text;
+
+            // Save seller_id for logged-in user
+            if ($user) {
+                $user->seller_id = $seller->id ?? null;
+                $user->save();
+            }
+        }
+
+        // 2️⃣ If still no estimated day, use shipment service
+        if (empty($estimated_day)) {
+            $pincode = $pincode ?? ($user->pincode ?? session('pincode') ?? null);
+            if ($pincode) {
+                $shipment_data = CustomHelper::checkDelivery($pincode);
+                if (!empty($shipment_data)) {
+                    $data = json_decode($shipment_data, true);
+                    if (!empty($data['data']['available_courier_companies'])) {
+                        // Take the first courier's estimated days
+                        $days = $data['data']['available_courier_companies'][0]['estimated_delivery_days'] ?? '';
+                        if (!empty($days)) {
+                            if ($user) {
+                                $user->estimated_day = $days;
+                                $user->save();
+                            }
+                            $estimated_day = "Get it Within {$days} Days";
+                        }
+                    }
+                }
+            }
+        }
+
+        // 3️⃣ If user already has estimated_day saved
+        if (empty($estimated_day) && $user?->estimated_day) {
+            $estimated_day = "Get it Within " . $user->estimated_day . " Days";
+        }
+
+        return $estimated_day ?: "";
+    }
+
+
+    public static function getEstimatedDayCached($user = null, $seller = null, $pincode = null)
+    {
+        $cacheKey = '';
+
+        if ($user) {
+            // Cache per user
+            $cacheKey = "estimated_day_user_{$user->id}";
+        } elseif ($pincode) {
+            // Cache per pincode for guest users
+            $cacheKey = "estimated_day_pincode_{$pincode}";
+        } else {
+            return "";
+        }
+
+        // Cache for 10 minutes
+        return Cache::remember($cacheKey, 600, function () use ($user, $seller, $pincode) {
+            return self::calculateEstimatedDay($user, $seller, $pincode);
+        });
+    }
+
 
     public function getCartProductDetails($cart, $user_id = null)
     {
@@ -680,6 +680,7 @@ class HomeController extends Controller
                     }
                     $varient_images = [];
                     $varient->is_wishlist = $is_wishlist;
+                    $varient->subscription_price = $varient->subscription_price ?? 0;
                     $dbArray = [];
                     $dbArray['id'] = 0;
                     $dbArray['image'] = CustomHelper::getImageUrl('products', $product->image);
@@ -772,6 +773,9 @@ class HomeController extends Controller
             }
 
             $product->certificate = CustomHelper::getImageUrl('brands', $brand->certificate ?? '');
+
+
+//            print_r($product);die;
             if (!empty($varients) && count($varients) > 0) {
                 return $product;
             }
@@ -859,6 +863,7 @@ class HomeController extends Controller
         $subscription_id = $request->subscription_id ?? '';
         $slot_time = $request->slot_time ?? '';
         $delivery_type = $request->delivery_type ?? '';
+        $applied_cashback = $request->applied_cashback ?? '';
         $cart_data = CustomHelper::cartData($user->id, $coupon_code, $request, $user);
 
         $cartValue = $cart_data['cartValue'] ?? null;
@@ -932,7 +937,6 @@ class HomeController extends Controller
                     $max_applied_cashback = (int)$cashback_wallet;
                 }
             }
-
         }
         $cartValue['applied_cashback'] = "0";
         if (!empty($cartValue)) {
@@ -974,7 +978,7 @@ class HomeController extends Controller
             // Express slot
             $expressSlot = null;
 
-            $check = self::checkExpressEligible($user->id??'');
+            $check = self::checkExpressEligible($user->id ?? '');
             if ($check) {
                 $expressSlot = DB::table('delivery_charges')
                     ->where('type', 'express')
@@ -1029,6 +1033,7 @@ class HomeController extends Controller
         return $data;
 
     }
+
     public function checkExpressEligible($user_id)
     {
         if (!empty($user_id)) {
@@ -1054,6 +1059,7 @@ class HomeController extends Controller
         }
         return false;
     }
+
     public function getCartHtml(Request $request)
     {
         $data = [];
@@ -1074,11 +1080,13 @@ class HomeController extends Controller
 
         $data['cart_products'] = $productArr;
         $cart_data = self::getCartData($request);
-        $data['cart_data'] = self::getCartData($request);
+        $data['cart_data'] = $cart_data;
+        $cartValue = $cart_data['cartValue'] ?? '';
+        $applied_cashback = $cartValue['applied_cashback'] ?? '';
         $subscription_plans_new = self::getMembershipPlans($user->id);
         $data['subscription_plans_new'] = $subscription_plans_new;
         $html = view('home.cart_html', $data)->render();
-        return response()->json(['html' => $html,'cart_data'=>$cart_data]);
+        return response()->json(['html' => $html, 'cart_data' => $cart_data, 'applied_cashback' => $applied_cashback]);
     }
 
     public function getMembershipPlans($user_id)
@@ -1873,7 +1881,20 @@ class HomeController extends Controller
     public function wishlist(Request $request): \Illuminate\Contracts\View\View|\Illuminate\Contracts\View\Factory|\Illuminate\Foundation\Application
     {
         $data = [];
-
+        $user = Auth::user();
+        $products = [];
+        if (!empty($user)) {
+            $product_ids = Wishlist::where('user_id', $user->id)->groupBy('product_id')->pluck('product_id')->toArray();
+            if (!empty($product_ids)) {
+                foreach ($product_ids as $product_id) {
+                    $product = self::getProductDetails($product_id, $user->id);
+                    if (!empty($product)) {
+                        $products[] = $product;
+                    }
+                }
+            }
+        }
+        $data['products'] = $products;
 
         return view('home.wishlist', $data);
     }
@@ -2031,11 +2052,14 @@ class HomeController extends Controller
         $addressID = $request->addressID ?? '';
         User::where('id', $user->id)->update(['addressID' => $addressID]);
         $address = UserAddress::where('user_id', $user->id)->where('id', $addressID)->first();
-        return json_encode(['address' => $address]);
+        $envia_data = json_decode($address->envia_data);
+
+        $stateName = $envia_data->state->name ?? '';
+        return json_encode(['address' => $address, 'stateName' => $stateName]);
 
     }
 
-    public function save_address(Request $request)
+    public function save_address_old(Request $request)
     {
         $user = Auth::user();
         $address = new UserAddress();
@@ -2054,12 +2078,93 @@ class HomeController extends Controller
         return response()->json(['address' => $address]);
     }
 
+    public function save_address(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            "pincode" => "required",
+            "latitude" => "required",
+            "longitude" => "required",
+            "location" => "required",
+            "flat_no" => "required",
+            "contact_person_name" => "required",
+            "contact_person_mobile" => "required",
+        ]);
+        $user = null;
+        if ($validator->fails()) {
+            return response()->json([
+                'result' => false,
+                'message' => json_encode($validator->errors()),
+            ], 400);
+        }
+        $user = Auth::user();
+        if (empty($user)) {
+            return response()->json([
+                'result' => false,
+                'message' => '',
+            ], 401);
+        }
+        if ($user->phone == "9999999999") {
+            return response()->json([
+                'result' => false,
+                'message' => 'Unauthorised',
+            ], 401);
+        }
+        $dbArray = [];
+        $addressID = 0;
+        $id = $request->id ?? '';
+        $dbArray['user_id'] = $user->id ?? '';
+        $dbArray['location'] = $request->location ?? '';
+        $dbArray['flat_no'] = $request->flat_no ?? '';
+        $dbArray['building_name'] = $request->building_name ?? '';
+        $dbArray['landmark'] = $request->landmark ?? '';
+        $dbArray['address_type'] = $request->address_type ?? '';
+        $dbArray['pincode'] = $request->pincode ?? '';
+        $dbArray['latitude'] = $request->latitude ?? '';
+        $dbArray['longitude'] = $request->longitude ?? '';
+        $dbArray['contact_person_name'] = $request->contact_person_name ?? '';
+        $dbArray['contact_person_mobile'] = $request->contact_person_mobile ?? '';
+        $dbArray['is_delete'] = $request->is_delete ?? 0;
+        $dbArray['note'] = $request->note ?? '';
+        $dbArray['is_active'] = 'Y';
+
+        if ($request->is_default == 'Y') {
+            DB::table('user_address')->where('user_id', $user->id)->update(['is_default' => 'N']);
+        }
+
+        $dbArray['is_default'] = $request->is_default ?? 'N';
+        if (!empty($id)) {
+            DB::table('user_address')->where('id', $id)->update($dbArray);
+            User::where('id', $user->id)->update(['addressID' => $id, 'estimated_day' => '']);
+            $addressID = $id;
+        } else {
+            $addressID = DB::table('user_address')->insertGetId($dbArray);
+            User::where('id', $user->id)->update(['addressID' => $addressID, 'latitude' => $request->latitude, 'longitude' => $request->longitude, 'estimated_day' => '']);
+        }
+
+        if (!empty($request->pincode)) {
+            $response = CustomHelper::getPincodeDataEnvia($request->pincode);
+            if (!empty($response)) {
+                $response = $response[0] ?? '';
+                $dbArray = [];
+                $variable = '2digit';
+                $dbArray['country'] = $response->country->code ?? '';
+                $dbArray['state'] = $response->state->code->$variable ?? '';
+                $dbArray['envia_data'] = json_encode($response) ?? '';
+                UserAddress::where('id', $addressID)->update($dbArray);
+            }
+        }
+        User::where('id', $user->id)->update(['addressID' => $addressID]);
+        $address = UserAddress::where('id', $addressID)->first();
+        return response()->json(['address' => $address]);
+    }
+
 
 //    vikas kumar
     public function TimeToGainMoreVikas()
     {
         return view('home.TimeToGainMoreVikas');
     }
+
     public function place_order(Request $request): \Illuminate\Http\JsonResponse
     {
 
@@ -2071,7 +2176,7 @@ class HomeController extends Controller
             'selected_addressID' => 'required|not_in:0',
             'payment_method' => 'required',
         ], $messages);
-        $user = null;
+
         if ($validator->fails()) {
             return response()->json([
                 'result' => false,
@@ -2079,6 +2184,7 @@ class HomeController extends Controller
             ], 400);
         }
         $user = Auth::user();
+
         $address_id = $request->selected_addressID ?? '';
         $address = UserAddress::where('id', $address_id)->first();
         if (!empty($address)) {
@@ -2121,6 +2227,7 @@ class HomeController extends Controller
 
 
             $wallet_applied = $request->wallet_applied ?? false;
+            $apply_cashback = $request->apply_cashback ?? false;
             $cashback_wallet = $request->cashback_wallet ?? 0;
             $applied_cashback = $request->applied_cashback ?? 0;
             $subscription_id = $request->subscription_id ?? 0;
@@ -2251,7 +2358,7 @@ class HomeController extends Controller
                     $freebees_price = $freebees_pro->amount ?? 0;
                 }
             }
-            $wallet_applied = $request->wallet_applied ?? false;
+            $wallet_applied = (bool)$request->apply_cashback ?? false;
             $address = UserAddress::where('id', $request->address_id)->first();
             $cartValue = $cart_data['cartValue'] ?? '';
             $cart_list = $cart_data['cart_list'] ?? '';
@@ -2431,78 +2538,9 @@ class HomeController extends Controller
         $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             "type" => 'required',
         ]);
-        $user = null;
-        if ($validator->fails()) {
-            return response()->json([
-                'result' => false,
-                'message' => json_encode($validator->errors()),
-                'order_id' => null,
-            ], 400);
-        }
-        $user = auth()->user();
-        if (empty($user)) {
-            return response()->json([
-                'result' => false,
-                'message' => '',
-                'order_id' => null,
-            ], 401);
-        }
+        $user = Auth::user();
         $type = $request->type ?? '';
         $order_id = '';
-        //        if ($type == 'subscription') {
-//            $subscription_plans = SubscriptionPlan::where('id', $request->subscription_id)->where('status', 1)->first();
-//            if (empty($subscription_plans)) {
-//                return response()->json([
-//                    'result' => false,
-//                    'message' => "Invalid Subcription",
-//                    'order_id' => null,
-//                ], 200);
-//            }
-//            $amount = $subscription_plans->price ?? 0;
-//            $orders = $this->generateRazorpayOrder($amount, $user->id);
-//            if (!empty($orders)) {
-//                if (empty($orders->error)) {
-//                    $order_id = $orders->id;
-//                    $dbArray = [];
-//                    $dbArray['user_id'] = $user->id;
-//                    $dbArray['subscription_id'] = $request->subscription_id;
-//                    $dbArray['amount'] = $amount;
-//                    $dbArray['wallet'] = 0;
-//                    $dbArray['type'] = $type;
-//                    $dbArray['status'] = 0;
-//                    $dbArray['razorpay_order_id'] = $order_id;
-//                    Payment::insert($dbArray);
-//                }
-//            }
-//        }
-
-        //        if ($type == 'wallet') {
-//            $amount = $request->amount ?? 0;
-//            if ($amount <= 0) {
-//                return response()->json([
-//                    'result' => false,
-//                    'message' => "Invalid Amount",
-//                    'order_id' => null,
-//                    'keys' => null,
-//                ], 200);
-//            }
-//            $orders = $this->generateRazorpayOrder($amount, $user->id);
-//            if (!empty($orders)) {
-//                if (empty($orders->error)) {
-//                    $order_id = $orders->id;
-//                    $dbArray = [];
-//                    $dbArray['user_id'] = $user->id;
-//                    $dbArray['subscription_id'] = 0;
-//                    $dbArray['amount'] = $amount;
-//                    $dbArray['wallet'] = 0;
-//                    $dbArray['type'] = $type;
-//                    $dbArray['status'] = 0;
-//                    $dbArray['razorpay_order_id'] = $order_id;
-//                    Payment::insert($dbArray);
-//                }
-//            }
-//        }
-
         if ($type == 'order') {
             $amount = $request->amount ?? 0;
             if ($amount <= 0) {
@@ -2530,35 +2568,6 @@ class HomeController extends Controller
                 }
             }
         }
-        //        if ($type == 'user_subscription_order') {
-//            $amount = $request->amount ?? 0;
-//            if ($amount <= 0) {
-//                return response()->json([
-//                    'result' => false,
-//                    'message' => "Invalid Amount",
-//                    'order_id' => null,
-//                    'keys' => null,
-//                ], 200);
-//            }
-//            $orders = $this->generateRazorpayOrder($amount, $user->id);
-//            if (!empty($orders)) {
-//                if (empty($orders->error)) {
-//                    $order_id = $orders->id;
-//                    $dbArray = [];
-//                    $dbArray['user_id'] = $user->id;
-//                    $dbArray['subscription_id'] = $request->taken_subscription_id ?? '';
-//                    $dbArray['order_id'] = $request->order_id ?? '';
-//                    $dbArray['amount'] = $amount;
-//                    $dbArray['security_amount'] = $request->security_amount ?? 0;
-//                    $dbArray['wallet'] = 0;
-//                    $dbArray['type'] = $type;
-//                    $dbArray['status'] = 0;
-//                    $dbArray['razorpay_order_id'] = $order_id;
-//                    Payment::insert($dbArray);
-//                }
-//            }
-//        }
-
 
         return response()->json([
             'result' => true,
@@ -2637,5 +2646,275 @@ class HomeController extends Controller
                 }
             }
         }
+    }
+
+
+    public function nc_consult(Request $request)
+    {
+        $data = [];
+
+
+        return view('home.nc_consult', $data);
+
+    }
+
+    public function pages_app(Request $request)
+    {
+        $data = [];
+
+
+        return view('home.pages_app', $data);
+
+    }
+
+    public function consultation_save(Request $request)
+    {
+        $request->validate([
+            'fullName' => 'required|string|max:255',
+            'age' => 'required|integer|min:1',
+            'gender' => 'required|in:male,female,other',
+            'mobile' => 'required|digits:10',
+            'email' => 'nullable|email',
+            'primaryGoal' => 'required|in:weight_loss,muscle_gain,maintenance',
+            'currentWeight' => 'required|numeric',
+            'targetWeight' => 'required|numeric',
+            'dietPreference' => 'required|in:vegetarian,non_vegetarian,vegan',
+            'activityLevel' => 'required|in:low,moderate,high',
+            'healthConditions' => 'nullable|string',
+            'consultMode' => 'required|in:video,phone',
+            'preferredDate' => 'required|date|after_or_equal:today',
+            'timeSlot' => 'required|string',
+            'termsCheck' => 'accepted',
+        ]);
+
+        DB::table('consultations')->insert([
+            'full_name' => $request->fullName,
+            'age' => $request->age,
+            'gender' => $request->gender,
+            'mobile' => $request->mobile,
+            'email' => $request->email,
+            'primary_goal' => $request->primaryGoal,
+            'current_weight' => $request->currentWeight,
+            'target_weight' => $request->targetWeight,
+            'diet_preference' => $request->dietPreference,
+            'activity_level' => $request->activityLevel,
+            'health_conditions' => $request->healthConditions,
+            'consultation_mode' => $request->consultMode,
+            'preferred_date' => $request->preferredDate,
+            'time_slot' => $request->timeSlot,
+            'terms_agreed' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return redirect()->back()->with('success', 'Consultation booked successfully!');
+
+    }
+
+    public function getPincodeDetails($pincode)
+    {
+        $pincode_data = CustomHelper::getPincodeDataEnvia($pincode);
+
+        if (!empty($pincode_data)) {
+
+            return [
+                'city' => $pincode_data[0]->locality ?? '',
+                'state' => $pincode_data[0]->state->name ?? '',
+            ];
+        }
+
+        return response()->json(['error' => 'Invalid Pincode'], 400);
+    }
+
+    public function buy_giftcard(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            "amount" => "required",
+            "qty" => "required"
+        ]);
+        $user = null;
+        if ($validator->fails()) {
+            return response()->json([
+                'result' => false,
+                'message' => json_encode($validator->errors()),
+            ], 400);
+        }
+
+        $user = Auth::user();
+        if (empty($user)) {
+            return response()->json([
+                'result' => false,
+                'message' => '',
+            ], 401);
+        }
+
+        $amount = (int)$request->amount * (int)$request->qty;
+        $orders = $this->generateRazorpayOrder($amount, $user->id);
+        if (!empty($orders)) {
+            if (empty($orders->error)) {
+                $order_id = $orders->id;
+                $dbArray = [];
+                $dbArray['user_id'] = $user->id;
+                $dbArray['subscription_id'] = "";
+                $dbArray['amount'] = $amount;
+                $dbArray['giftcard_amount'] = $request->amount ?? 0;
+                $dbArray['giftcard_type'] = $request->type ?? '';
+                $dbArray['giftcard_qty'] = $request->qty ?? 1;
+                $dbArray['wallet'] = 0;
+                $dbArray['type'] = "giftcard";
+                $dbArray['payment_status'] = 0;
+                $dbArray['razorpay_order_id'] = $order_id;
+                RazorpayOrders::insert($dbArray);
+            }
+        }
+
+
+        return response()->json([
+            'result' => true,
+            'message' => "Successfully",
+            'order_id' => $order_id,
+            'image' => url('public/assets/images/logo.png'),
+            'keys' => CustomHelper::getRazorpayKeys(),
+            'orders' => $orders,
+        ], 200);
+    }
+
+    public function wishlist_save(Request $request)
+    {
+        $user = null;
+        $user = Auth::user();
+        if (empty($user)) {
+            return response()->json([
+                'result' => false,
+                'message' => '',
+            ], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            "product_id" => 'required',
+            "variant_id" => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'result' => false,
+                'message' => json_encode($validator->errors()),
+            ], 400);
+        }
+        $exist = Wishlist::where('user_id', $user->id)->where('product_id', $request->product_id)->where('varient_id', $request->variant_id)->first();
+        if (empty($exist)) {
+            $dbArray = [];
+            $dbArray['user_id'] = $user->id;
+            $dbArray['seller_id'] = $request->seller_id ?? '';
+            $dbArray['product_id'] = $request->product_id ?? '';
+            $dbArray['varient_id'] = $request->variant_id ?? '';
+            Wishlist::insert($dbArray);
+            return response()->json([
+                'result' => true,
+                'status' => "added",
+                'message' => "Added Successfully",
+            ], 200);
+        } else {
+            $exist->delete();
+            return response()->json([
+                'result' => true,
+                'status' => "removed",
+                'message' => "Remove Successfully",
+            ], 200);
+        }
+    }
+
+
+    public function take_subscription(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            "subscription_id" => "required"
+        ]);
+        $user = Auth::user();
+        if ($validator->fails()) {
+            return response()->json([
+                'result' => false,
+                'message' => json_encode($validator->errors()),
+            ], 400);
+        }
+        if (empty($user)) {
+            return response()->json([
+                'result' => false,
+                'message' => '',
+            ], 401);
+        }
+        if ($user->phone == "9999999999") {
+            return response()->json([
+                'result' => false,
+                'message' => 'Unauthorised',
+            ], 401);
+        }
+        $subscription_id = $request->subscription_id ?? '';
+        $subscription_plans = SubscriptionPlans::where('id', $subscription_id)->first();
+        if (empty($subscription_plans)) {
+            return response()->json([
+                'result' => false,
+                'message' => "Subscription Not Exist",
+            ], 200);
+        }
+        $order_id = "";
+        $is_ban = $user->is_ban ?? 0;
+        if ($is_ban == 1) {
+            return response()->json([
+                'result' => false,
+                'message' => "User is Ban",
+            ], 200);
+        }
+        $amount = $subscription_plans->price ?? 0;
+        $orders = $this->generateRazorpayOrder($amount, $user->id);
+        if (!empty($orders)) {
+            if (empty($orders->error)) {
+                $order_id = $orders->id;
+                $dbArray = [];
+                $dbArray['user_id'] = $user->id;
+                $dbArray['subscription_id'] = $request->subscription_id;
+                $dbArray['amount'] = $amount;
+                $dbArray['wallet'] = 0;
+                $dbArray['type'] = "subscription";
+                $dbArray['payment_status'] = 0;
+                $dbArray['razorpay_order_id'] = $order_id;
+                RazorpayOrders::insert($dbArray);
+            }
+        }
+
+
+        return response()->json([
+            'result' => true,
+            'message' => "Successfully",
+            'order_id' => $order_id,
+            'image' => url('public/assets/images/logo.png'),
+            'keys' => CustomHelper::getRazorpayKeys(),
+            'orders' => $orders,
+        ], 200);
+    }
+
+    public function invoice(Request $request)
+    {
+        $orderID = $request->id;
+        $orders = Order::where('id', $orderID)->first();
+        $seller_details = Vendors::where('id', $orders->id)->first();
+        if($orders->status == "DELIVERED"){
+//            CustomHelper::generateInvoiceNo();
+        }
+        $data = [
+            'orders' => $orders,
+            'seller_details' => $seller_details
+        ];
+        $pdf = Pdf::loadView('home.saleinvoice_a4_new', $data)
+            ->setPaper('a4')->setOptions([
+                'isRemoteEnabled' => true, // <-- enable remote images
+            ]);
+        $filename = 'Invoice_order_' . rand(111, 999999) . time() . '.pdf';
+
+        return Response::make($pdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => "inline; filename=\"{$filename}\""
+        ]);
+
     }
 }

@@ -39,137 +39,7 @@
     </style>
 
 
-    <style>
-        .scroll-container {
-            display: flex;
-            gap: 20px;
-            overflow-x: auto;
-            padding: 10px;
-            cursor: grab;
-        }
 
-        .plan {
-            flex: 0 0 auto;
-            background-color: #003333;
-            border-radius: 16px;
-            border: 2px solid transparent;
-            padding: 20px;
-            text-align: center;
-            width: 180px;
-            transition: all 0.3s ease;
-        }
-
-        .plan h4 {
-            color: #ccc;
-            margin-bottom: 10px;
-        }
-
-        .plan .months {
-            font-size: 48px;
-            font-weight: bold;
-        }
-
-        .plan .details {
-            margin: 10px 0;
-            font-size: 16px;
-        }
-
-        .plan .price {
-            font-size: 20px;
-            margin-top: 10px;
-        }
-
-        .plan.selected {
-            background-color: #FFD54F;
-            color: white;
-            box-shadow: 0 0 20px #FFD54F88;
-            border: 2px solid #fff;
-        }
-
-        .plan.selected .details strong {
-            font-weight: bold;
-        }
-
-        /* Hide scrollbar */
-        .scroll-container::-webkit-scrollbar {
-            display: none;
-        }
-
-        .scroll-container {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-
-        .faq-container {
-            background: #fff;
-            border-radius: 8px;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 30px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .faq-container h2 {
-            text-align: center;
-            color: #00b6b9;
-            margin-bottom: 10px;
-        }
-
-        .faq-container p.description {
-            text-align: center;
-            color: #555;
-            margin-bottom: 30px;
-        }
-
-        .faq-heading {
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #333;
-            font-size: 18px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 5px;
-        }
-
-        .faq-item {
-            border-top: 1px solid #eee;
-        }
-
-        .faq-question {
-            padding: 15px;
-            font-weight: 600;
-            display: flex;
-            justify-content: space-between;
-            cursor: pointer;
-            color: #333;
-        }
-
-        .faq-answer {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-            padding: 0 15px;
-            color: #666;
-            background: #fafafa;
-        }
-
-        .faq-answer.open {
-            padding-top: 10px;
-            padding-bottom: 15px;
-        }
-
-        .faq-question.active + .faq-answer {
-            max-height: 500px;
-        }
-
-        .icon {
-            font-size: 20px;
-            transition: transform 0.3s ease;
-        }
-
-        .faq-question.active .icon {
-            transform: rotate(180deg);
-        }
-    </style>
 
 
     <style>
@@ -351,43 +221,112 @@
             position: relative;
         }
     </style>
+
     <style>
-
-        .slider-container {
-            max-width: 400px;
-            margin: auto;
-        }
-
-        .levels {
+        .scroll-container-right {
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-weight: bold;
+            justify-content: center;
+            gap: 20px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-behavior: smooth;
+            width: 100%;
+            padding-bottom: 10px;
+            scrollbar-width: none; /* Firefox */
         }
 
-        .range-values {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 5px;
-            font-size: 14px;
+        .scroll-container-right::-webkit-scrollbar {
+            display: none; /* Chrome/Safari/Edge */
         }
 
-        .slider-inner {
-            position: relative;
-            height: 8px;
-            background: #ddd;
-            border-radius: 4px;
+        /* Plan Cards */
+        .plan {
+            background: rgba(255, 255, 255, 0.8);
+            color: #333;
+            padding: 10px;
+            padding-top: 0px;
+            border-radius: 12px;
+            width: 135px;
+            margin-top: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s
+            ease;
+            border: 1px solid transparent;
         }
 
-        .filled {
-            height: 100%;
-            background: #f0c14b;
-            border-radius: 4px;
-            width: 0;
-            transition: width 0.3s ease;
+        .plan:hover {
+            transform: translateY(-4px);
         }
 
+        .plan.active {
+            background: #fff;
+            border: 2px solid #f5b700;
+            color: #000;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            transform: scale(1.05);
+        }
 
+        /* 👇 Highlight "months" text in active plan */
+        .plan.active .months {
+            color: #f5b700;
+        }
+
+        .plan .plan-title {
+            background: #f6c34a;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+             padding: 3px 6px;
+            border-radius: 3px;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+
+        .plan .months {
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        .plan .details {
+            font-size: 12px;
+            line-height: 1.4;
+            margin-top: 6px;
+        }
+
+        .plan .price {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .highlight {
+            background: #f5b700 !important;
+        }
+        .plan.selected h4 {
+            background: linear-gradient(90deg, #f7ce68, #f5b300);
+            color: #0A6A6A;
+        }
+        .save {
+            color: #ff3b3b;
+            font-weight: 700;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nutrapass-container {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .left-section,
+            .right-section {
+                align-items: center;
+            }
+
+            .scroll-container-right {
+                justify-content: center;
+            }
+        }
     </style>
 
     <main class="main">
@@ -701,7 +640,7 @@
                         <h3 class="text-white">Join Wellness+ Membership</h3>
                     </div>
                     <div>
-                        <div class="scroll-container" id="planScroll">
+                        <div class="scroll-container-right" style=" gap: 20px;">
                             @foreach($subscription['subscription_plans'] as $key =>  $plan)
                                 @php
                                     $permonth = (int)$plan->price / (int)$plan->duration;
@@ -713,17 +652,16 @@ $totalStandardPrice = $standardMonthlyPrice * $plan->duration;
         $savePercent = round((($totalStandardPrice - $plan->price) / $totalStandardPrice) * 100);
     }
                                 @endphp
-                                <div class="plan {{$key == 0 ? 'selected' : ''}}" onclick="selectPlan(this)">
-                                    @if($plan->is_best_value == 1)
-                                        <h4 class="text-white">Best Value</h4>
-                                    @endif
 
-                                    <div class="months">{{$plan->duration ?? ''}}</div>
-                                    <div class="details">
-                                        months<br>
-                                        ₹ {{$permonth}}/mo<br>
-                                        <strong>SAVE {{$savePercent}}%</strong>
-                                    </div>
+                                <div class="plan {{$key == 0 ? 'selected' : ''}}" onclick="selectPlan(this)">
+
+                                    @if($plan->is_best_value == 1)
+                                        <h4 class="plan-title">Best Value</h4>
+                                    @else
+                                        <p>&nbsp;</p>
+                                    @endif
+                                    <div class="months">{{$plan->duration}}</div>
+                                    <div class="details">months<br>₹ {{$permonth}}/mo<br><strong>SAVE {{$savePercent}}%</strong></div>
                                     <hr>
                                     <div class="price">₹ {{$plan->price ?? ''}}</div>
                                 </div>
@@ -829,6 +767,34 @@ $totalStandardPrice = $standardMonthlyPrice * $plan->duration;
     </main>
 
     <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const slider = document.getElementById("savingsSlider1");
+            const tooltip = document.getElementById("sliderTooltip");
+            const spendAmount = document.getElementById("spendAmount");
+            const saveAmount = document.getElementById("saveAmount");
+            const bottomSave = document.getElementById("bottomSave");
+
+            function calculateAndSet() {
+                const value = parseInt(slider.value);
+                tooltip.innerHTML = value;
+                spendAmount.innerHTML = value.toLocaleString();
+
+                // Formula: 12 X Monthly Spend X 7%
+                const save = Math.round(value * 12 * 0.07);
+
+                saveAmount.innerHTML = save.toLocaleString();
+                bottomSave.innerHTML = save.toLocaleString();
+            }
+
+            // Run calculation on page load
+            calculateAndSet();
+
+            // Update dynamically on slider move
+            slider.addEventListener("input", calculateAndSet);
+        });
+    </script>
+
+    <script>
         const slider = document.getElementById("savingsSlider1");
         const tooltip = document.getElementById("sliderTooltip");
         const spendAmount = document.getElementById("spendAmount");
@@ -841,9 +807,10 @@ $totalStandardPrice = $standardMonthlyPrice * $plan->duration;
             spendAmount.innerHTML = value;
 
             // Example save calculation
-            const save = Math.round(value * 0.168);
-
-
+            // const save = Math.round(value * 0.168);
+            const save = Math.round(value * 12 * 0.07);
+            console.log(value);
+            console.log(save);
 
 
             saveAmount.innerHTML = save;
@@ -867,47 +834,29 @@ $totalStandardPrice = $standardMonthlyPrice * $plan->duration;
     </script>
 
     <script>
-        // Highlight selected card
-        function selectPlan(el) {
-            document.querySelectorAll('.plan').forEach(p => p.classList.remove('selected'));
-            el.classList.add('selected');
-        }
+        document.addEventListener("DOMContentLoaded", function () {
+            const plans = document.querySelectorAll(".plan");
 
-        // Drag-scroll logic
-        const container = document.getElementById('planScroll');
-        let isDown = false;
-        let startX, scrollLeft;
+            // ✅ Default first plan active
+            if (plans.length > 0) {
+                plans[0].classList.add("active");
+                plans[0].querySelector(".months").style.color = "#db6001";
+            }
 
-        container.addEventListener('mousedown', (e) => {
-            isDown = true;
-            container.classList.add('active');
-            startX = e.pageX - container.offsetLeft;
-            scrollLeft = container.scrollLeft;
-        });
-        container.addEventListener('mouseleave', () => {
-            isDown = false;
-        });
-        container.addEventListener('mouseup', () => {
-            isDown = false;
-        });
-        container.addEventListener('mousemove', (e) => {
-            if (!isDown) return;
-            e.preventDefault();
-            const x = e.pageX - container.offsetLeft;
-            const walk = (x - startX) * 2; // speed
-            container.scrollLeft = scrollLeft - walk;
-        });
+            // ✅ Click event for each plan
+            plans.forEach(plan => {
+                plan.addEventListener("click", function () {
+                    // sab plans se active class hatao
+                    plans.forEach(p => {
+                        p.classList.remove("active");
+                        p.querySelector(".months").style.color = "#000"; // reset color
+                    });
 
-        // Touch support
-        let startTouchX = 0;
-        container.addEventListener('touchstart', (e) => {
-            startTouchX = e.touches[0].clientX;
-            scrollLeft = container.scrollLeft;
-        });
-        container.addEventListener('touchmove', (e) => {
-            const x = e.touches[0].clientX;
-            const walk = (x - startTouchX) * 2;
-            container.scrollLeft = scrollLeft - walk;
+                    // clicked plan ko active karo
+                    this.classList.add("active");
+                    this.querySelector(".months").style.color = "#db6001";
+                });
+            });
         });
     </script>
 

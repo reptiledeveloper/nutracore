@@ -38,10 +38,11 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
     Route::match(['get', 'post'], '/categories', 'HomeController@categories');
     Route::match(['get', 'post'], '/update_selected_address', 'HomeController@update_selected_address');
     Route::match(['get', 'post'], '/about', 'HomeController@about');
-    Route::match(['get', 'post'], '/wishlist', 'HomeController@wishlist');
+    Route::match(['get', 'post'], '/wishlist', 'HomeController@wishlist')->name('wishlist');
     Route::match(['get', 'post'], '/contact', 'HomeController@contact');
     Route::match(['get', 'post'], '/deals', 'HomeController@deals');
     Route::match(['get', 'post'], '/collections/{slug}', 'HomeController@products');
+
     Route::match(['get', 'post'], '/products/{slug}', 'HomeController@product_details');
     Route::match(['get', 'post'], '/getEstimateDelivery', 'HomeController@getEstimateDelivery');
     Route::match(['get', 'post'], '/sendOTP', 'HomeController@sendOTP');
@@ -53,6 +54,15 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
     Route::match(['get', 'post'], '/createRazorpayOrder', 'HomeController@createRazorpayOrder');
     Route::match(['get', 'post'], '/TimeToGainMoreVikas', 'HomeController@TimeToGainMoreVikas');
     Route::match(['get', 'post'], '/place_order', 'HomeController@place_order');
+    Route::match(['get', 'post'], '/nc_consult', 'HomeController@nc_consult');
+    Route::match(['get', 'post'], '/consultation_save', 'HomeController@consultation_save')->name('consultation_save');
+    Route::match(['get', 'post'], '/pages/app', 'HomeController@pages_app')->name('pages_app');
+    Route::match(['get', 'post'], 'search-products', 'HomeController@searchProducts')->name('searchProducts');
+    Route::match(['get', 'post'], 'getPincodeDetails/{pincode}', 'HomeController@getPincodeDetails')->name('getPincodeDetails');
+    Route::match(['get', 'post'], 'buy_giftcard', 'HomeController@buy_giftcard')->name('buy_giftcard');
+    Route::match(['get', 'post'], 'wishlist_save', 'HomeController@wishlist_save')->name('wishlist_save');
+    Route::match(['get', 'post'], 'take_subscription', 'HomeController@take_subscription')->name('take_subscription');
+    Route::match(['get', 'post'], 'invoice/{id}', 'HomeController@invoice')->name('invoice');
 
 
 });

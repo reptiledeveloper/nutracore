@@ -30,7 +30,10 @@
             }
         }
     }
-
+//    echo "<pre>";
+//    print_r($small_banners);die;
+    $user = Auth::user();
+    $subscription = CustomHelper::subscriptionsData($user);
 
     $banner_types = ['', 'product', 'brand', 'category', 'link'];
 
@@ -84,7 +87,10 @@
                         @foreach($banners as $banner)
                             @if(in_array($banner->type, $banner_types))
                                 <div class="single-hero-slider single-animation-wrap"
-                                     style="background-image: url({{$banner->banner_img}})">
+                                     style="background-image: url({{ $banner->banner_img }});
+                                    height: 350px;
+                                    background-size: cover;
+                                    background-position: center;">
                                 </div>
                             @endif
                         @endforeach
@@ -93,6 +99,7 @@
                 </div>
             </div>
         </section>
+
 
         <!--End hero slider-->
         <section class="popular-categories section-padding">
@@ -127,7 +134,90 @@
             </div>
         </section>
 
-
+        <section class="featured section-padding">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-1-5 col-md-4 col-12 col-sm-6 mb-md-4 mb-xl-0">
+                        <div
+                            class="banner-left-icon d-flex align-items-center wow animate__animated animate__fadeInUp"
+                            data-wow-delay="0">
+                            <div class="banner-icon">
+                                <img src="{{url('public/assets')}}/imgs/theme/icons/icon-1.svg" alt=""/>
+                            </div>
+                            <div class="banner-text">
+                                <h3 class="icon-box-title">Best prices & offers</h3>
+                                <p>Orders $50 or more</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-1-5 col-md-4 col-12 col-sm-6">
+                        <div
+                            class="banner-left-icon d-flex align-items-center wow animate__animated animate__fadeInUp"
+                            data-wow-delay=".1s">
+                            <div class="banner-icon">
+                                <img src="{{url('public/assets')}}/imgs/theme/icons/icon-2.svg" alt=""/>
+                            </div>
+                            <div class="banner-text">
+                                <h3 class="icon-box-title">Free delivery</h3>
+                                <p>24/7 amazing services</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-1-5 col-md-4 col-12 col-sm-6">
+                        <div
+                            class="banner-left-icon d-flex align-items-center wow animate__animated animate__fadeInUp"
+                            data-wow-delay=".2s">
+                            <div class="banner-icon">
+                                <img src="{{url('public/assets')}}/imgs/theme/icons/icon-3.svg" alt=""/>
+                            </div>
+                            <div class="banner-text">
+                                <h3 class="icon-box-title">Great daily deal</h3>
+                                <p>When you sign up</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-1-5 col-md-4 col-12 col-sm-6">
+                        <div
+                            class="banner-left-icon d-flex align-items-center wow animate__animated animate__fadeInUp"
+                            data-wow-delay=".3s">
+                            <div class="banner-icon">
+                                <img src="{{url('public/assets')}}/imgs/theme/icons/icon-4.svg" alt=""/>
+                            </div>
+                            <div class="banner-text">
+                                <h3 class="icon-box-title">Wide assortment</h3>
+                                <p>Mega Discounts</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-1-5 col-md-4 col-12 col-sm-6">
+                        <div
+                            class="banner-left-icon d-flex align-items-center wow animate__animated animate__fadeInUp"
+                            data-wow-delay=".4s">
+                            <div class="banner-icon">
+                                <img src="{{url('public/assets')}}/imgs/theme/icons/icon-5.svg" alt=""/>
+                            </div>
+                            <div class="banner-text">
+                                <h3 class="icon-box-title">Easy returns</h3>
+                                <p>Within 30 days</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-1-5 col-md-4 col-12 col-sm-6 d-xl-none">
+                        <div
+                            class="banner-left-icon d-flex align-items-center wow animate__animated animate__fadeInUp"
+                            data-wow-delay=".5s">
+                            <div class="banner-icon">
+                                <img src="{{url('public/assets')}}/imgs/theme/icons/icon-6.svg" alt=""/>
+                            </div>
+                            <div class="banner-text">
+                                <h3 class="icon-box-title">Safe delivery</h3>
+                                <p>Within 30 days</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
         <!--End category slider-->
 
 
@@ -135,15 +225,13 @@
             <div class="container">
                 <div class="row">
                     @foreach($small_banners as $banner)
-
-                        <div class="col-lg-4 col-md-6">
+                        <div class="col-lg-4 col-md-6 p-2">
                             <a href="">
                                 <div class="banner-img wow animate__animated animate__fadeInUp" data-wow-delay="0">
                                     <img src="{{$banner->banner_img}}" alt=""/>
                                 </div>
                             </a>
                         </div>
-
                     @endforeach
 
                 </div>
@@ -469,35 +557,31 @@
   width: 400px; /* optional - container width control */
   scrollbar-color: #ccc transparent;
 ">
-                                    <div class="plan active" onclick="selectPlan(this)">
-                                        <h4 class="plan-title">Best Value</h4>
-                                        <div class="months">12</div>
-                                        <div class="details">months<br>₹ 800/mo<br><strong>SAVE 47%</strong></div>
-                                        <hr>
-                                        <div class="price">₹ 8,000</div>
-                                    </div>
+                                    @foreach($subscription['subscription_plans'] as $key =>  $plan)
+                                        @php
+                                            $permonth = (int)$plan->price / (int)$plan->duration;
+                                            $permonth = round($permonth);
+                                             $standardMonthlyPrice = (int)$plan->price;
+        $totalStandardPrice = $standardMonthlyPrice * $plan->duration;
+                                             $savePercent = 0;
+            if ($totalStandardPrice > 0) {
+                $savePercent = round((($totalStandardPrice - $plan->price) / $totalStandardPrice) * 100);
+            }
+                                        @endphp
 
-                                    <div class="plan" onclick="selectPlan(this)">
-                                        <h4 class="plan-title highlight">Best Value</h4>
-                                        <div class="months">6</div>
-                                        <div class="details">months<br>₹ 800/mo<br><strong>SAVE 47%</strong></div>
-                                        <hr>
-                                        <div class="price">₹ 8,000</div>
-                                    </div>
+                                        <div class="plan {{$key == 0 ? 'selected' : ''}}" onclick="selectPlan(this)">
 
-                                    <div class="plan" onclick="selectPlan(this)">
-                                        <div class="months"style="padding-top:25px;">12</div>
-                                        <div class="details">months<br>₹ 800/mo<br><strong>SAVE 47%</strong></div>
-                                        <hr>
-                                        <div class="price">₹ 8,000</div>
-                                    </div>
-
-                                    <div class="plan" onclick="selectPlan(this)">
-                                        <div class="months" style="padding-top:25px;">3</div>
-                                        <div class="details">months<br>₹ 1000/mo<br><strong>SAVE 25%</strong></div>
-                                        <hr>
-                                        <div class="price">₹ 3,000</div>
-                                    </div>
+                                            @if($plan->is_best_value == 1)
+                                                <h4 class="plan-title">Best Value</h4>
+                                            @else
+                                                <p>&nbsp;</p>
+                                            @endif
+                                            <div class="months">{{$plan->duration}}</div>
+                                            <div class="details">months<br>₹ {{$permonth}}/mo<br><strong>SAVE {{$savePercent}}%</strong></div>
+                                            <hr>
+                                            <div class="price">₹ {{$plan->price ?? ''}}</div>
+                                        </div>
+                                    @endforeach
                                 </div>
 
                                 <style>
@@ -977,8 +1061,130 @@
                 </div>
             </div>
         </section>
+        <style>
+            /* Main Banner */
+            .health-banner {
+                width: 100%;
+                background: white;
+                border-radius: 30px;
+                display: flex;
+                overflow: hidden;
+                box-shadow: 0px 6px 30px rgba(0,0,0,0.15);
+                max-width: 82%;
+                margin: 20px auto;
+            }
+
+            /* Left side */
+            .banner-left {
+                flex: 1;
+                background: #00A8A870;
+                padding: 60px 50px;
+                color: white;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+
+            .banner-left h2 {
+                font-size: 38px;
+                font-weight: 700;
+                color: white;
+                line-height: 1.3;
+            }
+
+            .banner-left p {
+                margin-top: 10px;
+                font-size: 16px;
+                opacity: 0.9;
+            }
+
+            /* Email Input */
+            .email-box {
+                margin-top: 35px;
+                background: white;
+                border-radius: 40px;
+                display: flex;
+                align-items: center;
+                padding: 5px;
+                width: 80%;
+            }
+
+            .email-box input {
+                border: none;
+                outline: none;
+                flex: 1;
+                padding: 12px 15px;
+                font-size: 15px;
+                border-radius: 40px;
+            }
+
+            .email-box button {
+                background: #00a8a5;
+                color: white;
+                padding: 12px 25px;
+                border-radius: 40px;
+                border: none;
+                cursor: pointer;
+                font-weight: 600;
+            }
+
+            .email-icon {
+                font-size: 18px;
+                margin-left: 15px;
+            }
+
+            /* Right side */
+            .banner-right {
+                flex: 1.2;
+            }
+
+            .banner-right img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
 
 
+            /* Responsive */
+            @media (max-width: 768px) {
+                .health-banner {
+                    flex-direction: column;
+                }
+
+                .banner-left {
+                    padding: 40px 30px;
+                    text-align: center;
+                }
+
+                .email-box {
+                    width: 100%;
+                }
+
+                .banner-right img {
+                    height: 300px;
+                }
+            }
+        </style>
+        <div class="health-banner">
+
+            <!-- Left Section -->
+            <div class="banner-left">
+                <h2>Stay home & get your health<br>needs from our shop</h2>
+                <p>Start Your Health Shopping with NutraCore</p>
+
+                <div class="email-box">
+                    <span class="email-icon">✉</span>
+                    <input type="email" placeholder="Your email address">
+                    <button>Subscribe</button>
+                </div>
+            </div>
+
+            <!-- Right Section -->
+            <div class="banner-right">
+                <img src="{{url('public/assets/newsletter.png')}}" alt="">
+            </div>
+
+        </div>
     </main>
 
     <script>

@@ -3,7 +3,7 @@
     <?php
 
     use App\Helpers\CustomHelper;
-
+$sort_by = $_GET['sort_by']??'';
     ?>
 
     <main class="main">
@@ -26,6 +26,62 @@
                     max-width: 50%;
                 }
             }
+
+
+        </style>
+        <style>
+            .sort-by-product-area {
+                position: relative;
+                display: inline-block;
+            }
+
+            .sort-by-product-wrap {
+                display: flex;
+                align-items: center;
+                cursor: pointer;
+            }
+
+            .sort-by-dropdown-wrap span {
+                font-weight: 600;
+            }
+
+            .sort-by-dropdown {
+                position: absolute;
+                top: 45px;
+                right: 0;
+                background: #fff;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                width: 180px;
+                display: none;
+                z-index: 999999;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            }
+
+            .sort-by-dropdown.active {
+                display: block;
+            }
+
+            .sort-by-dropdown ul {
+                list-style: none;
+                margin: 0;
+                padding: 10px 12px;
+            }
+
+            .sort-by-dropdown ul li {
+                padding: 6px 0;
+            }
+
+            .sort-by-dropdown ul li a {
+                color: #333;
+                text-decoration: none;
+                font-size: 14px;
+                display: block;
+            }
+
+            .sort-by-dropdown ul li a:hover {
+                color: #007bff;
+            }
         </style>
 
         <div class="container mb-30 mt-5">
@@ -35,46 +91,21 @@
                         <div class="totall-product">
                             <p>We found <strong class="text-brand">{{count($products)}}</strong> items for you!</p>
                         </div>
-                        <div class="sort-by-product-area">
-                            <div class="sort-by-cover mr-10">
-                                <div class="sort-by-product-wrap">
-                                    <div class="sort-by">
-                                        <span><i class="fi-rs-apps"></i>Show:</span>
-                                    </div>
-                                    <div class="sort-by-dropdown-wrap">
-                                        <span> 50 <i class="fi-rs-angle-small-down"></i></span>
-                                    </div>
-                                </div>
-                                <div class="sort-by-dropdown">
-                                    <ul>
-                                        <li><a class="active" href="#">50</a></li>
-                                        <li><a href="#">100</a></li>
-                                        <li><a href="#">150</a></li>
-                                        <li><a href="#">200</a></li>
-                                        <li><a href="#">All</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="sort-by-cover">
-                                <div class="sort-by-product-wrap">
-                                    <div class="sort-by">
-                                        <span><i class="fi-rs-apps-sort"></i>Sort by:</span>
-                                    </div>
-                                    <div class="sort-by-dropdown-wrap">
-                                        <span> Featured <i class="fi-rs-angle-small-down"></i></span>
-                                    </div>
-                                </div>
-                                <div class="sort-by-dropdown">
-                                    <ul>
-                                        <li><a class="active" href="#">Featured</a></li>
-                                        <li><a href="#">Price: Low to High</a></li>
-                                        <li><a href="#">Price: High to Low</a></li>
-                                        <li><a href="#">Release Date</a></li>
-                                        <li><a href="#">Avg. Rating</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
+
+                       <form action="" method="" id="filterForm">
+                           <div class="sort-by-product-area">
+                               <div class="sort-by-cover">
+                                   <select id="sortSelect" class="form-select" name="sort_by">
+                                       <option value="" selected disabled>Sort by</option>
+                                       <option value="low_to_high" {{$sort_by == "low_to_high" ? "selected":""}}>Price: Low to High</option>
+                                       <option value="high_to_low" {{$sort_by == "high_to_low" ? "selected":""}}>Price: High to Low</option>
+                                   </select>
+
+                               </div>
+                           </div>
+                       </form>
+
+
                     </div>
                     <div class="row product-grid">
                         @foreach ($products as $product)
@@ -94,5 +125,12 @@
         </div>
 
     </main>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+    <script>
+        document.getElementById("sortSelect").addEventListener("change", function () {
+          $('#filterForm').submit();
+        });
+    </script>
 
 @endsection

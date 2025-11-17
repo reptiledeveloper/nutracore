@@ -4149,6 +4149,9 @@ class CustomHelper
                 }
             }
         }
+
+
+        $destination = $orders->house_no . ' ' . $orders->landmark;
         if (!empty($address) && !empty($envia_data)) {
             $data = [
                 'origin' => [
@@ -4172,10 +4175,10 @@ class CustomHelper
                 'destination' => [
                     'name' => $orders->customer_name ?? '',
                     'company' => '',
-                    'email' => $orders->customer_name ?? '',
+                    'email' => $orders->email ?? 'app@nutracore.in',
                     'phone' => $orders->contact_no ?? '',
-                    'street' => $orders->house_no ?? '',
-                    'number' => $orders->landmark . ' ' . $orders->location,
+                    'street' => $destination,
+                    'number' => "",
                     'district' => $envia_data->locality ?? '',
                     'city' => $envia_data->locality ?? '',
                     'state' => $address->state ?? '',
@@ -4196,7 +4199,7 @@ class CustomHelper
                     'currency' => 'INR'
                 ]
             ];
-//        echo json_encode($data);die;
+//            echo json_encode($data);die;
             $curl = curl_init();
             curl_setopt_array($curl, array(
                 CURLOPT_URL => 'https://api.envia.com/ship/rate/',
@@ -4305,7 +4308,8 @@ class CustomHelper
                 'comments' => ''
             ]
         ];
-
+//        echo json_encode($data);
+//        die;
         $curl = curl_init();
         curl_setopt_array($curl, array(
             CURLOPT_URL => 'https://api.envia.com/ship/generate/',
