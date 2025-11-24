@@ -41,7 +41,7 @@
                     <img src="{{ url('public/assets/Mobile_App_1200_x_500_px.webp') }}"
                          style="width:60%; border-radius:30px;">
 
-                    <h3>Download The NutraCore App Today</h3>
+                    <h3 style="margin-top: 20px;">Download The NutraCore App Today</h3>
                     <span>Shop authentic supplements with confidence, track your orders, unlock rewards, and get expert<br>
                     recommendations — all in one place.<br>
 

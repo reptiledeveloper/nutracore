@@ -147,6 +147,10 @@
                                             value="nutrapass_banner" <?php if ($type == 'nutrapass_banner') echo "selected" ?>>
                                            Nutrapass For Website
                                         </option>
+                                        <option
+                                            value="website_main_banner" <?php if ($type == 'website_main_banner') echo "selected" ?>>
+                                            Website Main Banner
+                                        </option>
 
 
                                     </select>

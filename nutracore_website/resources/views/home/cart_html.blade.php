@@ -61,6 +61,15 @@ $total_product_price = 0;
             border-radius: 3px;
         }
 
+        .freebie-details strong {
+            display: -webkit-box; /* Needed for line clamp */
+            -webkit-line-clamp: 3; /* Limit to 3 lines */
+            -webkit-box-orient: vertical; /* Needed for line clamp */
+            overflow: hidden; /* Hide the overflowing text */
+            text-overflow: ellipsis; /* Show ... at the end */
+            word-break: break-word; /* Break long words if needed */
+        }
+
 
         .Right_sidr_section {
             display: flex;
@@ -76,7 +85,7 @@ $total_product_price = 0;
         }
 
         .cart_Images {
-            border: 1px solid gray;
+            /*border: 2px solid #00a8a8;*/
             height: 100px;
             width: 100px;
             border-radius: 5px;
@@ -88,9 +97,6 @@ $total_product_price = 0;
             gap: 10px;
         }
 
-        .product_Detail_name h5 {
-            font-size: 20px;
-        }
 
         .product_Detail_name h6 {
             font-weight: 600;
@@ -156,7 +162,7 @@ $total_product_price = 0;
                 flex-direction: row;
                 justify-content: space-between;
                 align-items: center;
-                width: 100%;         /* full width */
+                width: 100%; /* full width */
                 margin-top: 10px;
                 gap: 10px;
             }
@@ -168,7 +174,7 @@ $total_product_price = 0;
             }
 
             .product_Detail_name h5 {
-                font-size: 15px !important;
+                font-size: 18px !important;
             }
 
             .product_Detail_name h6 {
@@ -177,8 +183,10 @@ $total_product_price = 0;
 
             .cart_Images {
                 height: 100px;
-                width: 130px;
+                width: 100px;
+                flex-shrink: 0 !important; /* 🔥 prevents image from shrinking */
             }
+
 
             .Delete_button {
                 display: block;
@@ -186,6 +194,18 @@ $total_product_price = 0;
 
             .Delete_desktop {
                 display: none;
+            }
+
+            .product_Detail_name {
+                flex: 1; /* 🔥 Text takes remaining space */
+                min-width: 0; /* Allows proper text wrap */
+            }
+
+            .product_Detail_name h5 {
+                display: -webkit-box;
+                -webkit-line-clamp: 2; /* max 2 lines */
+                -webkit-box-orient: vertical;
+                overflow: hidden;
             }
         }
 
@@ -238,7 +258,50 @@ $total_product_price = 0;
 
 
     </style>
+    <style>
+        .quantity-wrapper {
+            display: flex !important;
+            height: 45px !important;
+            align-items: center;
+            justify-content: space-between;
+            width: 130px;
+            padding: 6px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            gap: 8px;
+            white-space: nowrap;
+        }
 
+        .quantity-btn {
+            width: 100%;
+            height: 32px;
+            border: none;
+            background: #f5f5f5;
+            border-radius: 6px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quantity-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .quantity-value {
+            height: 40px !important;
+
+            border: none;
+            font-size: 18px;
+            font-weight: 600;
+            outline: none;
+        }
+
+
+    </style>
     @if(!empty($cart_products) && count($cart_products) > 0)
         <div class="col-md-8">
             @foreach ($cart_products as $cart_product)
@@ -250,7 +313,7 @@ $total_product_price = 0;
                     $images = $selectedVarient->images ??'';
                     $defaultImage = $images[0]['image'] ??url('public/assets/images/default.png');
                 @endphp
-                <div style="border:1px solid gray;padding:10px; border-radius: 10px;margin-top: 10px;">
+                <div style="border:2px solid #00a8a8;padding:10px; border-radius: 10px;margin-top: 10px;">
                     <div class="Product_Section_Main">
 
                         <div class="Product_image_section">
@@ -263,13 +326,15 @@ $total_product_price = 0;
                                 <h6 class="fw-bold" style="color: #898a8a;">{{ $selectedVarient->unit ?? '' }}</h6>
 
                                 <div class="Product_Name_Price d-flex align-items-center gap-3">
-                                    <h4 class="fw-bold text-dark mb-0" style="color: #575757;">   ₹ {{ $selectedVarient->selling_price ?? '' }}</h4>
-                                    <del class="text-secondary" style="color: rgb(185, 185, 185);">₹ {{ $selectedVarient->mrp ?? '' }}</del>
+                                    <h4 class="fw-bold text-dark mb-0" style="color: #575757;">
+                                        ₹ {{ $selectedVarient->selling_price ?? '' }}</h4>
+                                    <del class="text-secondary" style="color: rgb(185, 185, 185);">
+                                        ₹ {{ $selectedVarient->mrp ?? '' }}</del>
                                     <span class="badge bg-success" style="background: #008f8c ;">{{$selectedVarient->discount_per?? 0}}% OFF</span>
                                 </div>
 
                                 <div class="d-flex gap-3 subscription-row mt-5">
-                                    <div class="button-container w-50">
+                                    <div class="button-container" style="width: 125px;height: 24px;">
                                         <div class="nutrapass-circle">
                                             <img src="{{ url('public/assets/staricon.png') }}">
                                         </div>
@@ -278,7 +343,7 @@ $total_product_price = 0;
                                         </div>
                                     </div>
 
-                                    <div class="button-container1 w-50">
+                                    <div class="button-container1 " style="width: 125px;height: 24px;">
                                         <div class="nutrapass-circle1">
                                             <img src="{{ url('public/assets/staricon.png') }}">
                                         </div>
@@ -293,7 +358,7 @@ $total_product_price = 0;
 
                         <div class="Right_sidr_section right-mobile-row">
 
-
+                                <?php /*
                         <div class="desktop_main">
                                 <div
                                     class="quantity-box d-flex align-items-center bg-white shadow-sm px-3 py-2 rounded-pill">
@@ -313,8 +378,26 @@ $total_product_price = 0;
                                 </div>
 
                             </div>
+ */ ?>
+                            <div class="quantity-wrapper">
+                                <button class="quantity-btn quantity-decrease"
+                                        onclick="updateCart('{{ $cart_product->id }}','{{ $selectedVarient->id }}','minus')">
+                                    −
+                                </button>
+                                <input type="text" id="quantity-{{ $cart_product->id }}-{{ $selectedVarient->id }}"
+                                       class="quantity-value"
+                                       value="{{ (isset($selectedVarient->qty) && $selectedVarient->qty > 0) ? $selectedVarient->qty : 1 }}"
+                                       min="1">
 
-                            <button style="color: white;" class="btn btn-teal text-white fw-bold py-2 rounded mt-2">
+                                <button class="quantity-btn quantity-increase"
+                                        onclick="updateCart('{{ $cart_product->id }}','{{ $selectedVarient->id }}','plus')">
+                                    +
+                                </button>
+                            </div>
+
+
+                            <button style="color: white;" class="btn btn-teal text-white fw-bold py-2 rounded mt-2"
+                                    onclick="wishlist_save('{{ $cart_product->id ??''}}', '{{ $selectedVarient->id }}' ,true)">
                                 Move to Wishlist
                             </button>
 
@@ -335,19 +418,33 @@ $total_product_price = 0;
 
             ?>
         <div class="col-lg-4">
-            <div class="card">
-                <div class="card-body" style="
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 15px;
+            <div class="card" style="
+    border: 1.5px solid #00A8A8;
+    background: #E6FFFE;
+    border-radius: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 3px 8px rgba(0, 168, 168, 0.25);
 ">
-                    <span>Delivery to <strong>{{ $selectedAddress->pincode ?? '' }}, {{$envia_data->state->name??''}}</strong></span>
-                    <a href="#" style="color: #00A8A8; text-decoration: none; font-weight: 600;" data-bs-toggle="modal"
-                       data-bs-target="#addressModal">Change</a>
-                </div>
+                <div class="card-body" style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 15px;
+    ">
+        <span style="font-weight: 500; color:#004F4F;">
+            Delivery to <strong>{{ $selectedAddress->pincode ?? '' }}, {{$envia_data->state->name??''}}</strong>
+        </span>
 
+                    <a href="#"
+                       style="color: #00A8A8; text-decoration: none; font-weight: 600;"
+                       data-bs-toggle="modal"
+                       data-bs-target="#addressModal">
+                        Change
+                    </a>
+                </div>
             </div>
+
 
 
             <div class="border rounded p-3 shadow-sm mt-5" style="background: #fff;">
@@ -733,6 +830,7 @@ $total_product_price = 0;
                         window.location.href = "{{ url('my_orders') }}";
                     }
                 } else {
+                    alert(resp.message);
                     toastr.error(resp.message ?? "Something went wrong");
                 }
                 // var options = {
@@ -755,6 +853,8 @@ $total_product_price = 0;
             }
         });
     }
+
+
 </script>
 
 

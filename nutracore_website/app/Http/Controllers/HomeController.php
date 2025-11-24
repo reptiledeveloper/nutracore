@@ -15,6 +15,7 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\Products;
 use App\Models\QRCodes;
+use App\Models\Suppliments;
 use App\Models\Wishlist;
 use App\Models\RazorpayOrders;
 use App\Models\Setting;
@@ -278,7 +279,7 @@ class HomeController extends Controller
         $max_price = $request->max_price ?? '';
         $order_by_price = $request->order_by_price ?? '';
         $brand_id = $request->brand_id ?? '';
-        $category_id = '';
+        $category_id = $request->category_id??'';
 
         if (!empty($category_slug)) {
             $category_id = Category::where('slug', $category_slug)->first()->id ?? '';
@@ -491,10 +492,10 @@ class HomeController extends Controller
         if (!$product) return null;
 
         // 5️⃣ Product images in batch
-        $product_images = DB::table('product_images')
-            ->where('product_id', $product->id)
-            ->get()
-            ->groupBy('varient_id');
+//        $product_images = DB::table('product_images')
+//            ->where('product_id', $product->id)
+//            ->get()
+//            ->groupBy('varient_id');
 
         // 6️⃣ Brand
         $brand = $product->brand_id ? Brand::find($product->brand_id) : null;
@@ -503,10 +504,29 @@ class HomeController extends Controller
         $product_varients = [];
         foreach ($product->varients as $varient) {
 
-            $varient_images = collect($product_images[$varient->id] ?? [])
-                ->map(fn($img) => ['id' => $img->id, 'image' => CustomHelper::getImageUrl('products', $img->image)])
-                ->toArray();
-            $varient_images[] = ['id' => 0, 'image' => CustomHelper::getImageUrl('products', $product->image)];
+            $dbArray = [];
+            $dbArray['id'] = 0;
+            $dbArray['image'] = CustomHelper::getImageUrl('products', $product->image);
+            $varient_images[] = $dbArray;
+            $product_images = DB::table('product_images')->where('product_id', $product->id)->where('varient_id', $varient->id)->get();
+            if (!empty($product_images)) {
+                foreach ($product_images as $product_image) {
+                    $dbArray = [];
+                    $dbArray['id'] = $product_image->id ?? '';
+                    $dbArray['image'] = CustomHelper::getImageUrl('products', $product_image->image);
+                    $varient_images[] = $dbArray;
+                }
+            }
+
+            $product_images = DB::table('product_images')->where('product_id', $product->id)->where('varient_id', null)->get();
+            if (!empty($product_images)) {
+                foreach ($product_images as $product_image) {
+                    $dbArray = [];
+                    $dbArray['id'] = $product_image->id ?? '';
+                    $dbArray['image'] = CustomHelper::getImageUrl('products', $product_image->image);
+                    $varient_images[] = $dbArray;
+                }
+            }
 
             $product_varients[] = [
                 'id' => $varient->id,
@@ -525,14 +545,24 @@ class HomeController extends Controller
         }
 
         // 8️⃣ Product-level images
-        $images = collect($product_images[0] ?? [])
-            ->map(fn($img) => ['id' => $img->id, 'image' => CustomHelper::getImageUrl('products', $img->image)])
-            ->toArray();
-        $images[] = ['id' => 0, 'image' => CustomHelper::getImageUrl('products', $product->image)];
 
         // 9️⃣ Final product object
         if (empty($product_varients)) {
-
+            $varient_images = [];
+            $dbArray = [];
+            $dbArray['id'] = 0;
+            $dbArray['image'] = CustomHelper::getImageUrl('products', $product->image);
+            $varient_images[] = $dbArray;
+            $nc_cash = self::getNcCashPercent($user, $product->product_selling_price ?? '');
+            $product_images = DB::table('product_images')->where('product_id', $product->id)->get();
+            if (!empty($product_images)) {
+                foreach ($product_images as $product_image) {
+                    $dbArray = [];
+                    $dbArray['id'] = $product_image->id ?? '';
+                    $dbArray['image'] = CustomHelper::getImageUrl('products', $product_image->image);
+                    $varient_images[] = $dbArray;
+                }
+            }
             $product_varients[] = [
                 'id' => 0,
                 'product_id' => $product->id,
@@ -545,14 +575,14 @@ class HomeController extends Controller
                     ? round((($product->product_mrp - $product->product_selling_price) / $product->product_mrp) * 100)
                     : 0,
                 'is_wishlist' => $user ? CustomHelper::checkWishlist($user_id, $product->id, 0) : 0,
-                'images' => $images,
+                'images' => $varient_images,
                 'nc_cash' => self::getNcCashPercent($user, $product->product_selling_price),
                 'is_out_of_stock' => CustomHelper::checkOutofStock($product->id, 0),
             ];
         }
 
         $product->varients = $product_varients;
-        $product->images = $images;
+//        $product->images = $images;
         $product->image = CustomHelper::getImageUrl('products', $product->image);
         $product->seller = $seller;
         $product->estimated_day = $estimated_day;
@@ -1229,8 +1259,52 @@ class HomeController extends Controller
     public function suppliment_recommendation(Request $request): \Illuminate\Contracts\View\View|\Illuminate\Contracts\View\Factory|\Illuminate\Foundation\Application
     {
         $data = [];
+        $user = Auth::user();
+        $supplimentsArray = [];
+        $health_profile = $user->health_profile ?? '';
+        $activity = $user->activity ?? '';
+        if (!empty($health_profile) && !empty($activity)) {
 
+            $suppliment = Suppliments::where('category_id', $health_profile)->where('activity', $activity)->first();
+            if (!empty($suppliment)) {
+                for ($i = 1; $i <= 5; $i++) {
+                    $catField = "supliment_" . $i;
+                    $prodField = "supliment_" . $i . "_products";
 
+                    $catId = $suppliment->$catField ?? null;
+                    $productIds = $suppliment->$prodField ?? '';
+
+                    if (!empty($catId)) {
+                        $category = Category::find($catId);
+                        if (!empty($category)) {
+                            $category->image = CustomHelper::getImageUrl('categories', $category->image);
+                        }
+
+                        $products = [];
+                        if (!empty($productIds)) {
+                            $ids = array_filter(explode(',', $productIds));
+
+                            if (!empty($ids)) {
+                                foreach ($ids as $key => $value) {
+                                    $pro = self::getProductDetails($value, $user->id ?? '');
+                                    if (!empty($pro)) {
+                                        $products[] = $pro;
+                                    }
+                                }
+                            }
+                        }
+
+                        $supplimentsArray[] = [
+                            'category' => $category,
+                            'products' => $products,
+                        ];
+                    }
+                }
+
+            }
+        }
+        $supplimentsArray['goal_categories'] = Category::where('status', 1)->where('is_delete', 0)->where('is_goal', 1)->where('parent_id', 0)->get();
+        $data['supplimentsArray'] = $supplimentsArray;
         return view('home.suppliment_recommendation', $data);
     }
 
@@ -1591,10 +1665,92 @@ class HomeController extends Controller
                 $userData->image = $fileName;
             }
             $userData->save();
+            if (!empty($request->submit_where) && $request->submit_where == 'suppliment') {
+                $userDataFetch = User::find($user->id);
+                return json_encode(['status' => true, 'user' => $userDataFetch]);
+            } else {
+                return back();
+            }
             return back();
+
         }
 
         return view('users.profile', $data);
+    }
+
+    public function suppliment_product(Request $request)
+    {
+        $data = [];
+        $user = Auth::user();
+        $banners = Banner::where('status', 1)->where('is_delete', 0)->get()->makeHidden(['created_at', 'updated_at', 'is_delete', 'status']);
+        if (!empty($banners)) {
+            foreach ($banners as $banner) {
+                $banner->banner_img = CustomHelper::getImageUrl('banners', $banner->banner_img);
+                $product_id = explode(",", $banner->product_id);
+                $productsArr = [];
+                if (!empty($product_id)) {
+                    foreach ($product_id as $prod_id) {
+                        $pro_data = self::getProductDetails($prod_id, $user->id);
+                        if (!empty($pro_data)) {
+                            $productsArr[] = $pro_data;
+                        }
+                    }
+                }
+                $banner->products = $productsArr;
+            }
+        }
+
+        $health_profile = $user->health_profile ?? '';
+        $activity = $user->activity ?? '';
+        $supplimentsArray = [];
+        if (!empty($health_profile) && !empty($activity)) {
+            $suppliment = Suppliments::where('category_id', $health_profile)->where('activity', $activity)->first();
+            if (!empty($suppliment)) {
+
+
+                for ($i = 1; $i <= 5; $i++) {
+                    $catField = "supliment_" . $i;
+                    $prodField = "supliment_" . $i . "_products";
+
+                    $catId = $suppliment->$catField ?? null;
+                    $productIds = $suppliment->$prodField ?? '';
+
+                    if (!empty($catId)) {
+                        $category = Category::find($catId);
+                        if (!empty($category)) {
+                            $category->image = CustomHelper::getImageUrl('categories', $category->image);
+                        }
+
+                        $products = [];
+                        if (!empty($productIds)) {
+                            $ids = array_filter(explode(',', $productIds));
+
+                            if (!empty($ids)) {
+                                foreach ($ids as $key => $value) {
+                                    $pro = self::getProductDetails($value, $user->id ?? '');
+                                    if (!empty($pro)) {
+                                        $products[] = $pro;
+                                    }
+                                }
+                            }
+                        }
+
+                        $supplimentsArray[] = [
+                            'category' => $category,
+                            'products' => $products,
+                        ];
+                    }
+                }
+
+            }
+        }
+
+        $data['suppliments'] = $supplimentsArray;
+        $data['banners'] = $banners;
+
+
+
+        return view('users.suppliment_product', $data);
     }
 
     public function nc_cash(Request $request): \Illuminate\Contracts\View\View|\Illuminate\Contracts\View\Factory|\Illuminate\Foundation\Application
@@ -2898,7 +3054,7 @@ class HomeController extends Controller
         $orderID = $request->id;
         $orders = Order::where('id', $orderID)->first();
         $seller_details = Vendors::where('id', $orders->id)->first();
-        if($orders->status == "DELIVERED"){
+        if ($orders->status == "DELIVERED") {
 //            CustomHelper::generateInvoiceNo();
         }
         $data = [

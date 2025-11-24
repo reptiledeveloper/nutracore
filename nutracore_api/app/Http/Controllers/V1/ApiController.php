@@ -3167,6 +3167,11 @@ class ApiController extends Controller
         $variant_id = $request->variant_id ?? '';
         $qty = $request->qty ?? '';
         $product = Product::where('id', $product_id)->first();
+
+
+        $available_qty = CustomHelper::checkAvailableQty($product_id, $variant_id);
+
+
         if (!empty($product)) {
             $check_varient = CustomHelper::checkProductPrice($product_id, $variant_id);
             if (empty($check_varient) && $variant_id != 0) {
@@ -3181,6 +3186,12 @@ class ApiController extends Controller
             $dbArray['variant_id'] = $variant_id;
             $dbArray['user_id'] = $user->id;
             $dbArray['qty'] = $qty;
+            if ((int)$qty > (int)$available_qty) {
+                return response()->json([
+                    'result' => false,
+                    'message' => "Available " . $available_qty . ' Only',
+                ], 200);
+            }
             if (empty($exist)) {
                 if ($qty > 0) {
                     Cart::insert($dbArray);

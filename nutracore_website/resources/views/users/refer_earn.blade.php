@@ -18,9 +18,11 @@
             border-bottom-left-radius: 20px;
             border-bottom-right-radius: 20px;
         }
+
         .referral-header img {
             width: 80px;
         }
+
         .referral-card {
             background: linear-gradient(135deg, #00bfa5, #00897b);
             color: white;
@@ -29,11 +31,13 @@
             text-align: center;
             margin-top: -40px;
         }
+
         .referral-card img {
             width: 100px;
         }
+
         .referral-code {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             padding: 10px 20px;
             border-radius: 8px;
             margin-top: 15px;
@@ -41,6 +45,7 @@
             align-items: center;
             gap: 10px;
         }
+
         .rewards-summary {
             background: #fff3e0;
             border-radius: 12px;
@@ -51,6 +56,7 @@
             gap: 10px;
             cursor: pointer;
         }
+
         .pending-referrals {
             background: #e3f2fd;
             border-radius: 12px;
@@ -60,12 +66,14 @@
             align-items: center;
             margin-top: 20px;
         }
+
         .steps {
             background: white;
             border-radius: 12px;
             padding: 15px;
             margin-top: 20px;
         }
+
         .steps .step {
             display: flex;
             align-items: flex-start;
@@ -107,6 +115,7 @@
         .accordion .faq-item.active .icon {
             transform: rotate(45deg);
         }
+
         .faq-button {
             background-color: #00a89c;
             color: #fff;
@@ -118,6 +127,7 @@
             font-size: 16px;
             cursor: pointer;
         }
+
         .faq-item h4 {
             margin: 0;
             font-size: 14px;
@@ -140,10 +150,12 @@
                 <div class="row">
                     <!-- Header -->
                     <div class="col-md-6">
-                        <div class="referral-header mt-20">
-                            <h5>Refer & Earn</h5>
-                            <p>Refer your friend & earn <strong>₹{{$refer_amount}} Each</strong></p>
-                            <img src="{{url('public/assets/coins.png')}}" alt="Coins" />
+                        <div class="rewards-summary mt-20">
+                            <img src="{{url('public/assets/coins.png')}}" alt="Coins"/>
+                            <div>
+                                <h5>Refer & Earn</h5>
+                                <p>Refer your friend & earn <strong>₹{{$refer_amount}} Each</strong></p>
+                            </div>
                         </div>
 
                     </div>
@@ -155,7 +167,9 @@
                                 <h6>{{$user->cashback_wallet??0}}</h6>
                                 <small>Total Rewards Coins</small>
                             </div>
-                            <div class="ms-auto"><img src="https://img.icons8.com/ios-filled/24/000000/chevron-right.png" alt="Next"/></div>
+                            <div class="ms-auto"><img
+                                    src="https://img.icons8.com/ios-filled/24/000000/chevron-right.png" alt="Next"/>
+                            </div>
                         </div>
                     </div>
 
@@ -163,8 +177,9 @@
                         <!-- Referral Card -->
                         <div class="referral-card">
                             <h5>Refer your friend and earn</h5>
-                            <img src="https://img.icons8.com/color/96/000000/gift.png" alt="Gift" />
-                            <p>Refer Your Friends and earn free cash rewards when they sign up and shop. It's quick ,easy and rewarding for both of You!.</p>
+                            <img src="https://img.icons8.com/color/96/000000/gift.png" alt="Gift"/>
+                            <p style="color: white !important;">Refer Your Friends and earn free cash rewards when they
+                                sign up and shop. It's quick ,easy and rewarding for both of You!.</p>
                             <div class="referral-code">
                                 <span>{{$user->referral_code??''}}</span>
                                 <button class="btn btn-light btn-sm">Copy</button>
@@ -173,7 +188,7 @@
                                 <button class="btn btn-light btn-sm d-flex align-items-center">
                                     <img src="https://img.icons8.com/ios-filled/24/000000/whatsapp.png"
                                          alt="WhatsApp"
-                                         style="width:16px; height:16px; margin-right:6px;" />
+                                         style="width:16px; height:16px; margin-right:6px;"/>
                                     via WhatsApp
                                 </button>
                             </div>
@@ -234,7 +249,7 @@
 
                     </div>
 
-            </div>
+                </div>
             </div>
         </div>
     </main>

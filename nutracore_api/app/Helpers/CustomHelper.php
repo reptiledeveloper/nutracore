@@ -647,6 +647,35 @@ class CustomHelper
         return $is_out_of_stock;
     }
 
+    public static function checkAvailableQty($product_id, $variant_id = null)
+    {
+        // Default: in stock
+        $is_out_of_stock = 0;
+
+        if (!empty($variant_id)) {
+            // Product with a variant: sum stock for that variant
+            $stock = DB::table('stock_batches as sl')
+                ->where('sl.variant_id', $variant_id)
+                ->where('sl.product_id', $product_id)
+                ->where('sl.is_delete', 0)
+                ->select(DB::raw('COALESCE(SUM(sl.quantity), 0) as closing_stock'))
+                ->first();
+        } else {
+            // Product without variant: sum stock at product level
+            $stock = DB::table('stock_batches as sl')
+                ->where('sl.product_id', $product_id)
+                ->where(function ($q) {
+                    $q->whereNull('sl.variant_id')
+                        ->orWhere('sl.variant_id', 0);
+                })
+                ->where('sl.is_delete', 0)
+                ->select(DB::raw('COALESCE(SUM(sl.quantity), 0) as closing_stock'))
+                ->first();
+        }
+
+        return $stock->closing_stock ?? 0;
+    }
+
 
     public static function calculateDiscountPer($originalPrice, $discountedPrice)
     {
@@ -4189,7 +4218,7 @@ class CustomHelper
 
     }
 
-    public static function trackEvent($user_id,$event,$traits)
+    public static function trackEvent($user_id, $event, $traits)
     {
 
         $data = [

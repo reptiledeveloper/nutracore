@@ -16,9 +16,12 @@
                 </div>
             </div>
         </div>
-        <div class="page-content pt-50">
-            <img src="{{url('public/assets/Free_Expert_Consultation.webp')}}" style="width: 100%;height: 400px">
+        <div class="page-content pt-10">
+
             <div class="container my-5">
+                <img src="{{url('public/assets/Free_Expert_Consultation.webp')}}"
+                     class="img-fluid"
+                     style="width: 100%; height: 400px; border-radius: 20px; object-fit: fill;">
 
                 <div class="row justify-content-center">
                     <div class="col-lg-8">
@@ -55,7 +58,7 @@
                                         </div>
                                         <div class="col-md-6">
                                             <label for="mobile" class="form-label">Mobile Number*</label>
-                                            <input type="tel" class="form-control" id="mobile" name="mobile"
+                                            <input type="tel" class="form-control"  name="mobile"
                                                    placeholder="10 digits" pattern="[0-9]{10}" required>
                                         </div>
                                     </div>

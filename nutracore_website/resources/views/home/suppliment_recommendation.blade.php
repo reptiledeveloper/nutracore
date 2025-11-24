@@ -1,13 +1,26 @@
 @extends('home.layout')
 @section('content')
+
+    @php
+        $user = Auth::user();
+$categories = $supplimentsArray['goal_categories'] ??[];
+ $activity_array = [
+        "Walking / Running",
+        "Sports",
+        "Gym (Beginner)",
+        "Gym (Intermediate/Advance)",
+        "Yoga",
+        "No Activity"
+    ];
+    @endphp
+
+
     <style>
         .center-wrapper {
             display: flex;
-            padding: 20px;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            background-color: #f5f5f5;
+
         }
 
         .form-container {
@@ -119,9 +132,11 @@
             border-radius: 5px;
             overflow: hidden;
         }
+
         .gender-selection input[type="radio"] {
             display: none;
         }
+
         .gender-selection label {
             flex: 1;
             padding: 10px;
@@ -130,13 +145,16 @@
             font-weight: bold;
             color: gray;
         }
+
         .gender-selection input:checked + label {
             background-color: #00A8A8;
             color: white;
         }
+
         .gender-selection label:first-child {
             border-right: 1px solid #00A8A8;
         }
+
         label {
             margin-bottom: 0px;
         }
@@ -157,14 +175,15 @@
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
         }
+
         .card_activity1 {
             display: flex;
             flex-direction: column; /* Stack image and text vertically */
-            align-items: center;    /* Center horizontally */
+            align-items: center; /* Center horizontally */
             justify-content: center; /* Center vertically if height is set */
-            text-align: center;      /* Center text */
-            cursor: pointer;         /* Keep the pointer on hover */
-            padding: 10px;           /* Optional padding */
+            text-align: center; /* Center text */
+            cursor: pointer; /* Keep the pointer on hover */
+            padding: 10px; /* Optional padding */
             height: 200px;
             border: 1px solid #ccc;
             margin: 10px;
@@ -187,124 +206,241 @@
             font-size: 18px;
             font-weight: bold;
         }
+
         .card_activity:hover {
             background-color: #e0e0e0;
             box-shadow: 0px 8px 12px rgba(0, 0, 0, 0.2);
         }
+
         .card_activity.selected {
             background-color: #00b3b3;
             color: white;
             border-color: #00b3b3;
         }
+
         .card_activity1.selected {
             background-color: #00b3b3;
             color: white;
             border-color: #00b3b3;
         }
+
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            margin: 40px 0;
+        }
+
+        /* Horizontal Bar (center line) */
+        .progress-container::before {
+            content: "";
+            position: absolute;
+            top: 19px;
+            left: 12%; /* increased gap */
+            right: 12%; /* increased gap */
+            height: 4px;
+            background: #ccc;
+            z-index: 1;
+        }
+
+
+        /* Steps */
+        .progress-step {
+            text-align: center;
+            position: relative;
+            z-index: 2; /* Circles above the line */
+        }
+
+
+        /* Active example */
+        .progress-step.active .circle {
+            background: #f9b201;
+            color: #000;
+        }
+
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin: 20px auto;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex: 1;
+        }
+
+        .progress-step .circle {
+            width: 40px;
+            height: 40px;
+            background: #0f5759;
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        /* --------------------------
+           MOBILE FIX (375px & below)
+        --------------------------- */
+        @media (max-width: 480px) {
+            .progress-container {
+                flex-direction: row;
+                justify-content: space-between;
+                gap: 10px;
+            }
+
+            .progress-step {
+                flex: unset;
+                width: 23%;
+            }
+
+            .progress-step p {
+                font-size: 10px;
+                line-height: 12px;
+                margin: 0;
+                word-break: break-word;
+            }
+
+            .progress-step .circle {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+
+            .progress-container::before {
+                top: 15px;
+            }
+        }
+
     </style>
-    <div class="center-wrapper">
-        <div class="form-container">
-            <div class="progress-container">
-                <div class="progress-step" id="step1">
-                    <div class="circle">1</div>
-                    <p>Personal Details</p>
-                </div>
-                <div class="progress-step" id="step2">
-                    <div class="circle">2</div>
-                    <p>Body Type</p>
-                </div>
-                <div class="progress-step" id="step3">
-                    <div class="circle">3</div>
-                    <p>Goal</p>
-                </div>
-                <div class="progress-step" id="step4">
-                    <div class="circle">4</div>
-                    <p>Lifestyle</p>
-                </div>
-            </div>
 
-            <form id="multi-step-form">
-                <!-- Step 1 -->
-                <div class="form-step active" id="form-step1">
-                    <h6>Personal Details</h6>
-                    <p>Hi! What’s your name ?</p>
-                    <label for="full-name"><strong>Full Name</strong></label>
-                    <input type="text" id="full-name" name="full-name" placeholder="Your Name" required>
 
-                    <label for="full-name"><strong>You were born on*</strong></label>
-                    <input type="text" id="full-name" name="full-name" placeholder="Your Name" required>
-
-                    <label for="full-name"><strong>Gender*</strong></label>
-                    <div class="gender-selection">
-                        <input type="radio" id="male" name="gender" value="male" checked>
-                        <label for="male">Male</label>
-
-                        <input type="radio" id="female" name="gender" value="female">
-                        <label for="female">Female</label>
+    <div class="container">
+        <img src="{{url('public/assets/SuppRecommBanner.webp')}}"
+             class="img-fluid"
+             style="width: 100%; height: 400px; border-radius: 20px; object-fit: cover; margin-top: 20px">
+        <div class="center-wrapper">
+            <div class="form-container">
+                <div class="progress-container">
+                    <div class="progress-step" id="step1">
+                        <div class="circle">1</div>
+                        <p>Personal Details</p>
+                    </div>
+                    <div class="progress-step" id="step2">
+                        <div class="circle">2</div>
+                        <p>Body Type</p>
+                    </div>
+                    <div class="progress-step" id="step3">
+                        <div class="circle">3</div>
+                        <p>Goal</p>
+                    </div>
+                    <div class="progress-step" id="step4">
+                        <div class="circle">4</div>
+                        <p>Lifestyle</p>
                     </div>
                 </div>
 
-                <!-- Step 2 -->
-                <div class="form-step" id="form-step2">
-                    <h6>Personal Details</h6>
-                    <p>About your body</p>
-                    <label for="full-name"><strong>Height</strong></label>
-                    <input type="text" id="full-name" name="full-name" placeholder="Your Name" required>
+                <form id="multi-step-form">
+                    <!-- Step 1 -->
+                    <div class="form-step active" id="form-step1">
+                        <h6>Personal Details</h6>
+                        <p>Hi! What’s your name ?</p>
+                        <label for="full-name"><strong>Full Name</strong></label>
+                        <input type="text" name="name" placeholder="Your Name" value="{{$user->name??""}}" required>
 
-                    <label for="full-name"><strong>Weight</strong></label>
-                    <input type="text" id="full-name" name="full-name" placeholder="Your Name" required>
+                        <label for="full-name"><strong>You were born on*</strong></label>
+                        <input type="date" name="dob" placeholder="" value="{{$user->dob??""}}" required>
 
+                        <label for="full-name"><strong>Gender*</strong></label>
+                        <div class="gender-selection">
+                            <input type="radio" id="male" name="gender"
+                                   value="male" {{$user->gender == 'male' ?"checked":""}}>
+                            <label for="male">Male</label>
 
-                </div>
-
-                <!-- Step 3 -->
-                <div class="form-step" id="form-step3">
-                    <h6>Health Profile</h6>
-                    <p>What is your Goal?</p>
-                    <div class="row">
-                        @for($i=0;$i<=10;$i++)
-                         <div class="col-md-6">
-                             <div class="card_activity1" onclick="selectCard1(this,'{{$i}}')">
-                                 <img src="http://localhost/nutracore/nutracore_website/public/assets/logo.png">
-                                 Walking
-                             </div>
-                         </div>
-                        @endfor
-
-                    </div>
-
-                </div>
-
-                <!-- Step 4 -->
-                <div class="form-step" id="form-step4">
-                    <h6>Daily activity & Lifestyle</h6>
-                    <p>How active are you?</p>
-                   @for($i=0;$i<=10;$i++)
-                        <div class="card_activity" onclick="selectCard(this,'{{$i}}')">
-                            Walking
+                            <input type="radio" id="female" name="gender"
+                                   value="female" {{$user->gender == 'female' ?"checked":""}}>
+                            <label for="female">Female</label>
                         </div>
-                   @endfor
-
-
-                    <label for="full-name"><strong>Food Choice*</strong></label>
-                    <div class="gender-selection">
-                        <input type="radio" id="Veg" name="food" value="Veg" checked>
-                        <label for="Veg">Veg</label>
-
-                        <input type="radio" id="Non-Veg" name="food" value="Non-Veg">
-                        <label for="Non-Veg">Non-Veg</label>
-                        <input type="radio" id="Eggetarian" name="food" value="Eggetarian">
-                        <label for="Eggetarian">Eggetarian</label>
                     </div>
-                </div>
 
-                <!-- Navigation buttons -->
-                <div class="d-flex1">
-                    <button type="button" id="prev-btn" disabled>Back</button>
-                    <button type="button" id="next-btn">Next</button>
-                </div>
-            </form>
+                    <!-- Step 2 -->
+                    <div class="form-step" id="form-step2">
+                        <h6>Personal Details</h6>
+                        <p>About your body</p>
+                        <label for="full-name"><strong>Height</strong></label>
+                        <input type="text" name="height" placeholder="Height" value="{{$user->height??""}}" required>
+
+                        <label for="full-name"><strong>Weight</strong></label>
+                        <input type="text" name="weight" placeholder="Weight" value="{{$user->weight??""}}" required>
+
+
+                    </div>
+                    <input type="hidden" name="activity" value="{{$user->activity??''}}" id="activity">
+                    <input type="hidden" name="health_profile" value="{{$user->health_profile??''}}" id="health_profile">
+                    <input type="hidden" name="submit_where" value="suppliment" >
+                    <!-- Step 3 -->
+                    <div class="form-step" id="form-step3">
+                        <h6>Health Profile</h6>
+                        <p>What is your Goal?</p>
+                        <div class="row">
+                            @foreach($categories as $key => $cat)
+                                <div class="col-md-6">
+                                    <div class="card_activity1 {{$user->health_profile == $cat->id?"selected":""}}" onclick="selectCard1(this,'{{$key}}','{{$cat->id}}')">
+                                        <img
+                                            src="{{\App\Helpers\CustomHelper::getImageUrl('categories',$cat->image??'')}}"
+                                            style="height: 100px">
+                                        {{$cat->name??''}}
+                                    </div>
+                                </div>
+                            @endforeach
+
+                        </div>
+
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="form-step" id="form-step4">
+                        <h6>Daily activity & Lifestyle</h6>
+                        <p>How active are you?</p>
+                        @foreach($activity_array as $key =>$value )
+                            <div class="card_activity {{$user->activity == $value?"selected":""}}" onclick="selectCard(this,'{{$key}}','{{$value}}')">
+                                {{$value}}
+                            </div>
+                        @endforeach
+
+
+                        <label for="full-name"><strong>Food Choice*</strong></label>
+                        <div class="gender-selection">
+                            <input type="radio" id="Veg" name="food_choice" value="Veg" {{$user->food_choice == "Veg" ?"checked":""}}>
+                            <label for="Veg">Veg</label>
+
+                            <input type="radio" id="Non-Veg" name="food_choice" value="Non-Veg" {{$user->food_choice == "Non-Veg" ?"checked":""}}>
+                            <label for="Non-Veg">Non-Veg</label>
+                            <input type="radio" id="Eggetarian" name="food_choice" value="Eggetarian" {{$user->food_choice == "Eggetarian" ?"checked":""}}>
+                            <label for="Eggetarian">Eggetarian</label>
+                        </div>
+                    </div>
+
+                    <!-- Navigation buttons -->
+                    <div class="d-flex1">
+                        <button type="button" id="prev-btn" disabled>Back</button>
+                        <button type="button" id="next-btn">Next</button>
+                    </div>
+                </form>
+            </div>
         </div>
+
     </div>
 
     <script>
@@ -336,12 +472,14 @@
         }
 
         nextBtn.addEventListener('click', () => {
+            submitFormAjax();
             if (currentStep < steps.length - 1) {
                 currentStep++;
                 showStep(currentStep);
             } else {
-                document.getElementById('multi-step-form').submit(); // Replace this with actual form submission if needed
+                window.location.href =  "{{route('suppliment_product')}}";
             }
+
         });
 
         prevBtn.addEventListener('click', () => {
@@ -352,10 +490,41 @@
         });
 
         showStep(currentStep);
+
+
+        function submitFormAjax() {
+            let form = document.getElementById("multi-step-form");
+            let formData = new FormData(form);
+
+            let url = '{{route('profile')}}';
+
+            fetch(url, {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": document.querySelector('input[name="_token"]').value
+                },
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === true) {
+                        // alert("Profile saved successfully!");
+                        // window.location.href = data.redirect ?? window.location.href;
+                    } else {
+                        alert(data.message || "Something went wrong");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    alert("Server error!");
+                });
+        }
+
+
     </script>
 
     <script>
-        function selectCard(element, value) {
+        function selectCard(element, value,val) {
             // Remove 'selected' class from all cards
             document.querySelectorAll('.card_activity').forEach(card => {
                 card.classList.remove('selected');
@@ -364,8 +533,10 @@
             // Add 'selected' class to the clicked card
             element.classList.add('selected');
             // Show selected value
+            $('#activity').val(val);
         }
-        function selectCard1(element, value) {
+
+        function selectCard1(element, value,val) {
             // Remove 'selected' class from all cards
             document.querySelectorAll('.card_activity1').forEach(card => {
                 card.classList.remove('selected');
@@ -374,6 +545,9 @@
             // Add 'selected' class to the clicked card
             element.classList.add('selected');
             // Show selected value
+            $('#health_profile').val(val);
         }
+
+
     </script>
 @endsection

@@ -271,7 +271,7 @@
 
                 <div class="row mt-3">
                     @foreach($order_items as $items)
-                        <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="col-md-6 col-lg-4 mb-4 p-2">
                             <div class="order-card d-flex align-items-center p-3">
                                 <img src="{{ $items->image ?? '' }}" alt="{{ $items->name ?? '' }}"
                                      class="item-img me-3">
@@ -286,6 +286,51 @@
                             </div>
                         </div>
                     @endforeach
+
+                        @if(!empty($orders->freebees_id) && $orders->freebees_id != "null")
+                            @php
+                                $freebees_product = \App\Models\FreeProduct::where('id',$orders->freebees_id)->first();
+                                    $pro = \App\Models\Products::where('id',$freebees_product->product_id)->first();
+
+                                    $image = \App\Helpers\CustomHelper::getImageUrl('products',$pro->image??'');
+                            @endphp
+
+
+                            <div class="col-md-6 col-lg-4 mb-4 p-2">
+                                <div class="order-card d-flex align-items-center p-3">
+                                    <img src="{{ $image ?? '' }}" alt="{{$pro->name??''}}"
+                                         class="item-img me-3">
+                                    <div class="order-info">
+                                        <h4 class="item-name">{{$pro->name??''}}</h4>
+                                        <p class="item-unit"></p>
+                                        <p class="item-price">
+                                            <strong>₹  {{$freebees_product->amount??''}}</strong>
+                                            <span class="text-muted"> • 1 pcs</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                        @endif
+
+
+
+                        @if(!empty($orders->subscription_id) && $orders->subscription_id != "null")
+                            @php
+                                $subscription =\App\Models\SubscriptionPlans::where('id',$orders->subscription_id)->first();
+                            @endphp
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="order-card d-flex align-items-center p-3">
+                                    <div class="order-info">
+                                        <h4 class="item-name">Subscription</h4>
+                                        <p class="item-price">
+                                            <strong>Plan Name : {{$subscription->name??''}}</strong><br>
+                                            <strong>Amount : {{$subscription->price??''}}</strong>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                 </div>
 
                 <div class="row mt-3">

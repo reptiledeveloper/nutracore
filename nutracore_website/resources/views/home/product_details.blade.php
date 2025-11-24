@@ -13,7 +13,6 @@
     use App\Helpers\CustomHelper;
 
 
-
     ?>
 
     <style>
@@ -178,7 +177,7 @@
                                         <!-- Quantity -->
                                         <div class="quantity-wrapper">
                                             <button class="quantity-btn quantity-decrease">−</button>
-                                            <input type="text" id="quantity" class="quantity-value" value="{{$selectedVarient->qty??1}}" min="1">
+                                            <input type="text" id="quantity" class="quantity-value" value="{{ (isset($selectedVarient->qty) && $selectedVarient->qty > 0) ? $selectedVarient->qty : 1 }}" min="1">
                                             <button class="quantity-btn quantity-increase">+</button>
                                         </div>
 
@@ -793,21 +792,40 @@
 
         });
 
-        $(document).ready(function () {
-            document.querySelectorAll('.list-filter[data-option-index]').forEach(ul => {
-                // Find the first li in each list
+        // $(document).ready(function () {
+        //     document.querySelectorAll('.list-filter[data-option-index]').forEach(ul => {
+        //         // Find the first li in each list
+        //         const firstLi = ul.querySelector('li');
+        //         if (firstLi) {
+        //             console.log("firstLifirstLifirstLi", firstLi);
+        //             // Find the link inside li and trigger click
+        //             const firstOption = firstLi.querySelector('.variant-option');
+        //             if (firstOption) {
+        //                 // firstOption.click();
+        //             }
+        //         }
+        //     });
+        //
+        // });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // Select all option groups
+            document.querySelectorAll('.list-filter').forEach(ul => {
+                // Find the first <li> in the group
                 const firstLi = ul.querySelector('li');
                 if (firstLi) {
-                    console.log("firstLifirstLifirstLi", firstLi);
-                    // Find the link inside li and trigger click
                     const firstOption = firstLi.querySelector('.variant-option');
                     if (firstOption) {
+                        // Trigger click
                         firstOption.click();
+
+                        // Ensure active class is applied to the <li>
+                        firstLi.classList.add('active');
                     }
                 }
             });
-
         });
+
 
 
         document.querySelector('.quantity-decrease').onclick = function () {

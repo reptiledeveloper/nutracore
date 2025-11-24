@@ -118,6 +118,119 @@ $defaultImage = $images[0]['image'] ?? url('public/assets/images/default.png');
             height: 120px; /* Reduce height on mobile */
         }
     }
+    .product-cart-wrap:hover {
+        box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+
+    }
+    .product-name {
+        min-height: 42px; /* Force minimum 2 lines */
+    }
+
+    .product-name a {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;   /* maximum 2 lines */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        line-height: 21px;  /* adjust to match your site */
+        height: 42px;       /* 2 lines × 21px */
+    }
+    .deal-timer-box {
+        text-align: center;
+        padding: 10px;
+    }
+
+</style>
+<style>
+    .deal-timer-box {
+        background: #DFFFF0;
+        border-radius: 15px;
+        padding: 25px;
+        text-align: center;
+        width: 100%;
+        max-width: 350px;
+        margin: auto;
+    }
+
+    .deal-timer-box h4 {
+        font-size: 18px;
+        margin-bottom: 15px;
+        color: #222;
+    }
+
+    .timer-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .timer-item {
+        background: #fff;
+        padding: 15px 10px;
+        border-radius: 10px;
+        width: 30%;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .timer-number {
+        font-size: 28px;
+        font-weight: 700;
+        color: #2c7a7b;
+    }
+
+    .timer-label {
+        font-size: 14px;
+        color: gray;
+        margin-top: 5px;
+    }
+
+    .grab-btn {
+        width: 100%;
+        background: #18a999;
+        color: #fff;
+        padding: 12px 0;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .grab-btn:hover {
+        background: #129183;
+    }
+</style>
+<style>
+    .timer-row {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 10px;
+        flex-wrap: wrap; /* IMPORTANT for mobile */
+    }
+
+    .timer-item {
+        text-align: center;
+        min-width: 70px; /* keeps size stable */
+    }
+
+    .timer-number {
+        font-size: 18px;
+        font-weight: bold;
+        padding: 6px 10px;
+        background: #fff3cd;
+        border-radius: 6px;
+    }
+
+    @media (max-width: 375px) {
+        .timer-item {
+            min-width: 60px;
+        }
+        .timer-number {
+            font-size: 16px;
+            padding: 5px 8px;
+        }
+    }
 
 </style>
 
@@ -184,37 +297,38 @@ $defaultImage = $images[0]['image'] ?? url('public/assets/images/default.png');
             </div>
         </div>
 
-        @if(!empty($selectedVarient->subscription_price) && $selectedVarient->subscription_price > 0)
-            <div class="button-container mt-1" onclick="openSubscriptionPopup()">
-                <div class="nutrapass-circle">
-                    <img src="{{ url('public/assets/staricon.png') }}">
+
+        <div class="deal-timer-box"
+             data-end-date="2025-12-30T23:59:59"
+
+             data-product-id="{{ $product->id }}">
+            <h4>Deal End in</h4>
+
+            <div class="timer-row">
+
+                <div class="timer-item">
+                    <div id="hours{{ $product->id }}" class="timer-number">00</div>
+                    <div class="timer-label">Hours</div>
                 </div>
-                <div class="button-text " style="font-size: 13px;font-weight: 500">
-                    Get @ ₹{{ $selectedVarient->subscription_price ?? 0 }}
+
+                <div class="timer-item">
+                    <div id="mins{{ $product->id }}" class="timer-number">00</div>
+                    <div class="timer-label">Minutes</div>
+                </div>
+
+                <div class="timer-item">
+                    <div id="secs{{ $product->id }}" class="timer-number">00</div>
+                    <div class="timer-label">Seconds</div>
                 </div>
             </div>
-        @endif
 
-        <!-- Choose Button Only -->
-        <div class="product-extra-link2 mt-2 d-flex">
-            <button type="submit"
-                    onclick="window.location.href='{{ url('products/' . $product->slug ?? '') }}'"
-                    class="button button-add-to-cart choose-btn">
-                Choose Options
-            </button>
+            <button class="grab-btn" onclick="window.location.href='{{ url('products/' . $product->slug ?? '') }}'">Grab Now</button>
         </div>
 
-        @if(!empty($product->estimated_day))
-            <div class="button-container1 mt-10 delivery-box">
-                <div class="delivery-icon">
-                    <i class="fa fa-truck"></i>
-                </div>
-                <div class="delivery-text estimate_day">
-                    {{ $product->estimated_day ?? '' }}
-                </div>
-            </div>
-        @endif
+
 
     </div>
 </div>
+
+
 

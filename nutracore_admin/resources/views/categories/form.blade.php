@@ -132,10 +132,10 @@
                                 </div>
 
                                 <div class="form-group col-md-6 mt-3">
-                                    <label for="validationCustom01" class="form-label">Is Popular</label>
+                                    <label for="validationCustom01" class="form-label">Is Footer</label>
                                     <select class="form-control" name="is_popular">
                                         <option value="" selected>Select</option>
-                                        <option value="1" {{$is_popular	==0?"selected":""}}>Yes</option>
+                                        <option value="1" {{$is_popular	==1?"selected":""}}>Yes</option>
                                         <option value="0" {{$is_popular	==0?"selected":""}}>No</option>
                                     </select>
                                 </div>

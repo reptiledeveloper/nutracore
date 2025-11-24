@@ -25,13 +25,16 @@ $categories = \App\Models\Category::select('id', 'name', 'image', 'priority', 's
     ->orderBy('priority')
     ->get()->map(fn($cat) => tap($cat, fn($c) => $c->image = CustomHelper::getImageUrl('categories', $c->image)));
 
+$allcategories = $categories = \App\Models\Category::select('id', 'name', 'image', 'priority', 'slug', 'is_popular')
+    ->where(['status' => 1, 'parent_id' => 0, 'is_delete' => 0])->get();
+
 $goal_category = \App\Models\Category::select('id', 'name', 'image', 'priority', 'slug')
     ->where(['status' => 1, 'parent_id' => 0, 'is_goal' => 1, 'is_delete' => 0])
     ->orderBy('priority')
     ->get()
     ->map(fn($cat) => tap($cat, fn($c) => $c->image = CustomHelper::getImageUrl('categories', $c->image)));
 
-$brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificate', 'priority', 'slug')
+$brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificate', 'priority', 'slug', 'is_popular')
     ->where(['status' => 1, 'is_delete' => 0])
     ->orderBy('priority')
     ->get()
@@ -64,7 +67,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
     <link rel="stylesheet" href="{{url('public/assets')}}/css/main2cc5.css?v=5.6"/>
     <link rel="stylesheet" href="{{url('public/assets')}}/css/responsive.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+{{--    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>--}}
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link
@@ -109,6 +112,11 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
 
     .pac-container {
         z-index: 999999999 !important;
+    }
+
+    .main-menu > nav > ul > li > a {
+
+        font-size: 12px !important;
     }
 
     .header-box {
@@ -1032,10 +1040,11 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                                                                      style="background: #DEFFFF; border: 1px solid #ccc;">
                                                                     <a href="{{ url('collections/' . $category->slug) }}"
                                                                        style="padding: 10px; padding-bottom:0px;">
-                                                                        <img src="{{ $category->image ?? '' }}"
-                                                                             alt="{{ $category->name ?? '' }}"
-                                                                             class="card-img-top"
-                                                                             style="height: 100%; object-fit: cover; width: 100%;">
+                                                                        <img
+                                                                            src="{{ CustomHelper::getImageUrl("categories",$category->image) ?? '' }}"
+                                                                            alt="{{ $category->name ?? '' }}"
+                                                                            class="card-img-top"
+                                                                            style="height: 100%; object-fit: cover; width: 100%;">
                                                                     </a>
                                                                     <div class="card-body p-2">
                                                                         <h5 class="card-title mb-0"
@@ -1157,11 +1166,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                                         <i class="fa fa-shopping-bag"></i> Store Locator
                                     </a>
                                 </li>
-                                <li>
-                                    <a href="{{ url('about') }}" class="menu-link">
-                                        <i class="fa fa-info-circle"></i> About Us
-                                    </a>
-                                </li>
+
                                 <li>
                                     <a href="{{ url('nc_consult') }}" class="menu-link">
                                         <i class="fa fa-info-circle"></i> NC Consult
@@ -1403,8 +1408,12 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
         <span>Profile</span>
     </a>
 </nav>
-
-<footer class="main">
+<style>
+    footer.main * {
+        color: white !important;
+    }
+</style>
+<footer class="main" style="background-color: #0f5759;color: white">
 
     <section class="section-padding footer-mid">
         <div class="container pt-15 pb-20">
@@ -1412,15 +1421,13 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                 <div class="col">
                     <div class="widget-about font-md mb-md-3 mb-lg-3 mb-xl-0 wow animate__animated animate__fadeInUp"
                          data-wow-delay="0">
-                        <div class="logo mb-30">
-                            <a class='mb-15' href='{{url('/')}}'><img src="{{url('public/assets')}}/logo.png"
-                                                                      alt="logo"/></a>
+                        <div class="logo" style="margin:0px;width: 85%;">
+                            <img src="{{url('public/assets')}}/logo.png"
+                                 alt="logo"/>
 
                         </div>
                         <ul class="contact-infor ">
-                            <li class="d-flex"><img src="{{url('public/assets')}}/imgs/theme/icons/icon-location.svg"
-                                                    alt=""/>H. No. 2-39, First Floor, Gopanpally,
-                                Tellapur Road, Hyderabad, 500019</span> </li>
+
                             <li class="d-flex"><img src="{{url('public/assets')}}/imgs/theme/icons/icon-contact.svg"
                                                     alt=""/><span>(+91) 88850 65550</span></li>
                             <li class="d-flex"><img src="{{url('public/assets')}}/imgs/theme/icons/icon-email-2.svg"
@@ -1444,7 +1451,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                 <div class="footer-link-widget col wow animate__animated animate__fadeInUp" data-wow-delay=".4s">
                     <h4 class="widget-title">Popular</h4>
                     <ul class="footer-list mb-sm-5 mb-md-0">
-                        @foreach ($categories->where('is_popular',1)->take(5) as $category)
+                        @foreach ($allcategories->where('is_popular',1)->take(5) as $category)
                             <li><a href="{{ url('collections/' . $category->slug) }}">{{$category->name??''}}</a></li>
                         @endforeach
 
@@ -1467,11 +1474,12 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                     <div class="download-app">
                         <a target="_blank" href="https://apps.apple.com/in/app/nutracore/id6749866050"
                            class="hover-up mb-sm-2 mb-lg-0"><img class="active"
-                                                                 src="{{url('public/assets')}}/imgs/theme/app-store.jpg"
+                                                                 src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"
                                                                  alt=""/></a>
                         <a target="_blank" href="https://play.google.com/store/apps/details?id=com.nutracore&hl=en_IN"
                            class="hover-up mb-sm-2"><img
-                                src="{{url('public/assets')}}/imgs/theme/google-play.jpg" alt=""/></a>
+                                src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
+                                alt=""/></a>
                     </div>
                     <p class="mb-20">Secured Payment Gateways</p>
                     <img class="" src="{{url('public/assets')}}/imgs/theme/payment-method.png" alt=""/>
@@ -1494,18 +1502,18 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
             <div class="col-xl-4 col-lg-6 col-md-6 text-end d-none d-md-block">
                 <div class="mobile-social-icon">
                     <h6>Follow Us</h6>
-                    <a href="#"><img src="{{url('public/assets')}}/imgs/theme/icons/icon-facebook-white.svg"
-                                     alt=""/></a>
-                    <a href="#"><img src="{{url('public/assets')}}/imgs/theme/icons/icon-twitter-white.svg"
-                                     alt=""/></a>
-                    <a href="#"><img src="{{url('public/assets')}}/imgs/theme/icons/icon-instagram-white.svg"
-                                     alt=""/></a>
-                    <a href="#"><img src="{{url('public/assets')}}/imgs/theme/icons/icon-pinterest-white.svg"
-                                     alt=""/></a>
-                    <a href="#"><img src="{{url('public/assets')}}/imgs/theme/icons/icon-youtube-white.svg"
-                                     alt=""/></a>
+                    <a href="https://www.facebook.com/nutracore.in" target="_blank"><img
+                            src="{{url('public/assets')}}/imgs/theme/icons/icon-facebook-white.svg"
+                            alt=""/></a>
+
+                    <a href="https://www.instagram.com/nutracore.in/" target="_blank"><img
+                            src="{{url('public/assets')}}/imgs/theme/icons/icon-instagram-white.svg"
+                            alt=""/></a>
+                    <a href="https://www.youtube.com/@NutraCoreOfficial" target="_blank"><img
+                            src="{{url('public/assets')}}/imgs/theme/icons/icon-youtube-white.svg"
+                            alt=""/></a>
                 </div>
-                <p class="font-sm">Up to 15% discount on your first subscribe</p>
+                {{--                <p class="font-sm">Up to 15% discount on your first subscribe</p>--}}
             </div>
         </div>
     </div>
@@ -1520,7 +1528,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
 
         <div class="popup-header">
             <span class="close-btn" onclick="closePopup()">✕</span>
-            <h3 style="color: white;font-size: 20px">Join Wellness+ Membership</h3>
+            <h3 style="color: white;font-size: 20px">Join NutraPass Membership</h3>
         </div>
 
         <img src="{{url('public/assets/images/nutrapasslogo.svg')}}" class="logo"/>
@@ -1544,7 +1552,8 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                         : 0;
                 @endphp
 
-                <div onclick="selectPlan('{{ $plan->id }}','{{ $plan->duration }}','{!! $plan->terms  !!}')" class="plan-item"
+                <div onclick="selectPlan('{{ $plan->id }}','{{ $plan->duration }}','{!! $plan->terms  !!}')"
+                     class="plan-item"
                      id="plan{{ $plan->duration }}"
                      data-duration="{{ $plan->duration }}"
                      data-id="{{ $plan->id }}"
@@ -1691,7 +1700,6 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
 </style>
 
 
-
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
@@ -1708,6 +1716,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
     function closePopup() {
         document.getElementById("membershipPopup").style.display = "none";
     }
+
     let selectedPlanId = null;
 
     $(document).ready(function () {
@@ -1723,11 +1732,11 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
             // If terms was HTML-encoded by htmlentities, decode it:
             terms = $('<textarea/>').html(terms).text();
 
-            selectPlan(id,months, terms);
+            selectPlan(id, months, terms);
         }
     });
 
-    function selectPlan(id,months, terms) {
+    function selectPlan(id, months, terms) {
         selectedPlan = months;
         selectedPlanId = id;
         if (terms) {
@@ -1737,6 +1746,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
         $(".plan-item").removeClass("active");
         $("#plan" + months).addClass("active");
     }
+
     function subscribeNow() {
         if (!selectedPlanId) {
             alert("Please select a plan first");
@@ -1749,7 +1759,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                 subscription_id: selectedPlanId,
                 _token: "{{ csrf_token() }}"
             },
-            success: function(res) {
+            success: function (res) {
 
                 if (!res.result) {
                     alert(res.message);
@@ -1761,7 +1771,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                     "key": res.keys.key,
                     "currency": "INR",
                     "order_id": res.order_id,
-                    "handler": function (response){
+                    "handler": function (response) {
                         alert('Payment Sucessfull');
                     },
 
@@ -1776,7 +1786,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                 rzp.open();
             },
 
-            error: function(err) {
+            error: function (err) {
                 console.log(err);
                 alert("Something went wrong!");
             }
@@ -1784,10 +1794,6 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
     }
 
 </script>
-
-
-
-
 
 
 <!-- Preloader Start -->
@@ -1830,6 +1836,13 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
 
 
 <!-- Mirrored from nest-frontend.netlify.app/ by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 20 Dec 2023 08:00:04 GMT -->
+<style>
+    input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+</style>
 
 <div class="modal fade" id="otpLoginModal" tabindex="-1" aria-labelledby="otpLoginModalLabel" aria-hidden="true">
     <div class="modal-dialog  modal-dialog-centered">
@@ -1848,6 +1861,13 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                         <input type="tel" name="mobile" id="mobile" class="form-control" placeholder="Enter mobile no"
                                required>
                     </div>
+                    <div class="mb-3">
+                        <label style="font-size:14px;">
+                            <input type="checkbox" id="termsCheckbox" style="margin-right:6px;" checked="checked">
+                            By continuing, I agree to the <a href="{{url('terms')}}" target="_blank">Terms of use</a> & <a href="{{url('privacy_policy')}}" target="_blank">Privacy Policy</a>
+                        </label>
+                    </div>
+
 
                     <!-- Send OTP Button -->
                     <div class="d-grid mb-3">
@@ -1885,6 +1905,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
         </div>
     </div>
 </div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
 
 <script>
@@ -1924,7 +1945,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
         });
     }
 
-    function wishlist_save(product_id, variant_id) {
+    function wishlist_save(product_id, variant_id,remove_cart=false) {
         var user_id = '{{ $user->id ?? '' }}';
         if (user_id == '') {
             $('#otpLoginModal').modal('show');
@@ -1944,6 +1965,9 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
             success: function (resp) {
                 let icon = $("#wishlist_icon_" + variant_id);
 
+                if(remove_cart == true || remove_cart == "true"){
+                    DeleteCart(product_id, variant_id);
+                }
                 // If added to wishlist
                 if (resp.status == "added") {
                     icon.addClass("active");
@@ -1987,13 +2011,19 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
         });
     }
 
+
+
     function updateCart(product_id, variant_id, type) {
+
         var user_id = '{{ $user->id ?? '' }}';
         if (user_id == '') {
             $('#otpLoginModal').modal('show');
         }
         var _token = '{{ csrf_token() }}';
         var qty = $('#cart_quantity' + variant_id).val();
+        if (isNaN(qty)) {
+            qty = document.getElementById(`quantity-${product_id}-${variant_id}`).value;
+        }
         if (type == 'minus') {
             qty = parseInt(qty) - 1;
         } else {
@@ -2034,8 +2064,35 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
         });
     }
 
-    async function getCartHtml() {
+    {{--async function getCartHtml() {--}}
 
+    {{--    var user_id = '{{ $user->id ?? "" }}';--}}
+    {{--    if (user_id == '') {--}}
+    {{--        $('#otpLoginModal').modal('show');--}}
+    {{--        return null;--}}
+    {{--    }--}}
+
+    {{--    var _token = '{{ csrf_token() }}';--}}
+
+    {{--    // ✅ return AJAX so async/await receives the response--}}
+    {{--    return $.ajax({--}}
+    {{--        url: "{{ url('getCartHtml') }}",--}}
+    {{--        type: "POST",--}}
+    {{--        data: $("#cartSubmitForm").serialize(),--}}
+    {{--        dataType: "JSON",--}}
+    {{--        headers: {'X-CSRF-TOKEN': _token},--}}
+    {{--        cache: false--}}
+    {{--    }).done(function (resp) {--}}
+    {{--        $('#cart_html').html(resp.html);--}}
+    {{--        $('#applied_cashback').val(resp.applied_cashback);--}}
+    {{--        selectFreebees();--}}
+    {{--        selectCoupon_code();--}}
+    {{--        selectNCCash();--}}
+    {{--        setSubscription();--}}
+    {{--    });--}}
+    {{--}--}}
+
+    async function getCartHtml() {
         var user_id = '{{ $user->id ?? "" }}';
         if (user_id == '') {
             $('#otpLoginModal').modal('show');
@@ -2044,23 +2101,38 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
 
         var _token = '{{ csrf_token() }}';
 
-        // ✅ return AJAX so async/await receives the response
-        return $.ajax({
-            url: "{{ url('getCartHtml') }}",
-            type: "POST",
-            data: $("#cartSubmitForm").serialize(),
-            dataType: "JSON",
-            headers: {'X-CSRF-TOKEN': _token},
-            cache: false
-        }).done(function (resp) {
+        // Show loader
+        $('#cartLoader').show();
+
+        try {
+            const resp = await $.ajax({
+                url: "{{ url('getCartHtml') }}",
+                type: "POST",
+                data: $("#cartSubmitForm").serialize(),
+                dataType: "JSON",
+                headers: {'X-CSRF-TOKEN': _token},
+                cache: false
+            });
+
+            // Populate cart
             $('#cart_html').html(resp.html);
             $('#applied_cashback').val(resp.applied_cashback);
             selectFreebees();
             selectCoupon_code();
             selectNCCash();
             setSubscription();
-        });
+
+            return resp;
+        } catch (err) {
+            console.error(err);
+            alert('Something went wrong while fetching the cart!');
+            return null;
+        } finally {
+            // Hide loader
+            $('#cartLoader').hide();
+        }
     }
+
 
 </script>
 
@@ -2094,12 +2166,16 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
     }
 
     sendOtpBtn.addEventListener('click', function () {
-        const mobile = mobileInput.value;
-        if (!mobile.match(/^[6-9]\d{9}$/)) {
-            alert('Enter valid 10-digit mobile number');
+        var mobile = mobileInput.value;
+        var termsCheckbox = document.getElementById('termsCheckbox');
+        if (mobile.length !== 10 || isNaN(mobile)) {
+            alert('Enter valid 10-digit mobile numbersdfsdfsdf');
             return;
         }
-
+        if (!termsCheckbox.checked) {
+            alert('Please agree to Terms of Use & Privacy Policy');
+            return;
+        }
         ///////////////////////SEND OTP API////////////////////////
         var success = sendOTP(mobile);
         if (success) {
@@ -2113,7 +2189,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
 
     resendOtpBtn.addEventListener('click', function () {
         const mobile = mobileInput.value;
-        if (!mobile.match(/^[6-9]\d{9}$/)) {
+        if (mobile.length !== 10 || isNaN(mobile)) {
             alert('Enter valid 10-digit mobile number');
             return;
         }
@@ -2597,7 +2673,18 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                     cache: false,
                     success: function (resp) {
                         const addr = resp.address;
-
+                        const fullAddress =
+                            (addr.flat_no ? addr.flat_no + ' ' : '') +
+                            (addr.building_name ? addr.building_name + ', ' : '') +
+                            (addr.landmark ? addr.landmark + '<br>' : '') +
+                            (addr.location ? addr.location + '<br>' : '') +
+                            (addr.city ? addr.city + ', ' : '') +
+                            (addr.state ? addr.state + ', ' : '') +
+                            (addr.pincode ? addr.pincode : '');
+                        document.getElementById("latitude").value = addr.latitude;
+                        document.getElementById("longitude").value = addr.longitude;
+                        document.getElementById("address_phone").innerHTML = fullAddress;
+                        document.getElementById("address_text").innerHTML = fullAddress;
                         $('#addressSearchModal').modal('hide');
                     }
                 });

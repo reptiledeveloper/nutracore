@@ -45,6 +45,7 @@ use App\Models\State;
 use App\Models\SubscriptionOrder;
 use App\Models\SubscriptionPlans;
 use App\Models\Subscriptions;
+use App\Models\Suppliments;
 use App\Models\Tags;
 use App\Models\Transaction;
 use App\Models\User;
@@ -111,6 +112,7 @@ class CustomHelper
             return 0;
         }
     }
+
 
 
     public static function getBannerData($type)

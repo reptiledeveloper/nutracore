@@ -4,17 +4,16 @@
    $exist = DB::table('order_courier')->where("order_id",$orders->id)->where('envia_data','!=',null)->first();
 $order_details_envia = [];
 if(!empty($exist)){
-       $order_details_envia = json_decode($exist->envia_data)??'';
+       $order_details_envia_data = json_decode($exist->envia_data)??'';
 
-       $order_details_envia = $order_details_envia->data[0] ?? [];
-
+       $order_details_envia = $order_details_envia_data->data[0] ?? [];
+        $order_details_envia_error = $order_details_envia_data->error??'';
 }
 
 $couriers = DB::table('couriers')->get();
 @endphp
 
-@if(empty($exist))
-
+@if(empty($exist) || !empty($order_details_envia_error))
     <div class="row">
         <div class="col-md-12">
             <div class="table-responsive">
@@ -37,14 +36,18 @@ $couriers = DB::table('couriers')->get();
                             <td>{{ $courier->description ?? '' }}</td>
                             <td>
                                 @if(!empty($cdata))
-                                    <form action="{{ route('orders.book_envia_shipment', ['id' => $orders->id]) }}" method="POST" id="form_{{ $courier->id }}">
+                                    <form action="{{ route('orders.book_envia_shipment', ['id' => $orders->id]) }}"
+                                          method="POST" id="form_{{ $courier->id }}">
                                         @csrf
                                         <div class="d-flex align-items-center gap-2">
-                                            <select name="selected_service" class="form-select form-select-sm w-auto" required onchange="updateServiceDetails(this, '{{ $courier->id }}')">
+                                            <select name="selected_service" class="form-select form-select-sm w-auto"
+                                                    required
+                                                    onchange="updateServiceDetails(this, '{{ $courier->id }}')">
                                                 <option value="">Select Service</option>
                                                 @foreach($cdata as $da)
                                                     <option value="{{ json_encode($da) }}">
-                                                        {{ $da->serviceDescription ?? '' }} - ₹{{ $da->totalPrice ?? '' }}
+                                                        {{ $da->serviceDescription ?? '' }} -
+                                                        ₹{{ $da->totalPrice ?? '' }}
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -75,7 +78,6 @@ $couriers = DB::table('couriers')->get();
         </div>
     </div>
 
-
 @else
     <div class="row">
         <div class="col-md-12">
@@ -84,7 +86,8 @@ $couriers = DB::table('couriers')->get();
             <label>Service : {{ $order_details_envia->service ?? '' }}</label><br>
             <label>ShipmentId : {{ $order_details_envia->shipmentId ?? '' }}</label><br>
             <label>TrackingNumber : {{ $order_details_envia->trackingNumber ?? '' }}</label><br>
-            <label>TrackUrl : <a target="_blank" href="{{ $order_details_envia->trackUrl ?? '' }}">Click Here</a></label><br>
+            <label>TrackUrl : <a target="_blank" href="{{ $order_details_envia->trackUrl ?? '' }}">Click
+                    Here</a></label><br>
             <label>Label : <a target="_blank" href="{{ $order_details_envia->label ?? '' }}">Print</a></label><br>
             <label>TotalPrice : {{ $order_details_envia->totalPrice ?? '' }}</label><br>
             <label>CurrentBalance : {{ $order_details_envia->currentBalance ?? '' }}</label><br>
@@ -93,6 +96,24 @@ $couriers = DB::table('couriers')->get();
 
 @endif
 
+
+@if(!empty($order_details_envia_error))
+    <div class="row">
+        <div class="col-md-12">
+            <h3>Courier Details</h3>
+            <label>Carrier : {{ $order_details_envia->carrier ?? '' }}</label><br>
+            <label>Service : {{ $order_details_envia->service ?? '' }}</label><br>
+            <label>ShipmentId : {{ $order_details_envia->shipmentId ?? '' }}</label><br>
+            <label>TrackingNumber : {{ $order_details_envia->trackingNumber ?? '' }}</label><br>
+            <label>TrackUrl : <a target="_blank" href="{{ $order_details_envia->trackUrl ?? '' }}">Click
+                    Here</a></label><br>
+            <label>Label : <a target="_blank" href="{{ $order_details_envia->label ?? '' }}">Print</a></label><br>
+            <label>TotalPrice : {{ $order_details_envia->totalPrice ?? '' }}</label><br>
+            <label>CurrentBalance : {{ $order_details_envia->currentBalance ?? '' }}</label><br>
+        </div>
+    </div>
+    <h6 style="color: red;margin-top: 10px">Error : {{$order_details_envia_error->message??''}}</h6>
+@endif
 
 <script>
     function updateServiceDetails(selectEl, courierId) {

@@ -218,6 +218,7 @@
             width: 100%;
             border-collapse: collapse;
             text-align: center;
+            color: black;
         }
 
         th, td {
@@ -262,15 +263,15 @@
 
         .curved-table th {
             color: white;
-            padding: 12px;
-            text-align: left;
-            font-size: 14px;
+            padding: 7px;
+            text-align: center;
+            font-size: 12px;
         }
 
         /* Body rows */
         .curved-table td {
             padding: 12px;
-            font-size: 14px;
+            font-size: 11px;
             border-bottom: 1px solid #eef2f3;
         }
 
@@ -312,8 +313,8 @@
                                     <div class="text">Total Rewards Cash</div>
                                 </div>
                             </div>
-                            <h4 class="mt-10">Incorporate NC Cash Tier</h4>
-                            <div class="">
+                            <h4 class="mt-10">Member Vs Non-Member Benefits</h4>
+                            <div class="mt-10 mb-5">
 
 
                                     <table class="curved-table">

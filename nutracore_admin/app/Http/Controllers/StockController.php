@@ -440,16 +440,26 @@ class StockController extends Controller
         $qty = $request->qty ?? '';
         $updated_qty = $request->updated_qty ?? '';
         $from_location = $request->from_location ?? '';
-
+        echo "<pre>";
+        print_r($request->toArray());
+        echo "sdfsdsdf";
         if (!empty($sku)) {
             foreach ($sku as $key => $value) {
                 if (!empty($product_id[$key]) && !empty($batch_id[$key]) && isset($updated_qty[$key]) && !empty($from_location)) {
                     $stocks = Stock::where('id', $batch_id[$key])->where('is_delete', 0)->first();
+
                     if (!empty($stocks)) {
-                        $exist = StockBatch::where('stock_id', $batch_id[$key])->where('store_id', $from_location)->where('product_id', $product_id[$key])->first();
+                        $exist = [];
+                        if(empty($variant_id[$key])){
+                            $exist = StockBatch::where('batch_number', $stocks->batch_number)->where('store_id', $from_location)->where('product_id', $product_id[$key])->first();
+                        }else{
+                            $exist = StockBatch::where('batch_number', $stocks->batch_number)->where('store_id', $from_location)->where('product_id', $product_id[$key])->where('variant_id', $variant_id[$key])->first();
+
+                        }
+
                         DB::table('closing_stock_verify')->insert([
                             "product_id" => $product_id[$key] ?? '',
-                            "variant_id" => $variant_id[$key] ?? '',
+                            "variant_id" => $variant_id[$key] ?? 0,
                             "store_id" => $from_location ?? '',
                             "batch_number" => $exist->batch_number ?? '',
                             "quantity" => $qty[$key] ?? '',

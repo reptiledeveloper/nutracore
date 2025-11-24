@@ -63,6 +63,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
     Route::match(['get', 'post'], 'wishlist_save', 'HomeController@wishlist_save')->name('wishlist_save');
     Route::match(['get', 'post'], 'take_subscription', 'HomeController@take_subscription')->name('take_subscription');
     Route::match(['get', 'post'], 'invoice/{id}', 'HomeController@invoice')->name('invoice');
+    Route::match(['get', 'post'], 'suppliment_product', 'HomeController@suppliment_product')->name('suppliment_product');
 
 
 });

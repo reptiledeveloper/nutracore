@@ -8,11 +8,10 @@
     $fixed_banner_2 = [];
     $fixed_banner_3 = [];
     $download_banner = [];
+    $website_main_banner = [];
     $small_banners = [];
     if (!empty($banners)) {
         foreach ($banners as $banner) {
-
-
             if ($banner->type == 'Fixed_banner1') {
                 $fixed_banner_1 = $banner;
             }
@@ -27,6 +26,9 @@
             }
             if ($banner->type == 'small_banner') {
                 $small_banners[] = $banner;
+            }
+            if ($banner->type == 'website_main_banner') {
+                $website_main_banner[] = $banner;
             }
         }
     }
@@ -78,24 +80,75 @@
         .start-30 {
             left: 35% !important;
         }
+
     </style>
+    <style>
+        /* Desktop: full image, no cropping */
+        .banner-slide {
+            width: 100%;
+            aspect-ratio: 1440 / 400;
+            background-size: contain !important;
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-color: #f8f8f8;
+            border-radius: 12px;
+        }
+
+        /* Tablet */
+        @media (max-width: 768px) {
+            .banner-slide {
+                aspect-ratio: 1440 / 400;
+                background-size: contain !important;
+            }
+        }
+
+        /* Mobile */
+        @media (max-width: 480px) {
+            .banner-slide {
+                aspect-ratio: 1440 / 400;
+                background-size: contain !important;
+            }
+        }
+
+
+    </style>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+
     <main class="main">
+
+        @include('home.countdown')
+
+
+
         <section class="home-slider position-relative mb-30">
             <div class="container">
                 <div class="home-slide-cover mt-30">
-                    <div class="hero-slider-1 style-4">
-                        @foreach($banners as $banner)
-                            @if(in_array($banner->type, $banner_types))
-                                <div class="single-hero-slider single-animation-wrap"
-                                     style="background-image: url({{ $banner->banner_img }});
-                                    height: 350px;
-                                    background-size: cover;
-                                    background-position: center;">
-                                </div>
-                            @endif
-                        @endforeach
+
+                    <!-- Swiper Slider -->
+                    <div class="swiper myBannerSwiper">
+                        <div class="swiper-wrapper">
+
+                            @foreach($website_main_banner as $banner)
+                                @if(!empty($banner->banner_img))
+                                    <div class="swiper-slide">
+                                        <div class="banner-slide"
+                                             style="background-image: url('{{ $banner->banner_img }}')">
+                                        </div>
+                                    </div>
+                                @endif
+                            @endforeach
+
+                        </div>
+
+{{--                        <!-- Navigation Arrows -->--}}
+{{--                        <div class="swiper-button-next"></div>--}}
+{{--                        <div class="swiper-button-prev"></div>--}}
+
+                        <!-- Pagination Dots -->
+                        <div class="swiper-pagination"></div>
                     </div>
-                    <div class="slider-arrow hero-slider-1-arrow"></div>
+
                 </div>
             </div>
         </section>
@@ -134,90 +187,7 @@
             </div>
         </section>
 
-        <section class="featured section-padding">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-1-5 col-md-4 col-12 col-sm-6 mb-md-4 mb-xl-0">
-                        <div
-                            class="banner-left-icon d-flex align-items-center wow animate__animated animate__fadeInUp"
-                            data-wow-delay="0">
-                            <div class="banner-icon">
-                                <img src="{{url('public/assets')}}/imgs/theme/icons/icon-1.svg" alt=""/>
-                            </div>
-                            <div class="banner-text">
-                                <h3 class="icon-box-title">Best prices & offers</h3>
-                                <p>Orders $50 or more</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-1-5 col-md-4 col-12 col-sm-6">
-                        <div
-                            class="banner-left-icon d-flex align-items-center wow animate__animated animate__fadeInUp"
-                            data-wow-delay=".1s">
-                            <div class="banner-icon">
-                                <img src="{{url('public/assets')}}/imgs/theme/icons/icon-2.svg" alt=""/>
-                            </div>
-                            <div class="banner-text">
-                                <h3 class="icon-box-title">Free delivery</h3>
-                                <p>24/7 amazing services</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-1-5 col-md-4 col-12 col-sm-6">
-                        <div
-                            class="banner-left-icon d-flex align-items-center wow animate__animated animate__fadeInUp"
-                            data-wow-delay=".2s">
-                            <div class="banner-icon">
-                                <img src="{{url('public/assets')}}/imgs/theme/icons/icon-3.svg" alt=""/>
-                            </div>
-                            <div class="banner-text">
-                                <h3 class="icon-box-title">Great daily deal</h3>
-                                <p>When you sign up</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-1-5 col-md-4 col-12 col-sm-6">
-                        <div
-                            class="banner-left-icon d-flex align-items-center wow animate__animated animate__fadeInUp"
-                            data-wow-delay=".3s">
-                            <div class="banner-icon">
-                                <img src="{{url('public/assets')}}/imgs/theme/icons/icon-4.svg" alt=""/>
-                            </div>
-                            <div class="banner-text">
-                                <h3 class="icon-box-title">Wide assortment</h3>
-                                <p>Mega Discounts</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-1-5 col-md-4 col-12 col-sm-6">
-                        <div
-                            class="banner-left-icon d-flex align-items-center wow animate__animated animate__fadeInUp"
-                            data-wow-delay=".4s">
-                            <div class="banner-icon">
-                                <img src="{{url('public/assets')}}/imgs/theme/icons/icon-5.svg" alt=""/>
-                            </div>
-                            <div class="banner-text">
-                                <h3 class="icon-box-title">Easy returns</h3>
-                                <p>Within 30 days</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-1-5 col-md-4 col-12 col-sm-6 d-xl-none">
-                        <div
-                            class="banner-left-icon d-flex align-items-center wow animate__animated animate__fadeInUp"
-                            data-wow-delay=".5s">
-                            <div class="banner-icon">
-                                <img src="{{url('public/assets')}}/imgs/theme/icons/icon-6.svg" alt=""/>
-                            </div>
-                            <div class="banner-text">
-                                <h3 class="icon-box-title">Safe delivery</h3>
-                                <p>Within 30 days</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+
         <!--End category slider-->
 
 
@@ -287,7 +257,7 @@
                 <div class="tab-content" id="myTabContent">
                     <div class="tab-pane fade show active" id="tab-one" role="tabpanel" aria-labelledby="tab-one">
                         <div class="row product-grid-4">
-                           @if(!empty($fixed_banner_1->products))
+                            @if(!empty($fixed_banner_1->products))
                                 @foreach ($fixed_banner_1->products as $product)
                                     @if ($loop->index < 10)
                                         <div class="col-6 col-sm-6 col-md-4 col-lg-1-5">
@@ -295,7 +265,7 @@
                                         </div>
                                     @endif
                                 @endforeach
-                           @endif
+                            @endif
 
                             <!--end product card-->
 
@@ -522,7 +492,7 @@
       max-width: 320px;
       transform: translateY(-50%);
   ">
-                                    <h3 style="font-weight: 700; font-size: 30px;">Join Wellness+ Membership</h3>
+                                    <h3 style="font-weight: 700; font-size: 25px;">Join Wellness+ Membership</h3>
                                     <p class="mt-2">🔥 10% OFF every order</p>
                                     <p class="mt-2">🚚 Free Express Delivery</p>
                                     <p class="mt-2">🎁 Monthly Freebie Box</p>
@@ -554,7 +524,7 @@
   overflow-x: auto;
   overflow-y: hidden;
   scroll-behavior: smooth;
-  width: 400px; /* optional - container width control */
+  width: 500px; /* optional - container width control */
   scrollbar-color: #ccc transparent;
 ">
                                     @foreach($subscription['subscription_plans'] as $key =>  $plan)
@@ -577,7 +547,8 @@
                                                 <p>&nbsp;</p>
                                             @endif
                                             <div class="months">{{$plan->duration}}</div>
-                                            <div class="details">months<br>₹ {{$permonth}}/mo<br><strong>SAVE {{$savePercent}}%</strong></div>
+                                            <div class="details">months<br>₹ {{$permonth}}
+                                                /mo<br><strong>SAVE {{$savePercent}}%</strong></div>
                                             <hr>
                                             <div class="price">₹ {{$plan->price ?? ''}}</div>
                                         </div>
@@ -705,8 +676,7 @@
                                         width: 100px;
                                         text-align: center;
                                         cursor: pointer;
-                                        transition: all 0.3s
-                                        ease;
+                                        transition: all 0.3s ease;
                                         border: 1px solid transparent;
                                     }
 
@@ -847,7 +817,7 @@
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="banner-img wow animate__animated animate__fadeInUp" data-wow-delay="0">
-                            <img src="{{ $fixed_banner_2->banner_img ?? '' }}" alt=""/>
+                            <img src="{{ $fixed_banner_2->banner_img ?? '' }}" alt="" style="width: 100%"/>
                         </div>
                     </div>
                 </div>
@@ -859,7 +829,7 @@
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="banner-img wow animate__animated animate__fadeInUp" data-wow-delay="0">
-                            <img src="{{ $fixed_banner_3->banner_img ?? '' }}" alt=""/>
+                            <img src="{{ $fixed_banner_3->banner_img ?? '' }}" alt="" style="width: 100%"/>
                         </div>
                     </div>
                 </div>
@@ -1002,7 +972,7 @@
             <div class="container">
                 <div class="section-title d-flex justify-content-between align-items-center">
                     <div class="title">
-                        <h3>Wellness Series (Videos)</h3>
+                        <h3>Wellness Series</h3>
                     </div>
                     <div class="slider-arrows">
                         <button class="prev-btn" data-target="videoSlider">⟨</button>
@@ -1015,11 +985,13 @@
                         @foreach ($new_updates as $new_update)
                             <div class="slide">
                                 <div class="video-slide">
-                                    <iframe src="https://www.youtube.com/embed/{{ $new_update->image }}?rel=0&mute=1"
-                                            title="Reel Video" frameborder="0"
-                                            allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                            allowfullscreen>
+                                    <iframe
+                                        src="https://www.youtube-nocookie.com/embed/{{ $new_update->image }}?rel=0&mute=1"
+                                        title="Reel Video" frameborder="0"
+                                        allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowfullscreen>
                                     </iframe>
+
                                 </div>
                             </div>
                         @endforeach
@@ -1069,7 +1041,7 @@
                 border-radius: 30px;
                 display: flex;
                 overflow: hidden;
-                box-shadow: 0px 6px 30px rgba(0,0,0,0.15);
+                box-shadow: 0px 6px 30px rgba(0, 0, 0, 0.15);
                 max-width: 82%;
                 margin: 20px auto;
             }
@@ -1185,6 +1157,92 @@
             </div>
 
         </div>
+
+
+        <section class="featured section-padding">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-1-5 col-md-4 col-12 col-sm-6 mb-md-4 mb-xl-0">
+                        <div
+                            class="banner-left-icon d-flex align-items-center wow animate__animated animate__fadeInUp"
+                            data-wow-delay="0">
+                            <div class="banner-icon">
+                                <img src="{{url('public/assets')}}/imgs/theme/icons/icon-1.svg" alt=""/>
+                            </div>
+                            <div class="banner-text">
+                                <h3 class="icon-box-title">Best prices & offers</h3>
+                                <p>Orders $50 or more</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-1-5 col-md-4 col-12 col-sm-6">
+                        <div
+                            class="banner-left-icon d-flex align-items-center wow animate__animated animate__fadeInUp"
+                            data-wow-delay=".1s">
+                            <div class="banner-icon">
+                                <img src="{{url('public/assets')}}/imgs/theme/icons/icon-2.svg" alt=""/>
+                            </div>
+                            <div class="banner-text">
+                                <h3 class="icon-box-title">Free delivery</h3>
+                                <p>24/7 amazing services</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-1-5 col-md-4 col-12 col-sm-6">
+                        <div
+                            class="banner-left-icon d-flex align-items-center wow animate__animated animate__fadeInUp"
+                            data-wow-delay=".2s">
+                            <div class="banner-icon">
+                                <img src="{{url('public/assets')}}/imgs/theme/icons/icon-3.svg" alt=""/>
+                            </div>
+                            <div class="banner-text">
+                                <h3 class="icon-box-title">Great daily deal</h3>
+                                <p>When you sign up</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-1-5 col-md-4 col-12 col-sm-6">
+                        <div
+                            class="banner-left-icon d-flex align-items-center wow animate__animated animate__fadeInUp"
+                            data-wow-delay=".3s">
+                            <div class="banner-icon">
+                                <img src="{{url('public/assets')}}/imgs/theme/icons/icon-4.svg" alt=""/>
+                            </div>
+                            <div class="banner-text">
+                                <h3 class="icon-box-title">Wide assortment</h3>
+                                <p>Mega Discounts</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-1-5 col-md-4 col-12 col-sm-6">
+                        <div
+                            class="banner-left-icon d-flex align-items-center wow animate__animated animate__fadeInUp"
+                            data-wow-delay=".4s">
+                            <div class="banner-icon">
+                                <img src="{{url('public/assets')}}/imgs/theme/icons/icon-5.svg" alt=""/>
+                            </div>
+                            <div class="banner-text">
+                                <h3 class="icon-box-title">Easy returns</h3>
+                                <p>Within 30 days</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-1-5 col-md-4 col-12 col-sm-6 d-xl-none">
+                        <div
+                            class="banner-left-icon d-flex align-items-center wow animate__animated animate__fadeInUp"
+                            data-wow-delay=".5s">
+                            <div class="banner-icon">
+                                <img src="{{url('public/assets')}}/imgs/theme/icons/icon-6.svg" alt=""/>
+                            </div>
+                            <div class="banner-text">
+                                <h3 class="icon-box-title">Safe delivery</h3>
+                                <p>Within 30 days</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
     <script>
@@ -1225,6 +1283,27 @@
             // Add active class to clicked plan
             selected.classList.add('selected');
         }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+
+    <script>
+        var swiper = new Swiper(".myBannerSwiper", {
+            loop: true,
+            autoplay: {
+                delay: 3000,
+            },
+            pagination: {
+                el: ".swiper-pagination",
+                clickable: true,
+            },
+            navigation: {
+                nextEl: ".swiper-button-next",
+                prevEl: ".swiper-button-prev",
+            },
+            speed: 600,
+            spaceBetween: 20,
+        });
     </script>
 
 @endsection

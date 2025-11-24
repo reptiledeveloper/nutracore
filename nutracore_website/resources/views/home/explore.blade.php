@@ -1,6 +1,10 @@
 @extends('home.layout')
 @section('content')
-
+    <style>
+        .border-1{
+            border: 1px solid #00a8a8 !important;
+        }
+    </style>
     <main class="main">
         <section class="popular-categories section-padding">
             <div class="container wow ">
