@@ -32,6 +32,7 @@
     $is_returnable = $product->is_returnable ?? '';
     $type = $product->type ?? '';
     $video_type = $product->video_type ?? '';
+    $slug = $product->slug ?? '';
     $video = $product->video ?? '';
     $sku = $product->sku ?? '';
     $hsn = $product->hsn ?? '';
@@ -100,6 +101,12 @@
                                     <input type="text" class="form-control" name="name"
                                            value="{{ old('name', $name) }}">
                                     @include('snippets.errors_first', ['param' => 'name'])
+                                </div>
+                                <div class="form-group col-md-6 mt-3">
+                                    <label for="inputEmail4" class="form-label">Product Slug</label>
+                                    <input type="text" class="form-control" name="slug"
+                                           value="{{ old('slug', $slug) }}">
+                                    @include('snippets.errors_first', ['param' => 'slug'])
                                 </div>
                                 <div class="form-group col-md-6 mt-3">
                                     <label for="inputEmail4" class="form-label">SKU</label>

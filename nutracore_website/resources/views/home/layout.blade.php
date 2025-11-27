@@ -964,7 +964,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                                                         class="fi fi-rs-settings-sliders mr-10"></i>GiftCard</a>
                                             </li>
                                             <li>
-                                                <a href='{{route('refer_earn')}}'><i
+                                                <a onclick="checkLoginRedirect('{{route('refer_earn')}}')" ><i
                                                         class="fi fi-rs-settings-sliders mr-10"></i>Refer & Earn</a>
                                             </li>
                                             <li>
@@ -1445,7 +1445,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                         <li><a href="{{url('privacy_policy')}}">Privacy Policy</a></li>
                         <li><a href="{{url('terms')}}">Terms &amp; Conditions</a></li>
                         <li><a href="{{url('contact')}}">Contact Us</a></li>
-                        <li><a href="#">Support Center</a></li>
+                        <li><a href="{{url('return_policy')}}"> Refund & Cancellation policy</a></li>
                     </ul>
                 </div>
                 <div class="footer-link-widget col wow animate__animated animate__fadeInUp" data-wow-delay=".4s">

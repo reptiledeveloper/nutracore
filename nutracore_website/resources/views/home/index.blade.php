@@ -130,11 +130,32 @@
                         <div class="swiper-wrapper">
 
                             @foreach($website_main_banner as $banner)
+                                @php
+                                    $slug = '';
+                                @endphp
+                                @if(!empty($banner->category_id))
+                                    @php
+                                        $slug = \App\Models\Category::find($banner->category_id)->slug??'';
+                                    @endphp
+                                @endif
+                                @if(!empty($banner->brand_id))
+                                    @php
+                                        $slug = \App\Models\Brand::find($banner->brand_id)->slug??'';
+                                    @endphp
+                                @endif
+
+
+
+                                @php
+                                    $url =  url('collections/' . $slug);
+                                @endphp
                                 @if(!empty($banner->banner_img))
                                     <div class="swiper-slide">
-                                        <div class="banner-slide"
-                                             style="background-image: url('{{ $banner->banner_img }}')">
-                                        </div>
+                                       <a href="{{$url}}">
+                                           <div class="banner-slide"
+                                                style="background-image: url('{{ $banner->banner_img }}')">
+                                           </div>
+                                       </a>
                                     </div>
                                 @endif
                             @endforeach
@@ -195,8 +216,27 @@
             <div class="container">
                 <div class="row">
                     @foreach($small_banners as $banner)
+                       @php
+                        $slug = '';
+                        @endphp
+                        @if(!empty($banner->category_id))
+                            @php
+                                $slug = \App\Models\Category::find($banner->category_id)->slug??'';
+                            @endphp
+                        @endif
+                        @if(!empty($banner->brand_id))
+                            @php
+                                $slug = \App\Models\Brand::find($banner->brand_id)->slug??'';
+                            @endphp
+                        @endif
+
+
+
+                    @php
+                        $url =  url('collections/' . $slug);
+                    @endphp
                         <div class="col-lg-4 col-md-6 p-2">
-                            <a href="">
+                            <a href="{{$url}}">
                                 <div class="banner-img wow animate__animated animate__fadeInUp" data-wow-delay="0">
                                     <img src="{{$banner->banner_img}}" alt=""/>
                                 </div>
@@ -473,7 +513,7 @@
                                         better
                                         health today and find what suits your needs best.
                                     </p>
-                                    <a class='btn btn-primary' href=''>Join Now</a>
+                                    <a class='btn btn-primary' onclick="checkLoginRedirect('{{route('refer_earn')}}')">Join Now</a>
                                 </div>
                             </div>
 

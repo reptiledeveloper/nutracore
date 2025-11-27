@@ -182,15 +182,18 @@
                                 sign up and shop. It's quick ,easy and rewarding for both of You!.</p>
                             <div class="referral-code">
                                 <span>{{$user->referral_code??''}}</span>
-                                <button class="btn btn-light btn-sm">Copy</button>
+                                <button class="btn btn-light btn-sm"
+                                        onclick="copyToClipboard('{{$user->referral_code??''}}')">Copy
+                                </button>
                             </div>
                             <div class="d-flex justify-content-center gap-3 mt-3">
-                                <button class="btn btn-light btn-sm d-flex align-items-center">
+                                <a class="btn btn-light btn-sm d-flex align-items-center"
+                                   href="whatsapp://send?text=Hey! I just explored NutraCore - a trusted  Supplements store. Get Rs. 200 off on your 1st order. You can further earn Rs. 200 for your next order by inviting your friends.Use Code NCL8U0T3RM while ordering or click on https://play.google.com/store/apps/details?id=com.nutracore">
                                     <img src="https://img.icons8.com/ios-filled/24/000000/whatsapp.png"
                                          alt="WhatsApp"
                                          style="width:16px; height:16px; margin-right:6px;"/>
                                     via WhatsApp
-                                </button>
+                                </a>
                             </div>
 
                         </div>
@@ -261,4 +264,14 @@
         }
 
     </script>
+    <script>
+        function copyToClipboard(textToCopy) {
+            navigator.clipboard.writeText(textToCopy).then(function () {
+                alert("Copied to clipboard!");
+            }, function (err) {
+                console.error('Could not copy text: ', err);
+            });
+        }
+    </script>
+
 @endsection

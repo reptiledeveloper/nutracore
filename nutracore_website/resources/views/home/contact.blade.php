@@ -36,7 +36,7 @@
                                              data-lng="{{ $seller->longitude ?? 0 }}">
                                             <div class="card shadow-sm h-100">
                                                 <div class="card-body">
-{{--                                                    <h5 class="mb-1">{{$seller->name??''}}</h5>--}}
+                                                    <h5 class="mb-1">{{$seller->name??''}}</h5>
                                                     <p class="mb-1"><strong>Address:</strong> {{$seller->address??''}}</p>
                                                     <p class="mb-1"><strong>Contact:</strong> {{$seller->user_phone??''}}</p>
                                                     <p class="mb-1"><strong>Opening Time :</strong> {{$seller->open_time??''}} - {{$seller->close_time??''}}</p>
