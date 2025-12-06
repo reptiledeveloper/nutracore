@@ -1258,6 +1258,358 @@ class CustomHelper
         return round($discount);
     }
 
+    public static function cartDataolddd($user_id, $coupon_code = '', $request, $user)
+    {
+        $cartValue = [];
+        $cartArr = [];
+        $handling_charges = 0;
+        $surge_fee = 0;
+        $platform_fee = 0;
+        $small_cart_fee = 0;
+        $rain_fee = 0;
+        $settings = Setting::where('id', 1)->first();
+
+
+        if ($settings->is_handling_charges == 1) {
+            $handling_charges = $settings->handling_charges ?? 0;
+        }
+        if ($settings->is_surge_fee == 1) {
+            $surge_fee = $settings->surge_fee ?? 0;
+        }
+        if ($settings->is_platform_fee == 1) {
+            $platform_fee = $settings->platform_fee ?? 0;
+        }
+        if ($settings->is_small_cart_fee == 1) {
+            $small_cart_fee = $settings->small_cart_fee ?? 0;
+        }
+
+
+        $cart_total = 0;
+        $cart_discount = 0;
+        $coupon_discount = 0;
+        $applied_wallet = 0;
+        $freebees_price = 0;
+        $total_mrp_price = 0;
+        $cart_products = [];
+        $cart_products_category = [];
+        $image = '';
+        $user_data = User::find($user_id);
+        $cart_qty = 0;
+        $cartValue = [];
+        $cart_list = [];
+        $tips = $request->tips ?? 0;
+        $cart_list = Cart::where('user_id', $user_id)->get();
+        if (!empty($cart_list)) {
+            foreach ($cart_list as $cart) {
+                $cart->type = $request->type ?? 'normal';
+                $cart->save();
+                $is_available = 0;
+                $product = ProductVarient::where('product_id', $cart->product_id)->where('id', $cart->variant_id)->first();
+                $product_data = Product::where('id', $cart->product_id)->first();
+                if (!empty($product)) {
+                    $is_available = 1;
+                    $cart_products_category[] = $product_data->category_id ?? '';
+                    if (empty($image) && $image == '') {
+                        $image = CustomHelper::getImageUrl('products', $product_data->image ?? '');
+                    }
+                }
+
+                if (!empty($request->freebees_id)) {
+                    $freebees_pro = DB::table('freebees_product')->where('id', $request->freebees_id)->first();
+                    if (!empty($freebees_pro)) {
+                        $freebees_price = $freebees_pro->amount ?? 0;
+                    }
+                }
+                $dbArray = [];
+                $dbArray['product_id'] = $product_data->id ?? '';
+                $dbArray['category_id'] = $product_data->category_id ?? '';
+                $dbArray['subcategory_id'] = $product_data->subcategory_id ?? '';
+                $dbArray['brand_id'] = $product_data->brand_id ?? '';
+                $dbArray['sku'] = $product_data->sku ?? '';
+
+                $cart_products[] = $product->product_id ?? '';
+                $dbArray['varient_id'] = $cart->variant_id ?? '';
+                $dbArray['product_name'] = $product_data->name ?? '';
+                $dbArray['max_qty'] = $product_data->max_qty ?? '';
+                $dbArray['min_qty'] = $product_data->min_qty ?? '';
+
+                $dbArray['is_subscribed_product'] = $product->is_subscribed_product ?? '';
+                $dbArray['product_image'] = CustomHelper::getImageUrl('products', $product_data->image ?? '');
+
+
+                $selling_price = $product->selling_price ?? '';
+                $mrp = $product->mrp ?? '';
+                $subscription_price = $product->subscription_price ?? '';
+                $dbArray['nc_cash'] = self::getNcCashPercent($user_data, $selling_price ?? '');
+                if (empty($cart->variant_id)) {
+                    $selling_price = $product_data->product_selling_price ?? '';
+                    $mrp = $product_data->product_mrp ?? '';
+                    $subscription_price = $product_data->product_subscription_price ?? '';
+                    $dbArray['nc_cash'] = self::getNcCashPercent($user_data, $subscription_price ?? '');
+                }
+
+                if (self::checkSubscription($user) == 1) {
+                    $selling_price = $subscription_price;
+                }
+                if (!empty($request->subscription_id) && $request->subscription_id != "null" && $request->subscription_id != null) {
+                    $selling_price = $subscription_price;
+                }
+                $dbArray['nc_cash'] = self::getNcCashPercent($user_data, $selling_price ?? '');
+                $dbArray['qty'] = $cart->qty ?? '';
+                $dbArray['selling_price'] = $selling_price ?? '';
+                $dbArray['mrp'] = $mrp ?? '';
+                $dbArray['subscription_price'] = $subscription_price ?? '';
+                $dbArray['unit'] = $product->unit ?? '';
+                $dbArray['discount_per'] = self::calculateDiscountPer($mrp ?? 0, $selling_price ?? 0);
+                $dbArray['unit_value'] = $product->unit_value ?? '';
+                $dbArray['is_available'] = $is_available;
+                $dbArray['vendor_id'] = $product->vendor_id ?? '';
+
+                $qty = (int)$cart->qty ?? 0;
+                $cart_qty += $cart->qty;
+                $total_cart_price = (int)$qty * (int)$selling_price;
+                $net_subscription_price = (int)$qty * (int)$subscription_price;
+                if (self::checkSubscription($user) == 1) {
+                    $total_cart_price = (int)$qty * (int)$subscription_price;
+                }
+                if (!empty($request->subscription_id) && $request->subscription_id != "null" && $request->subscription_id != null) {
+                    $total_cart_price = (int)$qty * (int)$subscription_price;
+                }
+                $total_mrp = (int)$qty * (int)$mrp;
+
+                $total_mrp_price += $total_mrp;
+                $total_product_price = (int)$total_cart_price ?? 0;
+
+                $dbArray['total_mrp'] = $total_mrp;
+                $dbArray['total_product_price'] = $total_product_price;
+                $dbArray['net_subscription_price'] = $net_subscription_price;
+
+                $discount = (int)$mrp - (int)$selling_price;
+                $total_discount = (int)$cart->qty * (int)$discount;
+                $dbArray['total_price'] = $total_cart_price;
+                $dbArray['type'] = $cart->type ?? '';
+                $cartArr[] = $dbArray;
+                $cart_total += $total_cart_price;
+                $cart_discount += $total_discount;
+            }
+        }
+
+
+        $subscription_amount = 0;
+        if (!empty($request->subscription_id)) {
+            $subscription_plans = SubscriptionPlans::where('id', $request->subscription_id)->where('is_delete', 0)->where('status', 1)->first();
+            $subscription_amount = $subscription_plans->price ?? 0;
+        }
+        $delivery_charges = self::calculateDeliveryCharge($user, $cart_total, $request->type);
+        $total_price = $cart_total + (int)$subscription_amount + (int)$freebees_price + $delivery_charges + $platform_fee + $surge_fee + $tips + $small_cart_fee + $handling_charges + $rain_fee;
+        $cartValue['total_price'] = $total_price;
+        $total_mrp_discount = 0;
+
+        $cartValue['cart_price'] = $cart_total + (int)$freebees_price + (int)$subscription_amount;
+
+        $total_mrp_discount = (int)$total_mrp_price - (int)$cartValue['cart_price'];
+        $cartValue['freebees_price'] = $freebees_price;
+        $cartValue['total_discount'] = $cart_discount;
+        $cartValue['subscription_amount'] = $subscription_amount;
+        $cartValue['delivery_charges'] = $delivery_charges;
+        $cartValue['cart_qty'] = $cart_qty;
+        $cartValue['tips'] = $tips;
+        $cartValue['total_mrp_price'] = $total_mrp_price;
+        $cartValue['total_mrp_discount'] = $total_mrp_discount;
+        $cartValue['coupon_discount'] = $coupon_discount;
+        $cartValue['handling_charges'] = $handling_charges;
+        $cartValue['small_cart_fee'] = $small_cart_fee;
+        $cartValue['total_cashback'] = $user->cashback_wallet ?? 0;
+        $cartValue['rain_fee'] = $rain_fee;
+        $cartValue['coupon_code'] = $coupon_code;
+        $cartValue['cart_products'] = $cart_products;
+        $cartValue['cart_products_category'] = $cart_products_category;
+        $cartValue['wallet'] = $user->wallet ?? 0;
+        $applied_wallet_amount = 0;
+        $wallet_applied = $request->wallet_applied ?? false;
+        $payment_method = $request->payment_method ?? '';
+        $wallet = $user_data->wallet ?? 0;
+        if ($wallet_applied) {
+            if ((float)$user_data->wallet <= (float)$total_price) {
+                $applied_wallet_amount = $wallet;
+            } else {
+                $applied_wallet_amount = $total_price;
+            }
+        }
+
+
+        $cartValue['applied_wallet'] = $applied_wallet_amount;
+
+        $cartValue['saved_delivery_fee'] = 10;
+        $cartValue['actual_delivery_fee'] = $delivery_charges;
+        $cartValue['surge_fee'] = $surge_fee;
+        $cartValue['platform_fee'] = $platform_fee;
+        $cartValue['image'] = $image;
+
+        if (empty($coupon_code)) {
+            return [
+                'result' => true,
+                'message' => "Successfully",
+                'cartValue' => $cartValue,
+                'cart_list' => $cartArr,
+            ];
+        } else {
+            $offers = Offers::where('offer_code', $coupon_code)->where('status', 1)->whereDate('end_date', '>=', date('Y-m-d'))->first();
+
+            if (!empty($offers)) {
+                // ✅ check usage limit
+                if (!empty($offers->no_of_times)) {
+                    $ordercount = Order::where('userID', $user_id)
+                        ->where('coupon_code', $offers->offer_code)
+                        ->count();
+
+                    if ((int)$ordercount >= (int)$offers->no_of_times) {
+                        return [
+                            'result' => false,
+                            'message' => "You Have Applied Max Times",
+                            'cartValue' => $cartValue,
+                            'cart_list' => $cartArr,
+                        ];
+                    }
+                }
+
+                // ✅ check min cart value
+                if ((int)$cart_total < (int)$offers->min_cart_value) {
+                    return [
+                        'result' => false,
+                        'message' => "Minimum Cart Value " . $offers->min_cart_value,
+                        'cartValue' => $cartValue,
+                        'cart_list' => $cartArr,
+                    ];
+                }
+
+//                // ✅ category restriction
+//                if ($offers->category_restrictions != '0' && !empty($offers->category_ids)) {
+//                    $offerCategoryIds = explode(',', $offers->category_ids);
+//                    $cartCategoryIds = $cart_products_category;
+//
+//                    if ($offers->category_restrictions == '1') { // include only
+//                        if (empty(array_intersect($cartCategoryIds, $offerCategoryIds))) {
+//                            return [
+//                                'result' => false,
+//                                'message' => "Coupon not applicable for selected categories",
+//                                'cartValue' => $cartValue,
+//                                'cart_list' => $cartArr,
+//                            ];
+//                        }
+//                    }
+//                    if ($offers->category_restrictions == '2') { // exclude
+//                        if (!empty(array_intersect($cartCategoryIds, $offerCategoryIds))) {
+//                            return [
+//                                'result' => false,
+//                                'message' => "Coupon not applicable on these categories",
+//                                'cartValue' => $cartValue,
+//                                'cart_list' => $cartArr,
+//                            ];
+//                        }
+//                    }
+//                }
+//
+//                // ✅ product restriction
+//                if ($offers->product_restrictions != '0' && !empty($offers->product_ids)) {
+//                    $offerProductIds = explode(',', $offers->product_ids);
+//                    $cartProductIds = $cart_products;
+//
+//                    if ($offers->product_restrictions == '1') { // include only
+//                        if (empty(array_intersect($cartProductIds, $offerProductIds))) {
+//                            return [
+//                                'result' => false,
+//                                'message' => "Coupon not applicable for selected products",
+//                                'cartValue' => $cartValue,
+//                                'cart_list' => $cartArr,
+//                            ];
+//                        }
+//                    }
+//                    if ($offers->product_restrictions == '2') { // exclude
+//                        if (!empty(array_intersect($cartProductIds, $offerProductIds))) {
+//                            return [
+//                                'result' => false,
+//                                'message' => "Coupon not applicable on these products",
+//                                'cartValue' => $cartValue,
+//                                'cart_list' => $cartArr,
+//                            ];
+//                        }
+//                    }
+//                }
+//
+//                // ✅ brand restriction
+//                if ($offers->brand_restrictions != '0' && !empty($offers->brand_ids)) {
+//                    $offerBrandIds = explode(',', $offers->brand_ids);
+//                    $cartBrandIds = array_column($cartArr, 'brand_id');
+//
+//                    if ($offers->brand_restrictions == '1') { // include only
+//                        if (empty(array_intersect($cartBrandIds, $offerBrandIds))) {
+//                            return [
+//                                'result' => false,
+//                                'message' => "Coupon not applicable for selected brands",
+//                                'cartValue' => $cartValue,
+//                                'cart_list' => $cartArr,
+//                            ];
+//                        }
+//                    }
+//                    if ($offers->brand_restrictions == '2') { // exclude
+//                        if (!empty(array_intersect($cartBrandIds, $offerBrandIds))) {
+//                            return [
+//                                'result' => false,
+//                                'message' => "Coupon not applicable on these brands",
+//                                'cartValue' => $cartValue,
+//                                'cart_list' => $cartArr,
+//                            ];
+//                        }
+//                    }
+//                }
+
+                // ✅ apply discount
+                if ($offers->offer_type == 'FIXED') {
+                    $total_price = (int)$total_price - (int)$offers->offer_value;
+                    $cartValue['total_price'] = $total_price;
+                    $cartValue['coupon_discount'] = (int)$offers->offer_value;
+                    $cartValue['coupon_code'] = $coupon_code;
+
+                    return [
+                        'result' => true,
+                        'message' => $coupon_code . " Successfully Applied",
+                        'cartValue' => $cartValue,
+                        'cart_list' => $cartArr,
+                    ];
+                }
+
+                if ($offers->offer_type == 'PERCENTAGE') {
+                    $percent_val = ($cart_total * $offers->offer_value) / 100;
+                    if ($percent_val >= $offers->max_discount) {
+                        $percent_val = $offers->max_discount;
+                    }
+
+                    $total_price = (int)$total_price - (int)$percent_val;
+                    $cartValue['total_price'] = $total_price;
+                    $cartValue['coupon_discount'] = (int)$percent_val;
+                    $cartValue['coupon_code'] = $coupon_code;
+
+                    return [
+                        'result' => true,
+                        'message' => $coupon_code . " Successfully Applied",
+                        'cartValue' => $cartValue,
+                        'cart_list' => $cartArr,
+                    ];
+                }
+            } else {
+                return [
+                    'result' => false,
+                    'message' => "No Coupon Found Or Expired",
+                    'cartValue' => $cartValue,
+                    'cart_list' => $cartArr,
+                ];
+            }
+
+        }
+    }
+
+
     public static function cartData($user_id, $coupon_code = '', $request, $user)
     {
         $cartValue = [];
@@ -1354,6 +1706,7 @@ class CustomHelper
                 if (!empty($request->subscription_id) && $request->subscription_id != "null" && $request->subscription_id != null) {
                     $selling_price = $subscription_price;
                 }
+
                 $dbArray['nc_cash'] = self::getNcCashPercent($user_data, $selling_price ?? '');
                 $dbArray['qty'] = $cart->qty ?? '';
                 $dbArray['selling_price'] = $selling_price ?? '';

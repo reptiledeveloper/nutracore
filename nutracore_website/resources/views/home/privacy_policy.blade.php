@@ -6,7 +6,11 @@
 
 
     ?>
-
+    <style>
+        .no-tailwind * {
+            all: revert;
+        }
+    </style>
     <main class="main">
         <section class="popular-categories section-padding">
             <div class="container wow ">
@@ -15,7 +19,7 @@
                         <h3>Privacy Policy</h3>
                     </div>
                 </div>
-                <div class="row">
+                <div class="row no-tailwind">
                    {!! CustomHelper::getSettings('privacy_policy') !!}
 
                 </div>

@@ -279,15 +279,20 @@ class HomeController extends Controller
         $max_price = $request->max_price ?? '';
         $order_by_price = $request->order_by_price ?? '';
         $brand_id = $request->brand_id ?? '';
-        $category_id = $request->category_id??'';
+        $category_id = $request->category_id ?? '';
 
-        if (!empty($category_slug)) {
+        if (!empty($category_slug) && empty($category_id)) {
             $category_id = Category::where('slug', $category_slug)->first()->id ?? '';
         }
-        if (!empty($category_slug)) {
+        if (!empty($category_slug) && empty($brand_id)) {
             $brand_id = Brand::where('slug', $category_slug)->first()->id ?? '';
         }
-
+        if($category_slug == 'deals'){
+            $product_countdowns = DB::table('product_countdowns')->where('id',1)->first();
+            if(!empty($product_countdowns)){
+                $product_id = explode(",",$product_countdowns->product_ids??'');
+            }
+        }
 
         $products = Product::select(
             'products.id',
@@ -1115,8 +1120,9 @@ class HomeController extends Controller
         $applied_cashback = $cartValue['applied_cashback'] ?? '';
         $subscription_plans_new = self::getMembershipPlans($user->id);
         $data['subscription_plans_new'] = $subscription_plans_new;
+        $data['subscription_id_customer'] = $cart_data['subscription_id'] ??'';
         $html = view('home.cart_html', $data)->render();
-        return response()->json(['html' => $html, 'cart_data' => $cart_data, 'applied_cashback' => $applied_cashback]);
+        return response()->json(['html' => $html, 'data_req'=>$data,'cart_data' => $cart_data, 'applied_cashback' => $applied_cashback]);
     }
 
     public function getMembershipPlans($user_id)
@@ -1322,7 +1328,7 @@ class HomeController extends Controller
         $user = Auth::user();
 
         $ordersArr = [];
-        $orders = Order::select('id', 'created_at', 'status', 'total_amount')->where('userID', $user->id)->where('is_delete', 0)->latest();
+        $orders = Order::select('id', 'created_at', 'status', 'total_amount', 'unique_id')->where('userID', $user->id)->where('is_delete', 0)->latest();
         $orders = $orders->paginate(30);
         if (!empty($orders)) {
             foreach ($orders as $order) {
@@ -1749,7 +1755,6 @@ class HomeController extends Controller
         $data['banners'] = $banners;
 
 
-
         return view('users.suppliment_product', $data);
     }
 
@@ -2155,11 +2160,15 @@ class HomeController extends Controller
         }
     }
 
+    public function search(Request $request)
+    {
+        $search = $request->search??'';
+    }
 
     public function logout(Request $request)
     {
         Auth::logout();
-        return back();
+        return redirect()->to(route('home'));
     }
 
     public function addToCart(Request $request)
@@ -2177,6 +2186,7 @@ class HomeController extends Controller
                     'message' => 'Product Not Available',
                 ], 200);
             }
+            $total_qty = 0;
             $exist = Cart::where(['product_id' => $product_id, 'variant_id' => $variant_id, 'user_id' => $user->id])->first();
             $dbArray = [];
             $dbArray['product_id'] = $product_id;
@@ -2195,10 +2205,12 @@ class HomeController extends Controller
                     Cart::where('id', $exist->id)->update($dbArray);
                 }
             }
+            $total_qty = Cart::where(['user_id' => $user->id])->sum('qty');
         }
         return response()->json([
             'result' => true,
             'message' => 'Cart Updated SuccessFully',
+            "total_qty" => $total_qty
         ], 200);
     }
 
@@ -2649,9 +2661,6 @@ class HomeController extends Controller
             }
         }
 
-        if ($payment_method == 'COD') {
-            self::updateStock($order_id);
-        }
         self::updateOrderStatus($order_id, "PLACED");
 
         return $order_id;
@@ -2734,46 +2743,7 @@ class HomeController extends Controller
         ], 200);
     }
 
-    public function updateStock($order_id)
-    {
-        $order = Order::find($order_id);
-        if (!empty($order)) {
-            $order_items = OrderItems::where('order_id', $order_id)->get();
-            if (!empty($order_items)) {
-                foreach ($order_items as $order_item) {
-                    $product_id = $order_item->product_id ?? '';
-                    $variant_id = $order_item->variant_id ?? '';
-                    $qty = $order_item->qty ?? '';
-                    $exist = DB::table('stock_batches')->where('product_id', $product_id);
-                    if (!empty($variant_id)) {
-                        $exist->where('variant_id', $variant_id);
-                    }
-                    $exist = $exist->where('quantity', '>', 0)->orderBy('mfg_date', 'ASC')->first();
-                    if (!empty($exist)) {
-                        if ((int)$exist->quantity <= (int)$qty) {
-                            $new_qty = (int)$exist->quantity - (int)$qty;
-                            DB::table('stock_batches')->where('id', $exist->id)->update(['quantity' => $new_qty]);
-                            StockLog::create([
-                                'product_id' => $product_id,
-                                'variant_id' => $variant_id,
-                                'store_id' => $exist->store_id ?? '',
-                                'action' => "sale",
-                                'quantity' => $qty,
-                                'closing_stock' => $new_qty,
-                                'related_id' => 0,
-                                'related_type' => "Sale",
-                                'created_by' => auth()->id(),
-                                'order_id' => $order_id,
-                            ]);
-                        } else {
 
-                        }
-                    }
-                }
-            }
-        }
-
-    }
 
     public function sendOrderNotification($order_id)
     {
@@ -2817,7 +2787,15 @@ class HomeController extends Controller
     public function pages_app(Request $request)
     {
         $data = [];
+        $agent = $request->header('User-Agent');
 
+        if (preg_match('/android/i', $agent)) {
+            return redirect('https://play.google.com/store/apps/details?id=com.nutracore&hl=en_IN');
+        }
+
+        if (preg_match('/iPad|iPhone|iPod/', $agent)) {
+            return redirect('https://apps.apple.com/in/app/nutracore-supplement-store/id6749866050');
+        }
 
         return view('home.pages_app', $data);
 
@@ -3073,4 +3051,126 @@ class HomeController extends Controller
         ]);
 
     }
+
+    public function sitemap()
+    {
+        // Base URL
+        $baseUrl = url('/');
+
+        // Static pages (add/remove as needed)
+        $staticUrls = [
+            '/',
+            '/products',
+            '/brands',
+            '/explore',
+            '/stores',
+            '/nutrapass',
+            '/profile',
+            '/my_orders',
+            '/suppliment_recommendation',
+            '/suppliment_recommendation_list',
+            '/privacy_policy',
+            '/return_policy',
+            '/shipping_policy',
+            '/best_sellers',
+            '/best_deals',
+            '/new_arrivals',
+            '/terms',
+            '/nc_cash',
+            '/giftcard',
+            '/refer_earn',
+            '/coupons',
+            '/address',
+            '/categories',
+            '/about',
+            '/wishlist',
+            '/contact',
+            '/deals',
+            '/suppliment_product',
+        ];
+
+        // Dynamic: products
+        $products = \DB::table('products')
+            ->select('slug', 'updated_at')
+            ->where('status', 1)
+            ->where('is_delete', 0)
+            ->get();
+
+        // Dynamic: collections
+        $categories = \DB::table('categories')
+            ->select('slug', 'updated_at')
+            ->where('status', 1)
+            ->where('is_delete', 0)
+            ->get();
+        $brands = \DB::table('brands')
+            ->select('slug', 'updated_at')
+            ->where('status', 1)
+            ->where('is_delete', 0)
+            ->get();
+
+
+        // Start XML
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>';
+        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+
+        // Add static URLs
+        foreach ($staticUrls as $url) {
+            $xml .= "
+        <url>
+            <loc>{$baseUrl}{$url}</loc>
+            <changefreq>weekly</changefreq>
+            <priority>0.8</priority>
+        </url>";
+        }
+
+        // Add product URLs
+        foreach ($products as $p) {
+            $xml .= "
+        <url>
+            <loc>{$baseUrl}/products/{$p->slug}</loc>
+            <lastmod>" . date('Y-m-d', strtotime($p->updated_at)) . "</lastmod>
+            <changefreq>daily</changefreq>
+            <priority>1.0</priority>
+        </url>";
+        }
+
+        // Add collections URLs
+        foreach ($categories as $c) {
+            $xml .= "
+        <url>
+            <loc>{$baseUrl}/collections/{$c->slug}</loc>
+            <lastmod>" . date('Y-m-d', strtotime($c->updated_at)) . "</lastmod>
+            <changefreq>weekly</changefreq>
+            <priority>0.7</priority>
+        </url>";
+        }
+        // Add collections URLs
+        foreach ($brands as $c) {
+            $xml .= "
+        <url>
+            <loc>{$baseUrl}/collections/{$c->slug}</loc>
+            <lastmod>" . date('Y-m-d', strtotime($c->updated_at)) . "</lastmod>
+            <changefreq>weekly</changefreq>
+            <priority>0.7</priority>
+        </url>";
+        }
+
+        $xml .= '</urlset>';
+
+        return response($xml, 200)
+            ->header('Content-Type', 'application/xml');
+    }
+
+    public function nc_partner(Request $request)
+    {
+        $data = [];
+        $banners = Banner::where('status', 1)
+            ->where('is_delete', 0)
+            ->where('type', 'nc_partner')
+            ->first();
+        $data['banner'] = $banners;
+        return view('home.nc_partner',$data);
+
+    }
+
 }

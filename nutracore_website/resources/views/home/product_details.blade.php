@@ -84,6 +84,108 @@
         }
 
 
+        .verify-banner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(94.85deg, #00A8A8 1.08%, #153838 44.34%, #1B1B1B 60.14%);
+            padding: 25px 35px;
+            border-radius: 14px;
+            color: #fff;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        .verify-content h2 {
+            font-size: 26px;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .verify-content p {
+            font-size: 15px;
+            margin: 6px 0 18px;
+            color: #d1d1d1;
+        }
+
+        .verify-btn {
+            background: #ffffff;
+            color: #0D1A26;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+            display: inline-block;
+        }
+
+        .verify-btn:hover {
+            background: #eaeaea;
+        }
+
+        .verify-badge img {
+            width: 120px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .verify-banner {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .verify-badge img {
+                margin-top: 20px;
+                width: 100px;
+            }
+        }
+
+        /* Modal Background */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            padding-top: 40px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+            text-align: center;
+        }
+
+        /* Modal Image */
+        .modal-content {
+            margin: auto;
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 10px;
+        }
+
+        /* Close Button */
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .product-image-slider img {
+            width: 100%;
+            height: 100%; /* or any fixed height */
+            object-fit: contain; /* FULL image visible */
+            background-color: #fff; /* avoid black/blank background */
+        }
+        .slider-nav-thumbnails img {
+            height: 150px;
+        }
+        .zoomContainer,
+        .zoomWindowContainer {
+            z-index: 1 !important;  /* keep zoom behind modal */
+        }
     </style>
 
 
@@ -96,9 +198,6 @@
                         <div class="row mb-50 mt-30">
                             <div class="col-md-6 col-sm-12 col-xs-12 mb-md-0 mb-sm-5">
                                 <div class="detail-gallery">
-                                    <span class="zoom-icon"><i class="fi-rs-search"></i></span>
-                                    <!-- MAIN SLIDES -->
-                                    {{--                                    <div class="product-image-slider" id="main-image-slider">--}}
                                     <div class="product-image-slider" id="main-image-slider">
                                         @foreach($selectedVarient->images ?? $product_data->images ?? [] as $img)
                                             <figure class="border-radius-10">
@@ -177,7 +276,9 @@
                                         <!-- Quantity -->
                                         <div class="quantity-wrapper">
                                             <button class="quantity-btn quantity-decrease">−</button>
-                                            <input type="text" id="quantity" class="quantity-value" value="{{ (isset($selectedVarient->qty) && $selectedVarient->qty > 0) ? $selectedVarient->qty : 1 }}" min="1">
+                                            <input type="text" id="quantity" class="quantity-value"
+                                                   value="{{ (isset($selectedVarient->qty) && $selectedVarient->qty > 0) ? $selectedVarient->qty : 1 }}"
+                                                   min="1">
                                             <button class="quantity-btn quantity-increase">+</button>
                                         </div>
 
@@ -290,10 +391,26 @@
                                         </div>
                                     </div>
 
-                                    <div class="font-xs">
-                                        <div class="row">
-                                            <img src="{{ $product_data->certificate?? '' }}">
+                                    <div class="verify-banner">
+                                        <div class="verify-content">
+                                            <h2 style="color: white">Verify Your Product</h2>
+                                            <p>Ensure your supplement is 100% authentic and safe to use.</p>
+                                            <a href="#" id="openCertificate" class="verify-btn">Authenticate Purchase
+                                                →</a>
                                         </div>
+
+                                        <div class="verify-badge">
+                                            <img src="{{ url('public/assets/verify.png') }}"
+                                                 alt="Authentic Badge"
+                                            >
+                                        </div>
+                                    </div>
+
+                                    <!-- Popup Modal -->
+                                    <div id="certificateModal" class="modal-overlay">
+                                        <span class="close-btn">&times;</span>
+                                        <img class="modal-content" id="certificateImage"
+                                             src="{{ $product_data->certificate ?? '' }}">
                                     </div>
 
 
@@ -740,25 +857,58 @@
                 document.getElementById('subscription_price').innerText = ` Get @ ₹ ${variant.subscription_price}`;
                 document.getElementById('nc_cash').innerText = ` Get ${variant.nc_cash} Nc Cash`;
 
-                // Update images
-                const $thumbSlider = $('#thumbnail-slider');
+                // Correct selectors matching your initialized sliders
+                const $thumbSlider = $('.slider-nav-thumbnails');
+                const $mainSlider  = $('.product-image-slider');
 
-                // Remove all existing slides safely
-                $thumbSlider.slick('slickRemove', null, null, true);
+                /* ------------------------------
+                    DESTROY OLD SLIDERS SAFELY
+                ------------------------------ */
+                if ($thumbSlider.hasClass('slick-initialized')) {
+                    $thumbSlider.slick('unslick');
+                }
 
-                // Add new thumbnails
+                if ($mainSlider.hasClass('slick-initialized')) {
+                    $mainSlider.slick('unslick');
+                }
+
+                /* ------------------------------
+                    REBUILD SLIDER HTML
+                ------------------------------ */
+                $thumbSlider.html('');
+                $mainSlider.html('');
+
                 variant.images.forEach(img => {
-                    $thumbSlider.slick('slickAdd', `<div><img src="${img.image}" alt="product image" /></div>`);
+                    $thumbSlider.append(`
+            <div>
+                <img src="${img.image}" alt="product thumbnail">
+            </div>
+        `);
+
+                    $mainSlider.append(`
+            <div>
+                <img src="${img.image}" alt="product image">
+            </div>
+        `);
                 });
 
+                /* ------------------------------
+                    REINITIALIZE SLICK
+                ------------------------------ */
+                $mainSlider.slick({
+                    slidesToShow: 1,
+                    slidesToScroll: 1,
+                    arrows: false,
+                    asNavFor: '.slider-nav-thumbnails'
+                });
 
-                // const mainSlider = document.getElementById('main-image-slider');
-                // mainSlider.innerHTML = '';
-                //
-                // variant.images.forEach(img => {
-                //     mainSlider.innerHTML += `<figure class="border-radius-10"><img src="${img.image}" alt="product image" /></figure>`;
-                // });
-
+                $thumbSlider.slick({
+                    slidesToShow: 4,
+                    slidesToScroll: 1,
+                    asNavFor: '.product-image-slider',
+                    dots: false,
+                    focusOnSelect: true,
+                });
 
             }
 
@@ -827,7 +977,6 @@
         });
 
 
-
         document.querySelector('.quantity-decrease').onclick = function () {
             let input = document.getElementById('quantity');
             let value = parseInt(input.value);
@@ -843,7 +992,26 @@
 
     </script>
 
+    <script>
+        document.getElementById("openCertificate").addEventListener("click", function () {
+            document.getElementById("certificateModal").style.display = "block";
+        });
+
+        // Close on click X
+        document.querySelector(".close-btn").addEventListener("click", function () {
+            document.getElementById("certificateModal").style.display = "none";
+        });
+
+        // Close by clicking outside image
+        document.getElementById("certificateModal").addEventListener("click", function (e) {
+            if (e.target === this) {
+                this.style.display = "none";
+            }
+        });
 
 
+
+
+    </script>
 
 @endsection

@@ -467,19 +467,21 @@ $current_route = Route::currentRouteName();
 
 <style>
     /* Default: no margin for mobile/tablet */
-.layout-wrapper {
-    margin-left: 0;
-}
- .menu {
-    z-index: 998;
-    width: 270px;
-}
-/* Desktop only */
-@media (min-width: 992px) {
     .layout-wrapper {
-        margin-left: 250px;
+        margin-left: 0;
     }
-}
+
+    .menu {
+        z-index: 998;
+        width: 270px;
+    }
+
+    /* Desktop only */
+    @media (min-width: 992px) {
+        .layout-wrapper {
+            margin-left: 250px;
+        }
+    }
 
 
 </style>
@@ -595,7 +597,7 @@ $current_route = Route::currentRouteName();
 <!-- ./ sidebars -->
 
 <!-- menu -->
-<div class="menu collapsed" >
+<div class="menu collapsed">
     <div class="menu-header">
         <a href="{{url('/admin')}}" class="menu-header-logo">
             <img src="{{logo()}}" alt="logo">
@@ -750,6 +752,14 @@ $current_route = Route::currentRouteName();
                                href="{{route('delivery_charges.index')}}">Delivery Charges</a>
                         </li>
                     @endif
+
+                    @if(\App\Helpers\CustomHelper::isAllowedSection('countdown_timer','list'))
+
+                        <li>
+                            <a class="{{$current_route == 'countdown_timer.index' ? "active":""}}"
+                               href="{{route('countdown_timer.index')}}">CountDown Timer</a>
+                        </li>
+                    @endif
                 </ul>
             </li>
             @if(\App\Helpers\CustomHelper::isAllowedSection('sellers','list'))
@@ -901,20 +911,20 @@ $current_route = Route::currentRouteName();
                         ">Closing Stock</a>
                         </li>
                         @if(\App\Helpers\CustomHelper::isAllowedSection('stock_verify','list'))
-                        <li>
-                            <a class="{{$current_route == 'stocks.verify_closing_stock' ? "active":""}}" href="{{route('stocks.verify_closing_stock')}}
+                            <li>
+                                <a class="{{$current_route == 'stocks.verify_closing_stock' ? "active":""}}" href="{{route('stocks.verify_closing_stock')}}
                         ">Verify Closing Stock</a>
-                        </li>
+                            </li>
                         @endif
                         <li>
                             <a class="{{$current_route == 'stocks.stockLogs' ? "active":""}}" href="{{route('stocks.stockLogs')}}
                         ">StockLogs</a>
                         </li>
                         @if(\App\Helpers\CustomHelper::isAllowedSection('stock_transfer_approval','list'))
-                        <li>
-                            <a class="{{$current_route == 'stock_transfers.index' ? "active":""}}" href="{{route('stock_transfers.index')}}
+                            <li>
+                                <a class="{{$current_route == 'stock_transfers.index' ? "active":""}}" href="{{route('stock_transfers.index')}}
                         ">Stock Transfers</a>
-                        </li>
+                            </li>
                         @endif
 
 
@@ -973,6 +983,10 @@ $current_route = Route::currentRouteName();
                         <li>
                             <a class="{{$current_route == 'consultation.enquiry' ? "active":""}}" href="{{route('consultation.enquiry', ['back_url' => $BackUrl])}}
                       ">Enquiry</a>
+                        </li>
+                        <li>
+                            <a class="{{$current_route == 'consultation.nc_consult' ? "active":""}}" href="{{route('consultation.nc_consult', ['back_url' => $BackUrl])}}
+                      ">NC Consult</a>
                         </li>
 
                     </ul>
@@ -1099,20 +1113,20 @@ $current_route = Route::currentRouteName();
                 </li>
             @endif
 
-                        <li>
-                            <a href="#">
+            <li>
+                <a href="#">
                                 <span class="nav-link-icon">
                                     <i class="bi bi-map"></i>
                                 </span>
-                                <span>Reports</span>
-                            </a>
-                            <ul>
-                                <li>
-                                    <a class="{{$current_route == 'reports.index' ? "active":""}}" href="{{route('reports.index')}}
+                    <span>Reports</span>
+                </a>
+                <ul>
+                    <li>
+                        <a class="{{$current_route == 'reports.index' ? "active":""}}" href="{{route('reports.index')}}
                                     ">Reports</a>
-                                </li>
-                            </ul>
-                        </li>
+                    </li>
+                </ul>
+            </li>
 
             <li>
                 <a class="" href="{{route('admin.logout')}}">
@@ -1721,21 +1735,21 @@ $current_route = Route::currentRouteName();
         var _token = '{{ csrf_token() }}';
         var category_id = $('#category_id').val();
         var product_id = '{{ $ajax_pro_id }}';
-            $.ajax({
-                url: "{{ route('admin.get_sub_category') }}",
-                type: "POST",
-                data: {category_id: category_id},
-                dataType: "HTML",
-                headers: {'X-CSRF-TOKEN': _token},
-                cache: false,
-                success: function (resp) {
-                    $('#subcategory_id').html(resp);
-                    if (product_id == "") {
-                        getTags(category_id);
-                    }
-
+        $.ajax({
+            url: "{{ route('admin.get_sub_category') }}",
+            type: "POST",
+            data: {category_id: category_id},
+            dataType: "HTML",
+            headers: {'X-CSRF-TOKEN': _token},
+            cache: false,
+            success: function (resp) {
+                $('#subcategory_id').html(resp);
+                if (product_id == "") {
+                    getTags(category_id);
                 }
-            });
+
+            }
+        });
     });
 
     function getTags(category_id) {
@@ -1867,13 +1881,14 @@ $current_route = Route::currentRouteName();
         });
 
 // Optional: detect when selection is cleared
-        $('.select2user').on('change', function() {
+        $('.select2user').on('change', function () {
             if (!$(this).val()) {
                 console.log('User selection cleared');
             }
         });
 
     });
+
     function getUserDetails(id) {
         var _token = '{{ csrf_token() }}';
         $.ajax({
@@ -1911,9 +1926,6 @@ $current_route = Route::currentRouteName();
 
         });
     }
-
-
-
 
 
 </script>

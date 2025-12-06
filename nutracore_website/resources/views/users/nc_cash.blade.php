@@ -34,6 +34,7 @@
         .rewards-content {
             margin-left: 16px;
             flex: 1;
+            text-align: center;
         }
 
         .rewards-content .amount {
@@ -100,14 +101,14 @@
             color: green;
             font-weight: bold;
             font-size: 14px;
-            text-align: right;
+            text-align: center;
         }
 
         .amount1 {
             color: red;
             font-weight: bold;
             font-size: 14px;
-            text-align: right;
+            text-align: center;
         }
 
         .faq {
@@ -289,6 +290,15 @@
         .curved-table tbody tr:hover {
             background-color: #f7fefe;
         }
+        .rewards-card {
+            width: 100%;
+            display: flex;
+            justify-content: center;   /* Center horizontally */
+            align-items: center;       /* Center vertically */
+            gap: 12px;
+            padding: 12px 0;           /* Optional */
+        }
+
 
     </style>
     <main class="main pages">
@@ -307,12 +317,14 @@
                         <div class="row">
 
                             <div class="rewards-card">
-                                <img src="{{url('public/assets/coins.png')}}" alt="Coins">
-                                <div class="rewards-content">
-                                    <div class="amount">{{$user->cashback_wallet ?? 0}}</div>
+                                <img src="{{ url('public/assets/coins.png') }}" alt="Coins">
+                                <div class="reards-content">
+                                    <div class="amount">₹ {{ $user->cashback_wallet ?? 0 }}</div>
                                     <div class="text">Total Rewards Cash</div>
                                 </div>
                             </div>
+
+
                             <h4 class="mt-10">Member Vs Non-Member Benefits</h4>
                             <div class="mt-10 mb-5">
 

@@ -106,6 +106,7 @@
     </div>
 
 
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
     @php
         $stockMap = $stocks->groupBy(function($s) {
@@ -128,20 +129,41 @@
                         'batch' => $s->batch_number,
                         'qty'   => $s->quantity,
                         'exp'   => $s->expiry_date,
+                        'store_id' => $s->store_id,
                     ];
                 })->values()
             ];
         })->values();
-
-
     @endphp
 
     <script>
-        const stockMap = @json($stockMap);
         const products = @json($products);
+        let stockMap = []; // dynamic data
+        $('#from_location').on('change', function () {
+            let storeId = $(this).val();
+
+            $.ajax({
+                url: '{{route('stocks.get-stock-by-store')}}',
+                type: 'GET',
+                data: {store_id: storeId},
+                dataType: 'json',
+                success: function (response) {
+                    stockMap = response;   // Update dynamic stock map
+                },
+                error: function () {
+                    alert("Failed to load stock data.");
+                }
+            });
+        });
+
         // Structure: [{id, name, variants:[{id, varient_sku, unit, selling_price}]}]
 
         function addRow() {
+            let storeId = $('#from_location').val();
+            if (storeId == '') {
+                alert('Please Select Store First');
+                return;
+            }
             let row = `
         <tr>
             <td><input type="text" name="sku[]" class="form-control sku-input" required></td>
@@ -204,7 +226,7 @@
         // });
 
 
-        document.addEventListener('change', function(e) {
+        document.addEventListener('change', function (e) {
             if (!e.target.classList.contains('product-select')) return;
 
             let productId = e.target.value;
@@ -255,9 +277,7 @@
         });
 
 
-
-
-        document.addEventListener('change', function(e) {
+        document.addEventListener('change', function (e) {
             if (e.target.classList.contains('variant-select')) {
                 let row = e.target.closest('tr');
                 let productId = row.querySelector('.product-select').value;
@@ -288,7 +308,7 @@
             }
         });
 
-        document.addEventListener('change', function(e) {
+        document.addEventListener('change', function (e) {
             if (e.target.classList.contains('batch-select')) {
                 let row = e.target.closest('tr');
                 let qtyInput = row.querySelector('.qty');
@@ -323,7 +343,7 @@
         });
 
         // When variant changes → update SKU automatically
-        document.addEventListener('change', function(e) {
+        document.addEventListener('change', function (e) {
             if (e.target.classList.contains('variant-select')) {
                 let row = e.target.closest('tr');
                 let selectedOption = e.target.options[e.target.selectedIndex];
@@ -370,7 +390,7 @@
         //         }
         //     }
         // });
-        document.addEventListener('input', function(e) {
+        document.addEventListener('input', function (e) {
             if (e.target.classList.contains('sku-input')) {
                 let sku = e.target.value.trim();
                 let row = e.target.closest('tr');
@@ -492,7 +512,6 @@
         }
 
 
-
         // Auto-calc row totals & subtotal
         function calculateRow(row) {
             let qty = parseFloat(row.querySelector(".qty")?.value) || 0;
@@ -512,7 +531,7 @@
         }
 
         // Listen for qty/price input
-        document.addEventListener("input", function(e) {
+        document.addEventListener("input", function (e) {
             if (e.target.classList.contains("qty") || e.target.classList.contains("price")) {
                 calculateSubtotal();
             }

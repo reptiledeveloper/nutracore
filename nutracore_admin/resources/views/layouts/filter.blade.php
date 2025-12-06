@@ -18,6 +18,7 @@
     $end_date = $_GET['end_date'] ?? '';
     $is_ban = $_GET['is_ban'] ?? '';
     $low_stock = $_GET['low_stock'] ?? '';
+    $user_id = $_GET['user_id'] ?? '';
 
     $current_url = url()->current();
 
@@ -91,6 +92,15 @@ $products = \App\Helpers\CustomHelper::getProducts();
                                 </select>
                             </div>
                         @endif
+                            @if(!empty($user_search_show))
+                                <div class="col-md-4 mt-2">
+                                    <label class="form-label">Choose User</label>
+                                    <select class="form-control select2user" name="user_id" >
+                                        <option value="" selected>Select User</option>
+                                    </select>
+
+                                </div>
+                            @endif
                         @if(!empty($is_ban_show))
                             <div class="col-md-4 mt-2">
                                 <label class="form-label">Is Ban</label>

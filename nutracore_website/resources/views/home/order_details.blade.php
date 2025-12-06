@@ -236,7 +236,7 @@
             <div class="container">
                 <div class="breadcrumb">
                     <a href='' rel='nofollow'><i class="fi-rs-home mr-5"></i>Home</a>
-                    <span></span>Order Details - #NC{{$id}}
+                    <span></span>Order Details -#{{$order->unique_id??''}}
                 </div>
             </div>
         </div>

@@ -41,6 +41,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
         Route::match(['get', 'post'], '/delete_image', 'HomeController@delete_image')->name('admin.delete_image');
         Route::match(['get', 'post'], '/search_image', 'HomeController@search_image')->name('admin.search_image');
         Route::match(['get', 'post'], '/send_test_email', 'HomeController@send_test_email')->name('send_test_email');
+        Route::match(['get', 'post'], '/sync_product_googlesheet', 'HomeController@sync_product_googlesheet')->name('sync_product_googlesheet');
 
 ////banners
         Route::group(['prefix' => 'banners', 'as' => 'banners', 'middleware' => ['allowedmodule:banners,list']], function () {
@@ -49,9 +50,17 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'edit/{id}', 'BannerController@add')->name('.edit');
             Route::match(['get', 'post'], 'delete/{id}', 'BannerController@delete')->name('.delete');
         });
+
+        ////countdown_timer
+        Route::group(['prefix' => 'countdown_timer', 'as' => 'countdown_timer', 'middleware' => ['allowedmodule:countdown_timer,list']], function () {
+            Route::match(['get', 'post'],'/', 'CountDownTimerController@index')->name('.index');
+            Route::match(['get', 'post'], 'add', 'CountDownTimerController@add')->name('.add');
+            Route::match(['get', 'post'], 'edit/{id}', 'CountDownTimerController@add')->name('.edit');
+            Route::match(['get', 'post'], 'delete/{id}', 'CountDownTimerController@delete')->name('.delete');
+        });
         ////banners
         Route::group(['prefix' => 'suppliments', 'as' => 'suppliments', 'middleware' => ['allowedmodule:suppliments,list']], function () {
-            Route::get('/', 'SupplimentsController@index')->name('.index');
+            Route::match(['get', 'post'], '/', 'SupplimentsController@index')->name('.index');
             Route::match(['get', 'post'], 'add', 'SupplimentsController@add')->name('.add');
             Route::match(['get', 'post'], 'edit/{id}', 'SupplimentsController@add')->name('.edit');
             Route::match(['get', 'post'], 'delete/{id}', 'SupplimentsController@delete')->name('.delete');
@@ -137,6 +146,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
         Route::group(['prefix' => 'consultation', 'as' => 'consultation', 'middleware' => ['allowedmodule:consultation,list']], function () {
             Route::match(['get', 'post'], '/enquiry', 'ConsultationController@enquiry')->name('.enquiry');
             Route::match(['get', 'post'], '/update_user', 'ConsultationController@update_user')->name('.update_user');
+            Route::match(['get', 'post'], '/nc_consult', 'ConsultationController@nc_consult')->name('.nc_consult');
 
         });
 ////pincode
@@ -331,6 +341,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'get_closing_stock', 'StockController@get_closing_stock')->name('.get_closing_stock');
             Route::match(['get', 'post'], 'update_stock_batch', 'StockController@update_stock_batch')->name('.update_stock_batch');
             Route::match(['get', 'post'], 'verify_closing_stock', 'StockController@verify_closing_stock')->name('.verify_closing_stock');
+            Route::match(['get', 'post'], 'get-stock-by-store', 'StockController@getStockAjax')->name('.get-stock-by-store');
 
         });
 ////return_request

@@ -57,7 +57,7 @@ class StockController extends Controller
     public function index(Request $request)
     {
         $days = (int)$request->get('expiry_in_days', 0); // 0 = all
-        $q = Stock::with(['product', 'variant']); // eager load relations
+        $q = StockBatch::with(['product', 'variant']); // eager load relations
 
         // Expiry filter
         if ($days > 0) {
@@ -291,7 +291,7 @@ class StockController extends Controller
         if (!empty($search)) {
             $logs->where(function ($q) use ($search) {
                 $q->where('products.sku', $search)
-                    ->orWhere('product_varients.varient_sku', $search) ->orWhere('products.name','like', '%'.$search.'%');
+                    ->orWhere('product_varients.varient_sku', $search)->orWhere('products.name', 'like', '%' . $search . '%');
             });
         }
 
@@ -423,12 +423,53 @@ class StockController extends Controller
         $data['page_heading'] = $page_heading;
         $data['id'] = $id;
         $data['transfer'] = $transfer;
-        $data['stocks'] = Stock::where('is_delete',0)->latest()->get();
+        $data['stocks'] = Stock::where('is_delete', 0)->latest()->get();
         $data['products'] = Products::with('variants')->orderBy('name', 'ASC')->get();
 
         return view('stocks.update_cs_update', $data);
 
     }
+
+
+    public function getStockAjax(Request $request)
+    {
+        $storeId = $request->store_id ?? '';
+        $stocks = StockBatch::where('is_delete', 0)->latest()->get();
+
+        $stockMap = $stocks->groupBy(function ($s) {
+            return $s->product_id . '_' . $s->variant_id;
+        })->map(function ($group) use ($storeId) {
+
+            $first = $group->first();
+            $key = ($first->product->id ?? '') . '_' . ($first->variant->id ?? '');
+
+            return [
+                'id'    => $first->id,
+                'key'   => $key,
+                'label' => implode(' ', array_filter([
+                    $first->product->name ?? '',
+                    $first->variant ? '- '.$first->variant->unit : null,
+                ])),
+
+                // Filter batches by store_id
+                'batches' => $group->filter(function ($s) use ($storeId) {
+                    return $s->store_id == $storeId;
+                })->map(function ($s) {
+                    return [
+                        'id'       => $s->id,
+                        'batch'    => $s->batch_number,
+                        'qty'      => $s->quantity,
+                        'exp'      => $s->expiry_date,
+                        'store_id' => $s->store_id,
+                    ];
+                })->values(),
+            ];
+        })->values();
+
+
+        return response()->json($stockMap);
+    }
+
 
     public
     function updateCS($request, $id = 0)
@@ -450,9 +491,9 @@ class StockController extends Controller
 
                     if (!empty($stocks)) {
                         $exist = [];
-                        if(empty($variant_id[$key])){
+                        if (empty($variant_id[$key])) {
                             $exist = StockBatch::where('batch_number', $stocks->batch_number)->where('store_id', $from_location)->where('product_id', $product_id[$key])->first();
-                        }else{
+                        } else {
                             $exist = StockBatch::where('batch_number', $stocks->batch_number)->where('store_id', $from_location)->where('product_id', $product_id[$key])->where('variant_id', $variant_id[$key])->first();
 
                         }

@@ -67,7 +67,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
     <link rel="stylesheet" href="{{url('public/assets')}}/css/main2cc5.css?v=5.6"/>
     <link rel="stylesheet" href="{{url('public/assets')}}/css/responsive.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-{{--    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>--}}
+    {{--    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>--}}
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link
@@ -80,13 +80,48 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
         type="text/css"
         href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"
     />
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GT-K55F9G2F"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
 
+        gtag('config', 'GT-K55F9G2F');
+    </script>
 
 </head>
-
+<noscript>
+    <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-K9FG2LRP"
+            height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
+<!-- End Google Tag Manager (noscript) -->
+<div id="toast" class="toast"></div>
 <body class="bg-gray-100 min-h-screen flex flex-col justify-between">
 
+
 <style>
+    .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #00A8A8;
+        color: #fff;
+        padding: 12px 18px;
+        border-radius: 6px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.4s ease, transform 0.4s ease;
+        transform: translateY(-20px);
+        z-index: 9999;
+    }
+
+    .toast.show {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(0);
+    }
+
     * {
         margin: 0;
         padding: 0;
@@ -867,14 +902,14 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                 </div>
                 <div class="header-right">
                     <div class="search-style-2">
-                        <form action="javascript:void(0);">
+                        <form action="{{route('search')}}">
                             <select class="select-active" id="categorySelect">
                                 <option value="">All Categories</option>
                                 @foreach ($categories as $category)
                                     <option value="{{ $category->id }}">{{ $category->name ?? '' }}</option>
                                 @endforeach
                             </select>
-                            <input type="text" id="productSearch" placeholder="Search for items..."/>
+                            <input type="text" id="productSearch" name="search" placeholder="Search for items..."/>
                             <div id="suggestionBox" class="list-group position-absolute"
                                  style="z-index: 1000; width: 100%; display:none;margin-top: 51px;"></div>
                         </form>
@@ -964,7 +999,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                                                         class="fi fi-rs-settings-sliders mr-10"></i>GiftCard</a>
                                             </li>
                                             <li>
-                                                <a onclick="checkLoginRedirect('{{route('refer_earn')}}')" ><i
+                                                <a onclick="checkLoginRedirect('{{route('refer_earn')}}')"><i
                                                         class="fi fi-rs-settings-sliders mr-10"></i>Refer & Earn</a>
                                             </li>
                                             <li>
@@ -1029,7 +1064,8 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                                             </div>
 
                                             <!-- Right: dynamic child content -->
-                                            <div class="col-lg-9 mega-children">
+                                            <div class="col-lg-9 mega-children"
+                                                 style="max-height: 400px; overflow-y: auto; overflow-x: hidden;">
                                                 <div id="panel-electronics" class="child-panel active">
                                                     <h5>Category</h5>
                                                     <div class="row">
@@ -1066,18 +1102,14 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                                                     <div class="row">
                                                         @foreach($brands as $brand)
                                                             <div class="col-md-2">
-                                                                <div class="border-1 text-center "
-                                                                     style="background: #DEFFFF">
+                                                                <div class="border-1 text-center">
                                                                     <figure>
                                                                         <a href="{{ url('collections/' . $brand->slug) }}">
-                                                                            <img src="{{$brand->brand_img ?? ''}}"
-                                                                                 alt=""
-                                                                                 style="height:100%;object-fit: cover; width: 70%;"/>
+                                                                            <img src="{{ $brand->brand_img }}" alt=""
+                                                                                 style="height:100px;"/>
                                                                         </a>
                                                                     </figure>
-                                                                    <h4>
-                                                                        <a href='{{ url('collections/' . $brand->slug) }}'>{{$brand->brand_name ?? ''}}</a>
-                                                                    </h4>
+                                                                    <h4>{{ $brand->brand_name ?? '' }}</h4>
                                                                 </div>
                                                             </div>
                                                         @endforeach
@@ -1152,6 +1184,11 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                                     </a>
                                 </li>
                                 <li>
+                                    <a href="{{ url('coupons') }}" class="menu-link">
+                                        <i class="fa fa-gift"></i> Offers
+                                    </a>
+                                </li>
+                                <li>
                                     <a href="{{ url('nutrapass') }}" class="menu-link">
                                         <i class="fa fa-id-card"></i> Nutrapass
                                     </a>
@@ -1185,7 +1222,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                 </div>
                 <div class="hotline d-none d-lg-flex">
                     <img src="{{url('public/assets')}}/imgs/theme/icons/icon-headphone.svg" alt="hotline"/>
-                    <p>+91 88850 65550<span>24/7 Support Center</span></p>
+                    <p>+91 88850 65550<span>10:00 - 18:00, Mon - Sat</span></p>
                 </div>
                 <div class="header-action-icon-2 d-block d-lg-none">
                     <div class="burger-icon burger-icon-white">
@@ -1200,12 +1237,12 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                             @if(!empty($user))
                                 <a href='{{ url('wishlist') }}'>
                                     <img alt="Nest" src="{{url('public/assets')}}/imgs/theme/icons/icon-heart.svg"/>
-                                    <span class="pro-count white">{{ $total_qty }}</span>
+                                    <span class="pro-count white">0</span>
                                 </a>
                             @else
                                 <a onclick="checkLogin()">
                                     <img alt="Nest" src="{{url('public/assets')}}/imgs/theme/icons/icon-heart.svg"/>
-                                    <span class="pro-count white">{{ $total_qty }}</span>
+                                    <span class="pro-count white"></span>
                                 </a>
                             @endif
                         </div>
@@ -1213,12 +1250,12 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                             @if(!empty($user))
                                 <a class="mini-cart-icon" href="{{ url('cart') }}">
                                     <img alt="Nest" src="{{url('public/assets')}}/imgs/theme/icons/icon-cart.svg"/>
-                                    <span class="pro-count white">{{ $total_qty }}</span>
+                                    <span class="pro-count white" id="cart_qty_phone2">{{ $total_qty }}</span>
                                 </a>
                             @else
                                 <a class="mini-cart-icon" onclick="checkLogin()">
                                     <img alt="Nest" src="{{url('public/assets')}}/imgs/theme/icons/icon-cart.svg"/>
-                                    <span class="pro-count white">{{ $total_qty }}</span>
+                                    <span class="pro-count white" id="cart_qty_phone1">{{ $total_qty }}</span>
                                 </a>
                             @endif
 
@@ -1316,7 +1353,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
 
                             </div>
                             <div class="menu-item">
-                                <a href="{{route('suppliment_recommendation')}}"><span> My Supplement Recommendation</span></a>
+                                <a onclick="checkLoginRedirect('{{route('suppliment_recommendation')}}')"><span> My Supplement Recommendation</span></a>
 
                             </div>
                             <div class="menu-item">
@@ -1413,111 +1450,121 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
         color: white !important;
     }
 </style>
-<footer class="main" style="background-color: #0f5759;color: white">
+@php
+    $currentRoute = Route::currentRouteName();
+@endphp
+@if($currentRoute != 'cart')
+    <footer class="main" style="background-color: #0f5759;color: white">
 
-    <section class="section-padding footer-mid">
-        <div class="container pt-15 pb-20">
-            <div class="row">
-                <div class="col">
-                    <div class="widget-about font-md mb-md-3 mb-lg-3 mb-xl-0 wow animate__animated animate__fadeInUp"
-                         data-wow-delay="0">
-                        <div class="logo" style="margin:0px;width: 85%;">
-                            <img src="{{url('public/assets')}}/logo.png"
-                                 alt="logo"/>
+        <section class="section-padding footer-mid">
+            <div class="container pt-15 pb-20">
+                <div class="row">
+                    <div class="col">
+                        <div
+                            class="widget-about font-md mb-md-3 mb-lg-3 mb-xl-0 wow animate__animated animate__fadeInUp"
+                            data-wow-delay="0">
+                            <div class="logo" style="margin:0px;width: 85%;">
+                                <img src="{{url('public/assets')}}/logo.png"
+                                     alt="logo"/>
 
+                            </div>
+                            <ul class="contact-infor ">
+
+                                <li class="d-flex"><img src="{{url('public/assets')}}/imgs/theme/icons/icon-contact.svg"
+                                                        alt=""/><span>(+91) 88850 65550</span></li>
+                                <li class="d-flex"><img src="{{url('public/assets')}}/imgs/theme/icons/icon-email-2.svg"
+                                                        alt=""/><span>support@nutracore.in</span></li>
+                                <li class="d-flex"><img src="{{url('public/assets')}}/imgs/theme/icons/icon-clock.svg"
+                                                        alt=""/><span>10:00 - 18:00, Mon - Sat</span></li>
+                            </ul>
                         </div>
-                        <ul class="contact-infor ">
-
-                            <li class="d-flex"><img src="{{url('public/assets')}}/imgs/theme/icons/icon-contact.svg"
-                                                    alt=""/><span>(+91) 88850 65550</span></li>
-                            <li class="d-flex"><img src="{{url('public/assets')}}/imgs/theme/icons/icon-email-2.svg"
-                                                    alt=""/><span>support@nutracore.in</span></li>
-                            <li class="d-flex"><img src="{{url('public/assets')}}/imgs/theme/icons/icon-clock.svg"
-                                                    alt=""/><span>10:00 - 18:00, Mon - Sat</span></li>
+                    </div>
+                    <div class="footer-link-widget col wow animate__animated animate__fadeInUp" data-wow-delay=".4s">
+                        <h4 class=" widget-title
+                ">Company</h4>
+                        <ul class="footer-list mb-sm-5 mb-md-0">
+                            <li><a href="{{url('about')}}">About Us</a></li>
+                            <li><a href="{{url('privacy_policy')}}">Privacy Policy</a></li>
+                            <li><a href="{{url('terms')}}">Terms &amp; Conditions</a></li>
+                            <li><a href="{{url('contact')}}">Contact Us</a></li>
+                            <li><a href="{{url('return_policy')}}"> Refund & Cancellation policy</a></li>
+                            <li><a href="{{url('nc_partner')}}">Becone a NC Partner </a></li>
                         </ul>
                     </div>
-                </div>
-                <div class="footer-link-widget col wow animate__animated animate__fadeInUp" data-wow-delay=".4s">
-                    <h4 class=" widget-title
-                ">Company</h4>
-                    <ul class="footer-list mb-sm-5 mb-md-0">
-                        <li><a href="{{url('about')}}">About Us</a></li>
-                        <li><a href="{{url('privacy_policy')}}">Privacy Policy</a></li>
-                        <li><a href="{{url('terms')}}">Terms &amp; Conditions</a></li>
-                        <li><a href="{{url('contact')}}">Contact Us</a></li>
-                        <li><a href="{{url('return_policy')}}"> Refund & Cancellation policy</a></li>
-                    </ul>
-                </div>
-                <div class="footer-link-widget col wow animate__animated animate__fadeInUp" data-wow-delay=".4s">
-                    <h4 class="widget-title">Popular</h4>
-                    <ul class="footer-list mb-sm-5 mb-md-0">
-                        @foreach ($allcategories->where('is_popular',1)->take(5) as $category)
-                            <li><a href="{{ url('collections/' . $category->slug) }}">{{$category->name??''}}</a></li>
-                        @endforeach
+                    <div class="footer-link-widget col wow animate__animated animate__fadeInUp" data-wow-delay=".4s">
+                        <h4 class="widget-title">Popular</h4>
+                        <ul class="footer-list mb-sm-5 mb-md-0">
+                            @foreach ($allcategories->where('is_popular',1)->take(5) as $category)
+                                <li><a href="{{ url('collections/' . $category->slug) }}">{{$category->name??''}}</a>
+                                </li>
+                            @endforeach
 
-                    </ul>
-                </div>
+                        </ul>
+                    </div>
 
-                <div class="footer-link-widget col wow animate__animated animate__fadeInUp" data-wow-delay=".4s">
-                    <h4 class="widget-title">Brands</h4>
-                    <ul class="footer-list mb-sm-5 mb-md-0">
-                        @foreach ($brands->where('is_popular',1)->take(5) as $brand)
-                            <li><a href="{{ url('collections/' . $brand->slug) }}">{{$brand->brand_name??''}}</a></li>
-                        @endforeach
+                    <div class="footer-link-widget col wow animate__animated animate__fadeInUp" data-wow-delay=".4s">
+                        <h4 class="widget-title">Brands</h4>
+                        <ul class="footer-list mb-sm-5 mb-md-0">
+                            @foreach ($brands->where('is_popular',1)->take(5) as $brand)
+                                <li><a href="{{ url('collections/' . $brand->slug) }}">{{$brand->brand_name??''}}</a>
+                                </li>
+                            @endforeach
 
-                    </ul>
+                        </ul>
+                    </div>
+                    <div class="footer-link-widget widget-install-app col wow animate__animated animate__fadeInUp"
+                         data-wow-delay=".5s">
+                        <h4 class="widget-title">Install App</h4>
+                        <p class="">From App Store or Google Play</p>
+                        <div class="download-app">
+                            <a target="_blank" href="https://apps.apple.com/in/app/nutracore/id6749866050"
+                               class="hover-up mb-sm-2 mb-lg-0"><img class="active"
+                                                                     src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"
+                                                                     alt=""/></a>
+                            <a target="_blank"
+                               href="https://play.google.com/store/apps/details?id=com.nutracore&hl=en_IN"
+                               class="hover-up mb-sm-2"><img
+                                    src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
+                                    alt=""/></a>
+                        </div>
+                        <p class="mb-20">Secured Payment Gateways</p>
+                        <img class="" src="{{url('public/assets')}}/imgs/theme/payment-method.png" alt=""/>
+                    </div>
                 </div>
-                <div class="footer-link-widget widget-install-app col wow animate__animated animate__fadeInUp"
-                     data-wow-delay=".5s">
-                    <h4 class="widget-title">Install App</h4>
-                    <p class="">From App Store or Google Play</p>
-                    <div class="download-app">
-                        <a target="_blank" href="https://apps.apple.com/in/app/nutracore/id6749866050"
-                           class="hover-up mb-sm-2 mb-lg-0"><img class="active"
-                                                                 src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"
-                                                                 alt=""/></a>
-                        <a target="_blank" href="https://play.google.com/store/apps/details?id=com.nutracore&hl=en_IN"
-                           class="hover-up mb-sm-2"><img
-                                src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
+            </div>
+        </section>
+        <div class="container pb-30 wow animate__animated animate__fadeInUp" data-wow-delay="0">
+            <div class="row align-items-center">
+                <div class="col-12 mb-30">
+                    <div class="footer-bottom"></div>
+                </div>
+                <div class="col-xl-4 col-lg-6 col-md-6">
+                    <p class="font-sm mb-0">&copy; {{date('Y')}}, <strong class="text-brand">Nutracore</strong>All
+                        rights reserved</p>
+                </div>
+                <div class="col-xl-4 col-lg-6 text-center d-none d-xl-block">
+
+                </div>
+                <div class="col-xl-4 col-lg-6 col-md-6 text-end d-none d-md-block">
+                    <div class="mobile-social-icon">
+                        <h6>Follow Us</h6>
+                        <a href="https://www.facebook.com/nutracore.in" target="_blank"><img
+                                src="{{url('public/assets')}}/imgs/theme/icons/icon-facebook-white.svg"
+                                alt=""/></a>
+
+                        <a href="https://www.instagram.com/nutracore.in/" target="_blank"><img
+                                src="{{url('public/assets')}}/imgs/theme/icons/icon-instagram-white.svg"
+                                alt=""/></a>
+                        <a href="https://www.youtube.com/@NutraCoreOfficial" target="_blank"><img
+                                src="{{url('public/assets')}}/imgs/theme/icons/icon-youtube-white.svg"
                                 alt=""/></a>
                     </div>
-                    <p class="mb-20">Secured Payment Gateways</p>
-                    <img class="" src="{{url('public/assets')}}/imgs/theme/payment-method.png" alt=""/>
+                    {{--                <p class="font-sm">Up to 15% discount on your first subscribe</p>--}}
                 </div>
             </div>
         </div>
-    </section>
-    <div class="container pb-30 wow animate__animated animate__fadeInUp" data-wow-delay="0">
-        <div class="row align-items-center">
-            <div class="col-12 mb-30">
-                <div class="footer-bottom"></div>
-            </div>
-            <div class="col-xl-4 col-lg-6 col-md-6">
-                <p class="font-sm mb-0">&copy; {{date('Y')}}, <strong class="text-brand">Nutracore</strong>All
-                    rights reserved</p>
-            </div>
-            <div class="col-xl-4 col-lg-6 text-center d-none d-xl-block">
-
-            </div>
-            <div class="col-xl-4 col-lg-6 col-md-6 text-end d-none d-md-block">
-                <div class="mobile-social-icon">
-                    <h6>Follow Us</h6>
-                    <a href="https://www.facebook.com/nutracore.in" target="_blank"><img
-                            src="{{url('public/assets')}}/imgs/theme/icons/icon-facebook-white.svg"
-                            alt=""/></a>
-
-                    <a href="https://www.instagram.com/nutracore.in/" target="_blank"><img
-                            src="{{url('public/assets')}}/imgs/theme/icons/icon-instagram-white.svg"
-                            alt=""/></a>
-                    <a href="https://www.youtube.com/@NutraCoreOfficial" target="_blank"><img
-                            src="{{url('public/assets')}}/imgs/theme/icons/icon-youtube-white.svg"
-                            alt=""/></a>
-                </div>
-                {{--                <p class="font-sm">Up to 15% discount on your first subscribe</p>--}}
-            </div>
-        </div>
-    </div>
-</footer>
+    </footer>
+@endif
 @php
     $user = Auth::user();
     $subscription = CustomHelper::subscriptionsData($user);
@@ -1720,6 +1767,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
     let selectedPlanId = null;
 
     $(document).ready(function () {
+
         // pick last plan-item element in DOM
         var $last = $('.plan-item').last();
 
@@ -1741,6 +1789,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
         selectedPlanId = id;
         if (terms) {
             $('#subscription_html').html(terms);
+            $('#subscription_html1').html(terms);
         }
 
         $(".plan-item").removeClass("active");
@@ -1750,6 +1799,11 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
     function subscribeNow() {
         if (!selectedPlanId) {
             alert("Please select a plan first");
+            return;
+        }
+        var user_id = '{{$user->id??''}}';
+        if (user_id == "") {
+            checkLogin();
             return;
         }
         $.ajax({
@@ -1864,7 +1918,8 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                     <div class="mb-3">
                         <label style="font-size:14px;">
                             <input type="checkbox" id="termsCheckbox" style="margin-right:6px;" checked="checked">
-                            By continuing, I agree to the <a href="{{url('terms')}}" target="_blank">Terms of use</a> & <a href="{{url('privacy_policy')}}" target="_blank">Privacy Policy</a>
+                            By continuing, I agree to the <a href="{{url('terms')}}" target="_blank">Terms of use</a> &
+                            <a href="{{url('privacy_policy')}}" target="_blank">Privacy Policy</a>
                         </label>
                     </div>
 
@@ -1912,8 +1967,10 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
     function checkLogin() {
         var user_id = '{{ $user->id ?? '' }}';
         if (user_id == '') {
+            closePopup();
             $('.mobile-header-active').removeClass('sidebar-visible');
             $('body').removeClass('mobile-menu-active');
+
             $('#otpLoginModal').modal('show');
 
         }
@@ -1940,12 +1997,15 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
             headers: {'X-CSRF-TOKEN': _token},
             cache: false,
             success: function (resp) {
-
+                $('#cart_qty').html(resp.total_qty);
+                $('#cart_qty_phone1').html(resp.total_qty);
+                $('#cart_qty_phone2').html(resp.total_qty);
+                showToast(resp.message);
             }
         });
     }
 
-    function wishlist_save(product_id, variant_id,remove_cart=false) {
+    function wishlist_save(product_id, variant_id, remove_cart = false) {
         var user_id = '{{ $user->id ?? '' }}';
         if (user_id == '') {
             $('#otpLoginModal').modal('show');
@@ -1965,7 +2025,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
             success: function (resp) {
                 let icon = $("#wishlist_icon_" + variant_id);
 
-                if(remove_cart == true || remove_cart == "true"){
+                if (remove_cart == true || remove_cart == "true") {
                     DeleteCart(product_id, variant_id);
                 }
                 // If added to wishlist
@@ -2006,11 +2066,14 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
             headers: {'X-CSRF-TOKEN': _token},
             cache: false,
             success: function (resp) {
+                $('#cart_qty').html(resp.total_qty);
+                $('#cart_qty_phone1').html(resp.total_qty);
+                $('#cart_qty_phone2').html(resp.total_qty);
+                showToast(resp.message);
                 getCartHtml();
             }
         });
     }
-
 
 
     function updateCart(product_id, variant_id, type) {
@@ -2041,6 +2104,10 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
             cache: false,
             success: function (resp) {
                 $('#cart_quantity' + variant_id).val(qty);
+                $('#cart_qty').html(resp.total_qty ?? 0);
+                $('#cart_qty_phone1').html(resp.total_qty ?? 0);
+                $('#cart_qty_phone2').html(resp.total_qty ?? 0);
+                showToast(resp.message);
                 getCartHtml();
             }
         });
@@ -2693,6 +2760,15 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
 
     });
 
+    function showToast(message) {
+        const toast = document.getElementById("toast");
+        toast.innerText = message;
+        toast.classList.add("show");
+
+        setTimeout(() => {
+            toast.classList.remove("show");
+        }, 3000); // hide after 3 seconds
+    }
 
 </script>
 

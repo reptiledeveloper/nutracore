@@ -176,4 +176,26 @@
         </div>
     </main>
 
+
+
+    <script>
+        const dateInput = document.getElementById("preferredDate");
+
+        // Disable past dates + today
+        let today = new Date();
+        today.setDate(today.getDate() + 1); // start from tomorrow
+        let minDate = today.toISOString().split("T")[0];
+        dateInput.setAttribute("min", minDate);
+
+        // Disable Sundays
+        dateInput.addEventListener("input", function () {
+            let selectedDate = new Date(this.value);
+
+            if (selectedDate.getDay() === 0) { // 0 = Sunday
+                alert("Sunday is not allowed. Please choose another day.");
+                this.value = "";
+            }
+        });
+
+    </script>
 @endsection

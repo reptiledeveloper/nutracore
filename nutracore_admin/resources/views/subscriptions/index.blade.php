@@ -62,7 +62,7 @@
             </div>
         </div>
 
-
+        @include('layouts.filter',['user_search_show'=>'user_search_show'])
         <div class="row">
             <div class="col-md-12">
                 <div class="card">
@@ -98,6 +98,7 @@
                         foreach ($subscriptions as $subscription) {
                             $user_data = \App\Helpers\CustomHelper::getUserDetails($subscription->user_id);
                             $user_image = \App\Helpers\CustomHelper::getImageUrl('users', $user_data->image);
+                            $subscription_plan = \App\Models\SubscriptionPlans::where('id', $subscription->subscription_id)->first();
                             $days_left = \App\Helpers\CustomHelper::getDaysLeft($user_data->subscription_start ?? '', $user_data->subscription_end ?? '');
                             ?>
                         <tr>
@@ -111,20 +112,21 @@
 
                             </td>
                             <td>
-
+                                {{$subscription_plan->name??''}}
                             </td>
                             <td>
                                 @if($days_left >0)
                                     <button class="btn btn-success">{{$days_left}} Days Left
                                         <br>{{$user_data->subscription_end??''}}</button>
                                 @else
-                                    <button class="btn btn-danger">Expired<br>{{$user_data->subscription_end??''}}</button>
+                                    <button class="btn btn-danger">Expired<br>{{$user_data->subscription_end??''}}
+                                    </button>
 
                                 @endif
 
                             </td>
-                            <td>{{ $user_data->start_date ?? '' }}</td>
-                            <td>{{ $user_data->subscription_end ?? '' }}</td>
+                            <td>{{ $subscription->start_date ?? '' }}</td>
+                            <td>{{ $subscription->end_date ?? '' }}</td>
                             <td>{{ $subscription->txn_id ?? '' }}</td>
                             <td>{{ \App\Helpers\CustomHelper::getStatusStr($subscription->status) }}</td>
 

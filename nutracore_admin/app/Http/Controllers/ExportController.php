@@ -94,7 +94,7 @@ class ExportController extends Controller
                 } else {
                     // Single payment mode (like COD, Online, Wallet, etc.)
                     $cash = $card = $upi = $wallet = $bank = $sodexo = $cheque = $paylater = $credit_apply = 0;
-
+                    $order->total_amount = (int)$order->total_amount + (int)$order->delivery_charges - (int)$order->applied_cashback - (int)$order->flatDiscountValue;
                     // Assign based on mode
                     switch (strtolower($order->payment_method)) {
                         case 'cash':
@@ -227,7 +227,8 @@ class ExportController extends Controller
                 $excelArr['MRP (₹)'] = $item->price ?? 0;
                 $excelArr['Selling Price / Unit (₹)'] = round(($item->net_price / max($item->qty, 1)), 2);
 
-                $grossAmount = (float)($item->net_price ?? 0);
+//                $grossAmount = (float)($item->net_price ?? 0);
+                $grossAmount = (int)$order->total_amount + (int)$order->delivery_charges - (int)$order->applied_cashback - (int)$order->flatDiscountValue;
                 $discount = (float)($item->discount ?? 0);
                 $shipping = (float)($order->shipping_amount ?? 0);
 //                $finalAmount = max(($grossAmount - $discount), 0);
@@ -257,7 +258,7 @@ class ExportController extends Controller
                 $excelArr['Gross Amount (₹)'] = $invoiceValue;
                 $excelArr['Discount (₹)'] = $discount;
                 $excelArr['Shipping (₹)'] = $shipping;
-                $excelArr['Taxable Value (₹)'] = $taxableValue - $taxAmount ;
+                $excelArr['Taxable Value (₹)'] = $taxableValue ;
                 $excelArr['CGST %'] = $cgst_rate;
                 $excelArr['CGST (₹)'] = $cgst;
                 $excelArr['SGST %'] = $sgst_rate;

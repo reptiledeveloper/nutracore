@@ -151,6 +151,10 @@
                                             value="website_main_banner" <?php if ($type == 'website_main_banner') echo "selected" ?>>
                                             Website Main Banner
                                         </option>
+                                        <option
+                                            value="nc_partner" <?php if ($type == 'nc_partner') echo "selected" ?>>
+                                           NC Partner
+                                        </option>
 
 
                                     </select>

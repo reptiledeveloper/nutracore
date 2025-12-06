@@ -10,6 +10,7 @@ use App\Models\OrderItems;
 use App\Models\OrderStatus;
 use App\Models\ProductVarient;
 use App\Models\RazorpayOrders;
+use App\Models\StockLog;
 use App\Models\SubscriptionPlans;
 use App\Models\Subscriptions;
 use App\Models\User;
@@ -360,7 +361,7 @@ class OrderController extends Controller
         $orderID = $request->id;
         $orders = Order::where('id', $orderID)->first();
         $seller_details = Vendors::where('id', $orders->id)->first();
-        if($orders->status == "DELIVERED"){
+        if ($orders->status == "DELIVERED") {
 //            CustomHelper::generateInvoiceNo();
         }
         $data = [
@@ -433,6 +434,7 @@ class OrderController extends Controller
 
     public function update_order_status(Request $request)
     {
+        $message = '';
         $status = $request->status ?? '';
         $order_id = $request->order_id ?? '';
         $item_id = $request->item_id ?? '';
@@ -553,7 +555,58 @@ class OrderController extends Controller
             $user = User::where('id', $order->userID)->first();
             CustomHelper::orderCancelled($user->phone ?? '', $order_id);
         }
-        echo 1;
+
+        $order = Order::where('id', $order_id)->first();
+        if (!empty($order)) {
+            if (!empty($order->vendor_id) && $status == "CONFIRM" && $order->stock_update == 0) {
+                $this->updateStock($order_id);
+            }
+        }
+        return json_encode(['message' => $message]);
+    }
+
+    public function updateStock($order_id)
+    {
+        $order = Order::find($order_id);
+        if (!empty($order)) {
+            $order_items = OrderItems::where('order_id', $order_id)->get();
+            if (!empty($order_items)) {
+                foreach ($order_items as $order_item) {
+                    $product_id = $order_item->product_id ?? '';
+                    $variant_id = $order_item->variant_id ?? '';
+                    $qty = $order_item->qty ?? '';
+                    $exist = DB::table('stock_batches')->where('product_id', $product_id)->where('store_id',$order->vendor_id);
+                    if (!empty($variant_id)) {
+                        $exist->where('variant_id', $variant_id);
+                    }
+                    $exist = $exist->where('quantity', '>', 0)->orderBy('mfg_date', 'ASC')->first();
+
+                    if (!empty($exist)) {
+                        if ((int)$exist->quantity >= (int)$qty) {
+                            $new_qty = (int)$exist->quantity - (int)$qty;
+                            DB::table('stock_batches')->where('id', $exist->id)->update(['quantity' => $new_qty]);
+                            StockLog::create([
+                                'product_id' => $product_id,
+                                'variant_id' => $variant_id,
+                                'store_id' => $exist->store_id ?? '',
+                                'action' => "sale",
+                                'quantity' => $qty,
+                                'closing_stock' => $new_qty,
+                                'related_id' => 0,
+                                'related_type' => "Sale",
+                                'created_by' => auth()->id(),
+                                'order_id' => $order_id,
+                            ]);
+                        } else {
+
+                        }
+                    }
+                }
+            }
+            $order->stock_update = 1;
+            $order->save();
+        }
+
     }
 
     public function updateSubscription($order, $user)
@@ -628,7 +681,7 @@ class OrderController extends Controller
         CustomHelper::SaveTransaction($dbArray1);
         $event = 'NC Cash Earned';
         $traits = [
-            "nc_cash_earned"=>$amount
+            "nc_cash_earned" => $amount
         ];
         CustomHelper::trackEvent($user->id, $event, $traits);
     }
@@ -997,11 +1050,11 @@ class OrderController extends Controller
             ////Book Shipment
             $shipment_data = CustomHelper::bookShipmentEnvia($orders, $carrier, $service);
             if (!empty($shipment_data)) {
-                DB::table('order_courier')->where('order_id', $id)->update(['envia_data'=>json_encode($shipment_data)]);
+                DB::table('order_courier')->where('order_id', $id)->update(['envia_data' => json_encode($shipment_data)]);
                 $error = $shipment_data->error ?? '';
                 if (empty($error)) {
 
-                    $dbArray['trackingNumber'] =  $shipment_data->data[0]->trackingNumber ??'';
+                    $dbArray['trackingNumber'] = $shipment_data->data[0]->trackingNumber ?? '';
                     $dbArray['envia_data'] = json_encode($shipment_data);
                 }
             }

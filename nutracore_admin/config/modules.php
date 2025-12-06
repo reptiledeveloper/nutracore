@@ -63,6 +63,7 @@ return [
                 'stock_transfer_approval',
                 'stock_verify',
                 'pos',
+                'countdown_timer',
                 'consultation',
 
 
@@ -121,8 +122,7 @@ return [
                 'reports' => 'Reports',
                 'export' => 'export',
                 'ratings' => 'Ratings',
-
-                'reports' => 'Reports',
+                'countdown_timer' => 'Countdown Timer',
 
                 'notifications' => 'Notifications',
                 'free_product' => 'Free Product',

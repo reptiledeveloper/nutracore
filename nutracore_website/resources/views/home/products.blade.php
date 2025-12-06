@@ -79,7 +79,7 @@
             </div>
         </div>
 
-        <div class="container mb-30 mt-5 p-20 border" style="background-color: #FFFCDF;border-radius: 10px;">
+        <div class="container mb-30 mt-5 p-20 border" style="background-color: #FFFCDF;border-radius: 10px;display: none">
             <div class="row">
                 <div class="col-lg-12">
                     <div class="shop-product-fillter">

@@ -188,7 +188,7 @@
                             </div>
                             <div class="d-flex justify-content-center gap-3 mt-3">
                                 <a class="btn btn-light btn-sm d-flex align-items-center"
-                                   href="whatsapp://send?text=Hey! I just explored NutraCore - a trusted  Supplements store. Get Rs. 200 off on your 1st order. You can further earn Rs. 200 for your next order by inviting your friends.Use Code NCL8U0T3RM while ordering or click on https://play.google.com/store/apps/details?id=com.nutracore">
+                                   href="whatsapp://send?text=Hey! I just explored NutraCore - a trusted  Supplements store. Get Rs. 200 off on your 1st order. You can further earn Rs. 200 for your next order by inviting your friends.Use Code {{$user->referal_code??''}} while ordering or click on https://play.google.com/store/apps/details?id=com.nutracore">
                                     <img src="https://img.icons8.com/ios-filled/24/000000/whatsapp.png"
                                          alt="WhatsApp"
                                          style="width:16px; height:16px; margin-right:6px;"/>

@@ -9,9 +9,13 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
 
     Route::match(['get', 'post'], '/', 'HomeController@index');
     Route::match(['get', 'post'], '/products', 'HomeController@products');
+    Route::match(['get', 'post'], '/sitemap.xml', 'HomeController@sitemap');
+
     Route::match(['get', 'post'], '/product-details', 'HomeController@product_details');
-    Route::match(['get', 'post'], '/cart', 'HomeController@cart');
+    Route::match(['get', 'post'], '/cart', 'HomeController@cart')->name('cart');
+    Route::match(['get', 'post'], '/search', 'HomeController@products')->name('search');
     Route::match(['get', 'post'], '/save_address', 'HomeController@save_address');
+    Route::match(['get', 'post'], '/nc_partner', 'HomeController@nc_partner');
     Route::match(['get', 'post'], '/brands', 'HomeController@brands');
     Route::match(['get', 'post'], '/store_location', 'HomeController@store_location');
     Route::match(['get', 'post'], '/explore', 'HomeController@explore');
@@ -56,7 +60,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
     Route::match(['get', 'post'], '/place_order', 'HomeController@place_order');
     Route::match(['get', 'post'], '/nc_consult', 'HomeController@nc_consult');
     Route::match(['get', 'post'], '/consultation_save', 'HomeController@consultation_save')->name('consultation_save');
-    Route::match(['get', 'post'], '/pages/app', 'HomeController@pages_app')->name('pages_app');
+    Route::match(['get', 'post'], '/app', 'HomeController@pages_app')->name('pages_app');
     Route::match(['get', 'post'], 'search-products', 'HomeController@searchProducts')->name('searchProducts');
     Route::match(['get', 'post'], 'getPincodeDetails/{pincode}', 'HomeController@getPincodeDetails')->name('getPincodeDetails');
     Route::match(['get', 'post'], 'buy_giftcard', 'HomeController@buy_giftcard')->name('buy_giftcard');

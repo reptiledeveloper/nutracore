@@ -134,6 +134,10 @@
                             <div class="col-4">₹ {{$orders->online_amount??'0'}}</div>
                         </div>
                         <div class="row justify-content-center mb-3">
+                            <div class="col-4 text-end">Applied NC Cash :</div>
+                            <div class="col-4">₹ {{$orders->applied_cashback??'0'}}</div>
+                        </div>
+                        <div class="row justify-content-center mb-3">
                             <div class="col-4 text-end">Discount ({{$orders->flat_discount_percent??0}} %):</div>
                             <div class="col-4">₹ {{round($orders->flatDiscountValue)??'0'}}</div>
                         </div>
@@ -150,11 +154,12 @@
                                 <strong>Total :</strong>
                             </div>
                             @php
-                            $flatDiscountValue = round($orders->flatDiscountValue);
-                            $total =  $orders->total_amount - $flatDiscountValue;
+                                $final_total = (int)$orders->total_amount + (int)$orders->delivery_charges - (int)$orders->applied_cashback - (int)$orders->flatDiscountValue;
+                               $flatDiscountValue = round($orders->flatDiscountValue);
+                               $total =  $orders->total_amount - $flatDiscountValue;
                             @endphp
                             <div class="col-4">
-                                <strong>₹ {{$orders->total_amount??'0'}}</strong>
+                                <strong>₹ {{$final_total??'0'}}</strong>
                             </div>
                         </div>
                     </div>

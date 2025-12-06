@@ -131,6 +131,7 @@ class POSController extends Controller
 
     public function index(Request $request)
     {
+//        $this->updateStock(845);
         $data = [];
         $order_status = $request->order_status ?? '';
         $search = $request->search ?? '';
@@ -329,11 +330,11 @@ class POSController extends Controller
 
         $data = $request->except(['_token', 'back_url', 'image', 'image_text', 'product_id']);
         $oldImg = '';
-        echo "<pre>";
-        print_r(
-            $request->toArray()
-        );
-        die;
+//        echo "<pre>";
+//        print_r(
+//            $request->toArray()
+//        );
+//        die;
         $admin = new POS();
         if (is_numeric($id) && $id > 0) {
             $exist = POS::find($id);
@@ -762,7 +763,8 @@ class POSController extends Controller
             $order->freebees_price = 0;
             $order->invoice_no = self::generateNextInvoiceNo();
             $order->created_by = Auth::guard('admin')->user()->id ?? '';
-            $order->unique_id = Order::generateOrderId();
+            $unique_id = Order::generateOrderId();
+            $order->unique_id = $unique_id;
 
             $order->order_from = 'POS';
             $order->subscription_id = $request->subscription_id ?? null;
@@ -862,7 +864,7 @@ class POSController extends Controller
 
             return response()->json([
                 'success' => true,
-                'order_id' => $order->id,
+                'order_id' => $unique_id,
                 'invoice_url' => $invoice_url,
                 'message' => 'Order saved successfully'
             ]);
@@ -927,13 +929,14 @@ class POSController extends Controller
                     $product_id = $order_item->product_id ?? '';
                     $variant_id = $order_item->variant_id ?? '';
                     $qty = $order_item->qty ?? '';
-                    $exist = DB::table('stock_batches')->where('product_id', $product_id);
+                    $exist = DB::table('stock_batches')->where('product_id', $product_id)->where('store_id',$order->vendor_id);
                     if (!empty($variant_id)) {
                         $exist->where('variant_id', $variant_id);
                     }
                     $exist = $exist->where('quantity', '>', 0)->orderBy('mfg_date', 'ASC')->first();
+
                     if (!empty($exist)) {
-                        if ((int)$exist->quantity <= (int)$qty) {
+                        if ((int)$exist->quantity >= (int)$qty) {
                             $new_qty = (int)$exist->quantity - (int)$qty;
                             DB::table('stock_batches')->where('id', $exist->id)->update(['quantity' => $new_qty]);
                             StockLog::create([
@@ -954,6 +957,8 @@ class POSController extends Controller
                     }
                 }
             }
+            $order->stock_update = 1;
+            $order->save();
         }
 
     }

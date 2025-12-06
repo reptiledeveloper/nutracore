@@ -299,6 +299,15 @@ $total_product_price = 0;
             font-weight: 600;
             outline: none;
         }
+        .button-container,
+        .button-container1 {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 10px;
+            border-radius: 25px;
+            white-space: nowrap;
+        }
 
 
     </style>
@@ -312,6 +321,11 @@ $total_product_price = 0;
                     $total_product_price += $prototal_price;
                     $images = $selectedVarient->images ??'';
                     $defaultImage = $images[0]['image'] ??url('public/assets/images/default.png');
+                    $selling_price = $product->product_selling_price ?? $selectedVarient->selling_price ?? 0;
+
+                    if(!empty($subscription_id_customer)){
+                        $selling_price = $product->product_subscription_price ?? $selectedVarient->subscription_price ?? 0;
+                    }
                 @endphp
                 <div style="border:2px solid #00a8a8;padding:10px; border-radius: 10px;margin-top: 10px;">
                     <div class="Product_Section_Main">
@@ -327,14 +341,14 @@ $total_product_price = 0;
 
                                 <div class="Product_Name_Price d-flex align-items-center gap-3">
                                     <h4 class="fw-bold text-dark mb-0" style="color: #575757;">
-                                        ₹ {{ $selectedVarient->selling_price ?? '' }}</h4>
+                                        ₹ {{ $selling_price ?? '' }}</h4>
                                     <del class="text-secondary" style="color: rgb(185, 185, 185);">
                                         ₹ {{ $selectedVarient->mrp ?? '' }}</del>
-                                    <span class="badge bg-success" style="background: #008f8c ;">{{$selectedVarient->discount_per?? 0}}% OFF</span>
+                                    <span class="badge bg-success" style="background: #008f8c ;">{{$selectedVarient->discount_per?? 0}} % OFF</span>
                                 </div>
 
                                 <div class="d-flex gap-3 subscription-row mt-5">
-                                    <div class="button-container" style="width: 125px;height: 24px;">
+                                    <div class="button-container flex-fill">
                                         <div class="nutrapass-circle">
                                             <img src="{{ url('public/assets/staricon.png') }}">
                                         </div>
@@ -343,7 +357,7 @@ $total_product_price = 0;
                                         </div>
                                     </div>
 
-                                    <div class="button-container1 " style="width: 125px;height: 24px;">
+                                    <div class="button-container1 flex-fill">
                                         <div class="nutrapass-circle1">
                                             <img src="{{ url('public/assets/staricon.png') }}">
                                         </div>
@@ -352,6 +366,7 @@ $total_product_price = 0;
                                         </div>
                                     </div>
                                 </div>
+
                             </div>
 
                         </div>
@@ -396,10 +411,18 @@ $total_product_price = 0;
                             </div>
 
 
-                            <button style="color: white;" class="btn btn-teal text-white fw-bold py-2 rounded mt-2"
-                                    onclick="wishlist_save('{{ $cart_product->id ??''}}', '{{ $selectedVarient->id }}' ,true)">
-                                Move to Wishlist
-                            </button>
+                            <div class="d-flex gap-2">
+
+                            <button style="color: white; background: red;" class="btn btn-danger text-white fw-bold py-2 rounded mt-2"
+                                        onclick="DeleteCart('{{ $cart_product->id ??''}}', '{{ $selectedVarient->id }}')">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                                <button style="color: white;" class="btn btn-teal text-white fw-bold py-2 rounded mt-2 gap-1"
+                                        onclick="wishlist_save('{{ $cart_product->id ??''}}', '{{ $selectedVarient->id }}' ,true)">
+                                    Move to Wishlist
+                                </button>
+                            </div>
+
 
                         </div>
                     </div>
@@ -450,7 +473,8 @@ $total_product_price = 0;
             <div class="border rounded p-3 shadow-sm mt-5" style="background: #fff;">
                 <!-- NutraPass Box -->
                 <div class="subscription-slider-container">
-                    <div class="subscription-slider">
+                    <h6>NutraPass </h6>
+                    <div class="subscription-slider mt-3">
                         @foreach($subscription_plans_new as $key => $subscription_plan)
                             <div class="subscription-card">
                                 <div class="subscription-box d-flex justify-content-between align-items-center gap-2">

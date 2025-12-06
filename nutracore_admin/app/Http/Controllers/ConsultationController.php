@@ -73,6 +73,18 @@ class ConsultationController extends Controller
         $data['users'] = $users;
         return view('consultation.index', $data);
     }
+    public function nc_consult(Request $request)
+    {
+        $search = $request->search ?? '';
+        $users = DB::table('consultations')->latest();
+        if (!empty($search)) {
+            $users->where('full_name', 'like', '%' . $search . '%');
+            $users->orWhere('mobile', 'like', '%' . $search . '%');
+        }
+        $users = $users->paginate(20);
+        $data['users'] = $users;
+        return view('consultation.nc_consult', $data);
+    }
 
 
     public function update_user(Request $request)

@@ -39,7 +39,7 @@
                 <!-- Hero Section -->
                 <div class="center">
                     <img src="{{ url('public/assets/Mobile_App_1200_x_500_px.webp') }}"
-                         style="width:60%; border-radius:30px;">
+                         style="width:100%; border-radius:30px;">
 
                     <h3 style="margin-top: 20px;">Download The NutraCore App Today</h3>
                     <span>Shop authentic supplements with confidence, track your orders, unlock rewards, and get expert<br>
@@ -147,11 +147,14 @@
                     </div>
 
 
-                    <div class="row g-2">
-                        <div class="col-md-6" style="margin-right: -10px;">
+                    <div class="row g-2 " style="margin-top: 50px;">
+                        <div class="col-md-3">
+
+                        </div>
+                        <div class="col-md-3 mt-3">
 
                             <div class="container d-flex justify-content-center align-items-center"
-                                 style="min-height: 100vh;">
+                                 >
                                 <div class="card p-4 shadow-lg"
                                      style="width: 100%; max-width: 400px; border-radius: 15px; border: 1px solid #e0e0e0;">
 
@@ -174,8 +177,8 @@
                                             alt="QR Code to download app"
                                             class="img-fluid mb-4 border border-1 p-2" style="max-width: 250px;">
 
-                                        <a href="#" class="btn btn-lg w-100 text-white"
-                                           style="background: linear-gradient(to right, #00c6ff, #0072ff); border-radius: 30px; font-weight: bold;width: 65% !important;">
+                                        <a href="https://play.google.com/store/apps/details?id=com.nutracore&hl=en_IN" class="btn btn-lg w-100 text-white"
+                                           style="background: linear-gradient(to right, #00C3C3, #009199); border-radius: 30px; font-weight: bold;width: 65% !important;">
                                             Open Google Play
                                         </a>
 
@@ -184,9 +187,12 @@
                             </div>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-1">
+
+                        </div>
+                        <div class="col-md-3 mt-3">
                             <div class="container d-flex justify-content-center align-items-center"
-                                 style="min-height: 100vh;">
+                                 >
                                 <div class="card p-4 shadow-lg"
                                      style="width: 100%; max-width: 400px; border-radius: 15px; border: 1px solid #e0e0e0;">
 
@@ -211,8 +217,8 @@
                                             class="img-fluid mb-4 border border-1 p-2 d-block mx-auto"
                                             style="max-width: 250px;">
 
-                                        <a href="#" class="btn btn-lg w-100 text-white"
-                                           style="background: linear-gradient(to right, #00c6ff, #0072ff); border-radius: 30px; font-weight: bold; width: 65% !important;">
+                                        <a href="https://apps.apple.com/in/app/nutracore-supplement-store/id6749866050" class="btn btn-lg w-100 text-white"
+                                           style="background: linear-gradient(to right,  #00C3C3, #009199); border-radius: 30px; font-weight: bold; width: 65% !important;">
                                             Open App Store
                                         </a>
 
@@ -221,7 +227,7 @@
                                 </div>
                             </div>
                         </div>
-                        <span>Tip: Open your phone camera and scan the QR to jump to the correct store.
+                        <span style="margin-bottom: 50px;margin-top: 50px;">Tip: Open your phone camera and scan the QR to jump to the correct store.
                         </span>
                     </div>
                 </div>

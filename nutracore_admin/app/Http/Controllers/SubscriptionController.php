@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SubscriptionPlans;
 use App\Models\Subscriptions;
+use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Http\Request;
@@ -40,13 +41,16 @@ class SubscriptionController extends Controller
     {
         $data = [];
         $search = $request->search ?? '';
+        $user_id = $request->user_id ?? '';
 
 
         $subscriptions = Subscriptions::select('users.name', 'subscriptions.*', 'users.email', 'users.phone', 'users.image')
             ->leftJoin('users', 'users.id', '=', 'subscriptions.user_id')
 //            ->where('subscriptions.is_delete', 0)->where('subscriptions.paid_status', 1)->whereDate('subscriptions.end_date', '>=', date('Y-m-d'));
             ->where('subscriptions.is_delete', 0)->where('subscriptions.paid_status', 1);
-
+        if (!empty($user_id)) {
+            $subscriptions->where('user_id', $user_id);
+        }
 
         $subscriptions = $subscriptions->paginate(50);
 
@@ -206,28 +210,82 @@ class SubscriptionController extends Controller
             $subscription = SubscriptionPlans::find($request->subscription_id);
             $start_date = date('Y-m-d');
             $exist = Subscriptions::where('user_id', $request->user_id)->latest()->first();
+            $user = User::where('id', $request->user_id)->first();
             $dbArray = [];
-            if (!empty($exist)) {
-                if (strtotime($exist->end_date) >= strtotime($start_date)) {
+
+
+            $subscription_start = $user->subscription_start;
+            $subscription_end   = $user->subscription_end;
+
+            $duration = (int) ($subscription->duration ?? 0); // months
+            $today = date('Y-m-d');
+
+// CASE 1: No previous subscription
+            if (empty($subscription_start) || empty($subscription_end)) {
+
+                $subscription_start = $today;
+                $subscription_end   = date('Y-m-d', strtotime("+$duration months"));
+
+            } else {
+
+                // Convert to timestamps once
+                $end_ts = strtotime($subscription_end);
+                $today_ts = strtotime($today);
+
+                if ($today_ts <= $end_ts) {
+                    // CASE 2: Subscription ACTIVE → start from end date
+                    $subscription_start = $subscription_end;
+                    $subscription_end   = date('Y-m-d', strtotime("+$duration months", $end_ts));
 
                 } else {
-
+                    // CASE 3: Subscription EXPIRED → start from today
+                    $subscription_start = $today;
+                    $subscription_end   = date('Y-m-d', strtotime("+$duration months", $today_ts));
                 }
             }
-            $dbArray['start_date'] = $start_date;
-            $dbArray['end_date'] = date('Y-m-d', strtotime("+" . $subscription->duration . " months", strtotime($start_date)));
-            $dbArray['user_id'] = $request->user_id ?? '';
-            $dbArray['subscription_id'] = $request->subscription_id ?? '';
-            $dbArray['txn_id'] = "NC" . rand(000000, 9999999);
-            $dbArray['paid_status'] = 1;
-            $dbArray['taken_by'] = 'Admin';
+
+// Update user subscription
+            User::where('id', $user->id)->update([
+                'subscription_start' => $subscription_start,
+                'subscription_end'   => $subscription_end,
+                'subscription_id'    => $subscription->id
+            ]);
+
+// Transaction entry
+            $txn_id = "NC" . rand(100000, 9999999);
+
+            $dbArray = [
+                'start_date'       => $subscription_start,
+                'end_date'         => $subscription_end,
+                'user_id'          => $request->user_id,
+                'subscription_id'  => $request->subscription_id,
+                'txn_id'           => $txn_id,
+                'paid_status'      => 1,
+                'taken_by'         => 'Admin'
+            ];
+
             Subscriptions::insert($dbArray);
+
+
+
+            $data = [];
+            $data['userID'] = $subscription->user_id ?? '';
+            $data['txn_no'] = $txn_id;
+            $data['amount'] = $subscription->amount ?? 0;
+            $data['type'] = 'DEBIT';
+            $data['note'] = 'Take Subscription';
+            $data['against_for'] = 'subscription';
+            $data['paid_by'] = 'admin';
+            $data['orderID'] = 0;
+            CustomHelper::saveTransaction($data);
+
+
             $data = [];
             $data['title'] = "You Got A Subscription From BuyBuy Cart";
             $data['description'] = "You Got A Subscription From BuyBuy Cart";
             $notify = NotifyController::send_admin_subscription($request->user_id, $data);
             // return back('alert-success', 'Subscription Added Successfully');
-             return back();
+            return back();
         }
         return back();
     }
