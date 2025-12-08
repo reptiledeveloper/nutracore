@@ -772,6 +772,28 @@ $current_route = Route::currentRouteName();
                     </a>
                 </li>
             @endif
+            @if(\App\Helpers\CustomHelper::isAllowedSection('nc_partners','list'))
+                <li>
+                    <a href="#">
+                    <span class="nav-link-icon">
+                        <i class="bi bi-check-circle"></i>
+                    </span>
+                        <span>NC Partners</span>
+                    </a>
+                    <ul>
+                        <li>
+                            <a class="{{$current_route == 'nc_partner_tire.index' ? "active":""}}"
+                               href="{{route('nc_partner_tire.index')}}">Loyality System</a>
+                        </li>
+
+                        <li>
+                            <a class="{{$current_route == 'nc_partners.index' ? "active":""}}"
+                               href="{{route('nc_partners.index')}}">NC Partner</a>
+                        </li>
+
+                    </ul>
+                </li>
+            @endif
             @if(\App\Helpers\CustomHelper::isAllowedSection('offers','list'))
                 <li>
                     <a class="{{$current_route == 'offers.index' ? "active":""}}" href="{{route('offers.index')}}">

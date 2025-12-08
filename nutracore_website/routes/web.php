@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/', function () {
@@ -10,7 +11,9 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
     Route::match(['get', 'post'], '/', 'HomeController@index');
     Route::match(['get', 'post'], '/products', 'HomeController@products');
     Route::match(['get', 'post'], '/sitemap.xml', 'HomeController@sitemap');
-
+    Route::post('/send-otp', [HomeController::class, 'sendPartnerOtp']);
+    Route::post('/verify-otp', [HomeController::class, 'verifyOtp']);
+    Route::post('/submit-partner-form', [HomeController::class, 'submit_partner_form']);
     Route::match(['get', 'post'], '/product-details', 'HomeController@product_details');
     Route::match(['get', 'post'], '/cart', 'HomeController@cart')->name('cart');
     Route::match(['get', 'post'], '/search', 'HomeController@products')->name('search');

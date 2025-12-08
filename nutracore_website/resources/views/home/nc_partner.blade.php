@@ -307,25 +307,21 @@
             margin-bottom: 6px;
             opacity: 0.9;
         }
-
-        input, select, textarea {
-            background: #0f1a26;
-            border: 1px solid #2c3b50;
-            padding: 12px;
-            border-radius: 8px;
-            color: #fff;
-            outline: none;
-            font-size: 15px;
+        select{
+            height: 64px;
+            border-radius: 10px;
         }
 
-        textarea {
-            resize: none;
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            background-color: white !important;   /* Keep original background */
         }
 
         input::placeholder {
             color: #6c7a8a;
         }
-
         .checkbox {
             display: flex;
             align-items: center;
@@ -412,8 +408,108 @@
             content: '-';
             transform: rotate(180deg);
         }
+        option {
+            background-color: #fff;
+            color: #fff;
+        }
+        select {
+            background-color: #ffffff !important;
+            color: #000 !important;
+        }
+
+        select option {
+            background-color: #ffffff !important;
+            color: #000 !important;
+        }
+
     </style>
-    <main class="main pages">
+   <style>
+       /* Container that holds popup — FULL SCREEN but transparent */
+       .otp-popup {
+           position: fixed;
+           inset: 0;
+           display: none;        /* Hidden by default */
+           justify-content: center;
+           align-items: center;
+           z-index: 9999;
+           background: transparent;   /* No blur, no overlay */
+       }
+
+       /* Popup Box */
+       .otp-card {
+           width: 320px;
+           background: #fff;
+           border-radius: 14px;
+           padding: 22px 20px;
+           /*box-shadow: 0 10px 40px rgba(0,0,0,0.25);*/
+           position: relative;
+           animation: fadeIn 0.25s ease;
+       }
+
+       /* Close Button */
+       .otp-close {
+           position: absolute;
+           right: 12px;
+           top: 8px;
+           background: none;
+           border: none;
+           font-size: 24px;
+           cursor: pointer;
+           color: #333;
+       }
+
+       .otp-title {
+           font-size: 20px;
+           font-weight: bold;
+           margin-bottom: 4px;
+       }
+
+       .otp-desc {
+           font-size: 14px;
+           color: #666;
+           margin-bottom: 18px;
+       }
+
+       .otp-input {
+           width: 100%;
+           padding: 12px;
+           text-align: center;
+           font-size: 22px;
+           border: 1px solid #ccc;
+           border-radius: 8px;
+           letter-spacing: 12px; /* Optional (bigger gap) */
+           font-weight: bold;
+           color: #000;
+           caret-color: transparent; /* Cursor invisible */
+       }
+
+
+       .otp-button {
+           width: 100%;
+           padding: 12px;
+           margin-top: 15px;
+           background: #ff7a00;
+           color: #fff;
+           border: none;
+           font-weight: bold;
+           border-radius: 8px;
+           cursor: pointer;
+       }
+
+       /* Animation */
+       @keyframes fadeIn {
+           from { transform: translateY(-10px); opacity: 0; }
+           to   { transform: translateY(0); opacity: 1; }
+       }
+
+       .blur-background {
+           filter: blur(5px);
+           pointer-events: none; /* Cannot click background */
+       }
+
+   </style>
+
+    <main class="main pages" id="pageContent">
         <div class="page-header breadcrumb-wrap">
             <div class="container">
                 <div class="breadcrumb">
@@ -493,28 +589,28 @@
 
                         <div class="join-item">
                             <img
-                                src="https://img.freepik.com/free-photo/young-adult-doing-indoor-sport-gym_23-2149205542.jpg?semt=ais_hybrid&w=740&q=80"
+                                src="{{url('public/assets/nc_partner/1.svg')}}"
                                 alt="Gym Owner">
                             <h4>Gym Owner</h4>
                         </div>
 
                         <div class="join-item">
                             <img
-                                src="https://img.freepik.com/free-photo/young-adult-doing-indoor-sport-gym_23-2149205542.jpg?semt=ais_hybrid&w=740&q=80"
+                                src="{{url('public/assets/nc_partner/2.svg')}}"
                                 alt="Trainers / Coaches">
                             <h4>Trainers / Coaches</h4>
                         </div>
 
                         <div class="join-item">
                             <img
-                                src="https://img.freepik.com/free-photo/young-adult-doing-indoor-sport-gym_23-2149205542.jpg?semt=ais_hybrid&w=740&q=80"
+                                src="{{url('public/assets/nc_partner/3.svg')}}"
                                 alt="Influencers">
                             <h4>Influencers</h4>
                         </div>
 
                         <div class="join-item">
                             <img
-                                src="https://img.freepik.com/free-photo/young-adult-doing-indoor-sport-gym_23-2149205542.jpg?semt=ais_hybrid&w=740&q=80"
+                                src="{{url('public/assets/nc_partner/4.svg')}}"
                                 alt="Nutritionists">
                             <h4>Nutritionists</h4>
                         </div>
@@ -531,37 +627,37 @@
                     <div class="benefits-grid">
 
                         <div class="benefit-item">
-                            <img src="{{url('public/commission.png')}}" alt="" class="icon">
+                            <img src="{{url('public/assets/nc_partner/5.svg')}}" alt="" class="icon">
                             <h3>Commissions & Earnings</h3>
                             <p>Earn upto 8% Commissions on every recurring order</p>
                         </div>
 
                         <div class="benefit-item">
-                            <img src="{{url('public/commission.png')}}" alt="" class="icon">
+                            <img src="{{url('public/assets/nc_partner/6.svg')}}" alt="" class="icon">
                             <h3>Exclusive Pricing</h3>
                             <p>Get access to exclusive rates on your purchase</p>
                         </div>
 
                         <div class="benefit-item">
-                            <img src="{{url('public/commission.png')}}" alt="" class="icon">
+                            <img src="{{url('public/assets/nc_partner/7.svg')}}" alt="" class="icon">
                             <h3>Exclusive Gifts & Freebie</h3>
                             <p>Get free goodies, gifts on becoming a pro partner</p>
                         </div>
 
                         <div class="benefit-item">
-                            <img src="{{url('public/commission.png')}}" alt="" class="icon">
+                            <img src="{{url('public/assets/nc_partner/8.svg')}}" alt="" class="icon">
                             <h3>Earning Dashboard</h3>
                             <p>Clear & transparent dashboard to see your earning real-time</p>
                         </div>
 
                         <div class="benefit-item">
-                            <img src="{{url('public/commission.png')}}" alt="" class="icon">
+                            <img src="{{url('public/assets/nc_partner/9.svg')}}" alt="" class="icon">
                             <h3>Easy Withdrawals</h3>
                             <p>Withdraw your earning or purchase at your convenience</p>
                         </div>
 
                         <div class="benefit-item">
-                            <img src="{{url('public/commission.png')}}" alt="" class="icon">
+                            <img src="{{url('public/assets/nc_partner/10.svg')}}" alt="" class="icon">
                             <h3>Co-Branding Support</h3>
                             <p>Leverage our brand to grow yours</p>
                         </div>
@@ -580,26 +676,26 @@
                     <div class="join-grid">
 
                         <div class="join-item">
-                            <img src="{{url('public/commission.png')}}" alt="Gym Owner" style=" border-radius: 0%;">
+                            <img src="{{url('public/assets/nc_partner/11.svg')}}" alt="Gym Owner" style=" border-radius: 0%;">
                             <h4>100% Genuine
                                 Supplements</h4>
                         </div>
 
                         <div class="join-item">
-                            <img src="{{url('public/commission.png')}}" alt="Trainers / Coaches"
+                            <img src="{{url('public/assets/nc_partner/12.svg')}}" alt="Trainers / Coaches"
                                  style=" border-radius: 0%;">
                             <h4>Exclusive
                                 Member Pricing</h4>
                         </div>
 
                         <div class="join-item">
-                            <img src="{{url('public/commission.png')}}" alt="Influencers" style=" border-radius: 0%;">
+                            <img src="{{url('public/assets/nc_partner/13.svg')}}" alt="Influencers" style=" border-radius: 0%;">
                             <h4>2-Hour Xpress
                                 Delivery</h4>
                         </div>
 
                         <div class="join-item">
-                            <img src="{{url('public/commission.png')}}" alt="Nutritionists" style=" border-radius: 0%;">
+                            <img src="{{url('public/assets/nc_partner/14.svg')}}" alt="Nutritionists" style=" border-radius: 0%;">
                             <h4>Trusted by 10000+
                                 Customers</h4>
                         </div>
@@ -657,72 +753,125 @@
                     </p>
 
 
-                    <div class="nc-form-container" id="apply_now">
-                        <form action="" method="POST">
-                            @csrf
-                            <div class="row">
-                                <div class="field">
-                                    <label>Full name *</label>
-                                    <input type="text" name="full_name">
+                    <div class="modal fade" id="otpPopup" tabindex="-1" aria-labelledby="otpPopup" aria-hidden="true">
+                        <div class="modal-dialog  modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Verify with OTP</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
 
-                                <div class="field">
-                                    <label>Role *</label>
-                                    <select name="role">
-                                        <option value="">Select</option>
-                                    </select>
+                                <div class="modal-body">
+                                        <!-- Mobile Number -->
+                                        <div class="mb-3">
+                                            <input type="text" maxlength="4" class="otp-input" id="otp_input" placeholder="____">
+                                        </div>
+                                </div>
+                                <div class="d-grid">
+                                    <button class="btn btn-primary" id="verifyOtpBtn">Verify OTP</button>
                                 </div>
                             </div>
+                        </div>
+                    </div>
 
+
+
+
+                    <div class="nc-form-container" id="apply_now">
+                        <form id="applyForm">
                             <div class="row">
                                 <div class="field">
-                                    <label>Mobile number *</label>
-                                    <input type="text" name="mobile_number">
+                                    <label>Full Name *</label>
+                                    <input type="text" name="full_name" >
                                 </div>
 
                                 <div class="field">
-                                    <label>WhatsApp number (optional)</label>
-                                    <input type="text" name="whatsapp_number">
+                                    <label>Mobile Number *</label>
+                                    <input type="text" name="mobile_number" >
                                 </div>
                             </div>
 
                             <div class="row">
                                 <div class="field">
                                     <label>Email *</label>
-                                    <input type="email" name="email">
+                                    <input type="email" name="email" >
                                 </div>
 
                                 <div class="field">
                                     <label>City *</label>
-                                    <input type="text" name="city">
+                                    <input type="text" name="city" >
                                 </div>
                             </div>
 
                             <div class="field full">
-                                <label>Gym / Studio / Brand name *</label>
-                                <input type="text" name="brand_name">
+                                <label>Complete Address with Pincode *</label>
+                                <textarea name="full_address" rows="1" ></textarea>
                             </div>
 
                             <div class="field full">
-                                <label>Approx. active clients *</label>
-                                <select name="active_clients">
+                                <label>Role *</label>
+                                <select name="role" >
                                     <option value="">Select</option>
+                                    <option value="Trainer">Trainer</option>
+                                    <option value="Gym Owner">Gym Owner</option>
+                                    <option value="Coach">Coach</option>
+                                    <option value="Influencer">Influencer</option>
+                                    <option value="Nutritionist">Nutritionist</option>
                                 </select>
                             </div>
 
                             <div class="field full">
+                                <label>Gym / Studio / Brand Name *</label>
+                                <input type="text" name="brand_name" >
+                            </div>
+
+                            <div class="field full">
+                                <label>Approx. Active Clients *</label>
+                                <select name="active_clients" >
+                                    <option value="">Select</option>
+                                    <option value="0-20">0–20</option>
+                                    <option value="20-50">20–50</option>
+                                    <option value="50-100">50–100</option>
+                                    <option value="100-200">100–200</option>
+                                    <option value="200+">200+</option>
+                                </select>
+                            </div>
+
+                            <div class="row">
+                                <div class="field">
+                                    <label>Bank Name *</label>
+                                    <input type="text" name="bank_name" >
+                                </div>
+
+                                <div class="field">
+                                    <label>IFSC Code *</label>
+                                    <input type="text" name="ifsc_code" >
+                                </div>
+                            </div>
+
+                            <div class="field full">
+                                <label>Account Number *</label>
+                                <input type="text" name="account_number" >
+                            </div>
+
+                            <div class="field full">
                                 <label>How do you plan to promote NutraCore? *</label>
-                                <textarea rows="4" name="promotion_plan"></textarea>
+                                <textarea rows="1" name="promotion_plan" ></textarea>
                             </div>
 
                             <div class="field full">
-                                <label>Instagram / Social links</label>
-                                <input type="text" name="social_links" placeholder="@handle or URL">
+                                <label>Instagram / Social Links *</label>
+                                <input type="text" name="social_links" placeholder="@handle or URL" >
                             </div>
 
                             <div class="field full">
-                                <label>Preferred contact method</label>
-                                <select name="contact_method">
+                                <label>Active Followers (optional)</label>
+                                <input type="text" name="active_followers">
+                            </div>
+
+                            <div class="field full">
+                                <label>Preferred Contact Method *</label>
+                                <select name="contact_method" >
                                     <option value="WhatsApp">WhatsApp</option>
                                     <option value="Call">Call</option>
                                     <option value="Email">Email</option>
@@ -730,15 +879,16 @@
                             </div>
 
                             <label class="checkbox">
-                                <input type="checkbox" name="agree_terms" value="1">
-                                I agree to the NC Partner Network terms & conditions and consent to be contacted by
-                                NutraCore®.
+                                <input type="checkbox" name="agree_terms" value="1" >
+                                I agree to the NC Partner Network Terms & Conditions and consent to be contacted by NutraCore®.
                             </label>
 
-                            <button type="submit" class="submit-btn">Submit Application</button>
+                            <button type="button" onclick="subForm()" class="submit-btn">Submit Application</button>
 
+                            <!-- On submission, set status => Pending Review in backend -->
                         </form>
                     </div>
+
 
 
                 </div>
@@ -779,6 +929,8 @@
             </div>
         </div>
     </main>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
     <script>
         document.querySelectorAll('.faq-question').forEach(button => {
             button.addEventListener('click', () => {
@@ -794,5 +946,102 @@
                 }
             });
         });
+
+       function subForm(){
+           let mobile = document.querySelector("input[name=mobile_number]").value;
+
+           if (mobile.length !== 10) {
+               alert("Enter a valid mobile number");
+               return;
+           }
+
+           // Show modal and send OTP
+           sendOtp(mobile);
+       }
+        function sendOtp() {
+            let form = document.getElementById("applyForm");
+            let formData = new FormData(form);
+
+            // Convert FormData to JSON
+            let data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+
+            fetch("{{url('send-otp')}}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": document.querySelector("input[name=_token]").value
+                },
+                body: JSON.stringify(data)
+            })
+                .then(res => res.json())
+                .then(res => {
+                    if (!res.status) {
+                        // Display validation errors
+                        if (res.errors) {
+                            Object.values(res.errors).forEach(err => alert(err[0]));
+                        } else {
+                            alert(res.message || "Something went wrong");
+                        }
+                        return;
+                    }
+
+                    // Success → show OTP modal
+                    $('#otpPopup').modal('show');
+                });
+        }
+
+
+        function closeOtpModal(){
+            document.getElementById("otpModal").style.display = "none";
+        }
+
+        document.getElementById("verifyOtpBtn").addEventListener("click", function () {
+
+            let otp = document.getElementById("otp_input").value;
+            let mobile = document.querySelector("input[name=mobile_number]").value;
+
+            fetch("{{url('verify-otp')}}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": document.querySelector("input[name=_token]").value
+                },
+                body: JSON.stringify({ mobile: mobile, otp: otp })
+            })
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === true) {
+                        // OTP correct → submit full form
+                        submitPartnerForm();
+                    } else {
+                        alert("Invalid OTP");
+                    }
+                });
+        });
+        function submitPartnerForm() {
+            let form = document.getElementById("applyForm");
+            let formData = new FormData(form);
+            fetch("{{url('submit-partner-form')}}", {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": document.querySelector("input[name=_token]").value
+                },
+                body: formData
+            })
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === true) {
+                        alert("Application Submitted! Status = Pending Review");
+                        location.reload();
+                    } else {
+                        alert("Something went wrong!");
+                    }
+                });
+        }
+
+
     </script>
 @endsection

@@ -7,6 +7,7 @@
     $routeName = \App\Helpers\CustomHelper::getAdminRouteName();
     $order_items = \App\Helpers\CustomHelper::getOrderItemsWithProduct($orders->id);
     $order_status_arr = config('custom.order_status_arr');
+    $address = DB::table('user_address')->where('id', $orders->address_id)->first();
     ?>
     <div class="content ">
 
@@ -69,11 +70,13 @@
                                             {{$user->phone??''}}
                                         @endif
 
-                                        <div>{{ $orders->house_no ?? '' }} {{ $orders->appartment ?? '' }}</div>
-                                        <div>{{ $orders->landmark ?? '' }}</div>
-                                        <div> {{ $orders->location ?? '' }}</div>
+
+                                        <div>{{ $orders->house_no }} {{ $orders->apartment }} {{$address->building_name??''}} {{$address->flat_no??''}}</div>
+                                        <div>{{ $orders->landmark }} {{$address->landmark??''}}</div>
+                                        <div>{{ $orders->location }}</div>
+                                        <div>{{ $orders->pincode }}</div>
                                         <div>
-                                            <i class="bi bi-telephone me-2"></i> {{ $orders->contact_no ?? '' }}
+                                            <i class="bi bi-telephone me-2"></i> {{ !empty($orders->contact_no) ? $orders->contact_no : $user->phone ??''}}
                                         </div>
                                     </div>
                                 </div>
@@ -95,11 +98,12 @@
                                             <strong>{{$user->name??''}}</strong><br>
                                             {{$user->phone??''}}
                                         @endif
-                                        <div>{{ $orders->house_no ?? '' }} {{ $orders->appartment ?? '' }}</div>
-                                        <div>{{ $orders->landmark ?? '' }}</div>
-                                        <div> {{ $orders->location ?? '' }}</div>
+                                        <div>{{ $orders->house_no }} {{ $orders->apartment }} {{$address->building_name??''}} {{$address->flat_no??''}}</div>
+                                        <div>{{ $orders->landmark }} {{$address->landmark??''}}</div>
+                                        <div>{{ $orders->location }}</div>
+                                        <div>{{ $orders->pincode }}</div>
                                         <div>
-                                            <i class="bi bi-telephone me-2"></i> {{ $orders->contact_no ?? '' }}
+                                            <i class="bi bi-telephone me-2"></i> {{ !empty($orders->contact_no) ? $orders->contact_no : $user->phone ??''}}
                                         </div>
                                     </div>
                                 </div>

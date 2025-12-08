@@ -181,8 +181,8 @@
                                         </div>
                                         <div>Name:
                                             {{ !empty($orders->customer_name) ? $orders->customer_name : $user->name ??''}}</div>
-                                        <div>{{ $orders->house_no }} {{ $orders->apartment }}</div>
-                                        <div>{{ $orders->landmark }}</div>
+                                        <div>{{ $orders->house_no }} {{ $orders->apartment }} {{$address->building_name??''}} {{$address->flat_no??''}}</div>
+                                        <div>{{ $orders->landmark }} {{$address->landmark??''}}</div>
                                         <div>{{ $orders->location }}</div>
                                         <div>{{ $orders->pincode }}</div>
                                         <div><a href="https://maps.google.com/?q={{$orders->latitude??''}},{{$orders->longitude??''}}" target="_blank">Click Here</a></div>
@@ -202,9 +202,10 @@
                                         </div>
                                         <div>Name:
                                             {{ !empty($orders->customer_name) ? $orders->customer_name : $user->name ??''}}</div>
-                                        <div>{{ $orders->house_no }} {{ $orders->apartment }}</div>
-                                        <div>{{ $orders->landmark }}</div>
+                                        <div>{{ $orders->house_no }} {{ $orders->apartment }} {{$address->building_name??''}} {{$address->flat_no??''}}</div>
+                                        <div>{{ $orders->landmark }} {{$address->landmark??''}}</div>
                                         <div>{{ $orders->location }}</div>
+                                        <div>{{ $orders->pincode }}</div>
                                         <div><a href="https://maps.google.com/?q={{$orders->latitude??''}},{{$orders->longitude??''}}" target="_blank">Click Here</a></div>
                                         <div>
                                             <i class="bi bi-telephone me-2"></i> {{ !empty($orders->contact_no) ? $orders->contact_no : $user->phone ??''}}

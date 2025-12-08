@@ -291,35 +291,7 @@ class ApiController extends Controller
         return $response;
     }
 
-    public function send_sms($mobile, $code)
-    {
-        $user_name = "User";
-        $curl = curl_init();
-        curl_setopt_array($curl, [
-            CURLOPT_URL => "https://api.msg91.com/api/v5/flow/",
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => "POST",
-            CURLOPT_POSTFIELDS => "{\n  \"flow_id\": \"689227c998d5cf4ec72f5c53\",\n  \"sender\": \"NUTRCR\",\n  \"mobiles\": \"91$mobile\",\n  \"otp\": \"$code\",\n  \"user_name\": \"$user_name\"}",
-            CURLOPT_HTTPHEADER => [
-                "authkey: 431621ABncLfiKpzo6875ff9bP1",
-                "content-type: application/JSON"
-            ],
-        ]);
-        $response = curl_exec($curl);
-        $err = curl_error($curl);
-        curl_close($curl);
-        return $response;
-        //        if ($err) {
-//
-//        } else {
-//
-//        }
 
-    }
 
     public function verify_otp(Request $request): \Illuminate\Http\JsonResponse
     {
@@ -349,8 +321,6 @@ class ApiController extends Controller
             ], 200);
         }
     }
-
-
     public function profile(Request $request): \Illuminate\Http\JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -428,7 +398,6 @@ class ApiController extends Controller
             'active_loyalty' => $active_loyalty,
         ], 200);
     }
-
     public function splash_screens(Request $request): \Illuminate\Http\JsonResponse
     {
         $splash_screens = [];
@@ -445,8 +414,6 @@ class ApiController extends Controller
 
         ], 200);
     }
-
-
     public function login(Request $request): \Illuminate\Http\JsonResponse
     {
         $input = $request->only(['phone', 'otp']);

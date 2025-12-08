@@ -898,7 +898,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
         <div class="container">
             <div class="header-wrap">
                 <div class="logo logo-width-1">
-                    <a href='{{url('/')}}'><img src="{{url('public/assets')}}/logo.png" alt="logo"/></a>
+                    <a href='{{url('/')}}'><img src="{{url('public/assets/nc_partner/NutraCoreLogoMain.svg')}}" alt="logo"/></a>
                 </div>
                 <div class="header-right">
                     <div class="search-style-2">
@@ -1272,7 +1272,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
     <div class="mobile-header-wrapper-inner">
         <div class="mobile-header-top">
             <div class="mobile-header-logo">
-                <a href='{{url('/')}}'><img src="{{url('public/assets')}}/logo.png" alt="logo"/></a>
+                <a href='{{url('/')}}'><img src="{{url('public/assets/nc_partner/NutraCoreLogoMain.svg')}}" alt="logo"/></a>
             </div>
             <div class="mobile-menu-close close-style-wrap close-style-position-inherit">
                 <button class="close-style search-close">
@@ -1464,7 +1464,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                             class="widget-about font-md mb-md-3 mb-lg-3 mb-xl-0 wow animate__animated animate__fadeInUp"
                             data-wow-delay="0">
                             <div class="logo" style="margin:0px;width: 85%;">
-                                <img src="{{url('public/assets')}}/logo.png"
+                                <img src="{{url('public/assets/nc_partner/NutraCoreLogoFooter.svg')}}"
                                      alt="logo"/>
 
                             </div>
@@ -1582,10 +1582,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
 
         <div class="benefits-card">
             <ul id="subscription_html">
-                {{--                <li>🔥 10% OFF every order</li>--}}
-                {{--                <li>🚚 Free Express Delivery</li>--}}
-                {{--                <li>🎁 Monthly Freebie Box</li>--}}
-                {{--                <li>⏰ Early Access & Secret Sales</li>--}}
+
             </ul>
         </div>
 

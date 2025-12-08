@@ -51,6 +51,23 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'delete/{id}', 'BannerController@delete')->name('.delete');
         });
 
+        ////nc_partners
+        Route::group(['prefix' => 'nc_partners', 'as' => 'nc_partners', 'middleware' => ['allowedmodule:nc_partners,list']], function () {
+            Route::get('/', 'NCPartnerController@index')->name('.index');
+            Route::match(['get', 'post'], 'add', 'NCPartnerController@add')->name('.add');
+            Route::match(['get', 'post'], 'edit/{id}', 'NCPartnerController@add')->name('.edit');
+            Route::match(['get', 'post'], 'delete/{id}', 'NCPartnerController@delete')->name('.delete');
+            Route::match(['get', 'post'], 'view/{id}', 'NCPartnerController@view')->name('.view');
+            Route::match(['get', 'post'], 'commission/{id}', 'NCPartnerController@commission')->name('.commission');
+        });
+        ////nc_partner_tire
+        Route::group(['prefix' => 'nc_partner_tire', 'as' => 'nc_partner_tire', 'middleware' => ['allowedmodule:nc_partner_tire,list']], function () {
+            Route::get('/', 'NCPartnerTireController@index')->name('.index');
+            Route::match(['get', 'post'], 'add', 'NCPartnerTireController@add')->name('.add');
+            Route::match(['get', 'post'], 'edit/{id}', 'NCPartnerTireController@add')->name('.edit');
+            Route::match(['get', 'post'], 'delete/{id}', 'NCPartnerTireController@delete')->name('.delete');
+        });
+
         ////countdown_timer
         Route::group(['prefix' => 'countdown_timer', 'as' => 'countdown_timer', 'middleware' => ['allowedmodule:countdown_timer,list']], function () {
             Route::match(['get', 'post'],'/', 'CountDownTimerController@index')->name('.index');

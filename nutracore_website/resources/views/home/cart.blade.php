@@ -380,7 +380,7 @@
                 </div>
             </div>
         </div>
-        <div class="container mb-80 mt-50" id="cart_html">
+        <div class="container mb-80 mt-50 " id="cart_html">
 
 
         </div>

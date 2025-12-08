@@ -440,7 +440,7 @@ $total_product_price = 0;
             }
 
             ?>
-        <div class="col-lg-4">
+        <div class="col-lg-4 mb-100">
             <div class="card" style="
     border: 1.5px solid #00A8A8;
     background: #E6FFFE;

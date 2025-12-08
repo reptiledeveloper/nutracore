@@ -287,10 +287,10 @@ class HomeController extends Controller
         if (!empty($category_slug) && empty($brand_id)) {
             $brand_id = Brand::where('slug', $category_slug)->first()->id ?? '';
         }
-        if($category_slug == 'deals'){
-            $product_countdowns = DB::table('product_countdowns')->where('id',1)->first();
-            if(!empty($product_countdowns)){
-                $product_id = explode(",",$product_countdowns->product_ids??'');
+        if ($category_slug == 'deals') {
+            $product_countdowns = DB::table('product_countdowns')->where('id', 1)->first();
+            if (!empty($product_countdowns)) {
+                $product_id = explode(",", $product_countdowns->product_ids ?? '');
             }
         }
 
@@ -1120,9 +1120,9 @@ class HomeController extends Controller
         $applied_cashback = $cartValue['applied_cashback'] ?? '';
         $subscription_plans_new = self::getMembershipPlans($user->id);
         $data['subscription_plans_new'] = $subscription_plans_new;
-        $data['subscription_id_customer'] = $cart_data['subscription_id'] ??'';
+        $data['subscription_id_customer'] = $cart_data['subscription_id'] ?? '';
         $html = view('home.cart_html', $data)->render();
-        return response()->json(['html' => $html, 'data_req'=>$data,'cart_data' => $cart_data, 'applied_cashback' => $applied_cashback]);
+        return response()->json(['html' => $html, 'data_req' => $data, 'cart_data' => $cart_data, 'applied_cashback' => $applied_cashback]);
     }
 
     public function getMembershipPlans($user_id)
@@ -2090,8 +2090,8 @@ class HomeController extends Controller
         if ($phone == '7065452862' || $phone == '6370371406') {
             $otp = 1234;
         } else {
-            // $otp = rand(1111, 9999);
-            $otp = 1234;
+            $otp = rand(1111, 9999);
+//            $otp = 1234;
         }
         $expired_at = Carbon::now()->addMinutes(10);
         User::updateOrCreate(
@@ -2116,7 +2116,7 @@ class HomeController extends Controller
             //     $exist->save();
             // }
         }
-
+        $response = $this->send_sms($phone, $otp);
         return response()->json([
             'result' => true,
             'message' => 'OTP Sent',
@@ -2124,6 +2124,29 @@ class HomeController extends Controller
         ], 200);
     }
 
+    public function send_sms($mobile, $code)
+    {
+        $user_name = "User";
+        $curl = curl_init();
+        curl_setopt_array($curl, [
+            CURLOPT_URL => "https://api.msg91.com/api/v5/flow/",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => "{\n  \"flow_id\": \"689227c998d5cf4ec72f5c53\",\n  \"sender\": \"NUTRCR\",\n  \"mobiles\": \"91$mobile\",\n  \"otp\": \"$code\",\n  \"user_name\": \"$user_name\"}",
+            CURLOPT_HTTPHEADER => [
+                "authkey: 431621ABncLfiKpzo6875ff9bP1",
+                "content-type: application/JSON"
+            ],
+        ]);
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        curl_close($curl);
+        return $response;
+    }
 
     function getReferalCode($length): string
     {
@@ -2162,7 +2185,7 @@ class HomeController extends Controller
 
     public function search(Request $request)
     {
-        $search = $request->search??'';
+        $search = $request->search ?? '';
     }
 
     public function logout(Request $request)
@@ -2527,7 +2550,7 @@ class HomeController extends Controller
                 }
             }
             $wallet_applied = (bool)$request->apply_cashback ?? false;
-            $address = UserAddress::where('id', $request->address_id)->first();
+            $address = UserAddress::where('id', $request->selected_addressID)->first();
             $cartValue = $cart_data['cartValue'] ?? '';
             $cart_list = $cart_data['cart_list'] ?? '';
 
@@ -2535,7 +2558,7 @@ class HomeController extends Controller
             $dbArray['unique_id'] = Order::generateOrderId();
             $dbArray['userID'] = $user_id;
             $dbArray['wallet'] = $request->applied_wallet_amount ?? 0;
-            $dbArray['address_id'] = $request->address_id ?? '';
+            $dbArray['address_id'] = $request->selected_addressID ?? '';
             $dbArray['delivery_type'] = $request->delivery_type ?? 'home_delivery';
             $dbArray['customer_name'] = $address->contact_person_name ?? '';
             $dbArray['delivery_date'] = date('Y-m-d', strtotime($request->delivery_date)) ?? '';
@@ -2742,7 +2765,6 @@ class HomeController extends Controller
             'orders' => $orders,
         ], 200);
     }
-
 
 
     public function sendOrderNotification($order_id)
@@ -3169,8 +3191,85 @@ class HomeController extends Controller
             ->where('type', 'nc_partner')
             ->first();
         $data['banner'] = $banners;
-        return view('home.nc_partner',$data);
+        return view('home.nc_partner', $data);
 
     }
 
+
+    public function sendPartnerOtp(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'full_name' => 'required',
+                'mobile_number' => 'required|digits:10|unique:partner_applications,mobile_number',
+                'email' => 'required|email',
+                'city' => 'required',
+                'full_address' => 'required',
+                'role' => 'required',
+                'brand_name' => 'required',
+                'active_clients' => 'required',
+                'bank_name' => 'required',
+                'ifsc_code' => 'required',
+                'account_number' => 'required',
+                'promotion_plan' => 'required',
+                'social_links' => 'required',
+                'active_followers' => 'required',
+                'contact_method' => 'required',
+                'agree_terms' => 'required',
+            ]);
+            $otp = rand(1111, 9999);
+            $otp = 1234;
+
+            session(['otp_' . $request->mobile => $otp]);
+
+            // Send via SMS API
+            // Sms::send($request->mobile, "Your OTP is $otp");
+
+            return response()->json(['status' => true]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+
+            return response()->json([
+                'status' => false,
+                'errors' => $e->errors()
+            ]);
+        }
+
+    }
+
+    public function verifyOtp(Request $request)
+    {
+        $sessionOtp = session('otp_' . $request->mobile);
+
+        if ($sessionOtp == $request->otp) {
+            return response()->json(['status' => true]);
+        }
+
+        return response()->json(['status' => false]);
+    }
+
+    public function submit_partner_form(Request $request)
+    {
+        DB::table('partner_applications')->insert([
+            'full_name' => $request->full_name,
+            'mobile_number' => $request->mobile_number,
+            'email' => $request->email,
+            'city' => $request->city,
+            'full_address' => $request->full_address,
+            'role' => $request->role,
+            'brand_name' => $request->brand_name,
+            'active_clients' => $request->active_clients,
+            'bank_name' => $request->bank_name,
+            'ifsc_code' => $request->ifsc_code,
+            'account_number' => $request->account_number,
+            'promotion_plan' => $request->promotion_plan,
+            'social_links' => $request->social_links,
+            'active_followers' => $request->active_followers,
+            'contact_method' => $request->contact_method,
+            'agree_terms' => $request->agree_terms,
+            'status' => 'Pending Review'
+        ]);
+
+        return response()->json(['status' => true]);
+    }
 }
