@@ -97,7 +97,7 @@
                                 <div class="order-info">
                                     <h3>{{$order->first_product_name??''}}</h3>
                                     {!! CustomHelper::getOrderStatus($order->id) !!}
-                                    <p>#NC{{$order->id??''}}</p>
+                                    <p>#{{$order->unique_id??''}}</p>
                                     <p>{{$order->order_date_time??''}}</p>
                                     <p class="order-price">₹ {{$order->total_amount??''}} • {{$order->count_order_items??''}} Items</p>
                                 </div>

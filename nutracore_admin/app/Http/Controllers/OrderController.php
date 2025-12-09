@@ -10,6 +10,7 @@ use App\Models\OrderItems;
 use App\Models\OrderStatus;
 use App\Models\ProductVarient;
 use App\Models\RazorpayOrders;
+use App\Models\StockLog;
 use App\Models\SubscriptionPlans;
 use App\Models\Subscriptions;
 use App\Models\User;
@@ -25,6 +26,8 @@ use Illuminate\Http\Request;
 use Storage;
 use Validator;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Response;
+
 
 class OrderController extends Controller
 {
@@ -48,7 +51,11 @@ class OrderController extends Controller
         $vendor_id = $request->vendor_id ?? '';
         $orderID = $request->orderID ?? '';
         $date = $request->date ?? '';
+        $status = $request->status ?? '';
+        $pos_cancel_type = $request->pos_cancel_type ?? '';
+        $order_from = $request->order_from ?? '';
         $agent_id = $request->agent_id ?? '';
+        $payment_method = $request->payment_method ?? '';
         $orders = Order::where('is_delete', 0)->orderBy('id', 'desc');
         if (!empty($order_status)) {
             $orders->where('status', $order_status);
@@ -56,11 +63,23 @@ class OrderController extends Controller
         if (!empty($search)) {
             $orders->where('id', $search);
         }
+        if (!empty($pos_cancel_type)) {
+            $orders->where('pos_cancel_type', $pos_cancel_type);
+        }
+        if (!empty($order_from)) {
+            $orders->where('order_from', $order_from);
+        }
         if (!empty($vendor_id)) {
             $orders->where('vendor_id', $vendor_id);
         }
+        if (!empty($status)) {
+            $orders->where('status', $status);
+        }
         if (!empty($agent_id)) {
             $orders->where('agent_id', $agent_id);
+        }
+        if (!empty($payment_method)) {
+            $orders->where('payment_method', $payment_method);
         }
         if (!empty($date)) {
             //            $orders->whereDate('delivery_date',$date);
@@ -111,6 +130,26 @@ class OrderController extends Controller
         OrderItems::where('id', $items_id)->where('order_id', $order_id)->update(['is_delete' => 1]);
         $this->updateOrder($order_id);
         echo 1;
+    }
+
+    public function delete(Request $request)
+    {
+
+        //prd($request->toArray());
+
+        $id = (isset($request->id)) ? $request->id : 0;
+
+        $is_delete = '';
+
+        if (is_numeric($id) && $id > 0) {
+            $is_delete = Order::where('id', $id)->update(['is_delete' => 1]);
+        }
+
+        if (!empty($is_delete)) {
+            return back()->with('alert-success', 'Order has been deleted successfully.');
+        } else {
+            return back()->with('alert-danger', 'something went wrong, please try again...');
+        }
     }
 
     public function update_items(Request $request)
@@ -322,21 +361,23 @@ class OrderController extends Controller
         $orderID = $request->id;
         $orders = Order::where('id', $orderID)->first();
         $seller_details = Vendors::where('id', $orders->id)->first();
-        if($orders->status == "DELIVERED"){
+        if ($orders->status == "DELIVERED") {
 //            CustomHelper::generateInvoiceNo();
         }
         $data = [
             'orders' => $orders,
             'seller_details' => $seller_details
         ];
-//        return view('orders.saleinvoice_a4_new', $data);
         $pdf = Pdf::loadView('orders.saleinvoice_a4_new', $data)
             ->setPaper('a4')->setOptions([
                 'isRemoteEnabled' => true, // <-- enable remote images
             ]);
         $filename = 'Invoice_order_' . rand(111, 999999) . time() . '.pdf';
 
-        return $pdf->stream($filename);
+        return Response::make($pdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => "inline; filename=\"{$filename}\""
+        ]);
     }
 
     public function get_varients(Request $request)
@@ -393,6 +434,7 @@ class OrderController extends Controller
 
     public function update_order_status(Request $request)
     {
+        $message = '';
         $status = $request->status ?? '';
         $order_id = $request->order_id ?? '';
         $item_id = $request->item_id ?? '';
@@ -502,12 +544,69 @@ class OrderController extends Controller
             $this->creditNcCash($order);
 
             CustomHelper::orderDelivered($user->phone ?? '', $order_id);
+            CustomHelper::sendInvoiceWP($user, $order);
+            $event = 'Order Delivered';
+            $traits = [
+
+            ];
+            CustomHelper::trackEvent($user->id, $event, $traits);
         }
         if ($status == 'CANCEL') {
             $user = User::where('id', $order->userID)->first();
             CustomHelper::orderCancelled($user->phone ?? '', $order_id);
         }
-        echo 1;
+
+        $order = Order::where('id', $order_id)->first();
+        if (!empty($order)) {
+            if (!empty($order->vendor_id) && $status == "CONFIRM" && $order->stock_update == 0) {
+                $this->updateStock($order_id);
+            }
+        }
+        return json_encode(['message' => $message]);
+    }
+
+    public function updateStock($order_id)
+    {
+        $order = Order::find($order_id);
+        if (!empty($order)) {
+            $order_items = OrderItems::where('order_id', $order_id)->get();
+            if (!empty($order_items)) {
+                foreach ($order_items as $order_item) {
+                    $product_id = $order_item->product_id ?? '';
+                    $variant_id = $order_item->variant_id ?? '';
+                    $qty = $order_item->qty ?? '';
+                    $exist = DB::table('stock_batches')->where('product_id', $product_id)->where('store_id',$order->vendor_id);
+                    if (!empty($variant_id)) {
+                        $exist->where('variant_id', $variant_id);
+                    }
+                    $exist = $exist->where('quantity', '>', 0)->orderBy('mfg_date', 'ASC')->first();
+
+                    if (!empty($exist)) {
+                        if ((int)$exist->quantity >= (int)$qty) {
+                            $new_qty = (int)$exist->quantity - (int)$qty;
+                            DB::table('stock_batches')->where('id', $exist->id)->update(['quantity' => $new_qty]);
+                            StockLog::create([
+                                'product_id' => $product_id,
+                                'variant_id' => $variant_id,
+                                'store_id' => $exist->store_id ?? '',
+                                'action' => "sale",
+                                'quantity' => $qty,
+                                'closing_stock' => $new_qty,
+                                'related_id' => 0,
+                                'related_type' => "Sale",
+                                'created_by' => auth()->id(),
+                                'order_id' => $order_id,
+                            ]);
+                        } else {
+
+                        }
+                    }
+                }
+            }
+            $order->stock_update = 1;
+            $order->save();
+        }
+
     }
 
     public function updateSubscription($order, $user)
@@ -530,7 +629,7 @@ class OrderController extends Controller
                 $txn_id = "NC" . rand(111111, 9999999);
                 $subsc = new Subscriptions();
                 $subsc->user_id = $user->id ?? '';
-                $subsc->subscription_id = $exist->subscription_id ?? '';
+                $subsc->subscription_id = $subscription_plans->subscription_id ?? '';
                 $subsc->txn_id = $txn_id ?? '';
                 $subsc->paid_status = 1;
                 $subsc->taken_by = "Self";
@@ -580,6 +679,11 @@ class OrderController extends Controller
         $dbArray1['paid_by'] = 'order';
         $dbArray1['orderID'] = 0;
         CustomHelper::SaveTransaction($dbArray1);
+        $event = 'NC Cash Earned';
+        $traits = [
+            "nc_cash_earned" => $amount
+        ];
+        CustomHelper::trackEvent($user->id, $event, $traits);
     }
 
 
@@ -592,7 +696,7 @@ class OrderController extends Controller
             $exist_subscription = Subscriptions::where('user_id', $user->id)->where('paid_status', 1)->latest()->first();
             if (!empty($exist_subscription)) {
                 $current_date = date('Y-m-d');
-                if (strtotime($user->end_date) >= strtotime($current_date)) {
+                if (strtotime($user->subscription_end) >= strtotime($current_date)) {
                     $is_active = 1;
                 }
             }
@@ -601,27 +705,20 @@ class OrderController extends Controller
         $type = ($is_active == 1) ? 'subscribe' : 'not_subscribe';
         \DB::enableQueryLog(); // Enable query log
 
+        $total_order_amount = Order::where('userID', $user->id)->where('status', 'DELIVERED')->sum('total_amount');
         $active_loyalty = DB::table('loyality_system')
             ->where('status', 1)
-            ->where('type', $type)
             ->where('is_delete', 0)
-            ->where(function ($q) use ($amount) {
-                $q->where(function ($q2) use ($amount) {
-                    $q2->where('from_amount', '<=', $amount)
-                        ->where('to_amount', '>=', $amount);
-                })->orWhere(function ($q3) use ($amount) {
-                    $q3->where('from_amount', '<=', $amount)
-                        ->whereNull('to_amount');
-                });
+            ->where('type', $type)
+            ->where('from_amount', '<=', $total_order_amount)
+            ->where(function ($q) use ($total_order_amount) {
+                $q->where('to_amount', '>=', $total_order_amount)
+                    ->orWhereNull('to_amount'); // for open-ended slabs like Platinum
             })
-            ->orderBy('from_amount', 'ASC')
+            ->orderBy('from_amount', 'desc') // pick the highest matching tier
             ->first();
         if (!empty($active_loyalty)) {
-            $amount = round(($amount * (int)$active_loyalty->cashback) / 100);
-            if ((int)$amount >= (int)$active_loyalty->max_cashback) {
-                $amount = $active_loyalty->max_cashback ?? 0;
-            }
-            return $amount;
+            return round(((int)$amount * (int)$active_loyalty->cashback) / 100);
         }
         return 0;
 
@@ -932,11 +1029,13 @@ class OrderController extends Controller
 
     public function book_envia_shipment(Request $request)
     {
+
         $id = $request->id ?? '';
         $service = $request->service ?? '';
         $courier = $request->courier ?? '';
         $price = $request->price ?? '';
         $carrier = $request->carrier ?? '';
+
         $delivery_date = $request->delivery_date ?? '';
         $order_courier = DB::table('order_courier')->where('order_id', $id)->first();
         if (!empty($order_courier)) {
@@ -947,13 +1046,15 @@ class OrderController extends Controller
             $dbArray['delivery_date'] = $delivery_date;
             $dbArray['courier'] = $courier;
             $dbArray['carrier'] = $carrier;
+
             ////Book Shipment
             $shipment_data = CustomHelper::bookShipmentEnvia($orders, $carrier, $service);
             if (!empty($shipment_data)) {
-
+                DB::table('order_courier')->where('order_id', $id)->update(['envia_data' => json_encode($shipment_data)]);
                 $error = $shipment_data->error ?? '';
                 if (empty($error)) {
-                    $dbArray['trackingNumber'] =  $shipment_data['data'][0]['trackingNumber'] ??'';
+
+                    $dbArray['trackingNumber'] = $shipment_data->data[0]->trackingNumber ?? '';
                     $dbArray['envia_data'] = json_encode($shipment_data);
                 }
             }

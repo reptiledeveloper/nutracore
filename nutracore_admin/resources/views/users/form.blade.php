@@ -10,6 +10,7 @@
     $email = $users->email ?? '';
     $phone = $users->phone ?? '';
     $status = $users->status ?? 1;
+    $is_ban = $users->is_ban ?? 0;
 
     $categories = \App\Helpers\CustomHelper::getCategories();
     $vendors = \App\Helpers\CustomHelper::getVendors();
@@ -78,6 +79,13 @@
                                     <label for="validationCustom01" class="form-label">Image</label>
                                     <input type="file" class="form-control" placeholder="Name" name="image"
                                            value="">
+                                </div>
+                                <div class="form-group col-md-6 mt-3">
+                                    <label for="validationCustom01" class="form-label">Is Ban</label>
+                                    <select class="form-control" name="is_ban">
+                                        <option value="1" {{$is_ban == 1 ?"selected":""}}>Yes</option>
+                                        <option value="0" {{$is_ban == 0 ?"selected":""}}>No</option>
+                                    </select>
                                 </div>
                                 <div class="form-group col-md-6 mt-3">
                                     <label for="userName" class="form-label">Status<span

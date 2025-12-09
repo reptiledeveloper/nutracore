@@ -16,6 +16,8 @@ return [
         'OUT_FOR_DELIVERY' => 'OUT_FOR_DELIVERY',
         //'SHIPPED' => 'SHIPPED',
         'DELIVERED' => 'DELIVERED',
+        'RETURN' => 'RETURN',
+        'EXCHANGE' => 'EXCHANGE',
     ],
     'home_styles_arr' => [
         'navBar' => 'navBar',

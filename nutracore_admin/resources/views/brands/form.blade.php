@@ -14,9 +14,10 @@
     $status = isset($brands->status) ? $brands->status : 1;
     $image = isset($brands->brand_img) ? $brands->brand_img : '';
     $certificate = isset($brands->certificate) ? $brands->certificate : '';
+    $is_popular = isset($brands->is_popular) ? $brands->is_popular : 0;
     $image = \App\Helpers\CustomHelper::getImageUrl('brands', $image);
     $vendors = \App\Helpers\CustomHelper::getVendors();
-    $multiple_images = \App\Helpers\CustomHelper::getCategoryBrandImages($brands_id,'brand');
+    $multiple_images = \App\Helpers\CustomHelper::getCategoryBrandImages($brands_id, 'brand');
     ?>
 
     <div class="content ">
@@ -72,16 +73,19 @@
                                 </div>
                                 <div class="form-group col-md-6 mt-3">
                                     <label for="validationCustom01" class="form-label">Name</label>
-                                    <input type="text" class="form-control" name="brand_name" value="{{ old('brand_name', $brand_name) }}">
+                                    <input type="text" class="form-control" name="brand_name"
+                                           value="{{ old('brand_name', $brand_name) }}">
                                     @include('snippets.errors_first', ['param' => 'brand_name'])
                                 </div>
                                 <div class="form-group col-md-6 mt-3">
                                     <label for="validationCustom01" class="form-label">Priority</label>
-                                    <input type="number" class="form-control" name="priority" value="{{ old('priority', $priority) }}">
+                                    <input type="number" class="form-control" name="priority"
+                                           value="{{ old('priority', $priority) }}">
                                     @include('snippets.errors_first', ['param' => 'priority'])
                                 </div>
                                 <div class="form-group col-md-6 mt-3">
-                                    <label for="validationCustom01" class="form-label">Banners (Multiple) : (max 2MB, MinSize : 300 to Max Size: 2000)</label>
+                                    <label for="validationCustom01" class="form-label">Banners (Multiple) : (max 2MB,
+                                        MinSize : 300 to Max Size: 2000)</label>
                                     <input type="file" class="form-control" placeholder="Name" name="banners[]"
                                            multiple accept="image/*">
 
@@ -89,6 +93,16 @@
 
 
                                 </div>
+                                <div class="form-group col-md-6 mt-3">
+                                    <label for="validationCustom01" class="form-label">Is Footer</label>
+                                    <select class="form-control" name="is_popular">
+                                        <option value="" selected>Select</option>
+                                        <option value="1" {{$is_popular	==1?"selected":""}}>Yes</option>
+                                        <option value="0" {{$is_popular	==0?"selected":""}}>No</option>
+                                    </select>
+                                </div>
+
+
                                 <div class="form-group col-md-6 mt-3">
                                     <label for="userName" class="form-label">Status<span
                                             class="text-danger">*</span></label>

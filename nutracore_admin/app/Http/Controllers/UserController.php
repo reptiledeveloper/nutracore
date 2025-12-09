@@ -45,6 +45,7 @@ class UserController extends Controller
     {
         $search = $request->search ?? '';
         $type = $request->type ?? '';
+        $is_ban = $request->is_ban ?? '';
         $users = User::where('is_delete', 0)->latest();
         if (!empty($search)) {
             $users->where('name', 'like', '%' . $search . '%');
@@ -52,6 +53,9 @@ class UserController extends Controller
         }
         if(!empty($type)){
             $users->where('type',$type);
+        }
+        if(isset($is_ban)){
+            $users->where('is_ban',$is_ban);
         }
         $users = $users->paginate(20);
         $data['users'] = $users;
@@ -415,6 +419,7 @@ class UserController extends Controller
                 'last_visited' => !empty($order->created_at) ? date('Y-m-d h:i A',strtotime($order->created_at)) : "",
                 'lat_bill_amount' => $order->total_amount??0,
                 'cashback_wallet' => $user->cashback_wallet,
+                'credit_balance' => $user->credit_balance,
                 'subscription_end' => $user->subscription_end,
                 'total_spent' => $customer_subs_data['total_spent'] ?? 0,
                 'membership_status' => $customer_subs_data['membership_status'] ?? '',

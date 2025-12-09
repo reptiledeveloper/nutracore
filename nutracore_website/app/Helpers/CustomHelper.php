@@ -22,6 +22,7 @@ use App\Models\DocumentRequired;
 use App\Models\EventImages;
 use App\Models\FAQ;
 use App\Models\Manufacturer;
+use App\Models\Offers;
 use App\Models\Order;
 use App\Models\OrderItems;
 use App\Models\OrderStatus;
@@ -44,6 +45,7 @@ use App\Models\State;
 use App\Models\SubscriptionOrder;
 use App\Models\SubscriptionPlans;
 use App\Models\Subscriptions;
+use App\Models\Suppliments;
 use App\Models\Tags;
 use App\Models\Transaction;
 use App\Models\User;
@@ -102,13 +104,15 @@ class CustomHelper
 
     public static function checkWishlist($user_id, $productID, $varientID)
     {
+
         $exist = Wishlist::where('user_id', $user_id)->where('product_id', $productID)->where('varient_id', $varientID)->first();
         if (!empty($exist)) {
-            return 1;
+            return self::getI();
         } else {
             return 0;
         }
     }
+
 
 
     public static function getBannerData($type)
@@ -592,8 +596,82 @@ class CustomHelper
         }
         return $optionArr;
     }
+    public static function getRazorpayKeys()
+    {
+        $settings = DB::table('settings')->first();
+        $keys = [];
+        if (!empty($settings)) {
+            if ($settings->is_live == 0) {
+                $keys['key'] = $settings->razorpay_key_test ?? '';
+                $keys['secret'] = $settings->razorpay_secret_test ?? '';
+            } else {
+                $keys['key'] = $settings->razorpay_key_live ?? '';
+                $keys['secret'] = $settings->razorpay_secret_live ?? '';
+            }
+        }
+        return $keys;
+    }
+    public static function getAdminProductSingleVarients($product_id, $varient_id)
+    {
+        $varients = ProductVarient::where('product_id', $product_id)->where('id', $varient_id)->where('is_delete', 0)->first();
+        return $varients;
+    }
 
+    public static function sendPlaceNewOrder($mobile, $orderID)
+    {
+        $user_name = "User";
+        $curl = curl_init();
+        curl_setopt_array($curl, [
+            CURLOPT_URL => "https://api.msg91.com/api/v5/flow/",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => "{\n  \"flow_id\": \"68ce4f9c91b086526c237d03\",\n  \"sender\": \"NUTRCR\",\n  \"mobiles\": \"91$mobile\",\n  \"var1\": \"$orderID\"}",
+            CURLOPT_HTTPHEADER => [
+                "authkey: 431621ABncLfiKpzo6875ff9bP1",
+                "content-type: application/JSON"
+            ],
+        ]);
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        curl_close($curl);
+        return $response;
 
+    }
+    public static function trackEvent($user_id,$event,$traits)
+    {
+
+        $data = [
+            'userId' => $user_id,
+            'event' => $event,
+            'traits' => $traits
+        ];
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://api.interakt.ai/v1/public/track/events/',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => json_encode($data),
+            CURLOPT_HTTPHEADER => array(
+                'Authorization: Basic UHRmVkdXamE3NVYzQmFRYVhaZjVPaW1TbEk0QllKbUx3eTc1WTlEeFp6VTo=',
+                'Content-Type: application/json'
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        return $response;
+
+    }
     public static function loginShipRocket()
     {
         $curl = curl_init();
@@ -608,8 +686,8 @@ class CustomHelper
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_POSTFIELDS => '{
-    "email": "nutracore.in@gmail.com",
-    "password": "Nutra@5115"
+    "email": "nutracore.in+swiggyminis@gmail.com",
+    "password": "Ov7&vq!%o6rK9SBM"
 }',
             CURLOPT_HTTPHEADER => array(
                 'Content-Type: application/json'
@@ -641,7 +719,7 @@ class CustomHelper
     "pickup_postcode": "110085",
     "delivery_postcode": ' . $pincode . ',
     "weight": "1",
-    "cod": "1"
+    "cod": "0"
 }',
             CURLOPT_HTTPHEADER => array(
                 'Content-Type: application/json',
@@ -1136,7 +1214,7 @@ class CustomHelper
             ->where('to_amount', '>=', $amount)
             ->first();
         if (!empty($active_loyalty)) {
-            return round(($amount * (int)$active_loyalty->cashback) / 100);
+            return round(((int)$amount * (int)$active_loyalty->cashback) / 100);
         }
         return 0;
 
@@ -1164,12 +1242,9 @@ class CustomHelper
     public static function checkSubscription($user)
     {
         $is_active = 0;
-        $exist_subscription = Subscriptions::where('user_id', $user->id)->where('paid_status', 1)->latest()->first();
-        if (!empty($exist_subscription)) {
-            $current_date = date('Y-m-d');
-            if (strtotime($user->subscription_end) >= strtotime($current_date)) {
-                $is_active = 1;
-            }
+        $current_date = date('Y-m-d');
+        if (strtotime($user->subscription_end) >= strtotime($current_date)) {
+            $is_active = 1;
         }
         return $is_active;
     }
@@ -1220,10 +1295,14 @@ class CustomHelper
         $image = '';
         $user_data = User::find($user_id);
         $cart_qty = 0;
+        $cartValue = [];
+        $cart_list = [];
         $tips = $request->tips ?? 0;
         $cart_list = Cart::where('user_id', $user_id)->get();
         if (!empty($cart_list)) {
             foreach ($cart_list as $cart) {
+                $cart->type = $request->type ?? 'normal';
+                $cart->save();
                 $is_available = 0;
                 $product = ProductVarient::where('product_id', $cart->product_id)->where('id', $cart->variant_id)->first();
                 $product_data = Product::where('id', $cart->product_id)->first();
@@ -1308,6 +1387,7 @@ class CustomHelper
                 $discount = (int)$mrp - (int)$selling_price;
                 $total_discount = (int)$cart->qty * (int)$discount;
                 $dbArray['total_price'] = $total_cart_price;
+                $dbArray['type'] = $cart->type ?? '';
                 $cartArr[] = $dbArray;
                 $cart_total += $total_cart_price;
                 $cart_discount += $total_discount;
@@ -1365,6 +1445,7 @@ class CustomHelper
         $cartValue['surge_fee'] = $surge_fee;
         $cartValue['platform_fee'] = $platform_fee;
         $cartValue['image'] = $image;
+
         if (empty($coupon_code)) {
             return [
                 'result' => true,
@@ -1373,7 +1454,8 @@ class CustomHelper
                 'cart_list' => $cartArr,
             ];
         } else {
-            $offers = Offers::where('offer_code', $coupon_code)->where('is_active', 'Y')->whereDate('end_date', '>=', date('Y-m-d'))->first();
+            $offers = Offers::where('offer_code', $coupon_code)->where('status', 1)->whereDate('end_date', '>=', date('Y-m-d'))->first();
+
             if (!empty($offers)) {
                 // ✅ check usage limit
                 if (!empty($offers->no_of_times)) {
@@ -1401,86 +1483,86 @@ class CustomHelper
                     ];
                 }
 
-                // ✅ category restriction
-                if ($offers->category_restrictions != '0' && !empty($offers->category_ids)) {
-                    $offerCategoryIds = explode(',', $offers->category_ids);
-                    $cartCategoryIds = $cart_products_category;
-
-                    if ($offers->category_restrictions == '1') { // include only
-                        if (empty(array_intersect($cartCategoryIds, $offerCategoryIds))) {
-                            return [
-                                'result' => false,
-                                'message' => "Coupon not applicable for selected categories",
-                                'cartValue' => $cartValue,
-                                'cart_list' => $cartArr,
-                            ];
-                        }
-                    }
-                    if ($offers->category_restrictions == '2') { // exclude
-                        if (!empty(array_intersect($cartCategoryIds, $offerCategoryIds))) {
-                            return [
-                                'result' => false,
-                                'message' => "Coupon not applicable on these categories",
-                                'cartValue' => $cartValue,
-                                'cart_list' => $cartArr,
-                            ];
-                        }
-                    }
-                }
-
-                // ✅ product restriction
-                if ($offers->product_restrictions != '0' && !empty($offers->product_ids)) {
-                    $offerProductIds = explode(',', $offers->product_ids);
-                    $cartProductIds = $cart_products;
-
-                    if ($offers->product_restrictions == '1') { // include only
-                        if (empty(array_intersect($cartProductIds, $offerProductIds))) {
-                            return [
-                                'result' => false,
-                                'message' => "Coupon not applicable for selected products",
-                                'cartValue' => $cartValue,
-                                'cart_list' => $cartArr,
-                            ];
-                        }
-                    }
-                    if ($offers->product_restrictions == '2') { // exclude
-                        if (!empty(array_intersect($cartProductIds, $offerProductIds))) {
-                            return [
-                                'result' => false,
-                                'message' => "Coupon not applicable on these products",
-                                'cartValue' => $cartValue,
-                                'cart_list' => $cartArr,
-                            ];
-                        }
-                    }
-                }
-
-                // ✅ brand restriction
-                if ($offers->brand_restrictions != '0' && !empty($offers->brand_ids)) {
-                    $offerBrandIds = explode(',', $offers->brand_ids);
-                    $cartBrandIds = array_column($cartArr, 'brand_id');
-
-                    if ($offers->brand_restrictions == '1') { // include only
-                        if (empty(array_intersect($cartBrandIds, $offerBrandIds))) {
-                            return [
-                                'result' => false,
-                                'message' => "Coupon not applicable for selected brands",
-                                'cartValue' => $cartValue,
-                                'cart_list' => $cartArr,
-                            ];
-                        }
-                    }
-                    if ($offers->brand_restrictions == '2') { // exclude
-                        if (!empty(array_intersect($cartBrandIds, $offerBrandIds))) {
-                            return [
-                                'result' => false,
-                                'message' => "Coupon not applicable on these brands",
-                                'cartValue' => $cartValue,
-                                'cart_list' => $cartArr,
-                            ];
-                        }
-                    }
-                }
+//                // ✅ category restriction
+//                if ($offers->category_restrictions != '0' && !empty($offers->category_ids)) {
+//                    $offerCategoryIds = explode(',', $offers->category_ids);
+//                    $cartCategoryIds = $cart_products_category;
+//
+//                    if ($offers->category_restrictions == '1') { // include only
+//                        if (empty(array_intersect($cartCategoryIds, $offerCategoryIds))) {
+//                            return [
+//                                'result' => false,
+//                                'message' => "Coupon not applicable for selected categories",
+//                                'cartValue' => $cartValue,
+//                                'cart_list' => $cartArr,
+//                            ];
+//                        }
+//                    }
+//                    if ($offers->category_restrictions == '2') { // exclude
+//                        if (!empty(array_intersect($cartCategoryIds, $offerCategoryIds))) {
+//                            return [
+//                                'result' => false,
+//                                'message' => "Coupon not applicable on these categories",
+//                                'cartValue' => $cartValue,
+//                                'cart_list' => $cartArr,
+//                            ];
+//                        }
+//                    }
+//                }
+//
+//                // ✅ product restriction
+//                if ($offers->product_restrictions != '0' && !empty($offers->product_ids)) {
+//                    $offerProductIds = explode(',', $offers->product_ids);
+//                    $cartProductIds = $cart_products;
+//
+//                    if ($offers->product_restrictions == '1') { // include only
+//                        if (empty(array_intersect($cartProductIds, $offerProductIds))) {
+//                            return [
+//                                'result' => false,
+//                                'message' => "Coupon not applicable for selected products",
+//                                'cartValue' => $cartValue,
+//                                'cart_list' => $cartArr,
+//                            ];
+//                        }
+//                    }
+//                    if ($offers->product_restrictions == '2') { // exclude
+//                        if (!empty(array_intersect($cartProductIds, $offerProductIds))) {
+//                            return [
+//                                'result' => false,
+//                                'message' => "Coupon not applicable on these products",
+//                                'cartValue' => $cartValue,
+//                                'cart_list' => $cartArr,
+//                            ];
+//                        }
+//                    }
+//                }
+//
+//                // ✅ brand restriction
+//                if ($offers->brand_restrictions != '0' && !empty($offers->brand_ids)) {
+//                    $offerBrandIds = explode(',', $offers->brand_ids);
+//                    $cartBrandIds = array_column($cartArr, 'brand_id');
+//
+//                    if ($offers->brand_restrictions == '1') { // include only
+//                        if (empty(array_intersect($cartBrandIds, $offerBrandIds))) {
+//                            return [
+//                                'result' => false,
+//                                'message' => "Coupon not applicable for selected brands",
+//                                'cartValue' => $cartValue,
+//                                'cart_list' => $cartArr,
+//                            ];
+//                        }
+//                    }
+//                    if ($offers->brand_restrictions == '2') { // exclude
+//                        if (!empty(array_intersect($cartBrandIds, $offerBrandIds))) {
+//                            return [
+//                                'result' => false,
+//                                'message' => "Coupon not applicable on these brands",
+//                                'cartValue' => $cartValue,
+//                                'cart_list' => $cartArr,
+//                            ];
+//                        }
+//                    }
+//                }
 
                 // ✅ apply discount
                 if ($offers->offer_type == 'FIXED') {
@@ -1515,9 +1597,35 @@ class CustomHelper
                         'cart_list' => $cartArr,
                     ];
                 }
+            } else {
+                return [
+                    'result' => false,
+                    'message' => "No Coupon Found Or Expired",
+                    'cartValue' => $cartValue,
+                    'cart_list' => $cartArr,
+                ];
             }
 
         }
+    }
+    public static function getPincodeDataEnvia($pincode)
+    {
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://geocodes.envia.com/zipcode/IN/' . $pincode,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'GET',
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+        return json_decode($response);
+
     }
 
     public static function GetUniqueSlug($tbl_name, $id_field, $row_id = '', $slug = '', &$num = '')
@@ -3589,6 +3697,14 @@ class CustomHelper
         return str_replace($basePath, '', $filePath);
     }
 
+    /**
+     * @return int
+     */
+    public static function getI(): int
+    {
+        return 1;
+    }
+
     function randomNumberOrder($qtd)
     {
         $Caracteres = '0123456789';
@@ -4024,5 +4140,38 @@ class CustomHelper
         return $response;
     }
 
+    public static function checkOutofStock($product_id, $variant_id = null)
+    {
+        // Default: in stock
+        $is_out_of_stock = 0;
+
+        if (!empty($variant_id)) {
+            // Product with a variant: sum stock for that variant
+            $stock = DB::table('stock_batches as sl')
+                ->where('sl.variant_id', $variant_id)
+                ->where('sl.product_id', $product_id)
+                ->where('sl.is_delete', 0)
+                ->select(DB::raw('COALESCE(SUM(sl.quantity), 0) as closing_stock'))
+                ->first();
+        } else {
+            // Product without variant: sum stock at product level
+            $stock = DB::table('stock_batches as sl')
+                ->where('sl.product_id', $product_id)
+                ->where(function ($q) {
+                    $q->whereNull('sl.variant_id')
+                        ->orWhere('sl.variant_id', 0);
+                })
+                ->where('sl.is_delete', 0)
+                ->select(DB::raw('COALESCE(SUM(sl.quantity), 0) as closing_stock'))
+                ->first();
+        }
+
+        // Check if out of stock
+        if (!$stock || $stock->closing_stock <= 0) {
+            $is_out_of_stock = 1; // Out of Stock
+        }
+
+        return $is_out_of_stock;
+    }
     /* End of helper class */
 }

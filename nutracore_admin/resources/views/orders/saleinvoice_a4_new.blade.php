@@ -161,10 +161,7 @@
 <div class="paper">
     <table class="noborder-table" style="width:100%; border-collapse:collapse; font-size:13px; margin-bottom:10px;">
         <tr>
-            <!-- Left Side: Logo + Company Info + Bill To / Ship To -->
             <td style="width:60%; vertical-align:top;">
-
-                <!-- Logo + Company Info -->
                 <table class="noborder-table" style="width:100%; border-collapse:collapse; margin-bottom:10px;">
                     <tr>
                         <td style="width:80px;">
@@ -229,7 +226,7 @@
             <th>#</th>
             <th> DESCRIPTION OF GOODS</th>
             <th>Qty</th>
-            <th>MRP</th>
+            <th>MRP/Selling Price</th>
             <th>TAXABLE</th>
             <th>DISCOUNT</th>
             <th> TAX</th>
@@ -271,7 +268,9 @@
                  $amountIncludingTax;
                  $taxableAmount = $amountIncludingTax / (1 + $taxRate/100);
                  $taxableAmount = round($taxableAmount);
-                 $tax_amount = (int)$value->price -(int) $taxableAmount;
+                 $taxableAmount = (int)$taxableAmount * (int)$value->qty;
+                 $tot_price = (int)$value->price * (int)$value->qty;
+                 $tax_amount = (int)$tot_price -(int) $taxableAmount;
              }
 
              if(!empty($varients)){
@@ -285,7 +284,7 @@
                 if($orders->is_subscribe == 1 ){
                       $sub_total+=(int)$product->product_subscription_price* (int)$value->qty;
                   }else{
-                      $sub_total+=(int)$product->selling_price* (int)$value->qty;
+                      $sub_total+=(int)$product->product_selling_price* (int)$value->qty;
                   }
              }
              $total_discount+=(int)$discount* (int)$value->qty;
@@ -294,14 +293,15 @@
              $sgst+=(int)$tax_amount/2;
              $igst+=(int)$tax_amount;
              $grand_total+=(int)$value->net_price;
-
+                $mrp_data = $value->mrp ?? $varients->mrp ?? 0;
             @endphp
             <tr>
                 <td>{{$i+1}}</td>
                 <td>{{ $product->name }}<br><small>{{ $varients->unit ??'' }} {{ $varients->unit_value ??'' }}</small>
                 </td>
                 <td class="qty">{{ $value->qty ??'' }}</td>
-                <td class="">₹ {{ $varients->mrp ??0}}</td>
+                <td class="">₹ {{ (int)$mrp_data * (int)$value->qty ??0}} /
+                    ₹ {{ (int)$value->price * (int)$value->qty ??0}}</td>
                 <td class="">₹ {{ $taxableAmount ??''}}</td>
                 <td class="">₹ {{$discount??0 }}</td>
                 <td class="">{{$product->tax??0 }} %</td>
@@ -362,7 +362,7 @@
 
                     <strong>Invoice Summary</strong>
                     <div>Sub Total: ₹{{ $sub_total }}</div>
-                    <div>Discount: -₹{{ $total_discount }}</div>
+                    <div>Discount: ₹{{ $total_discount }}</div>
                     <div>Taxable Value: ₹{{ $taxable_value }}</div>
                     <div>NC Cash: ₹{{ $orders->applied_cashback??0 }}</div>
                     <div>Flat Discount({{$orders->flat_discount_percent??0}} %):

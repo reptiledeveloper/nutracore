@@ -30,7 +30,8 @@
                         <h5 class="modal-title" id="exampleModalLabel">Import</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <form action="{{ route('stocks.update_closing_stock') }}" method="post" enctype="multipart/form-data">
+                    <form action="{{ route('stocks.update_closing_stock') }}" method="post"
+                          enctype="multipart/form-data">
                         @csrf
                         <div class="modal-body">
                             <div class="row">
@@ -84,13 +85,16 @@
                         </thead>
                         <tbody>
                         @forelse($stocks as $i => $stock)
+                            @php
+                                $closing_stock = \App\Helpers\CustomHelper::getClosingStock($stock->product_id??'',$stock->varient_id??'',$stock->vendor_id??'');
+                            @endphp
                             <tr>
                                 <td>{{ $stocks->firstItem() + $i }}</td>
-                                <td>{{ $stock->seller_name ??''}}</td>
+                                <td>{{ $stock->store_name ??''}}</td>
                                 <td>{{ $stock->sku??$stock->product_sku??'' }}</td>
                                 <td>{{ $stock->product_name ??''}}</td>
-                                <td>{{ $stock->unit ?? '-' }}</td>
-                                <td>{{ $stock->closing_stock }}</td>
+                                <td>{{ $stock->variant_name ?? '-' }}</td>
+                                <td>{{ $closing_stock??'' }}</td>
                             </tr>
                         @empty
                             <tr>

@@ -124,6 +124,23 @@ class ApiController extends Controller
                 Transaction::insert($dbArray);
             }
         }
+
+        CustomHelper::trackUser($exist);
+        if ($register == 1) {
+            $user_id = $exist->id ?? '';
+            $event = 'AppInstalled';
+            $traits = [
+                "phone" => $exist->phone
+            ];
+            CustomHelper::trackEvent($user_id, $event, $traits);
+
+            $event = 'UserSignedUp';
+            $traits = [
+                "phone" => $exist->phone
+            ];
+            CustomHelper::trackEvent($user_id, $event, $traits);
+        }
+
         $response = $this->send_message($phone, $otp);
 
 
@@ -168,17 +185,46 @@ class ApiController extends Controller
     {
         DB::table('new')->insert(['data' => json_encode($request->toArray())]);
         $response = $request->toArray();
-        if(!empty($response)){
-            $trackingNumber = $response->trackingNumber??'';
-            $status = $response->status??'';
-            $exist = DB::table('order_courier')->where('trackingNumber',$trackingNumber)->first();
-            if(!empty($exist)){
-                $order_id = $exist->order_id??'';
+        if (!empty($response)) {
+            $trackingNumber = $response->trackingNumber ?? '';
+            $status = $response->status ?? '';
+            $exist = DB::table('order_courier')->where('trackingNumber', $trackingNumber)->first();
+            if (!empty($exist)) {
+                $order_id = $exist->order_id ?? '';
                 $order = Order::find($order_id);
-                if(!empty($order)){
-                    if($status == 'Picked Up'){
-                        $order->status = 'CONFIRM';
+                $orderstatus = '';
+                if (!empty($order)) {
+                    if ($status == 'Picked Up') {
+                        $orderstatus = 'CONFIRM';
                     }
+                    if ($status == 'Shipped') {
+                        $orderstatus = 'CONFIRM';
+                    }
+                    if ($status == 'Delivered') {
+                        $orderstatus = 'DELIVERED';
+                        $event = 'Order Delivered';
+                        $traits = [
+
+                        ];
+                        CustomHelper::trackEvent($order->userID, $event, $traits);
+                    }
+                    if ($status == 'Canceled') {
+                        $orderstatus = 'CANCEL';
+                        $event = 'Order Canceled';
+                        $traits = [
+
+                        ];
+                        CustomHelper::trackEvent($order->userID, $event, $traits);
+                    }
+                    if ($status == 'Out for Delivery') {
+                        $orderstatus = 'OUT_FOR_DELIVERY';
+                    }
+                    if (!empty($orderstatus)) {
+                        $order->status = $orderstatus;
+                        $order->save();
+                        OrderItems::where('order_id', $order->id)->where('status', '!=', 'CANCEL')->update(['status' => $orderstatus]);
+                    }
+
                 }
             }
         }
@@ -680,6 +726,8 @@ class ApiController extends Controller
 
 
         $userData->is_open_suppliment_form = $is_open_suppliment_form;
+
+        CustomHelper::trackUser($userData);
         return response()->json([
             'result' => true,
             'message' => 'User Profile Updated Successfully',
@@ -1118,6 +1166,12 @@ class ApiController extends Controller
                                                 $data['paid_by'] = 'user';
                                                 $data['orderID'] = 0;
                                                 CustomHelper::saveTransaction($data);
+
+                                                $event = 'NutraPass Activated';
+                                                $traits = [
+
+                                                ];
+                                                CustomHelper::trackEvent($exist->user_id, $event, $traits);
                                             }
                                         }
                                     }
@@ -1191,8 +1245,7 @@ class ApiController extends Controller
                                             Transaction::where('id', $transaction_id)->update(['txn_no' => $txn_id]);
                                             /////Subscription Check/////////////
                                             if (!empty($order->subscription_id)) {
-                                                $order->is_subscribe = 1;
-                                                $order->save();
+
                                                 $subscription_start = $user->subscription_start ?? '';
                                                 $subscription_end = $user->subscription_end ?? '';
                                                 $subscription_plans = SubscriptionPlans::where('id', $order->subscription_id)->first();
@@ -1239,6 +1292,12 @@ class ApiController extends Controller
                                             self::updateNCCashAfterOrder($order_id);
                                             self::sendOrderNotification($exist->order_id ?? '');
                                             self::updateStock($order_id);
+
+                                            $event = 'Place Order';
+                                            $traits = [
+
+                                            ];
+                                            CustomHelper::trackEvent($user->id, $event, $traits);
                                         }
                                     }
                                 }
@@ -1429,7 +1488,7 @@ class ApiController extends Controller
                     if (!empty($exist)) {
                         if ((int)$exist->quantity <= (int)$qty) {
                             $new_qty = (int)$exist->quantity - (int)$qty;
-                            DB::table('stock_batches')->where('id', $exist->id)->update(['qty' => $new_qty]);
+                            DB::table('stock_batches')->where('id', $exist->id)->update(['quantity' => $new_qty]);
                             StockLog::create([
                                 'product_id' => $product_id,
                                 'variant_id' => $variant_id,
@@ -2390,6 +2449,32 @@ class ApiController extends Controller
             ->first();
     }
 
+    public function checkExpressEligible($user_id)
+    {
+        if (!empty($user_id)) {
+            $user = User::find($user_id);
+            $latitude = $user->latitude ?? '17.44757253036007';
+            $longitude = $user->longitude ?? '78.30504618870073';
+            if (!empty($user->addressID)) {
+                $address = UserAddress::where('id', $user->addressID)->first();
+                if (!empty($address)) {
+                    $latitude = $address->latitude ?? '17.44757253036007';
+                    $longitude = $address->longitude ?? '78.30504618870073';
+                }
+            }
+            $pincode = $user->pincode ?? '';
+            if (empty($pincode)) {
+                $pincode = $address->pincode ?? '';
+            }
+            $seller = self::getNearestSeller($latitude, $longitude, 2, 40);
+
+            if (!empty($seller)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public function getProductDetails($product_id, $user_id = null)
     {
         $user = [];
@@ -2626,7 +2711,7 @@ class ApiController extends Controller
             $exist_subscription = Subscriptions::where('user_id', $user->id)->where('paid_status', 1)->latest()->first();
             if (!empty($exist_subscription)) {
                 $current_date = date('Y-m-d');
-                if (strtotime($exist_subscription->end_date) >= strtotime($current_date)) {
+                if (strtotime($user->subscription_end) >= strtotime($current_date)) {
                     $is_active = 1;
 
                 }
@@ -2641,7 +2726,7 @@ class ApiController extends Controller
             ->where('to_amount', '>=', $amount)
             ->first();
         if (!empty($active_loyalty)) {
-            return round(($amount * (int)$active_loyalty->cashback) / 100);
+            return round(((int)$amount * (int)$active_loyalty->cashback) / 100);
         }
         return 0;
 
@@ -3082,6 +3167,11 @@ class ApiController extends Controller
         $variant_id = $request->variant_id ?? '';
         $qty = $request->qty ?? '';
         $product = Product::where('id', $product_id)->first();
+
+
+        $available_qty = CustomHelper::checkAvailableQty($product_id, $variant_id);
+
+
         if (!empty($product)) {
             $check_varient = CustomHelper::checkProductPrice($product_id, $variant_id);
             if (empty($check_varient) && $variant_id != 0) {
@@ -3096,6 +3186,12 @@ class ApiController extends Controller
             $dbArray['variant_id'] = $variant_id;
             $dbArray['user_id'] = $user->id;
             $dbArray['qty'] = $qty;
+            if ((int)$qty > (int)$available_qty) {
+                return response()->json([
+                    'result' => false,
+                    'message' => "Available " . $available_qty . ' Only',
+                ], 200);
+            }
             if (empty($exist)) {
                 if ($qty > 0) {
                     Cart::insert($dbArray);
@@ -3109,7 +3205,14 @@ class ApiController extends Controller
                 }
             }
         }
-
+        $user_id = $user->id;
+        $product = Product::where('id', $product_id)->first();
+        $event = 'Add to Cart';
+        $traits = [
+            "product_name" => $product->name ?? '',
+            "quantity" => $qty ?? '',
+        ];
+        CustomHelper::trackEvent($user_id, $event, $traits);
         return response()->json([
             'result' => true,
             'message' => "Successfully",
@@ -3273,8 +3376,9 @@ class ApiController extends Controller
         $slot_date = $request->slot_date ?? '';
         $subscription_id = $request->subscription_id ?? '';
         $slot_time = $request->slot_time ?? '';
-        $delivery_type = $request->delivery_type ?? '';
+        $delivery_type = $request->delivery_type ?? 'normal';
         $cart_data = CustomHelper::cartData($user->id, $coupon_code, $request, $user);
+
         $cartValue = $cart_data['cartValue'] ?? '';
         $cart_price = $cartValue['cart_price'] ?? '';
         $cart_products = $cartValue['cart_products'] ?? '';
@@ -3386,14 +3490,19 @@ class ApiController extends Controller
         if (!empty($user_address)) {
             $cart_price = $cartValue['cart_price'] ?? 0;
             // Express slot
-            $expressSlot = DB::table('delivery_charges')
-                ->where('type', 'express')
-                ->where('status', 1)
-                ->where('is_delete', 0)
-                ->whereRaw('? BETWEEN order_amount AND order_amount2', [$cart_price])
-                ->first();
+            $expressSlot = null;
 
-// Normal slot
+            $check = self::checkExpressEligible($user->id);
+            if ($check) {
+                $expressSlot = DB::table('delivery_charges')
+                    ->where('type', 'express')
+                    ->where('status', 1)
+                    ->where('is_delete', 0)
+                    ->whereRaw('? BETWEEN order_amount AND order_amount2', [$cart_price])
+                    ->first();
+            }
+
+
             $normalSlot = DB::table('delivery_charges')
                 ->where('type', 'normal')
                 ->where('status', 1)
@@ -3406,12 +3515,13 @@ class ApiController extends Controller
         }
         $subscription_plans = null;
         if (CustomHelper::checkSubscription($user) == 0) {
-            $subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->where('is_show', "0")->first();
+            //$subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->where('is_show', "0")->first();
         }
 
         $subscription_plans_new = [];
+
         if (CustomHelper::checkSubscription($user) == 0) {
-            $subscription_plans_new = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->orderBy('duration', "ASC")->get();
+            $subscription_plans_new = self::getMembershipPlans($user->id);
         }
 
         $delivery_details['delivery_time'] = 10;
@@ -3434,6 +3544,34 @@ class ApiController extends Controller
             'subscription_plans_new' => $subscription_plans_new,
             'is_subscribe' => CustomHelper::checkSubscription($user),
         ], 200);
+    }
+
+
+    public function getMembershipPlans($user_id)
+    {
+        if (empty($user_id)) {
+            $cartValue['message'] = "User ID is required";
+            return response()->json($cartValue, 200);
+        }
+        $user = User::where('id', $user_id)->first();
+        $subscription_plansArr = [];
+        if (CustomHelper::checkSubscription($user) == 0 && $user->is_ban == 0) {
+            $subscription_plans = SubscriptionPlans::where('is_delete', 0)->where('status', 1)->orderBy('duration', "ASC")->get();
+            if (!empty($subscription_plans)) {
+                foreach ($subscription_plans as $subs_plan) {
+                    if (!empty($subs_plan->max_applied_time)) {
+                        $exist_count = Subscriptions::where('user_id', $user_id)->where('subscription_id', $subs_plan->id)->count();
+                        if ($exist_count < $subs_plan->max_applied_time) {
+                            $subscription_plansArr[] = $subs_plan;
+                        }
+                    } else {
+                        $subscription_plansArr[] = $subs_plan;
+                    }
+                }
+            }
+        }
+
+        return $subscription_plansArr;
     }
 
     public function user_address(Request $request): \Illuminate\Http\JsonResponse
@@ -3659,6 +3797,7 @@ class ApiController extends Controller
     public function place_order(Request $request): \Illuminate\Http\JsonResponse
     {
 
+//        DB::table('new')->insert(['data'=>json_encode($request->toArray())]);
         $messages = [
             'address_id.not_in' => 'Please select a valid address.',
         ];
@@ -3694,7 +3833,7 @@ class ApiController extends Controller
             if (empty($address->landmark) || empty($address->pincode) || empty($address->latitude) || empty($address->longitude)) {
                 return response()->json([
                     'result' => false,
-                    'message' => 'Address Required',
+                    'message' => 'Please Add a New Address ! This is  Imcomplete Address',
                 ], 200);
             }
         } else {
@@ -3761,6 +3900,11 @@ class ApiController extends Controller
                             Cart::where('user_id', $user->id)->delete();
                         }
                         CustomHelper::sendPlaceNewOrder($user->phone ?? '', $order_id);
+                        $event = 'Place Order';
+                        $traits = [
+
+                        ];
+                        CustomHelper::trackEvent($user->id, $event, $traits);
                     }
                     if ($payment_method == 'ONLINE' || $payment_method == 'online') {
                         $wallet = $user->wallet ?? 0;
@@ -3785,6 +3929,11 @@ class ApiController extends Controller
                             self::sendOrderNotification($order_id);
                             Cart::where('user_id', $user->id)->delete();
                             CustomHelper::sendPlaceNewOrder($user->phone ?? '', $order_id);
+                            $event = 'Place Order';
+                            $traits = [
+
+                            ];
+                            CustomHelper::trackEvent($user->id, $event, $traits);
                         }
                     }
                     if ($payment_method == 'ONLINE' || $payment_method == 'online') {
@@ -4051,6 +4200,9 @@ class ApiController extends Controller
             $dbArray['tips'] = $request->tips ?? '';
             $dbArray['delivery_instruction'] = $request->delivery_instruction ?? '';
 
+            $dbArray['is_subscribe'] = CustomHelper::checkSubscription($user_data);
+
+
             $dbArray['status'] = 'PLACED';
             $dbArray['order_from'] = 'APP';
             if ($payment_method == 'COD') {
@@ -4135,7 +4287,7 @@ class ApiController extends Controller
             }
         }
 
-        if($payment_method == 'COD'){
+        if ($payment_method == 'COD') {
             self::updateStock($order_id);
         }
         self::updateOrderStatus($order_id, "PLACED");
@@ -4164,6 +4316,8 @@ class ApiController extends Controller
             Transaction::where('id', $transaction_id)->update(['txn_no' => "NC" . rand(111111, 9999999999)]);
             CustomHelper::Redeeming_NC_Cash($user_data->phone, $order->applied_cashback ?? '', $new_wallet ?? '');
         }
+
+
     }
 
     public function sendOrderNotification($order_id)
@@ -4341,7 +4495,8 @@ class ApiController extends Controller
         $ordersArr = [];
         $seller_details = [];
         $order_id = $request->order_id ?? '';
-        $orders = Order::where('userID', $user->id)->where('id', $order_id)->where('is_delete', 0)->first();
+//        $orders = Order::where('userID', $user->id)->where('id', $order_id)->where('is_delete', 0)->first();
+        $orders = Order::where('id', $order_id)->where('is_delete', 0)->first();
         if (!empty($orders)) {
             $order_items = CustomHelper::getOrderItemsWithProduct($orders->id);
             if (!empty($order_items)) {
@@ -4385,6 +4540,7 @@ class ApiController extends Controller
             if (!empty($order_courier)) {
                 if ($order_courier->logistics == 'envia') {
                     $orde = json_decode($order_courier->envia_data ?? '');
+                    $orde = $orde->data[0] ?? '';
                     $order_courierArr['shipmentId'] = $orde->shipmentId ?? '';
                     $order_courierArr['trackingNumber'] = $orde->trackingNumber ?? '';
                     $order_courierArr['trackUrl'] = $orde->trackUrl ?? '';

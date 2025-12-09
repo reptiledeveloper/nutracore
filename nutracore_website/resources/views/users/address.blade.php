@@ -6,7 +6,69 @@
 
     $user = Auth::user();
     ?>
+    <style>
 
+        .address-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 15px;
+        }
+
+        .address-card {
+            background: #f0fbfc;
+            border: 1px solid #00b3b3;
+            border-radius: 10px;
+            padding: 15px;
+            transition: 0.3s ease;
+            position: relative;
+        }
+
+        .address-card.active {
+            box-shadow: 0 0 10px rgba(0, 180, 180, 0.4);
+            border: 2px solid #00b3b3;
+        }
+
+
+        .address-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .address-type {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .address-type input[type="radio"] {
+            accent-color: #00b3b3;
+            transform: scale(1.2);
+        }
+
+        .edit-icon {
+            color: #00b3b3;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .deliver-btn {
+            width: 100%;
+            background-color: #00b3b3;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 0;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+
+        .deliver-btn:hover {
+            background-color: #009999;
+        }
+
+    </style>
     <main class="main pages">
         <div class="page-header breadcrumb-wrap">
             <div class="container">
@@ -19,22 +81,33 @@
         <div class="page-content pb-150">
             <div class="container">
                 <div class="row">
-                    <div class="list-group mb-4">
+                    <div class="address-list" id="address-list">
                         @foreach($user->addresses ?? [] as $address)
                             @php
-                                $selected = ($address->id == $user->addressID) ? "selected" : "";
+                                $selected = ($address->id == $user->addressID);
                             @endphp
-                            <label class="list-group-item address-item d-flex justify-content-between align-items-start  mt-3 {{ $selected }}" data-id="{{ $address->id }}">
-                                <div>
-                                    <strong>{{ $address->address_type ?? "Others" }}</strong><br>
-                                    <small>{{ $address->flat_no ?? '' }}, {{ $address->building_name ?? '' }}, {{ $address->landmark ?? '' }} - {{ $address->pincode ?? '' }}</small><br>
-                                    <small>{{ $address->location ?? '' }}</small>
+                            <div class="address-card {{ $selected ? 'active' : '' }}" data-id="{{ $address->id }}">
+                                <div class="address-details">
+                                    <p class="address-text mb-2">
+                                        {{ $address->flat_no ?? '' }} {{ $address->building_name ?? '' }},
+                                        {{ $address->landmark ?? '' }}<br>
+                                        {{ $address->location ?? '' }}<br>
+                                        {{ $address->city ?? '' }}, {{ $address->state ?? '' }}
+                                        , {{ $address->pincode ?? '' }}<br>
+                                        <strong>+91 {{ $address->contact_person_mobile ?? $user->phone??'' }}</strong>
+                                    </p>
                                 </div>
-                                <input class="form-check-input d-none" type="radio" name="selected_address" value="{{ $address->id }}" {{ $selected ? 'checked' : '' }}>
-                            </label>
+
+                                <div class="address-footer d-flex justify-content-between align-items-center mb-2">
+                                    <div class="address-type">
+                                        <label><strong>{{ ucfirst($address->address_type ?? 'Home') }}</strong></label>
+                                    </div>
+                                    <i class="fa fa-pencil edit-icon text-muted" style="cursor:pointer;"></i>
+                                </div>
+
+                                <a type="button" class="btn btn-primary deliver-btn address-list w-100">Deliver Here</a>
+                            </div>
                         @endforeach
-
-
                     </div>
                     <div class="col-12 text-center">
                         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addressModal">Add New Address</button>

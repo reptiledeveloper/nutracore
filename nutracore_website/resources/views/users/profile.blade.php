@@ -11,17 +11,6 @@
 
     ?>
     <style>
-        .membership-card {
-            display: flex;
-            align-items: center;
-            background-color: #fff7e6;
-            border-radius: 12px;
-            padding: 16px;
-            max-width: 500px;
-            margin: auto;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
         .card-section {
             flex: 1;
             display: flex;
@@ -59,6 +48,51 @@
             margin-left: auto;
             font-size: 20px;
             color: #d4a200;
+        }
+        .membership-card {
+            display: flex;
+            background: #fff7e1;
+            border-radius: 10px;
+            padding: 12px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .membership-card a {
+            width: 50%; /* 🔥 EXACT HALF */
+            text-decoration: none;
+        }
+
+        .card-section {
+            display: flex;
+            align-items: center;
+        }
+
+        .icon img {
+            width: 40px;
+            height: 40px;
+        }
+
+        .text {
+            margin-left: 12px;
+        }
+
+        .text .title {
+            font-weight: bold;
+            color: #d4a200;
+            font-size: 16px;
+        }
+
+        .text .subtitle {
+            color: #8c6d1f;
+            font-size: 12px;
+            line-height: 16px;
+        }
+
+        .divider {
+            width: 1px;
+            height: 50px;
+            background-color: #e0d4b8;
         }
 
     </style>
@@ -99,7 +133,43 @@
                                         <input type="file" id="profileImageInput" name="image" accept="image/*"
                                                class="d-none">
                                     </div>
-                                    <div class="row">
+
+                                    <div class="row mt-10">
+                                        <div class="membership-card">
+
+                                            <a href="{{route('nutrapass')}}">
+                                                <div class="card-section">
+                                                    <div class="icon">
+                                                        <img src="{{url('public/assets/member.svg')}}" alt="Gold Icon">
+                                                    </div>
+                                                    <div class="text">
+                                                        <div class="title">{{$active_loyality->title??''}}</div>
+                                                        <div class="subtitle">
+                                                            Valid till<br>
+                                                            {{date('d M Y',strtotime($user->subscription_end))}}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </a>
+
+                                            <div class="divider"></div>
+
+                                            <a href="{{route('nc_cash')}}">
+                                                <div class="card-section">
+                                                    <div class="icon">
+                                                        <img src="{{url('public/assets/coin.svg')}}" alt="Points Icon">
+                                                    </div>
+                                                    <div class="text">
+                                                        <div class="title">{{$user->cashback_wallet??0}}</div>
+                                                        <div class="subtitle">NC Cash</div>
+                                                    </div>
+                                                </div>
+                                            </a>
+
+                                        </div>
+                                    </div>
+
+                                    <div class="row mt-10">
                                         <div class="col-md-6 mb-2">
                                             <label>Name</label>
                                             <input type="text" name="name" class="form-control" placeholder="Name"
@@ -133,39 +203,7 @@
                             </div>
 
 
-                            <div class="row mt-10">
-                                <div class="membership-card">
-                                    <a href="">
-                                        <div class="card-section">
-                                            <div class="icon">
-                                                <img src="{{url('public/assets/member.svg')}}" alt="Gold Icon">
-                                            </div>
-                                            <div class="text">
-                                                <div class="title">{{$active_loyality->title??''}}</div>
-                                                <div class="subtitle">Membership
-                                                    till {{date('d M Y',strtotime($user->subscription_end))}}</div>
-                                            </div>
 
-                                        </div>
-                                    </a>
-
-                                    <div class="divider"></div>
-                                    <a href="{{route('nc_cash')}}">
-                                        <div class="card-section">
-                                            <div class="icon">
-                                                <img src="{{url('public/assets/coin.svg')}}" alt="Points Icon">
-                                            </div>
-                                            <div class="text">
-                                                <div class="title">{{$user->cashback_wallet??0}}</div>
-                                                <div class="subtitle">NC Points</div>
-                                            </div>
-
-                                        </div>
-                                    </a>
-                                </div>
-
-
-                            </div>
 
 
                         </div>

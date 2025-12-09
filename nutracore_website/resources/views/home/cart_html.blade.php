@@ -9,145 +9,553 @@
             </div>
         </div>
     </div>
+    @php
+
+        $cartValue = $cart_data['cartValue']??'';
+    //    print_r($cart_data);
+        $total_price  =$cartValue['total_price']??0;
+        $coupon_discount  =$cartValue['coupon_discount']??0;
+        $message  =$cartValue['message']??'';
+
+        $delivery_charge = $cartValue['delivery_charges']??0;
+        $subscription_amount = $cartValue['subscription_amount']??0;
+        $freebees_price = $cartValue['freebees_price']??0;
+        $total_cashback = $cartValue['total_cashback']??0;
+        $max_applied_cashback = $cartValue['max_applied_cashback']??0;
+        $freebees_product = $cart_data['freebees_product']??'';
+        $subscription_id = $cartValue['subscription_id']??'';
+        $total_discount = $cartValue['total_discount']??'';
+        $total_mrp_discount = $cartValue['total_mrp_discount']??'';
+        $nc_coins = $cart_data['nc_coins']??'';
+        $applied_cashback = $cartValue['applied_cashback']??'';
+
+        $delivery_data = $cart_data['delivery_data']??'';
+        $expressSlot = $delivery_data['expressSlot']??'';
+        $normalSlot = $delivery_data['normalSlot']??'';
+$total_product_price = 0;
+    @endphp
+
+    <style>
+        .cart-box {
+            border-radius: 12px;
+        }
+
+        .highlight-box {
+            font-size: 16px;
+        }
+
+        .btn-teal {
+            background: #00a8a5;
+        }
+
+        .btn-teal:hover {
+            background: #008f8c;
+        }
+
+        .quantity-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            border: 1px solid gray;
+            border-radius: 3px;
+        }
+
+        .freebie-details strong {
+            display: -webkit-box; /* Needed for line clamp */
+            -webkit-line-clamp: 3; /* Limit to 3 lines */
+            -webkit-box-orient: vertical; /* Needed for line clamp */
+            overflow: hidden; /* Hide the overflowing text */
+            text-overflow: ellipsis; /* Show ... at the end */
+            word-break: break-word; /* Break long words if needed */
+        }
+
+
+        .Right_sidr_section {
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            gap: 20px;
+        }
+
+        .quantity-box span {
+            font-size: 18px;
+        }
+
+        .cart_Images {
+            /*border: 2px solid #00a8a8;*/
+            height: 100px;
+            width: 100px;
+            border-radius: 5px;
+        }
+
+        .Product_Name_Price {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+
+        .product_Detail_name h6 {
+            font-weight: 600;
+        }
+
+        .Product_image_section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .Product_Section_Main {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .Delete_button {
+            display: none;
+        }
+
+        .desktop_main {
+            display: flex;
+            width: 100%;
+            gap: 10px
+        }
+
+        .Cart_Card_section_right_side {
+            height: 125px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            border: 1px solid rgb(110, 110, 110);
+            border-radius: 10px;
+            min-width: 250px;
+            padding: 10px;
+            flex-shrink: 0;
+        }
+
+        .Right_section_slider {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            scroll-behavior: smooth;
+            width: 100%;
+            white-space: nowrap;
+        }
+
+        .Right_section_slider::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        @media (max-width: 604px) {
+
+            .Product_Section_Main {
+                flex-wrap: wrap;
+            }
+
+            /* Align + - and Wishlist side-by-side */
+            .Right_sidr_section {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%; /* full width */
+                margin-top: 10px;
+                gap: 10px;
+            }
+
+            /* Quantity box smaller for mobile */
+            .quantity-box {
+                width: 60%;
+                padding: 6px 10px;
+            }
+
+            .product_Detail_name h5 {
+                font-size: 18px !important;
+            }
+
+            .product_Detail_name h6 {
+                font-size: 13px !important;
+            }
+
+            .cart_Images {
+                height: 100px;
+                width: 100px;
+                flex-shrink: 0 !important; /* 🔥 prevents image from shrinking */
+            }
+
+
+            .Delete_button {
+                display: block;
+            }
+
+            .Delete_desktop {
+                display: none;
+            }
+
+            .product_Detail_name {
+                flex: 1; /* 🔥 Text takes remaining space */
+                min-width: 0; /* Allows proper text wrap */
+            }
+
+            .product_Detail_name h5 {
+                display: -webkit-box;
+                -webkit-line-clamp: 2; /* max 2 lines */
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+        }
+
+        /* Default (Desktop / Large Screens) */
+        .Right_sidr_section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        /* Quantity box width stable across sizes */
+        .quantity-box {
+            min-width: 130px;
+            justify-content: center;
+        }
+
+        /* -------------------------------------------- */
+        /* MOBILE RESPONSIVE FIX (Corrected)            */
+        /* -------------------------------------------- */
+        @media (max-width: 604px) {
+
+            /* Make quantity + wishlist side-by-side */
+            .right-mobile-row {
+                flex-direction: row !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                width: 100%;
+                gap: 10px;
+                margin-top: 12px;
+            }
+
+            /* Quantity box shrinks properly on mobile */
+            .desktop_main {
+                width: auto !important;
+            }
+
+            .quantity-box {
+                padding: 6px 10px !important;
+                min-width: 100%;
+            }
+
+            /* Wishlist button adjusts size */
+            .btn-teal {
+                padding: 6px 12px !important;
+                white-space: nowrap;
+            }
+        }
+
+
+    </style>
+    <style>
+        .quantity-wrapper {
+            display: flex !important;
+            height: 45px !important;
+            align-items: center;
+            justify-content: space-between;
+            width: 130px;
+            padding: 6px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .quantity-btn {
+            width: 100%;
+            height: 32px;
+            border: none;
+            background: #f5f5f5;
+            border-radius: 6px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quantity-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .quantity-value {
+            height: 40px !important;
+
+            border: none;
+            font-size: 18px;
+            font-weight: 600;
+            outline: none;
+        }
+        .button-container,
+        .button-container1 {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 10px;
+            border-radius: 25px;
+            white-space: nowrap;
+        }
+
+
+    </style>
     @if(!empty($cart_products) && count($cart_products) > 0)
-        <div class="col-lg-8">
-            <div class="table-responsive shopping-summery">
-                <table class="table table-wishlist">
-                    <thead>
-                    <tr class="main-heading">
-                        <th class="custome-checkbox start pl-30">
+        <div class="col-md-8">
+            @foreach ($cart_products as $cart_product)
+                @php
+                    $varients = $cart_product->varients ?? '';
+                    $selectedVarient = isset($varients[0]) ? (object) $varients[0] : (object)[];
+                    $prototal_price = (int)$selectedVarient->qty * $selectedVarient->selling_price;
+                    $total_product_price += $prototal_price;
+                    $images = $selectedVarient->images ??'';
+                    $defaultImage = $images[0]['image'] ??url('public/assets/images/default.png');
+                @endphp
+                <div style="border:2px solid #00a8a8;padding:10px; border-radius: 10px;margin-top: 10px;">
+                    <div class="Product_Section_Main">
 
-                        </th>
-                        <th scope="col" colspan="2">Product</th>
-                        <th scope="col">Unit Price</th>
-                        <th scope="col">Quantity</th>
-                        <th scope="col">Subtotal</th>
-                        <th scope="col" class="end">Remove</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        $total_product_price = 0;
-                        $delivery_charge = 0;
-                        $total_price = 0;
+                        <div class="Product_image_section">
+                            <div class="cart_Images"><img src="{{ $defaultImage }}"
+                                                          alt="{{ $cart_product->name ?? '' }}"></div>
 
-                        ?>
-                    @foreach ($cart_products as $cart_product)
-                        @php
-                            $varients = $cart_product->varients ?? '';
-                            $selectedVarient = isset($varients[0]) ? (object) $varients[0] : (object)[];
-                            $prototal_price = (int)$selectedVarient->qty * $selectedVarient->selling_price;
-                            $total_product_price += $prototal_price;
-                            $images = $selectedVarient->images ??'';
-$defaultImage = $images[0]['image'] ??url('public/assets/images/default.png');
-                        @endphp
-                        <tr class="pt-30">
-                            <td class="custome-checkbox pl-30">
+                            <div class="product_Detail_name">
+                                <h5 class="fw-bold" style="color:#008f8c;font-weight: 600;"
+                                    onclick="window.location.href='{{ url('products/' . $cart_product->slug ?? '') }}'">  {{ $cart_product->name ?? '' }}</h5>
+                                <h6 class="fw-bold" style="color: #898a8a;">{{ $selectedVarient->unit ?? '' }}</h6>
 
-                            </td>
-                            <td class="image product-thumbnail pt-40"><img src="{{ $defaultImage }}"
-                                                                           alt="#"></td>
-                            <td class="product-des product-name">
-                                <h6 class="mb-5"><a class='product-name mb-10 text-heading'
-                                                    onclick="window.location.href='{{ url('products/' . $cart_product->slug ?? '') }}'">{{$cart_product->name ?? ''}}</a>
-                                </h6>
-                                <span id="varient_name">{{ $selectedVarient->unit ?? '' }}</span>
-                                <div class="product-rate-cover">
-                                    <div class="product-rate d-inline-block">
-                                        <div class="product-rating" style="width:90%">
+                                <div class="Product_Name_Price d-flex align-items-center gap-3">
+                                    <h4 class="fw-bold text-dark mb-0" style="color: #575757;">
+                                        ₹ {{ $selectedVarient->selling_price ?? '' }}</h4>
+                                    <del class="text-secondary" style="color: rgb(185, 185, 185);">
+                                        ₹ {{ $selectedVarient->mrp ?? '' }}</del>
+                                    <span class="badge bg-success" style="background: #008f8c ;">{{$selectedVarient->discount_per?? 0}}% OFF</span>
+                                </div>
+
+                                <div class="d-flex gap-3 subscription-row mt-5">
+                                    <div class="button-container flex-fill">
+                                        <div class="nutrapass-circle">
+                                            <img src="{{ url('public/assets/staricon.png') }}">
+                                        </div>
+                                        <div class="button-text">
+                                            Get @ ₹ {{ $selectedVarient->subscription_price ?? 0 }}
                                         </div>
                                     </div>
-                                    <span class="font-small ml-5 text-muted"> (4.0)</span>
-                                </div>
-                            </td>
-                            <td class="price" data-title="Price">
-                                <h4 class="text-body">₹ {{ $selectedVarient->selling_price ?? '' }}</h4>
-                            </td>
-                            <td class="text-center detail-info" data-title="Stock">
-                                <div class="detail-extralink mr-15">
-                                    <div class="detail-qty border radius">
-                                        <a onclick="updateCart('{{ $cart_product->id }}','{{ $selectedVarient->id }}','minus')"
-                                           class="qty-down"><i class="fi-rs-angle-small-down"></i></a>
-                                        <input type="text" name="quantity" id="cart_quantity{{ $selectedVarient->id }}"
-                                               class="qty-val"
-                                               value="{{(isset($selectedVarient->qty) && $selectedVarient->qty) > 0 ? $selectedVarient->qty : 1}}"
-                                               min="1">
-                                        <a onclick="updateCart('{{ $cart_product->id }}','{{ $selectedVarient->id }}','plus')"
-                                           class="qty-up"><i class="fi-rs-angle-small-up"></i></a>
+
+                                    <div class="button-container1 flex-fill">
+                                        <div class="nutrapass-circle1">
+                                            <img src="{{ url('public/assets/staricon.png') }}">
+                                        </div>
+                                        <div class="button-text">
+                                            Get {{ $selectedVarient->nc_cash ?? 0 }} Nc Cash
+                                        </div>
                                     </div>
                                 </div>
-                            </td>
-                            <td class="price" data-title="Price">
-                                <h4 class="text-brand">₹ {{ $prototal_price }} </h4>
-                            </td>
-                            <td class="action text-center" data-title="Remove"><a
-                                    onclick="DeleteCart('{{$cart_product->id}}','{{$selectedVarient->id}}')"
-                                    class="text-body"><i
-                                        class="fi-rs-trash"></i></a></td>
-                        </tr>
-                    @endforeach
 
-                    </tbody>
-                </table>
-            </div>
+                            </div>
 
+                        </div>
+
+                        <div class="Right_sidr_section right-mobile-row">
+
+                                <?php /*
+                        <div class="desktop_main">
+                                <div
+                                    class="quantity-box d-flex align-items-center bg-white shadow-sm px-3 py-2 rounded-pill">
+                                    <a type="button" class="btn btn-sm btn-outline-primary rounded-circle"
+                                            onclick="updateCart('{{ $cart_product->id }}','{{ $selectedVarient->id }}','minus')">
+                                        −
+                                    </a>
+                                    <input type="hidden" name="quantity" id="cart_quantity{{ $selectedVarient->id }}"
+                                           value="{{(isset($selectedVarient->qty) && $selectedVarient->qty) > 0 ? $selectedVarient->qty : 1}}">
+                                    <span
+                                        class="mx-3 fw-semibold">{{(isset($selectedVarient->qty) && $selectedVarient->qty) > 0 ? $selectedVarient->qty : 1}}</span>
+
+                                    <a  type="button" class="btn btn-sm btn-outline-primary rounded-circle"
+                                            onclick="updateCart('{{ $cart_product->id }}','{{ $selectedVarient->id }}','plus')">
+                                        ＋
+                                    </a>
+                                </div>
+
+                            </div>
+ */ ?>
+                            <div class="quantity-wrapper">
+                                <button class="quantity-btn quantity-decrease"
+                                        onclick="updateCart('{{ $cart_product->id }}','{{ $selectedVarient->id }}','minus')">
+                                    −
+                                </button>
+                                <input type="text" id="quantity-{{ $cart_product->id }}-{{ $selectedVarient->id }}"
+                                       class="quantity-value"
+                                       value="{{ (isset($selectedVarient->qty) && $selectedVarient->qty > 0) ? $selectedVarient->qty : 1 }}"
+                                       min="1">
+
+                                <button class="quantity-btn quantity-increase"
+                                        onclick="updateCart('{{ $cart_product->id }}','{{ $selectedVarient->id }}','plus')">
+                                    +
+                                </button>
+                            </div>
+
+
+                            <div class="d-flex gap-2">
+
+                            <button style="color: white; background: red;" class="btn btn-danger text-white fw-bold py-2 rounded mt-2"
+                                        onclick="DeleteCart('{{ $cart_product->id ??''}}', '{{ $selectedVarient->id }}')">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                                <button style="color: white;" class="btn btn-teal text-white fw-bold py-2 rounded mt-2 gap-1"
+                                        onclick="wishlist_save('{{ $cart_product->id ??''}}', '{{ $selectedVarient->id }}' ,true)">
+                                    Move to Wishlist
+                                </button>
+                            </div>
+
+
+                        </div>
+                    </div>
+                </div>
+            @endforeach
         </div>
 
             <?php
-
-
-            $total_price = $delivery_charge + $total_product_price;
             $user = Auth::user();
             $user_address = $user->addresses ?? '';
             $selectedAddress = \App\Models\UserAddress::where('id', $user->addressID)->first();
+            $envia_data = [];
+            if (!empty($selectedAddress)) {
+                $envia_data = json_decode($selectedAddress->envia_data) ?? '';
+            }
+
             ?>
         <div class="col-lg-4">
-            <div class="border rounded p-3 shadow-sm" style="background: #fff;">
-                <h6>Choose Address</h6>
-                <!-- Address Section -->
-                <div class="d-flex justify-content-between align-items-center p-3 border rounded mb-3 mt-3"
-                     style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#addressModal">
-                    <div id="selectedAddress">
-                        <div class="fw-bold">{{ $selectedAddress->address_type ?? "Others" }}</div>
-                        <small>{{ $selectedAddress->flat_no ?? '' }}, {{ $selectedAddress->building_name ?? '' }}
-                            , {{ $selectedAddress->landmark ?? '' }} - {{ $selectedAddress->pincode ?? '' }}</small><br>
-                        <small>{{ $selectedAddress->location ?? '' }}</small>
+            <div class="card" style="
+    border: 1.5px solid #00A8A8;
+    background: #E6FFFE;
+    border-radius: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 3px 8px rgba(0, 168, 168, 0.25);
+">
+                <div class="card-body" style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 15px;
+    ">
+        <span style="font-weight: 500; color:#004F4F;">
+            Delivery to <strong>{{ $selectedAddress->pincode ?? '' }}, {{$envia_data->state->name??''}}</strong>
+        </span>
 
-                    </div>
-                    <i class="fi-rs-angle-right fs-5 text-muted"></i> <!-- vertically centered -->
+                    <a href="#"
+                       style="color: #00A8A8; text-decoration: none; font-weight: 600;"
+                       data-bs-toggle="modal"
+                       data-bs-target="#addressModal">
+                        Change
+                    </a>
                 </div>
+            </div>
+
+
+
+            <div class="border rounded p-3 shadow-sm mt-5" style="background: #fff;">
                 <!-- NutraPass Box -->
-                <div class="bg-light-yellow p-3 rounded mb-3 d-flex justify-content-between align-items-center"
-                     style="background-color: #FFF8E1;">
-                    <div>
-                        <small>Save UPTO ₹450 with <strong style="color:#FFA726;">NutraPass</strong><br>Add for 3
-                            months @ ₹149 only</small>
+                <div class="subscription-slider-container">
+                    <h6>NutraPass </h6>
+                    <div class="subscription-slider mt-3">
+                        @foreach($subscription_plans_new as $key => $subscription_plan)
+                            <div class="subscription-card">
+                                <div class="subscription-box d-flex justify-content-between align-items-center gap-2">
+                                    <small class="w-75">
+                                        <div class="gold-card-premium">
+                                            <strong>{{ $subscription_plan->duration }} Months Pass</strong>
+                                        </div>
+
+
+                                        <br>
+                                        <div class="month_subs">
+                                            Add for {{ $subscription_plan->duration }} months @
+                                            ₹{{ $subscription_plan->price ?? 0 }} only
+                                        </div>
+                                    </small>
+
+                                    <button type="button"
+                                            class="btn btn-sm btn-warning subscription-btn action-btn"
+                                            data-id="{{ $subscription_plan->id }}">
+                                        Add
+                                    </button>
+                                </div>
+                            </div>
+
+                        @endforeach
                     </div>
-                    <button class="btn btn-sm btn-warning">Add</button>
                 </div>
 
+
+                <div class="bg-light-yellow p-3 rounded mb-3 d-flex justify-content-between align-items-center"
+                     id="applyCashbackBox"
+                     style="background-color: #FFF8E1;margin-top: 10px">
+                    <div>
+                        <small><strong style="color:#FFA726;">NC Cash</strong><br> Available Balance :
+                            ₹{{$user->cashback_wallet??0}}<br> Max Apply : ₹{{$max_applied_cashback}} </small>
+                    </div>
+                    <button type="button" id="cashbackApplyBtn" class="btn btn-sm btn-warning">Apply</button>
+                </div>
+
+                <div class="freebies-slider-container">
+                    <h4>Choose your Freebie</h4>
+                    <div class="freebies-slider mt-5">
+                        @foreach($freebees_product as $key => $freebee)
+                            <div class="freebie-card">
+                                <img src="{{ $freebee->image }}" class="freebie-img"/>
+                                <div class="freebie-details">
+                                    <strong>{{ $freebee->product_name ??'' }}</strong>
+                                </div>
+                                <button type="button" class="btn-freebie action-btn"
+                                        data-id="{{ $freebee->id??'' }}">
+                                    Add
+                                </button>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
                 <!-- Promo Section -->
-                <div class="border rounded p-3 mb-3">
+                <div class="border rounded p-3 mb-3 mt-5">
                     <h6 class="fw-bold mb-3">Bill Details</h6>
 
                     <div class="input-group mb-2">
-                        <input type="text" class="form-control" placeholder="Add Promo">
-                        <button class="btn btn-primary btn-sm">Apply</button>
+                        <input type="text" class="form-control" name="coupon_code" id="coupon_codeval"
+                               placeholder="Add Promo">
+                        <button type="button" id="couponApplyBtn" class="btn btn-primary btn-sm">Apply</button>
                     </div>
-
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <small class="text-muted">Get 20% off (200) on this product. Pay with card</small>
-
-                    </div>
-
                     <div class="d-flex justify-content-between">
                         <span>Subtotal</span><strong>₹{{$total_product_price}}</strong>
                     </div>
                     <div class="d-flex justify-content-between">
-                        <span>Delivery Fee</span><strong>₹{{ $delivery_charge }}</strong>
+                        <span>Total Discount</span><strong>₹{{$total_discount}}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Coupon Discount </span><strong>₹{{$coupon_discount}}</strong>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
-                        <span>Tax & Other Fees</span><strong>₹0</strong>
+                        <span>Freebees Price</span><strong>₹{{$freebees_price}}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Delivery Fee</span><strong>₹{{ $delivery_charge }}</strong>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subscription Amount</span><strong>₹{{$subscription_amount}}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>NC Cash</span><strong>₹{{$applied_cashback}}</strong>
                     </div>
 
                     <hr>
@@ -159,17 +567,62 @@ $defaultImage = $images[0]['image'] ??url('public/assets/images/default.png');
 
                 <!-- Savings Banner -->
                 <div class="bg-success text-white p-2 rounded text-center mb-3" style="font-size: 14px;">
-                    🎉 You Save: ₹900 | And Earn 420 NC Cash
+                    🎉 You Save: ₹{{$total_mrp_discount}} | And Earn {{$nc_coins}} NC Cash
                 </div>
+
+
+                <div>
+                    @if(!empty($expressSlot))
+                        <div class="delivery-option" data-value="express">
+                            <div>
+                                <span class="delivery-title">2-Hour Xpress Delivery</span>
+                                <span class="delivery-sub">(Prepaid only)</span>
+                            </div>
+                            <span
+                                class="delivery-badge">{{!empty($expressSlot->delivery_charge)?$expressSlot->delivery_charge:"Free"}}</span>
+                        </div>
+                    @endif
+
+                    <div class="delivery-option" data-value="normal">
+                        <div>
+                            <span class="delivery-title">Standard Delivery</span>
+                        </div>
+                        <span
+                            class="delivery-badge">{{!empty($normalSlot->delivery_charge)?$normalSlot->delivery_charge:"Free"}}</span>
+                    </div>
+                </div>
+
 
                 <!-- Payment Method -->
-                <div class="border rounded p-3 mb-3 d-flex justify-content-between align-items-center">
-                    <span>💳 View Payment Method</span>
-                    <i class="fi-rs-angle-right"></i>
+                <div class="payment-toggle" id="paymentToggle">
+                    <span>💳 Select Payment Method</span>
+                    <i class="fi-rs-angle-down"></i> <!-- Optional icon -->
+                </div>
+                <div class="payment-options" id="paymentSection">
+
+                    <label class="payment-row">
+                        <input type="radio" name="payment" value="online">
+                        <div>
+                            <div class="payment-title">Online</div>
+                            <div class="payment-subtitle">Pay Online & save ₹25 on this order</div>
+                        </div>
+                    </label>
+
+                    <label class="payment-row">
+                        <input type="radio" name="payment" value="cod">
+                        <div>
+                            <div class="payment-title">Cash on Delivery (COD)</div>
+                            <div class="payment-subtitle">COD has an extra ₹25 charge</div>
+                        </div>
+                    </label>
                 </div>
 
+
                 <!-- Checkout Button -->
-                <button class="btn btn-primary w-100 py-2" onclick="openRazorpay()">Proceed to Pay</button>
+                <!-- Checkout Button (STICKY for Desktop + Mobile) -->
+                <div class="sticky-pay-btn">
+                    <button class="btn btn-primary w-100 py-2" onclick="openRazorpay()">Proceed to Pay</button>
+                </div>
 
             </div>
         </div>
@@ -181,39 +634,246 @@ $defaultImage = $images[0]['image'] ??url('public/assets/images/default.png');
 </div>
 
 
+<script>
+    $("#paymentToggle").click(function () {
+        $("#paymentSection").slideToggle(180);
+    });
+
+    $(document).on("change", "input[name='payment']", function () {
+        $(".payment-row").removeClass("selected");
+        $(this).closest(".payment-row").addClass("selected");
+    });
+
+
+    $(document).on("click", ".delivery-option", function () {
+        $(".delivery-option").removeClass("selected");
+        $(this).addClass("selected");
+
+        let selectedValue = $(this).data("value");
+        $("#delivery_type").val(selectedValue); // store value in hidden input
+
+        if (selectedValue === "express") {
+            // Hide COD and auto select Online
+            $("input[name='payment'][value='cod']").closest(".payment-row").hide();
+            $("input[name='payment'][value='online']").closest(".payment-row").show();
+            $("input[name='payment'][value='online']").prop("checked", true).trigger("change");
+        } else {
+            // Show both Online + COD
+            $(".payment-row").show();
+        }
+    });
+    // Store selected payment method in hidden input
+    $("input[name='payment']").change(function () {
+        let selectedValue = $(this).val();
+        $("#selected_payment").val(selectedValue);
+    });
+
+
+    $(document).off("click", ".subscription-btn").on("click", ".subscription-btn", function () {
+        let selectedID = $(this).data("id");
+        let subscriptionHidden = $("#subscription_id");
+
+        if (subscriptionHidden.val() == selectedID) {
+            subscriptionHidden.val("");
+            $(this).removeClass("remove").text("Add");
+        } else {
+            subscriptionHidden.val(selectedID);
+            $(".subscription-btn").removeClass("remove").text("Add");
+            $(this).addClass("remove").text("Remove");
+        }
+        getCartHtml(); // refresh cart
+    });
+
+
+    // Prevent duplicate event binding
+    $(document).off("click", "#couponApplyBtn").on("click", "#couponApplyBtn", async function () {
+
+        let couponTextBox = $("#coupon_codeval");
+        let couponHidden = $("#coupon_code");
+        let couponBtn = $(this);
+
+        // If REMOVE button clicked
+        if (couponBtn.text().trim() === "Remove") {
+
+            couponTextBox.prop("readonly", false).val("");
+            couponHidden.val("");
+
+            couponBtn.text("Apply")
+                .removeClass("btn-danger")
+                .addClass("btn-primary");
+
+            await getCartHtml();
+            return;
+        }
+
+        // APPLY button clicked
+        let couponCode = couponTextBox.val().trim();
+        if (couponCode === "") {
+            return;
+        }
+
+        couponHidden.val(couponCode);
+
+        let cartResponse = await getCartHtml();
+
+        if (!cartResponse || parseInt(cartResponse.cart_data?.cartValue?.coupon_discount ?? 0) <= 0) {
+
+            couponHidden.val("");
+            couponTextBox.prop("readonly", false);
+
+            couponBtn.text("Apply")
+                .removeClass("btn-danger")
+                .addClass("btn-primary");
+
+            return;
+        }
+
+        // ✅ valid coupon
+        couponTextBox.val(couponCode).prop("readonly", true);
+
+        couponBtn.text("Remove")
+            .removeClass("btn-primary")
+            .addClass("btn-danger");
+    });
+
+
+    // Ensure click handler is attached only once
+    $(document).off("click", ".btn-freebie").on("click", ".btn-freebie", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        console.log("hitttt----------------------------->");
+
+        let selectedID = $(this).data("id");
+        let freebeeHidden = $("#freebees_id");
+
+        if (freebeeHidden.val() == selectedID) {
+            freebeeHidden.val(""); // <-- missing earlier
+            $(this).removeClass("remove").text("Add");
+        } else {
+            freebeeHidden.val(selectedID);
+            $(".btn-freebie").removeClass("remove").text("Add");
+            $(this).addClass("remove").text("Remove");
+        }
+
+        // getCartHtml();
+    });
+
+    // Always remove previous handler before binding
+    $(document).off("click", "#cashbackApplyBtn").on("click", "#cashbackApplyBtn", function () {
+
+        let cashbackHidden = $("#apply_cashback");
+        let cashbackBtn = $(this);
+
+        if (cashbackHidden.val() === "true") {
+
+            cashbackHidden.val("false");
+            cashbackBtn.text("Apply")
+                .removeClass("btn-danger")
+                .addClass("btn-warning");
+        } else {
+
+            cashbackHidden.val("true");
+            cashbackBtn.text("Remove")
+                .removeClass("btn-warning")
+                .addClass("btn-danger");
+        }
+
+        getCartHtml(); // ✅ will call only once
+    });
+
+
+</script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
     function openRazorpay() {
+        let addressID = $("#selected_addressID").val();
+        let deliveryType = $("#delivery_type").val();
+        let paymentMethod = $("#selected_payment").val();
+
+        // 🔍 Validation
+        if (!addressID) {
+            alert("Please select an address.");
+            return;
+        }
+
+        if (!deliveryType) {
+            alert("Please select a delivery option.");
+            return;
+        }
+
+        if (!paymentMethod) {
+            alert("Please select a payment method.");
+            return;
+        }
+
+
         var _token = '{{ csrf_token() }}';
         var total_price = '{{$total_price}}';
         $.ajax({
-            url: "{{ url('createRazorpayOrder') }}",
+            url: "{{ url('place_order') }}",
             type: "POST",
-            data: {total_price: total_price},
+            data: $('#cartSubmitForm').serialize(),
             dataType: "JSON",
             headers: {'X-CSRF-TOKEN': _token},
             cache: false,
             success: function (resp) {
                 console.log(resp);
-                var options = {
-                    key: resp.razopayKeys.key, // Enter the Key ID generated from the Dashboard
-                    "one_click_checkout": true,
-                    order_id: resp.orderData.id, // This is a sample Order ID. Pass the `id` obtained in the response of Step 1; mandatory
-                    "show_coupons": true, // default true; false if coupon widget should be hidden
-                    "callback_url": "",
-                    "redirect": "true",
-                    "prefill": { // We recommend using the prefill parameter to auto-fill customer's emails information especially their phone number
-                        "name": "Gaurav Kumar", // your customer's name
-                        "email": "gaurav.kumar@example.com",
-                        "contact": "9000090000", // Provide the customer's phone number for better conversion rates
-                        "coupon_code": "500OFF" // any valid coupon code that gets auto-applied once magic opens
-                    },
-                };
+                if (resp.result === true) {
 
-                const rzp = new Razorpay(options);
-                rzp.open();
+                    // ✅ If payment method is online (e.g. Razorpay)
+                    if (paymentMethod === "ONLINE" || paymentMethod === "online") {
+                        if (resp.online_payment && resp.online_payment.result === true) {
+                            let rzpData = resp.online_payment;
+                            var options = {
+                                key: rzpData.key,  // Razorpay key from backend
+                                currency: "INR",
+                                order_id: rzpData.order_id,
+                                name: "Your Store",
+                                description: "Order Payment",
+                                handler: function (response) {
+                                    // ✅ Payment success callback - redirect
+                                    window.location.href = "{{ url('my_orders') }}";
+                                }
+                            };
+
+                            const rzp = new Razorpay(options);
+                            rzp.open();
+                        } else {
+                            toastr.error("Unable to initialize payment gateway.");
+                        }
+
+                    } else {
+                        // ✅ For COD or wallet payment
+                        window.location.href = "{{ url('my_orders') }}";
+                    }
+                } else {
+                    alert(resp.message);
+                    toastr.error(resp.message ?? "Something went wrong");
+                }
+                // var options = {
+                //     key: resp.razopayKeys.key, // Enter the Key ID generated from the Dashboard
+                //     "one_click_checkout": true,
+                //     order_id: resp.orderData.id, // This is a sample Order ID. Pass the `id` obtained in the response of Step 1; mandatory
+                //     "show_coupons": true, // default true; false if coupon widget should be hidden
+                //     "callback_url": "",
+                //     "redirect": "true",
+                //     "prefill": { // We recommend using the prefill parameter to auto-fill customer's emails information especially their phone number
+                //         "name": "Gaurav Kumar", // your customer's name
+                //         "email": "gaurav.kumar@example.com",
+                //         "contact": "9000090000", // Provide the customer's phone number for better conversion rates
+                //         "coupon_code": "500OFF" // any valid coupon code that gets auto-applied once magic opens
+                //     },
+                // };
+                //
+                // const rzp = new Razorpay(options);
+                // rzp.open();
             }
         });
     }
+
+
 </script>
+
+

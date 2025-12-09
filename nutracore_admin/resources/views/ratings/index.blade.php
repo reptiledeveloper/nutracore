@@ -64,8 +64,11 @@
                         <tr>
                             <td>{{$i++}}</td>
                             <td>{{$user->name??''}} <br>{{$user->phone??''}} </td>
-                            <td class="text-wrap"><a
+                            <td class="text-wrap">
+                                @if(!empty($rating->order_id))
+                                <a
                                     href="{{route('orders.view',$rating->order_id.'?back_url='.$BackUrl)}}">#{{$rating->order_id??''}}</a>
+                                @endif
                             </td>
                             <td>
                                 {{$product->name??''}}

@@ -3,9 +3,6 @@
 use App\Helpers\CustomHelper;
 
 
-$categories = \App\Models\Category::where('status', 1)
-    ->orderBy('name', 'asc')
-    ->get();
 $user = Auth::user();
 $total_qty = 0;
 if (!empty($user)) {
@@ -23,7 +20,29 @@ if (!empty($user)) {
     $address .= $user_address->location ?? '';
 }
 
+$categories = \App\Models\Category::select('id', 'name', 'image', 'priority', 'slug')
+    ->where(['status' => 1, 'parent_id' => 0, 'is_goal' => 0, 'is_delete' => 0])
+    ->orderBy('priority')
+    ->get()->map(fn($cat) => tap($cat, fn($c) => $c->image = CustomHelper::getImageUrl('categories', $c->image)));
 
+$allcategories = $categories = \App\Models\Category::select('id', 'name', 'image', 'priority', 'slug', 'is_popular')
+    ->where(['status' => 1, 'parent_id' => 0, 'is_delete' => 0])->get();
+
+$goal_category = \App\Models\Category::select('id', 'name', 'image', 'priority', 'slug')
+    ->where(['status' => 1, 'parent_id' => 0, 'is_goal' => 1, 'is_delete' => 0])
+    ->orderBy('priority')
+    ->get()
+    ->map(fn($cat) => tap($cat, fn($c) => $c->image = CustomHelper::getImageUrl('categories', $c->image)));
+
+$brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificate', 'priority', 'slug', 'is_popular')
+    ->where(['status' => 1, 'is_delete' => 0])
+    ->orderBy('priority')
+    ->get()
+    ->map(fn($brand) => tap($brand, function ($b) {
+        $b->brand_img = CustomHelper::getImageUrl('brands', $b->brand_img);
+        $b->brand_icon = $b->brand_img;
+        $b->certificate = CustomHelper::getImageUrl('brands', $b->certificate);
+    }));
 ?>
 
     <!DOCTYPE html>
@@ -35,7 +54,7 @@ if (!empty($user)) {
     <title>Nutracore</title>
     <meta http-equiv="x-ua-compatible" content="ie=edge"/>
     <meta name="description" content=""/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
     <meta property="og:title" content=""/>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta property="og:type" content=""/>
@@ -46,21 +65,80 @@ if (!empty($user)) {
     <!-- Template CSS -->
     <link rel="stylesheet" href="{{url('public/assets')}}/css/plugins/animate.min.css"/>
     <link rel="stylesheet" href="{{url('public/assets')}}/css/main2cc5.css?v=5.6"/>
+    <link rel="stylesheet" href="{{url('public/assets')}}/css/responsive.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+{{--    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>--}}
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        rel="stylesheet"
+        type="text/css"
+        href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"
+    />
+    <link
+        rel="stylesheet"
+        type="text/css"
+        href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"
+    />
 
 
 </head>
 
 <body class="bg-gray-100 min-h-screen flex flex-col justify-between">
+<div id="toast" class="toast"></div>
 
 <style>
+    .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #00A8A8;
+        color: #fff;
+        padding: 12px 18px;
+        border-radius: 6px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.4s ease, transform 0.4s ease;
+        transform: translateY(-20px);
+        z-index: 9999;
+    }
+
+    .toast.show {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(0);
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
+    }
+
+    :root {
+        --font-main: "Poppins", sans-serif;
+    }
+
+    body {
+        font-family: var(--font-main);
+    }
+
     .action-btn.filled .fi-rs-heart {
         color: red;
     }
 
     .header-action-right .search-location {
         display: block;
+    }
+
+    .pac-container {
+        z-index: 999999999 !important;
+    }
+
+    .main-menu > nav > ul > li > a {
+
+        font-size: 12px !important;
     }
 
     .header-box {
@@ -98,6 +176,31 @@ if (!empty($user)) {
     /*    height: 400px;*/
     /*    padding: 0;*/
     /*}*/
+    .mega-children img {
+        width: 60px;
+        height: 60px;
+        object-fit: contain;
+        transition: transform 0.3s ease;
+        cursor: pointer;
+    }
+
+    .mega-children img:hover {
+        transform: scale(1.1);
+    }
+
+    .menu-link {
+        font-size: 16px; /* Same size for text */
+        display: flex; /* Align icon and text */
+        align-items: center; /* Vertical center */
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .menu-link i {
+        font-size: 16px !important; /* Match text size */
+        margin-right: 5px; /* Spacing between icon and text */
+    }
+
 
 </style>
 <style>
@@ -170,7 +273,7 @@ if (!empty($user)) {
             width: 100%;
             background: #fff;
             border-top: 1px solid #ddd;
-            box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
             padding: 6px 0;
             z-index: 9999;
         }
@@ -439,6 +542,7 @@ if (!empty($user)) {
         .logo.logo-width-1 {
             margin-right: 0;
             position: absolute;
+            top: -12px;
             font-size: 12px;
             left: 39%;
             -webkit-transform: translateX(-50%);
@@ -453,9 +557,8 @@ if (!empty($user)) {
         line-height: 16px;
         margin-bottom: 5px;
         color: #7E7E7E;
-
         display: -webkit-box;
-        -webkit-line-clamp: 2;   /* limit to 2 lines */
+        -webkit-line-clamp: 2; /* limit to 2 lines */
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -476,6 +579,65 @@ if (!empty($user)) {
     .slick-dots {
         display: none !important;
     }
+
+    /* -------------------------------------- */
+    /* Correct Mobile Alignment for Home + Address */
+    /* -------------------------------------- */
+    @media only screen and (max-width: 768px) {
+
+        .logo.logo-width-1 {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: -12px;
+            text-align: left; /* Left align inside */
+            z-index: 10;
+            width: 80%; /* Increase width so text has space to align left */
+
+        }
+
+        .logo.logo-width-1 > div {
+
+        }
+
+        .logo.logo-width-1 span {
+            font-size: 15px;
+            font-weight: 600;
+            color: #00A8A8 !important;
+            line-height: 18px;
+        }
+
+        .address_phone {
+            font-size: 12px;
+            line-height: 14px;
+        }
+
+        /* Move burger + cart to right */
+        .header-action-right,
+        .burger-icon {
+            position: relative;
+            z-index: 20;
+        }
+    }
+
+    .address-box {
+        width: 100%;
+    }
+
+
+    .address-icon {
+        color: #00A8A8;
+        margin-left: 6px;
+        font-size: 14px;
+    }
+
+    @media (max-width: 768px) {
+        .address_phone {
+            max-width: 70%;
+
+        }
+    }
+
 </style>
 <style>
     .modal-bottom .modal-dialog {
@@ -495,9 +657,6 @@ if (!empty($user)) {
         overflow-y: auto;
     }
 
-    .pac-container {
-        z-index: 1055 !important; /* Higher than modal backdrop */
-    }
 
 </style>
 <style>
@@ -538,21 +697,124 @@ if (!empty($user)) {
     }
 
     @keyframes ticker {
-        0% { transform: translateX(100%); }
-        100% { transform: translateX(-100%); }
+        0% {
+            transform: translateX(100%);
+        }
+        100% {
+            transform: translateX(-100%);
+        }
     }
-    .categories-dropdown-active-large{
+
+    .categories-dropdown-active-large {
         min-width: 400px !important;
     }
 
 </style>
 
+<style>
+    /* Explore button style */
+    .categories-button-active {
+        cursor: pointer;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        color: #333;
+        background: red;
+        padding: 10px 20px;
+        border-radius: 5px;
+    }
+
+    /* Parent wrapper must not clip dropdown */
+    .main-categori-wrap {
+        position: static !important;
+    }
+
+    /* Mega dropdown */
+    .mega-dropdown {
+        position: absolute;
+        top: 100%; /* parent ke niche aligned */
+        left: 50%; /* horizontal center */
+        transform: translateX(-50%); /* center properly */
+        width: 100%; /* container ke width ke hisaab se */
+        background: #fff;
+        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
+        padding: 20px;
+        display: none; /* show on hover */
+        z-index: 9999;
+        transition: all 0.3s ease;
+        border-radius: 5px;
+    }
+
+    /* Show dropdown on hover */
+    .main-categori-wrap:hover .mega-dropdown {
+        display: block;
+    }
+
+    /* Left + right structure */
+    .mega-parents .nav-link {
+        color: #333;
+        font-weight: 500;
+        padding: 10px 15px;
+        transition: all 0.3s;
+        border-radius: 4px;
+    }
+
+    .mega-parents .nav-link:hover,
+    .mega-parents .nav-link.active {
+        background: #f7f7f7;
+        color: #ff6600;
+    }
+
+    .mega-children .child-panel {
+        display: none;
+        animation: fadeIn 0.3s ease forwards;
+    }
+
+    .mega-children .child-panel.active {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .mega-children h5 {
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .mega-children ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .mega-children ul li {
+        padding: 5px 0;
+        color: #555;
+    }
+
+    .mega-children ul li:hover {
+        color: #ff6600;
+        cursor: pointer;
+    }
+</style>
+
 
 <header class="header-area header-style-1 header-height-2">
-{{--    <div class="mobile-promotion">--}}
-{{--        <span>Grand opening, <strong>up to 15%</strong> off all items. Only <strong>3 days</strong> left</span>--}}
-{{--    </div>--}}
-    <div class="header-top header-top-ptb-1 d-none d-lg-block" style="background-color: #00A8A8;color: #fff; overflow:hidden;">
+    {{--    <div class="mobile-promotion">--}}
+    {{--        <span>Grand opening, <strong>up to 15%</strong> off all items. Only <strong>3 days</strong> left</span>--}}
+    {{--    </div>--}}
+    <div class="header-top header-top-ptb-1 d-none d-lg-block"
+         style="background-color: #00A8A8;color: #fff; overflow:hidden;">
         <div class="container">
             <div class="ticker">
                 <div class="ticker-wrap">
@@ -564,7 +826,6 @@ if (!empty($user)) {
             </div>
         </div>
     </div>
-
 
 
     <div class="modal fade" id="addressSearchModal" tabindex="-1" aria-labelledby="locationModalLabel"
@@ -582,18 +843,37 @@ if (!empty($user)) {
                     <button class="btn btn-light w-100 mb-2" onclick="getCurrentLocation()"><i
                             class="fi-rs-crosshairs"></i> Use current location
                     </button>
-
                     <div class="saved-address">
                         @if(!empty($user))
                             @foreach($user->addresses as $add)
-                                <div class="address-item mb-2 p-2 border rounded">
-                                    <strong>{{$add->address_type??''}}</strong>
-                                    <p class="mb-0">{{$add->flat_no??''}} ,{{$add->building_name??''}}
-                                        ,{{$add->landmark??''}} , {{$add->location??''}}</p>
+
+                                @php
+                                    $fulladdress = $add->flat_no . ', ' .
+                                                   $add->building_name . ', ' .
+                                                   $add->landmark . ', ' .
+                                                   $add->location;
+                                @endphp
+
+
+
+                                <div class="address-card address-item mb-2 p-2 border rounded"
+                                     data-id="{{ $add->id }}"
+                                     data-fulladdress="{{ $fulladdress }}"
+                                     data-lat="{{ $add->latitude }}"
+                                     data-lng="{{ $add->longitude }}"
+                                     data-pincode="{{ $add->pincode }}"
+                                     style="cursor:pointer;">
+
+                                    <strong>{{ $add->address_type }}</strong>
+                                    <p class="mb-0">
+                                        {{ $add->flat_no }}, {{ $add->building_name }},
+                                        {{ $add->landmark }}, {{ $add->location }}
+                                    </p>
+
                                 </div>
+
                             @endforeach
                         @endif
-
                     </div>
                 </div>
             </div>
@@ -609,16 +889,18 @@ if (!empty($user)) {
                 </div>
                 <div class="header-right">
                     <div class="search-style-2">
-                        <form action="#">
-                            <select class="select-active">
-                                <option>All Categories</option>
+                        <form action="{{route('search')}}">
+                            <select class="select-active" id="categorySelect">
+                                <option value="">All Categories</option>
                                 @foreach ($categories as $category)
-                                    <option>{{$category->name ?? ''}}</option>
-
+                                    <option value="{{ $category->id }}">{{ $category->name ?? '' }}</option>
                                 @endforeach
                             </select>
-                            <input type="text" placeholder="Search for items..."/>
+                            <input type="text" id="productSearch" name="search" placeholder="Search for items..."/>
+                            <div id="suggestionBox" class="list-group position-absolute"
+                                 style="z-index: 1000; width: 100%; display:none;margin-top: 51px;"></div>
                         </form>
+
                     </div>
                     <div class="header-action-right">
                         <div class="header-action-2">
@@ -664,21 +946,31 @@ if (!empty($user)) {
                                     <div class="cart-dropdown-wrap cart-dropdown-hm2 account-dropdown">
                                         <ul>
                                             <li>
-                                                <a onclick="checkLoginRedirect('{{url('profile')}}')"><i class="fi fi-rs-user mr-10"></i>My
+                                                <a onclick="checkLoginRedirect('{{url('profile')}}')"><i
+                                                        class="fi fi-rs-user mr-10"></i>My
                                                     Account</a>
+                                            </li>
+                                            <li>
+                                                <a onclick="checkLoginRedirect('{{route('wishlist')}}')"><i
+                                                        class="fi fi-rs-heart mr-10"></i>Wishlist</a>
                                             </li>
                                             <li>
                                                 <a onclick="checkLoginRedirect('{{route('address')}}')"><i
                                                         class="fi fi-rs-location-alt mr-10"></i>Address Details</a>
                                             </li>
                                             <li>
-                                                <a href='{{route('my_orders')}}'><i class="fi fi-rs-label mr-10"></i>My
+                                                <a onclick="checkLoginRedirect('{{route('my_orders')}}')"><i
+                                                        class="fi fi-rs-label mr-10"></i>My
                                                     Orders</a>
                                             </li>
                                             <li>
-                                                <a href='{{route('suppliment_recommendation')}}'><i
+                                                <a onclick="checkLoginRedirect('{{route('suppliment_recommendation')}}')"><i
                                                         class="fi fi-rs-heart mr-10"></i>My
                                                     Supplement Recommendation</a>
+                                            </li>
+                                            <li>
+                                                <a href="{{url('nc_consult')}}"><i
+                                                        class="fi fi-rs-heart mr-10"></i>NC Consult</a>
                                             </li>
                                             <li>
                                                 <a href='{{route('nutrapass')}}'><i
@@ -690,18 +982,19 @@ if (!empty($user)) {
                                                         class="fi fi-rs-settings-sliders mr-10"></i>NC Cash</a>
                                             </li>
                                             <li>
-                                                <a href='{{route('giftcard')}}'><i
+                                                <a onclick="checkLoginRedirect('{{route('giftcard')}}')"><i
                                                         class="fi fi-rs-settings-sliders mr-10"></i>GiftCard</a>
                                             </li>
                                             <li>
-                                                <a href='{{route('refer_earn')}}'><i
+                                                <a onclick="checkLoginRedirect('{{route('refer_earn')}}')" ><i
                                                         class="fi fi-rs-settings-sliders mr-10"></i>Refer & Earn</a>
                                             </li>
                                             <li>
                                                 <a href='{{route('coupons')}}'><i class="fi fi-rs-sign-out mr-10"></i>PromoCodes</a>
                                             </li>
                                             <li>
-                                                <a href='https://api.whatsapp.com/send?phone=919959503035'><i class="fi fi-rs-sign-out mr-10"></i>Need Help</a>
+                                                <a href='https://api.whatsapp.com/send?phone=919959503035'><i
+                                                        class="fi fi-rs-sign-out mr-10"></i>Need Help</a>
                                             </li>
                                             <li>
                                                 <a href='{{url('logout')}}'><i class="fi fi-rs-sign-out mr-10"></i>Logout</a>
@@ -720,80 +1013,192 @@ if (!empty($user)) {
         <div class="container">
             <div class="header-wrap header-space-between position-relative">
                 <div class="logo logo-width-1 d-block d-lg-none">
-                    <div class="d-flex align-items-center justify-content-between" data-bs-toggle="modal"
-                         data-bs-target="#addressSearchModal">
 
-                        <span style="color: #00A8A8">Home <i class="fi-rs-angle-down"></i></span>
+                    <div class="d-flex align-items-center address-box"
+                         data-bs-toggle="modal" data-bs-target="#addressSearchModal">
+
+    <span class="address_phone" id="address_phone">
+        {{$address ?? ''}}
+    </span>
+
+                        <i class="fi-rs-angle-down address-icon"></i>
                     </div>
-                    <p class="address_phone" id="address_phone">{{$address??''}}</p>
+
+
                 </div>
                 <div class="header-nav d-none d-lg-flex">
                     <div class="main-categori-wrap d-none d-lg-block">
-                        <a class="categories-button-active" href="#">
-                            <span class="fi-rs-apps"></span> <span class="et">Explore</span>
-                            <i class="fi-rs-angle-down"></i>
-                        </a>
+                        <!-- Navbar Section -->
+                        <div class="header-nav d-none d-lg-flex">
+                            <div class="main-categori-wrap d-none d-lg-block">
+                                <!-- Explore button -->
+                                <a class="categories-button-active" href="#">
+                                    <span class="fi-rs-apps"></span> <span class="et">Explore</span>
+                                    <i class="fi-rs-angle-down"></i>
+                                </a>
 
-                        <div class="categories-dropdown-wrap categories-dropdown-active-large font-heading">
-                            <div class="d-flex categori-dropdown-inner">
-                                <ul>
+                                <div style="display: flex; justify-content: center; align-items: flex-start; ">
+                                    <!-- Mega Dropdown -->
+                                    <div class="mega-dropdown container" id="megaDropdown" style:background:red;>
+                                        <div class="row">
+                                            <!-- Left: parent list -->
+                                            <div class="col-lg-3 mega-parents">
+                                                <nav class="nav flex-column">
+                                                    <a class="nav-link active" href="#" data-target="panel-electronics">Category</a>
+                                                    <a class="nav-link" href="#" data-target="panel-fashion">Brands</a>
+                                                    <a class="nav-link" href="#" data-target="panel-home">By Goals</a>
+                                                </nav>
+                                            </div>
 
-                                    <li>
-                                        <a href="https://website.nutracore.in/categories">
-                                            Category
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="https://website.nutracore.in/brands">
-                                            Brands
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="https://website.nutracore.in/categories">
-                                            By Goals
-                                        </a>
-                                    </li>
+                                            <!-- Right: dynamic child content -->
+                                            <div class="col-lg-9 mega-children"
+                                                 style="max-height: 400px; overflow-y: auto; overflow-x: hidden;">
+                                                <div id="panel-electronics" class="child-panel active">
+                                                    <h5>Category</h5>
+                                                    <div class="row">
+                                                        @foreach($categories as $category)
+                                                            <div class="col-md-2 mb-4 me-3">
+                                                                <!-- mb-4 = bottom margin, me-3 = right margin -->
+                                                                <div class="card text-center"
+                                                                     style="background: #DEFFFF; border: 1px solid #ccc;">
+                                                                    <a href="{{ url('collections/' . $category->slug) }}"
+                                                                       style="padding: 10px; padding-bottom:0px;">
+                                                                        <img
+                                                                            src="{{ CustomHelper::getImageUrl("categories",$category->image) ?? '' }}"
+                                                                            alt="{{ $category->name ?? '' }}"
+                                                                            class="card-img-top"
+                                                                            style="height: 100%; object-fit: cover; width: 100%;">
+                                                                    </a>
+                                                                    <div class="card-body p-2">
+                                                                        <h5 class="card-title mb-0"
+                                                                            style="font-size:15px;">
+                                                                            <a href="{{ url('collections/' . $category->slug) }}"
+                                                                               class="text-dark text-decoration-none">
+                                                                                {{ $category->name ?? '' }}
+                                                                            </a>
+                                                                        </h5>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
 
-                                </ul>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                                <div id="panel-fashion" class="child-panel">
+                                                    <h5>Brands</h5>
+                                                    <div class="row">
+                                                        @foreach($brands as $brand)
+                                                            <div class="col-md-2">
+                                                                <div class="border-1 text-center">
+                                                                    <figure>
+                                                                        <a href="{{ url('collections/' . $brand->slug) }}">
+                                                                            <img src="{{ $brand->brand_img }}" alt="" style="height:100px;" />
+                                                                        </a>
+                                                                    </figure>
+                                                                    <h4>{{ $brand->brand_name ?? '' }}</h4>
+                                                                </div>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
 
+                                                <div id="panel-home" class="child-panel">
+                                                    <h5>By Goals</h5>
+                                                    <div class="row">
+                                                        @foreach($goal_category as $category)
+                                                            <div class="col-md-2 mb-3">
+                                                                <div class="border text-center p-0"
+                                                                     style="background: #DEFFFF;overflow:hidden;">
+                                                                    <a href="{{ url('collections/' . $category->slug) }}">
+                                                                        <img src="{{ $category->image ?? '' }}"
+                                                                             alt="{{ $category->name ?? '' }}"
+                                                                             style="width: 100%; height: 100%; object-fit: cover; display: block;"/>
+                                                                    </a>
+                                                                    <h4>
+                                                                        <a href="{{ url('collections/' . $category->slug) }}"
+                                                                           style="font-size:15px;colar:black;">{{ $category->name ?? '' }}</a>
+                                                                    </h4>
+                                                                </div>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
 
-
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- /Mega Dropdown -->
+                                </div>
                             </div>
-
                         </div>
+
+
+                        <!-- JS to handle hover child panels -->
+                        <script>
+                            const parentLinks = document.querySelectorAll(".mega-parents .nav-link");
+                            const childPanels = document.querySelectorAll(".child-panel");
+
+                            parentLinks.forEach(link => {
+                                link.addEventListener("mouseenter", () => {
+                                    // Remove active class from all
+                                    parentLinks.forEach(l => l.classList.remove("active"));
+                                    childPanels.forEach(p => p.classList.remove("active"));
+
+                                    // Activate the current one
+                                    link.classList.add("active");
+                                    const target = link.getAttribute("data-target");
+                                    document.getElementById(target).classList.add("active");
+                                });
+                            });
+                        </script>
+
 
                     </div>
                     <div class="main-menu main-menu-padding-1 main-menu-lh-2 d-none d-lg-block font-heading">
                         <nav>
+
+
                             <ul>
+                                <li>
+                                    <a href="{{ url('/') }}" class="menu-link">
+                                        <i class="fa fa-home"></i> Home
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ url('brands') }}" class="menu-link">
+                                        <i class="fa fa-tags"></i> Brands
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ url('coupons') }}" class="menu-link">
+                                        <i class="fa fa-gift"></i> Offers
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ url('nutrapass') }}" class="menu-link">
+                                        <i class="fa fa-id-card"></i> Nutrapass
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ url('nc_cash') }}" class="menu-link">
+                                        <i class="	fa fa-credit-card"></i> NC Cash
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ url('stores') }}" class="menu-link">
+                                        <i class="fa fa-shopping-bag"></i> Store Locator
+                                    </a>
+                                </li>
 
-
-                                <li class="hot-deals"><a href='{{ url('/') }}'>Home</a></li>
-
-{{--                                <li>--}}
-{{--                                    <a href='{{url('categories')}}'>All Categories</a>--}}
-{{--                                </li>--}}
-{{--                                <li>--}}
-{{--                                    <a href='{{url('explore')}}'>Explore</a>--}}
-{{--                                </li>--}}
                                 <li>
-                                    <a href='{{url('brands')}}'>Brands</a>
+                                    <a href="{{ url('nc_consult') }}" class="menu-link">
+                                        <i class="fa fa-info-circle"></i> NC Consult
+                                    </a>
                                 </li>
                                 <li>
-                                    <a href='{{url('nutrapass')}}'>Nutrapass</a>
-                                </li>
-                                <li>
-                                    <a href='{{url('nc_cash')}}'>NC Cash</a>
-                                </li>
-                                <li>
-                                    <a href='{{url('stores')}}'>Store Locator</a>
-                                </li>
-
-                                <li>
-                                    <a href='{{url('about')}}'>About Us</a>
-                                </li>
-                                <li>
-                                    <a href='{{url('contact')}}'>Contact</a>
+                                    <a href="{{ url('contact') }}" class="menu-link">
+                                        <i class="fa fa-envelope"></i> Contact
+                                    </a>
                                 </li>
 
 
@@ -823,7 +1228,7 @@ if (!empty($user)) {
                             @else
                                 <a onclick="checkLogin()">
                                     <img alt="Nest" src="{{url('public/assets')}}/imgs/theme/icons/icon-heart.svg"/>
-                                    <span class="pro-count white">0</span>
+                                    <span class="pro-count white"></span>
                                 </a>
                             @endif
                         </div>
@@ -831,12 +1236,12 @@ if (!empty($user)) {
                             @if(!empty($user))
                                 <a class="mini-cart-icon" href="{{ url('cart') }}">
                                     <img alt="Nest" src="{{url('public/assets')}}/imgs/theme/icons/icon-cart.svg"/>
-                                    <span class="pro-count white">0</span>
+                                    <span class="pro-count white" id="cart_qty_phone2">{{ $total_qty }}</span>
                                 </a>
                             @else
                                 <a class="mini-cart-icon" onclick="checkLogin()">
                                     <img alt="Nest" src="{{url('public/assets')}}/imgs/theme/icons/icon-cart.svg"/>
-                                    <span class="pro-count white">0</span>
+                                    <span class="pro-count white" id="cart_qty_phone1">{{ $total_qty }}</span>
                                 </a>
                             @endif
 
@@ -927,11 +1332,18 @@ if (!empty($user)) {
                                 <a onclick="checkLoginRedirect('{{route('address')}}')"><span>Address Detail</span></a>
                             </div>
                             <div class="menu-item">
+                                <a onclick="checkLoginRedirect('{{route('wishlist')}}')"><span>Wishlist</span></a>
+                            </div>
+                            <div class="menu-item">
                                 <a onclick="checkLoginRedirect('{{route('my_orders')}}')"><span> My Orders</span></a>
 
                             </div>
                             <div class="menu-item">
                                 <a href="{{route('suppliment_recommendation')}}"><span> My Supplement Recommendation</span></a>
+
+                            </div>
+                            <div class="menu-item">
+                                <a href="{{url('nc_consult')}}"><span> NC Consult</span></a>
 
                             </div>
                         </div>
@@ -945,7 +1357,7 @@ if (!empty($user)) {
 
                             </div>
                             <div class="menu-item">
-                                <a href="{{route('giftcard')}}"><span> GiftCard</span></a>
+                                <a onclick="checkLoginRedirect('{{route('giftcard')}}')"><span> GiftCard</span></a>
 
                             </div>
                             <div class="menu-item">
@@ -954,7 +1366,6 @@ if (!empty($user)) {
                             </div>
                             <div class="menu-item">
                                 <a href="{{route('coupons')}}"> <span>PromoCodes</span></a>
-
                             </div>
                         </div>
 
@@ -1020,109 +1431,400 @@ if (!empty($user)) {
         <span>Profile</span>
     </a>
 </nav>
+<style>
+    footer.main * {
+        color: white !important;
+    }
+</style>
+@php
+    $currentRoute = Route::currentRouteName();
+@endphp
+@if($currentRoute != 'cart')
+    <footer class="main" style="background-color: #0f5759;color: white">
 
-<footer class="main">
+        <section class="section-padding footer-mid">
+            <div class="container pt-15 pb-20">
+                <div class="row">
+                    <div class="col">
+                        <div class="widget-about font-md mb-md-3 mb-lg-3 mb-xl-0 wow animate__animated animate__fadeInUp"
+                             data-wow-delay="0">
+                            <div class="logo" style="margin:0px;width: 85%;">
+                                <img src="{{url('public/assets')}}/logo.png"
+                                     alt="logo"/>
 
-    <section class="section-padding footer-mid">
-        <div class="container pt-15 pb-20">
-            <div class="row">
-                <div class="col">
-                    <div class="widget-about font-md mb-md-3 mb-lg-3 mb-xl-0 wow animate__animated animate__fadeInUp"
-                         data-wow-delay="0">
-                        <div class="logo mb-30">
-                            <a class='mb-15' href='{{url('/')}}'><img src="{{url('public/assets')}}/logo.png"
-                                                                      alt="logo"/></a>
+                            </div>
+                            <ul class="contact-infor ">
 
+                                <li class="d-flex"><img src="{{url('public/assets')}}/imgs/theme/icons/icon-contact.svg"
+                                                        alt=""/><span>(+91) 88850 65550</span></li>
+                                <li class="d-flex"><img src="{{url('public/assets')}}/imgs/theme/icons/icon-email-2.svg"
+                                                        alt=""/><span>support@nutracore.in</span></li>
+                                <li class="d-flex"><img src="{{url('public/assets')}}/imgs/theme/icons/icon-clock.svg"
+                                                        alt=""/><span>10:00 - 18:00, Mon - Sat</span></li>
+                            </ul>
                         </div>
-                        <ul class="contact-infor ">
-                            <li class="d-flex"><img src="{{url('public/assets')}}/imgs/theme/icons/icon-location.svg"
-                                     alt=""/>H. No. 2-39, First Floor, Gopanpally,
-                                        Tellapur Road, Hyderabad, 500019</span> </li>
-                            <li class="d-flex"><img src="{{url('public/assets')}}/imgs/theme/icons/icon-contact.svg"
-                                     alt=""/><span>(+91) 88850 65550</span></li>
-                            <li class="d-flex"><img src="{{url('public/assets')}}/imgs/theme/icons/icon-email-2.svg"
-                                     alt=""/><span>support@nutracore.in</span></li>
-                            <li class="d-flex"><img src="{{url('public/assets')}}/imgs/theme/icons/icon-clock.svg"
-                                     alt=""/><span>10:00 - 18:00, Mon - Sat</span></li>
+                    </div>
+                    <div class="footer-link-widget col wow animate__animated animate__fadeInUp" data-wow-delay=".4s">
+                        <h4 class=" widget-title
+                ">Company</h4>
+                        <ul class="footer-list mb-sm-5 mb-md-0">
+                            <li><a href="{{url('about')}}">About Us</a></li>
+                            <li><a href="{{url('privacy_policy')}}">Privacy Policy</a></li>
+                            <li><a href="{{url('terms')}}">Terms &amp; Conditions</a></li>
+                            <li><a href="{{url('contact')}}">Contact Us</a></li>
+                            <li><a href="{{url('return_policy')}}"> Refund & Cancellation policy</a></li>
                         </ul>
                     </div>
-                </div>
-                <div class="footer-link-widget col wow animate__animated animate__fadeInUp" data-wow-delay=".4s">
-                    <h4 class=" widget-title
-                ">Company</h4>
-                    <ul class="footer-list mb-sm-5 mb-md-0">
-                        <li><a href="{{url('about')}}">About Us</a></li>
-                        <li><a href="{{url('privacy_policy')}}">Privacy Policy</a></li>
-                        <li><a href="{{url('terms')}}">Terms &amp; Conditions</a></li>
-                        <li><a href="{{url('contact')}}">Contact Us</a></li>
-                        <li><a href="#">Support Center</a></li>
-                    </ul>
-                </div>
-                <div class="footer-link-widget col wow animate__animated animate__fadeInUp" data-wow-delay=".4s">
-                    <h4 class="widget-title">Popular</h4>
-                    <ul class="footer-list mb-sm-5 mb-md-0">
-                        @foreach ($categories->take(5) as $category)
-                            <li><a href="{{ url('collections/' . $category->slug) }}">{{$category->name??''}}</a></li>
-                        @endforeach
+                    <div class="footer-link-widget col wow animate__animated animate__fadeInUp" data-wow-delay=".4s">
+                        <h4 class="widget-title">Popular</h4>
+                        <ul class="footer-list mb-sm-5 mb-md-0">
+                            @foreach ($allcategories->where('is_popular',1)->take(5) as $category)
+                                <li><a href="{{ url('collections/' . $category->slug) }}">{{$category->name??''}}</a></li>
+                            @endforeach
 
-                    </ul>
-                </div>
-                <div class="footer-link-widget widget-install-app col wow animate__animated animate__fadeInUp"
-                     data-wow-delay=".5s">
-                    <h4 class="widget-title">Install App</h4>
-                    <p class="">From App Store or Google Play</p>
-                    <div class="download-app">
-                        <a target="_blank" href="https://apps.apple.com/in/app/nutracore/id6749866050"
-                           class="hover-up mb-sm-2 mb-lg-0"><img class="active"
-                                                                 src="{{url('public/assets')}}/imgs/theme/app-store.jpg"
-                                                                 alt=""/></a>
-                        <a target="_blank" href="https://play.google.com/store/apps/details?id=com.nutracore&hl=en_IN"
-                           class="hover-up mb-sm-2"><img
-                                src="{{url('public/assets')}}/imgs/theme/google-play.jpg" alt=""/></a>
+                        </ul>
                     </div>
-                    <p class="mb-20">Secured Payment Gateways</p>
-                    <img class="" src="{{url('public/assets')}}/imgs/theme/payment-method.png" alt=""/>
+
+                    <div class="footer-link-widget col wow animate__animated animate__fadeInUp" data-wow-delay=".4s">
+                        <h4 class="widget-title">Brands</h4>
+                        <ul class="footer-list mb-sm-5 mb-md-0">
+                            @foreach ($brands->where('is_popular',1)->take(5) as $brand)
+                                <li><a href="{{ url('collections/' . $brand->slug) }}">{{$brand->brand_name??''}}</a></li>
+                            @endforeach
+
+                        </ul>
+                    </div>
+                    <div class="footer-link-widget widget-install-app col wow animate__animated animate__fadeInUp"
+                         data-wow-delay=".5s">
+                        <h4 class="widget-title">Install App</h4>
+                        <p class="">From App Store or Google Play</p>
+                        <div class="download-app">
+                            <a target="_blank" href="https://apps.apple.com/in/app/nutracore/id6749866050"
+                               class="hover-up mb-sm-2 mb-lg-0"><img class="active"
+                                                                     src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"
+                                                                     alt=""/></a>
+                            <a target="_blank" href="https://play.google.com/store/apps/details?id=com.nutracore&hl=en_IN"
+                               class="hover-up mb-sm-2"><img
+                                    src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
+                                    alt=""/></a>
+                        </div>
+                        <p class="mb-20">Secured Payment Gateways</p>
+                        <img class="" src="{{url('public/assets')}}/imgs/theme/payment-method.png" alt=""/>
+                    </div>
                 </div>
             </div>
-    </section>
-    <div class="container pb-30 wow animate__animated animate__fadeInUp" data-wow-delay="0">
-        <div class="row align-items-center">
-            <div class="col-12 mb-30">
-                <div class="footer-bottom"></div>
-            </div>
-            <div class="col-xl-4 col-lg-6 col-md-6">
-                <p class="font-sm mb-0">&copy; {{date('Y')}}, <strong class="text-brand">Nutracore</strong>All
-                    rights reserved</p>
-            </div>
-            <div class="col-xl-4 col-lg-6 text-center d-none d-xl-block">
-                <div class="hotline d-lg-inline-flex mr-30">
-                    <img src="{{url('public/assets')}}/imgs/theme/icons/phone-call.svg" alt="hotline"/>
-                    <p>88850 65550<span>Working 8:00 - 22:00</span></p>
+        </section>
+        <div class="container pb-30 wow animate__animated animate__fadeInUp" data-wow-delay="0">
+            <div class="row align-items-center">
+                <div class="col-12 mb-30">
+                    <div class="footer-bottom"></div>
                 </div>
-                <div class="hotline d-lg-inline-flex">
-                    <img src="{{url('public/assets')}}/imgs/theme/icons/phone-call.svg" alt="hotline"/>
-                    <p>88850 65550<span>24/7 Support Center</span></p>
+                <div class="col-xl-4 col-lg-6 col-md-6">
+                    <p class="font-sm mb-0">&copy; {{date('Y')}}, <strong class="text-brand">Nutracore</strong>All
+                        rights reserved</p>
                 </div>
-            </div>
-            <div class="col-xl-4 col-lg-6 col-md-6 text-end d-none d-md-block">
-                <div class="mobile-social-icon">
-                    <h6>Follow Us</h6>
-                    <a href="#"><img src="{{url('public/assets')}}/imgs/theme/icons/icon-facebook-white.svg"
-                                     alt=""/></a>
-                    <a href="#"><img src="{{url('public/assets')}}/imgs/theme/icons/icon-twitter-white.svg"
-                                     alt=""/></a>
-                    <a href="#"><img src="{{url('public/assets')}}/imgs/theme/icons/icon-instagram-white.svg"
-                                     alt=""/></a>
-                    <a href="#"><img src="{{url('public/assets')}}/imgs/theme/icons/icon-pinterest-white.svg"
-                                     alt=""/></a>
-                    <a href="#"><img src="{{url('public/assets')}}/imgs/theme/icons/icon-youtube-white.svg"
-                                     alt=""/></a>
+                <div class="col-xl-4 col-lg-6 text-center d-none d-xl-block">
+
                 </div>
-                <p class="font-sm">Up to 15% discount on your first subscribe</p>
+                <div class="col-xl-4 col-lg-6 col-md-6 text-end d-none d-md-block">
+                    <div class="mobile-social-icon">
+                        <h6>Follow Us</h6>
+                        <a href="https://www.facebook.com/nutracore.in" target="_blank"><img
+                                src="{{url('public/assets')}}/imgs/theme/icons/icon-facebook-white.svg"
+                                alt=""/></a>
+
+                        <a href="https://www.instagram.com/nutracore.in/" target="_blank"><img
+                                src="{{url('public/assets')}}/imgs/theme/icons/icon-instagram-white.svg"
+                                alt=""/></a>
+                        <a href="https://www.youtube.com/@NutraCoreOfficial" target="_blank"><img
+                                src="{{url('public/assets')}}/imgs/theme/icons/icon-youtube-white.svg"
+                                alt=""/></a>
+                    </div>
+                    {{--                <p class="font-sm">Up to 15% discount on your first subscribe</p>--}}
+                </div>
             </div>
         </div>
+    </footer>
+@endif
+@php
+    $user = Auth::user();
+    $subscription = CustomHelper::subscriptionsData($user);
+
+@endphp
+<div class="popup-overlay" id="membershipPopup" style="display: none">
+    <div class="popup-box">
+
+        <div class="popup-header">
+            <span class="close-btn" onclick="closePopup()">✕</span>
+            <h3 style="color: white;font-size: 20px">Join NutraPass Membership</h3>
+        </div>
+
+        <img src="{{url('public/assets/images/nutrapasslogo.svg')}}" class="logo"/>
+
+        <div class="benefits-card">
+            <ul id="subscription_html">
+                {{--                <li>🔥 10% OFF every order</li>--}}
+                {{--                <li>🚚 Free Express Delivery</li>--}}
+                {{--                <li>🎁 Monthly Freebie Box</li>--}}
+                {{--                <li>⏰ Early Access & Secret Sales</li>--}}
+            </ul>
+        </div>
+
+        <div class="plans">
+            @foreach($subscription['subscription_plans'] as $plan)
+                @php
+                    $permonth = round((int)$plan->price / (int)$plan->duration);
+                    $totalStandardPrice = (int)$plan->price * (int)$plan->duration;
+                    $savePercent = $totalStandardPrice > 0
+                        ? round((($totalStandardPrice - $plan->price) / $totalStandardPrice) * 100)
+                        : 0;
+                @endphp
+
+                <div onclick="selectPlan('{{ $plan->id }}','{{ $plan->duration }}','{!! $plan->terms  !!}')"
+                     class="plan-item"
+                     id="plan{{ $plan->duration }}"
+                     data-duration="{{ $plan->duration }}"
+                     data-id="{{ $plan->id }}"
+                     data-terms="{{ htmlentities($plan->terms) }}"
+                     data-price="{{ $plan->price }}">
+                    @if($plan->is_best_value == 1)
+                        <div class="best-value-tag">Best Value</div>
+                    @endif
+
+                    <h2>{{ $plan->duration }}</h2>
+                    <p>months</p>
+                    <span class="price">₹{{ $permonth }}/mo</span>
+                    <small>SAVE {{ $savePercent }}%</small>
+                    <h4 class="total">₹{{ $plan->price }}</h4>
+                </div>
+            @endforeach
+        </div>
+
+
+        <button class="subscribe-btn" onclick="subscribeNow()">Subscribe</button>
+
     </div>
-</footer>
+</div>
+<style>
+    .popup-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+    .popup-box {
+        width: 90%;
+        max-width: 380px;
+        background: #17b4ad;
+        border-radius: 20px;
+        padding: 20px;
+        color: white;
+        text-align: center;
+    }
+
+    .close-btn {
+        font-size: 22px;
+        cursor: pointer;
+        float: left;
+    }
+
+    .logo {
+        width: 160px;
+        margin: 20px auto;
+    }
+
+    .benefits-card {
+        background: #ffcc5c;
+        padding: 12px;
+        border-radius: 15px;
+        color: #000;
+    }
+
+    .benefits-card ul {
+        padding: 0;
+        list-style: none;
+    }
+
+    .benefits-card li {
+        font-size: 15px;
+        margin: 5px 0;
+    }
+
+    .plans {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 25px;
+    }
+
+    .plan-item {
+        background: white;
+        width: 30%;
+        color: #444;
+        padding: 15px 8px;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: 0.3s;
+        position: relative;
+    }
+
+    .plan-item.active {
+        border: 3px solid #ffca28;
+        transform: scale(1.05);
+    }
+
+    .plan-item h2 {
+        margin: 0;
+        font-size: 28px;
+        color: #333;
+    }
+
+    .plan-item .price {
+        display: block;
+        margin-top: 5px;
+        font-weight: 600;
+        color: #000;
+    }
+
+    .plan-item small {
+        color: green;
+    }
+
+    .plan-item .total {
+        margin-top: 8px;
+        font-weight: bold;
+    }
+
+    .best-value {
+        background: #ffc033;
+    }
+
+    .best-value-tag {
+        position: absolute;
+        top: -10px;
+        right: 0;
+        background: #07a0f5;
+        color: white;
+        padding: 2px 10px;
+        border-radius: 5px;
+        font-size: 12px;
+    }
+
+    .subscribe-btn {
+        width: 100%;
+        background: white;
+        padding: 15px;
+        border-radius: 25px;
+        color: #17b4ad;
+        font-weight: 600;
+        font-size: 18px;
+        margin-top: 25px;
+        border: none;
+        cursor: pointer;
+    }
+</style>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+
+    @php
+        $lastPlan = end($subscription['subscription_plans']);
+
+    @endphp
+    function openSubscriptionPopup() {
+        document.getElementById("membershipPopup").style.display = "flex";
+    }
+
+    function closePopup() {
+        document.getElementById("membershipPopup").style.display = "none";
+    }
+
+    let selectedPlanId = null;
+
+    $(document).ready(function () {
+
+        // pick last plan-item element in DOM
+        var $last = $('.plan-item').last();
+
+        if ($last.length) {
+            // read attributes
+            var months = $last.data('duration');
+            var id = $last.data('id');
+            // decode terms html if needed
+            var terms = $last.data('terms') || '';
+            // If terms was HTML-encoded by htmlentities, decode it:
+            terms = $('<textarea/>').html(terms).text();
+
+            selectPlan(id, months, terms);
+        }
+    });
+
+    function selectPlan(id, months, terms) {
+        selectedPlan = months;
+        selectedPlanId = id;
+        if (terms) {
+            $('#subscription_html').html(terms);
+        }
+
+        $(".plan-item").removeClass("active");
+        $("#plan" + months).addClass("active");
+    }
+
+    function subscribeNow() {
+        if (!selectedPlanId) {
+            alert("Please select a plan first");
+            return;
+        }
+        $.ajax({
+            url: "{{ url('take_subscription') }}",
+            type: "POST",
+            data: {
+                subscription_id: selectedPlanId,
+                _token: "{{ csrf_token() }}"
+            },
+            success: function (res) {
+
+                if (!res.result) {
+                    alert(res.message);
+                    return;
+                }
+
+                // ---- OPEN RAZORPAY POPUP ----
+                var options = {
+                    "key": res.keys.key,
+                    "currency": "INR",
+                    "order_id": res.order_id,
+                    "handler": function (response) {
+                        alert('Payment Sucessfull');
+                    },
+
+                    "prefill": {
+                        "name": "{{ Auth::user()->name??'' }}",
+                        "email": "{{ Auth::user()->email ??''}}",
+                        "contact": "{{ Auth::user()->phone ??''}}"
+                    },
+                };
+
+                var rzp = new Razorpay(options);
+                rzp.open();
+            },
+
+            error: function (err) {
+                console.log(err);
+                alert("Something went wrong!");
+            }
+        });
+    }
+
+</script>
+
+
 <!-- Preloader Start -->
 <!-- <div id="preloader-active">
         <div class="preloader d-flex align-items-center justify-content-center">
@@ -1163,6 +1865,13 @@ if (!empty($user)) {
 
 
 <!-- Mirrored from nest-frontend.netlify.app/ by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 20 Dec 2023 08:00:04 GMT -->
+<style>
+    input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+</style>
 
 <div class="modal fade" id="otpLoginModal" tabindex="-1" aria-labelledby="otpLoginModalLabel" aria-hidden="true">
     <div class="modal-dialog  modal-dialog-centered">
@@ -1181,6 +1890,13 @@ if (!empty($user)) {
                         <input type="tel" name="mobile" id="mobile" class="form-control" placeholder="Enter mobile no"
                                required>
                     </div>
+                    <div class="mb-3">
+                        <label style="font-size:14px;">
+                            <input type="checkbox" id="termsCheckbox" style="margin-right:6px;" checked="checked">
+                            By continuing, I agree to the <a href="{{url('terms')}}" target="_blank">Terms of use</a> & <a href="{{url('privacy_policy')}}" target="_blank">Privacy Policy</a>
+                        </label>
+                    </div>
+
 
                     <!-- Send OTP Button -->
                     <div class="d-grid mb-3">
@@ -1218,6 +1934,7 @@ if (!empty($user)) {
         </div>
     </div>
 </div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
 
 <script>
@@ -1252,8 +1969,54 @@ if (!empty($user)) {
             headers: {'X-CSRF-TOKEN': _token},
             cache: false,
             success: function (resp) {
-
+                $('#cart_qty').html(resp.total_qty);
+                $('#cart_qty_phone1').html(resp.total_qty);
+                $('#cart_qty_phone2').html(resp.total_qty);
+                showToast(resp.message);
             }
+        });
+    }
+
+    function wishlist_save(product_id, variant_id,remove_cart=false) {
+        var user_id = '{{ $user->id ?? '' }}';
+        if (user_id == '') {
+            $('#otpLoginModal').modal('show');
+        }
+        var _token = '{{ csrf_token() }}';
+        if (variant_id == '') {
+            variant_id = 0;
+        }
+        var qty = $('#quantity').val();
+        $.ajax({
+            url: "{{ url('wishlist_save') }}",
+            type: "POST",
+            data: {product_id: product_id, variant_id: variant_id},
+            dataType: "JSON",
+            headers: {'X-CSRF-TOKEN': _token},
+            cache: false,
+            success: function (resp) {
+                let icon = $("#wishlist_icon_" + variant_id);
+
+                if(remove_cart == true || remove_cart == "true"){
+                    DeleteCart(product_id, variant_id);
+                }
+                // If added to wishlist
+                if (resp.status == "added") {
+                    icon.addClass("active");
+                }
+                // If removed from wishlist
+                else if (resp.status == "removed") {
+                    icon.removeClass("active");
+                }
+
+                var currentRoute = @json(Route::currentRouteName()); // e.g. "wishlist"
+
+                if (currentRoute === 'wishlist') {
+                    location.reload();
+                }
+            }
+
+
         });
     }
 
@@ -1275,18 +2038,28 @@ if (!empty($user)) {
             headers: {'X-CSRF-TOKEN': _token},
             cache: false,
             success: function (resp) {
+                $('#cart_qty').html(resp.total_qty);
+                $('#cart_qty_phone1').html(resp.total_qty);
+                $('#cart_qty_phone2').html(resp.total_qty);
+                showToast(resp.message);
                 getCartHtml();
             }
         });
     }
 
+
+
     function updateCart(product_id, variant_id, type) {
+
         var user_id = '{{ $user->id ?? '' }}';
         if (user_id == '') {
             $('#otpLoginModal').modal('show');
         }
         var _token = '{{ csrf_token() }}';
         var qty = $('#cart_quantity' + variant_id).val();
+        if (isNaN(qty)) {
+            qty = document.getElementById(`quantity-${product_id}-${variant_id}`).value;
+        }
         if (type == 'minus') {
             qty = parseInt(qty) - 1;
         } else {
@@ -1304,6 +2077,10 @@ if (!empty($user)) {
             cache: false,
             success: function (resp) {
                 $('#cart_quantity' + variant_id).val(qty);
+                $('#cart_qty').html(resp.total_qty??0);
+                $('#cart_qty_phone1').html(resp.total_qty??0);
+                $('#cart_qty_phone2').html(resp.total_qty??0);
+                showToast(resp.message);
                 getCartHtml();
             }
         });
@@ -1327,24 +2104,76 @@ if (!empty($user)) {
         });
     }
 
-    function getCartHtml() {
-        var user_id = '{{ $user->id ?? '' }}';
+    {{--async function getCartHtml() {--}}
+
+    {{--    var user_id = '{{ $user->id ?? "" }}';--}}
+    {{--    if (user_id == '') {--}}
+    {{--        $('#otpLoginModal').modal('show');--}}
+    {{--        return null;--}}
+    {{--    }--}}
+
+    {{--    var _token = '{{ csrf_token() }}';--}}
+
+    {{--    // ✅ return AJAX so async/await receives the response--}}
+    {{--    return $.ajax({--}}
+    {{--        url: "{{ url('getCartHtml') }}",--}}
+    {{--        type: "POST",--}}
+    {{--        data: $("#cartSubmitForm").serialize(),--}}
+    {{--        dataType: "JSON",--}}
+    {{--        headers: {'X-CSRF-TOKEN': _token},--}}
+    {{--        cache: false--}}
+    {{--    }).done(function (resp) {--}}
+    {{--        $('#cart_html').html(resp.html);--}}
+    {{--        $('#applied_cashback').val(resp.applied_cashback);--}}
+    {{--        selectFreebees();--}}
+    {{--        selectCoupon_code();--}}
+    {{--        selectNCCash();--}}
+    {{--        setSubscription();--}}
+    {{--    });--}}
+    {{--}--}}
+
+    async function getCartHtml() {
+        var user_id = '{{ $user->id ?? "" }}';
         if (user_id == '') {
             $('#otpLoginModal').modal('show');
+            return null;
         }
+
         var _token = '{{ csrf_token() }}';
-        $.ajax({
-            url: "{{ url('getCartHtml') }}",
-            type: "POST",
-            data: {},
-            dataType: "JSON",
-            headers: {'X-CSRF-TOKEN': _token},
-            cache: false,
-            success: function (resp) {
-                $('#cart_html').html(resp.html);
-            }
-        });
+
+        // Show loader
+        $('#cartLoader').show();
+
+        try {
+            const resp = await $.ajax({
+                url: "{{ url('getCartHtml') }}",
+                type: "POST",
+                data: $("#cartSubmitForm").serialize(),
+                dataType: "JSON",
+                headers: {'X-CSRF-TOKEN': _token},
+                cache: false
+            });
+
+            // Populate cart
+            $('#cart_html').html(resp.html);
+            $('#applied_cashback').val(resp.applied_cashback);
+            selectFreebees();
+            selectCoupon_code();
+            selectNCCash();
+            setSubscription();
+
+            return resp;
+        } catch (err) {
+            console.error(err);
+            alert('Something went wrong while fetching the cart!');
+            return null;
+        } finally {
+            // Hide loader
+            $('#cartLoader').hide();
+        }
     }
+
+
 </script>
 
 <script>
@@ -1377,12 +2206,16 @@ if (!empty($user)) {
     }
 
     sendOtpBtn.addEventListener('click', function () {
-        const mobile = mobileInput.value;
-        if (!mobile.match(/^[6-9]\d{9}$/)) {
-            alert('Enter valid 10-digit mobile number');
+        var mobile = mobileInput.value;
+        var termsCheckbox = document.getElementById('termsCheckbox');
+        if (mobile.length !== 10 || isNaN(mobile)) {
+            alert('Enter valid 10-digit mobile numbersdfsdfsdf');
             return;
         }
-
+        if (!termsCheckbox.checked) {
+            alert('Please agree to Terms of Use & Privacy Policy');
+            return;
+        }
         ///////////////////////SEND OTP API////////////////////////
         var success = sendOTP(mobile);
         if (success) {
@@ -1396,7 +2229,7 @@ if (!empty($user)) {
 
     resendOtpBtn.addEventListener('click', function () {
         const mobile = mobileInput.value;
-        if (!mobile.match(/^[6-9]\d{9}$/)) {
+        if (mobile.length !== 10 || isNaN(mobile)) {
             alert('Enter valid 10-digit mobile number');
             return;
         }
@@ -1507,7 +2340,29 @@ if (!empty($user)) {
         width: 100%;
         margin-top: 15px;
     }
+
+    #address_search {
+    }
 </style>
+
+{{--new codingf vika kumar--}}
+
+<style>
+    .border-1 {
+        border: 1px solid #ccc;
+        /* padding: 10px; */
+        margin: 5px;
+        border-radius: 8px;
+        display: flex;
+        justify-content: center; /* horizontally center */
+        align-items: center; /* vertically center */
+        height: 150px; /* or any fixed height you want */
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+</style>
+
+
 <div class="modal fade" id="addressModal" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
@@ -1520,54 +2375,13 @@ if (!empty($user)) {
                 <input type="text" class="form-control mb-2" id="address_search" placeholder="Search address">
                 <input type="hidden" id="latitude">
                 <input type="hidden" id="longitude">
+                <input type="hidden" id="pincode">
                 <div id="map"></div>
             </div>
         </div>
     </div>
 </div>
 
-
-<script>
-
-    $(document).ready(function () {
-        fetchCurrentAddress();
-    });
-
-    function fetchCurrentAddress() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(async position => {
-                {{--const {latitude, longitude} = position.coords;--}}
-                {{--const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);--}}
-                {{--const data = await response.json();--}}
-                {{--const address = data.display_name;--}}
-                {{--$('#address_text').html(address);--}}
-                {{--$.ajax({--}}
-                {{--    url: '{{url('store_location')}}', // your route--}}
-                {{--    type: 'POST',--}}
-                {{--    data: {--}}
-                {{--        _token: $('meta[name="csrf-token"]').attr('content'),--}}
-                {{--        latitude: latitude,--}}
-                {{--        longitude: longitude--}}
-                {{--    },--}}
-                {{--    success: function (res) {--}}
-                {{--        console.log('Location stored in session');--}}
-                {{--    },--}}
-                {{--    error: function (err) {--}}
-                {{--        console.error('Error storing location', err);--}}
-                {{--    }--}}
-                {{--});--}}
-
-                // document.getElementById('full-address').textContent = address;
-            }, error => {
-                // document.getElementById('address_text').html = "Location access denied.";
-            });
-        } else {
-            // document.getElementById('address_text').html = "Geolocation not supported.";
-        }
-
-
-    }
-</script>
 <script
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCENCD7Uzd2YK0IJsUPgFI1gMNiHHPAuRA&libraries=places"></script>
 
@@ -1613,7 +2427,16 @@ if (!empty($user)) {
                 document.getElementById("longitude").value = place.geometry.location.lng();
                 document.getElementById("address_phone").innerHTML = place.formatted_address;
                 document.getElementById("address_text").innerHTML = place.formatted_address;
-                storeLocation(place.geometry.location.lat(), place.geometry.location.lng(), place.formatted_address);
+
+                let pincode = "";
+
+                // ✅ Extract PIN code from address_components
+                results[0].address_components.forEach(component => {
+                    if (component.types.includes("postal_code")) {
+                        pincode = component.long_name;
+                    }
+                });
+                storeLocation(place.geometry.location.lat(), place.geometry.location.lng(), place.formatted_address, pincode);
 
                 map.setCenter(place.geometry.location);
                 marker.setPosition(place.geometry.location);
@@ -1648,9 +2471,10 @@ if (!empty($user)) {
 
 <script>
     function initAutocomplete() {
+        console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
         const input = document.getElementById('locationInput');
         const options = {
-            types: ['geocode'], // or 'address' to restrict results
+            // types: ['geocode'], // or 'address' to restrict results
             componentRestrictions: {country: "in"} // Restrict to India
         };
         const autocomplete = new google.maps.places.Autocomplete(input, options);
@@ -1665,7 +2489,15 @@ if (!empty($user)) {
             document.getElementById("longitude").value = place.geometry.location.lng();
             document.getElementById("address_phone").innerHTML = place.formatted_address;
             document.getElementById("address_text").innerHTML = place.formatted_address;
-            storeLocation(place.geometry.location.lat(), place.geometry.location.lng(), place.formatted_address);
+            let pincode = "";
+
+            // ✅ Extract PIN code from address_components
+            place.address_components.forEach(component => {
+                if (component.types.includes("postal_code")) {
+                    pincode = component.long_name;
+                }
+            });
+            storeLocation(place.geometry.location.lat(), place.geometry.location.lng(), place.formatted_address, pincode);
             console.log("Selected place:", place.formatted_address);
             console.log("Latitude:", place.geometry.location.lat());
             console.log("Longitude:", place.geometry.location.lng());
@@ -1678,7 +2510,7 @@ if (!empty($user)) {
     window.onload = initAutocomplete;
 
 
-    function storeLocation(latitude, longitude, address) {
+    async function storeLocation(latitude, longitude, address, pincode) {
         $.ajax({
             url: '{{url('store_location')}}', // your route
             type: 'POST',
@@ -1687,12 +2519,12 @@ if (!empty($user)) {
                 latitude: latitude,
                 longitude: longitude,
                 address: address,
+                pincode: pincode,
             },
             success: function (res) {
                 console.log('Location stored in session');
-                const modalEl = document.getElementById('addressSearchModal');
-                const modal = bootstrap.Modal.getInstance(modalEl);
-                modal.hide();
+
+                $('#addressSearchModal').hide();
             },
             error: function (err) {
                 console.error('Error storing location', err);
@@ -1705,10 +2537,9 @@ if (!empty($user)) {
 <script>
     $(document).ready(function () {
         var address = '{{$address ??''}}';
-        if (address == '') {
+        if (address === '') {
             getCurrentLocation();
         }
-
     });
 
     function getCurrentLocation() {
@@ -1733,13 +2564,24 @@ if (!empty($user)) {
                 if (results[0]) {
                     console.log("Address:", results[0].formatted_address);
                     document.getElementById('locationInput').value = results[0].formatted_address;
+                    var pincode = "";
+
+                    // ✅ Extract PIN code from address_components
+                    results[0].address_components.forEach(component => {
+                        if (component.types.includes("postal_code")) {
+                            console.log("component.typescomponent.types", component.types);
+                            console.log("component.typescomponent.types", component.long_name);
+                            pincode = component.long_name;
+                        }
+                    });
 
 
                     document.getElementById("latitude").value = latitude;
                     document.getElementById("longitude").value = longitude;
                     document.getElementById("address_phone").innerHTML = results[0].formatted_address;
                     document.getElementById("address_text").innerHTML = results[0].formatted_address;
-                    storeLocation(latitude, longitude, results[0].formatted_address);
+                    document.getElementById("pincode").value = pincode;
+                    storeLocation(latitude, longitude, results[0].formatted_address, pincode);
 
 
                 } else {
@@ -1754,6 +2596,7 @@ if (!empty($user)) {
     function error(err) {
         console.warn(`ERROR(${err.code}): ${err.message}`);
     }
+
     function checkLoginRedirect(url) {
         var user_id = '{{ $user->id ?? '' }}';
         if (user_id == '') {
@@ -1768,20 +2611,139 @@ if (!empty($user)) {
 </script>
 
 <script>
-    (function(w,d,s,c,r,a,m){
-        w['KiwiObject']=r;
-        w[r]=w[r] || function () {
-            (w[r].q=w[r].q||[]).push(arguments)};
-        w[r].l=1*new Date();
-        a=d.createElement(s);
-        m=d.getElementsByTagName(s)[0];
-        a.async=1;
-        a.src=c;
-        m.parentNode.insertBefore(a,m)
-    })(window,document,'script',"https://app.interakt.ai/kiwi-sdk/kiwi-sdk-17-prod-min.js?v="+ new Date().getTime(),'kiwi');
-    window.addEventListener("load",function () {
-        kiwi.init('', '9rrBdQVIAwVNoYbWU9KwpQjrvmXn44fF', {});
+    $(document).ready(function () {
+        $('#productSearch').on('keyup', function () {
+            let query = $(this).val();
+            let category_id = $('#categorySelect').val();
+            let _token = '{{ csrf_token() }}';
+
+            if (query.length > 0) {
+                $.ajax({
+                    url: "{{ url('search-products') }}",
+                    type: "POST",
+                    data: {query: query, category_id: category_id, _token: _token},
+                    success: function (data) {
+                        let suggestionBox = $('#suggestionBox');
+                        suggestionBox.empty();
+
+                        if (data.length > 0) {
+                            data.forEach(item => {
+                                suggestionBox.append(
+                                    '<a href="{{ url('products') }}/' + item.slug + '" class="list-group-item list-group-item-action">'
+                                    + item.name +
+                                    '</a>'
+                                );
+                            });
+                            suggestionBox.show();
+                        } else {
+                            suggestionBox.hide();
+                        }
+                    }
+                });
+            } else {
+                $('#suggestionBox').hide();
+            }
+        });
+
+        // Hide suggestion box when clicking outside
+        $(document).click(function (e) {
+            if (!$(e.target).closest('#productSearch').length) {
+                $('#suggestionBox').hide();
+            }
+        });
     });
+
 </script>
+
+<script>
+    // (function (w, d, s, c, r, a, m) {
+    //     w['KiwiObject'] = r;
+    //     w[r] = w[r] || function () {
+    //         (w[r].q = w[r].q || []).push(arguments)
+    //     };
+    //     w[r].l = 1 * new Date();
+    //     a = d.createElement(s);
+    //     m = d.getElementsByTagName(s)[0];
+    //     a.async = 1;
+    //     a.src = c;
+    //     m.parentNode.insertBefore(a, m)
+    // })(window, document, 'script', "https://app.interakt.ai/kiwi-sdk/kiwi-sdk-17-prod-min.js?v=" + new Date().getTime(), 'kiwi');
+    // window.addEventListener("load", function () {
+    //     kiwi.init('', '9rrBdQVIAwVNoYbWU9KwpQjrvmXn44fF', {});
+    // });
+
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+        const addressCards = document.querySelectorAll('.address-card');
+
+        addressCards.forEach(card => {
+            card.addEventListener('click', function () {
+
+                const addressID = this.dataset.id;
+                const fullAddress = this.dataset.fulladdress;
+                const latitude = this.dataset.lat;
+                const longitude = this.dataset.lng;
+                const pincode = this.dataset.pincode;
+                const token = '{{ csrf_token() }}';
+
+                // Highlight selected
+                document.querySelectorAll('.address-card')
+                    .forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+
+                // 🔥 SET FULL ADDRESS INTO YOUR INPUTS
+                document.getElementById('locationInput').value = fullAddress;
+                document.getElementById('address_text').innerHTML = fullAddress;
+                document.getElementById('address_phone').innerHTML = fullAddress;
+                document.getElementById('latitude').value = latitude;
+                document.getElementById('longitude').value = longitude;
+                document.getElementById('pincode').value = pincode;
+
+                // Call your store function if needed
+                storeLocation(latitude, longitude, fullAddress, pincode);
+
+                // AJAX request
+                $.ajax({
+                    url: "{{ url('update_selected_address') }}",
+                    type: "POST",
+                    data: {addressID: addressID},
+                    dataType: "JSON",
+                    headers: {'X-CSRF-TOKEN': token},
+                    cache: false,
+                    success: function (resp) {
+                        const addr = resp.address;
+                        const fullAddress =
+                            (addr.flat_no ? addr.flat_no + ' ' : '') +
+                            (addr.building_name ? addr.building_name + ', ' : '') +
+                            (addr.landmark ? addr.landmark + '<br>' : '') +
+                            (addr.location ? addr.location + '<br>' : '') +
+                            (addr.city ? addr.city + ', ' : '') +
+                            (addr.state ? addr.state + ', ' : '') +
+                            (addr.pincode ? addr.pincode : '');
+                        document.getElementById("latitude").value = addr.latitude;
+                        document.getElementById("longitude").value = addr.longitude;
+                        document.getElementById("address_phone").innerHTML = fullAddress;
+                        document.getElementById("address_text").innerHTML = fullAddress;
+                        $('#addressSearchModal').modal('hide');
+                    }
+                });
+            });
+        });
+
+    });
+
+    function showToast(message) {
+        const toast = document.getElementById("toast");
+        toast.innerText = message;
+        toast.classList.add("show");
+
+        setTimeout(() => {
+            toast.classList.remove("show");
+        }, 3000); // hide after 3 seconds
+    }
+
+</script>
+
 
 </html>

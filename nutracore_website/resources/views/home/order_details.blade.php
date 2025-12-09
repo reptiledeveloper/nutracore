@@ -13,7 +13,16 @@
             }
         }
     }
-    $order_items = $orders->order_items??'';
+    $order_items = $orders->order_items ?? '';
+
+    $exist = DB::table('order_courier')->where("order_id", $orders->id)->where('envia_data', '!=', null)->first();
+    $order_details_envia = [];
+    if (!empty($exist)) {
+        $order_details_envia = json_decode($exist->envia_data) ?? '';
+
+        $order_details_envia = $order_details_envia->data[0] ?? [];
+
+    }
     ?>
 
     <style>
@@ -105,10 +114,11 @@
             font-size: 15px;
             color: #333;
         }
+
         .bill-card {
             background: #fff;
             border-radius: 10px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
             padding: 15px;
             margin: auto;
             font-family: Arial, sans-serif;
@@ -226,7 +236,7 @@
             <div class="container">
                 <div class="breadcrumb">
                     <a href='' rel='nofollow'><i class="fi-rs-home mr-5"></i>Home</a>
-                    <span></span>Order Details - #NC{{$id}}
+                    <span></span>Order Details -#{{$order->unique_id??''}}
                 </div>
             </div>
         </div>
@@ -261,9 +271,10 @@
 
                 <div class="row mt-3">
                     @foreach($order_items as $items)
-                        <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="col-md-6 col-lg-4 mb-4 p-2">
                             <div class="order-card d-flex align-items-center p-3">
-                                <img src="{{ $items->image ?? '' }}" alt="{{ $items->name ?? '' }}" class="item-img me-3">
+                                <img src="{{ $items->image ?? '' }}" alt="{{ $items->name ?? '' }}"
+                                     class="item-img me-3">
                                 <div class="order-info">
                                     <h4 class="item-name">{{ $items->name ?? '' }}</h4>
                                     <p class="item-unit">{{ !empty($items->unit) ? $items->unit : '' }}  {{ !empty($items->unit_value) ? $items->unit_value: '' }}</p>
@@ -275,6 +286,51 @@
                             </div>
                         </div>
                     @endforeach
+
+                        @if(!empty($orders->freebees_id) && $orders->freebees_id != "null")
+                            @php
+                                $freebees_product = \App\Models\FreeProduct::where('id',$orders->freebees_id)->first();
+                                    $pro = \App\Models\Products::where('id',$freebees_product->product_id)->first();
+
+                                    $image = \App\Helpers\CustomHelper::getImageUrl('products',$pro->image??'');
+                            @endphp
+
+
+                            <div class="col-md-6 col-lg-4 mb-4 p-2">
+                                <div class="order-card d-flex align-items-center p-3">
+                                    <img src="{{ $image ?? '' }}" alt="{{$pro->name??''}}"
+                                         class="item-img me-3">
+                                    <div class="order-info">
+                                        <h4 class="item-name">{{$pro->name??''}}</h4>
+                                        <p class="item-unit"></p>
+                                        <p class="item-price">
+                                            <strong>₹  {{$freebees_product->amount??''}}</strong>
+                                            <span class="text-muted"> • 1 pcs</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                        @endif
+
+
+
+                        @if(!empty($orders->subscription_id) && $orders->subscription_id != "null")
+                            @php
+                                $subscription =\App\Models\SubscriptionPlans::where('id',$orders->subscription_id)->first();
+                            @endphp
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="order-card d-flex align-items-center p-3">
+                                    <div class="order-info">
+                                        <h4 class="item-name">Subscription</h4>
+                                        <p class="item-price">
+                                            <strong>Plan Name : {{$subscription->name??''}}</strong><br>
+                                            <strong>Amount : {{$subscription->price??''}}</strong>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                 </div>
 
                 <div class="row mt-3">
@@ -300,15 +356,50 @@
 
 
                 </div>
+
+                <div class="row mt-3">
+                    <div class="bill-card">
+                        <div class="bill-body">
+                            <div class="bill-row">
+                                <span>Tracking Details</span>
+
+                            </div>
+                            <div class="bill-body">
+                                <div class="bill-row text-success">
+                                    <span>Shipment ID</span>
+                                    <span>{{ $order_details_envia->shipmentId ?? '' }}</span>
+                                </div>
+
+                                <div class="bill-row text-success">
+                                    <span>Tracking Number</span>
+                                    <span>{{ $order_details_envia->trackingNumber ?? '' }}</span>
+                                </div>
+
+                                <div class="bill-row text-success">
+                                    <span>Track URL</span>
+                                    @if(!empty($order_details_envia->trackUrl))
+                                    <span>
+            <a href="{{ $order_details_envia->trackUrl ?? '' }}" target="_blank">
+                Click Here
+            </a>
+        </span>
+                                    @endif
+                                </div>
+
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
                 <div class="row mt-3">
                     <div class="bill-card">
                         <div class="bill-header">
-                            <button class="bill-btn">
+                            <a target="_blank" href="{{route('invoice',['id'=>$orders->id])}}" class="bill-btn">
                                 📄 Download Invoice
-                            </button>
-                            <button class="bill-btn">
-                                📄 Download Summary
-                            </button>
+                            </a>
+
                         </div>
 
                         <div class="bill-body">

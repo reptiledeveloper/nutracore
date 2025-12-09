@@ -6,7 +6,11 @@
 
 
     ?>
-
+<style>
+    .border-1{
+        border: 1px solid #00a8a8 !important;
+    }
+</style>
     <main class="main">
         <section class="popular-categories section-padding">
             <div class="container wow ">
@@ -18,7 +22,7 @@
                 <div class="row">
 
                     @foreach($brands as $brand)
-                        <div class="col-md-2">
+                        <div class="col-6 col-md-2 mb-3"> <!-- col-6 = 2 per row on mobile -->
                             <div class="border-1 text-center">
                                 <figure>
                                     <a href="{{ url('collections/' . $brand->slug) }}">

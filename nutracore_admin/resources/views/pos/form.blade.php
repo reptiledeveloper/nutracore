@@ -24,10 +24,51 @@
     $categories = \App\Helpers\CustomHelper::getCategories();
     $vendors = \App\Helpers\CustomHelper::getVendors();
     $brands = \App\Helpers\CustomHelper::getBrands();
-
-    $products = \App\Helpers\CustomHelper::getProductsWithVarients();
     $customers = [];
-    $exist = \App\Models\POSDailyCash::where('date', date('Y-m-d'))->first();
+//    $exist = \App\Models\POSDailyCash::where('date', date('Y-m-d'))->first();
+    $vendor_id_selected = '';
+    $admin = Auth::guard('admin')->user();
+    if ($admin->role_id === 0) {
+        // Superadmin: use session or request store_id
+        $vendor_id_selected = session('store_id') ?? ($request->store_id ?? null);
+    } else {
+        // Normal vendor/admin: use own vendor_id
+        $vendor_id_selected = $admin->vendor_id ?? null;
+    }
+    $exist = \App\Models\POSDailyCash::where('store_id', $vendor_id_selected)
+        ->where('date', date('Y-m-d'))
+        ->first();
+    $lastUpdate = $exist->updated_at ?? date('Y-m-d 00:00:00');
+
+    $order_amount = \App\Models\Order::where('delivery_date', date('Y-m-d'))
+        ->where('order_from', 'POS')
+        ->where('payment_method', 'Cash')
+        ->where('created_at', '>', $lastUpdate) // only after last update
+        ->sum('total_amount');
+
+// 3️⃣ Multipay Orders since last update
+    $orders = \App\Models\Order::where('delivery_date', date('Y-m-d'))
+        ->where('order_from', 'Multipay')
+        ->where('payment_method', 'Cash')
+        ->where('created_at', '>', $lastUpdate) // only after last update
+        ->get();
+
+    if(!empty($orders)){
+        foreach ($orders as $order){
+            $payment_method_values = json_decode($order->payment_method_values)??'';
+            if(!empty($payment_method_values)){
+                if((int)$payment_method_values->cash > 0){
+                    $order_amount+=(float)$payment_method_values->cash;
+                }
+            }
+        }
+    }
+    $total_cash = 0;
+    $expense = \App\Models\Expense::whereDate('expense_date',date('Y-m-d'))->where('is_delete',0)->sum('amount');
+    if(!empty($exist)){
+        $total_cash = (float)$exist->today_balance + (float)$order_amount - (float)$expense;
+    }
+
     ?>
     <style>
         .transaction-details {
@@ -139,6 +180,116 @@
         }
 
     </style>
+
+    <div class="modal fade" id="closeStore" tabindex="-1" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Current Register</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <form id="closePos" action="{{ route('pos.close') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="store_id" value="{{$vendor_id_selected}}">
+                    <div class="modal-body">
+                        <div class="row">
+                            <h4>Opening Cash : ₹ {{$exist->today_balance??0}}</h4>
+                            <h4>Cash In (Sales/Receipt) : ₹ {{$order_amount??0}}</h4>
+                            <h4>Cash Out (Expenses): ₹ {{$expense??0}}</h4>
+                            <h4>Closing Cash Balance : ₹ <span id="total_cash_display">{{ $total_cash }}</span></h4>
+
+
+                            <div class="col-md-12 mt-3">
+                                <label>Physical Drawer <span style="color:red">*</span></label>
+                                <div class="input-group">
+                                    <input type="number" name="today_last_balance" id="today_last_balance" class="form-control"
+                                           placeholder="Physical Drawer" oninput="checkCashDifference()">
+                                </div>
+                            </div>
+                            <span id="cash_remark" style="font-weight:600;"></span>
+                            <div class="col-md-12 mt-3">
+                                <label>Closing Note  <span style="color:red">*</span></label>
+                                <div class="input-group">
+                                    <input type="text" name="closing_note" class="form-control" placeholder="Closing Note" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="bsubmit" onclick="submitclosePos()" class="btn btn-primary">Save</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addExpense" tabindex="-1" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Add Expense</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <form action="{{route('pos.add_expense')}}" method="post">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="row">
+                            <!-- Expense Amount -->
+                            <div class="col-md-12 mt-3">
+                                <label for="expense_amount" class="form-label">Amount</label>
+                                <div class="input-group">
+                                    <input type="number" step="0.01" name="amount" id="expense_amount" class="form-control" placeholder="Enter Amount" required>
+                                </div>
+                            </div>
+                            <!-- Expense Description -->
+                            <div class="col-md-12 mt-3">
+                                <label for="expense_description" class="form-label">Description</label>
+                                <textarea name="description" id="expense_description" class="form-control" rows="2" placeholder="Enter Description"></textarea>
+                            </div>
+
+                            <!-- Payment Method -->
+                            <div class="col-md-6 mt-3">
+                                <label for="payment_method" class="form-label">Payment Method</label>
+                                <select name="payment_method" id="payment_method1" class="form-control" required>
+                                    <option value="Cash">Cash</option>
+                                </select>
+                            </div>
+
+                            <!-- Store / Vendor -->
+                            <div class="col-md-6 mt-3">
+                                @if($admin->role_id == 0)
+                                    <label>Select Store</label>
+                                    <select name="store_id" class="form-control" id="store_id">
+                                        <option value="" selected>Select Store</option>
+                                        @foreach($vendors as $vendor)
+                                            <option
+                                                value="{{$vendor->id??""}}" {{$vendor_id_selected == $vendor->id ?"selected":""}}>{{$vendor->name??""}}</option>
+                                        @endforeach
+                                    </select>
+                                    <br>
+                                @else
+                                    <input type="hidden" name="store_id" id="vendor_id" value="{{$vendor_id_selected}}">
+                                    <br>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary" >Save</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
     <form class="card-body" action="#" id="posForm" method="post" accept-chartset="UTF-8"
           enctype="multipart/form-data" role="form">
         {{ csrf_field() }}
@@ -166,22 +317,58 @@
                         <div class="card-body">
                             <div class="d-md-flex gap-4 align-items-center">
                                 <div class="d-none d-md-flex">{{$page_heading}}</div>
-                                <?php if (request()->has('back_url')){
-                                    $back_url = request('back_url'); ?>
+
                                 <div class="dropdown ms-auto">
+
+
+                                    <?php if (request()->has('back_url')){
+                                        $back_url = request('back_url'); ?>
                                     <a href="{{ url($back_url) }}" class="btn btn-primary"><i
                                             class="fa fa-arrow-left"></i></a>
+                                    <?php } ?>
                                 </div>
-                                <?php } ?>
+
                             </div>
                         </div>
                     </div>
+
+
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-md-flex gap-4 align-items-center">
+                                <div class="d-none d-md-flex"></div>
+
+                                <div class="dropdown ms-auto">
+                                    <a data-bs-toggle="modal"
+                                       data-bs-target="#addExpense" class="btn btn-primary">Expense</a>
+                                    <a href="#" data-bs-toggle="modal"
+                                       data-bs-target="#closeStore" class="btn btn-danger"><i
+                                            class="fa fa-times"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
 
                     <div class="card mt-3">
                         <div class="card-body">
                             <div class="row">
 
                                 <div class="col-md-4">
+                                    @if($admin->role_id == 0)
+                                        <label>Select Store</label>
+                                        <select name="vendor_id" class="form-control" id="vendor_id">
+                                            <option value="" selected>Select Store</option>
+                                            @foreach($vendors as $vendor)
+                                                <option
+                                                    value="{{$vendor->id??""}}" {{$vendor_id_selected == $vendor->id ?"selected":""}}>{{$vendor->name??""}}</option>
+                                            @endforeach
+                                        </select>
+                                        <br>
+                                    @else
+                                        <input type="hidden" name="vendor_id" id="vendor_id" value="{{$vendor_id_selected}}">
+                                        <br>
+                                    @endif
                                     <select name="user_id" class="form-control select2user" id="user_id">
                                         <option value="" selected>Walk-in Customer</option>
                                     </select>
@@ -190,11 +377,13 @@
                                     <div class="form-group mt-3">
                                         <label>Order Type:</label><br>
                                         <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="order_type" id="walkin" value="walk_in" checked>
+                                            <input class="form-check-input" type="radio" name="order_type" id="walkin"
+                                                   value="walk_in" checked>
                                             <label class="form-check-label" for="walkin">Walk In</label>
                                         </div>
                                         <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="order_type" id="delivery" value="delivery">
+                                            <input class="form-check-input" type="radio" name="order_type" id="delivery"
+                                                   value="delivery">
                                             <label class="form-check-label" for="delivery">Delivery</label>
                                         </div>
                                     </div>
@@ -243,6 +432,17 @@
                                                 <div class="card text-center shadow-sm small-card">
                                                     <div class="card-body p-2">
                                                         <h6 class="card-title mb-0 small"> Add Membership</h6>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </div>
+                                        <div class="col-md-12 mt-3">
+                                            <a href="#" onclick="applyCredit(event)">
+                                                <div class="card text-center shadow-sm small-card" id="creditCard">
+                                                    <div class="card-body p-2">
+                                                        <h6 class="card-title mb-0 small">
+                                                            Add Credit <span id="credit_amount">(₹ 0.00)</span>
+                                                        </h6>
                                                     </div>
                                                 </div>
                                             </a>
@@ -484,6 +684,8 @@
         <input type="hidden" id="payment_method_values" name="payment_method_values" value="">
         <input type="hidden" id="flatDiscountValue" name="flatDiscountValue" value="">
         <input type="hidden" id="flat_discount_percent" name="flat_discount_percent" value="">
+        <input type="hidden" id="credit_balance" name="credit_balance" value="">
+        <input type="hidden" id="is_applied_credit_balance" name="is_applied_credit_balance" value="0">
 
 
         <input type="hidden" id="cashback_wallet_use" name="cashback_wallet_use"
@@ -734,6 +936,18 @@
                     <input type="hidden" name="date" value="{{date('Y-m-d')}}">
                     <div class="modal-body">
                         <div class="row">
+                            @if(empty($vendor_id_selected))
+                                <label>Select Store</label>
+                                <select name="store_id" class="form-control">
+                                    <option value="" selected>Select Store</option>
+                                    @foreach($vendors as $vendor)
+                                        <option
+                                            value="{{$vendor->id??""}}" {{$vendor_id_selected == $vendor->id ?"selected":""}}>{{$vendor->name??""}}</option>
+                                    @endforeach
+                                </select>
+                            @else
+                                <input type="hidden" name="store_id" value="{{$vendor_id_selected}}">
+                            @endif
                             <div class="col-md-12 mt-3">
                                 <label class="form-label">Cash In Hand
                                 </label>
@@ -767,7 +981,7 @@
 
 
         let rowCount = 0;
-        const products = @json(\App\Helpers\CustomHelper::getProductsWithVarients());
+        const products = @json(\App\Helpers\CustomHelper::getProductsWithVarients($vendor_id_selected));
         $(document).ready(function () {
             const $input = $('#product_search');
             const $suggestions = $('#product_suggestions');
@@ -789,6 +1003,20 @@
                     const $item = $('<a href="#" class="list-group-item list-group-item-action"></a>');
                     $item.text(text);
                     $item.data('product', p);
+
+                    // ✅ Handle out-of-stock condition
+                    if (p.available_qty <= 0) {
+                        $item.addClass('bg-danger text-white'); // red background, white text
+                        $item.css('cursor', 'not-allowed'); // visually show disabled
+                        $item.on('click', function (e) {
+                            e.preventDefault(); // disable click
+                        });
+                        // Optionally show stock info
+                        $item.append(' (Out of Stock)');
+                    } else {
+                        $item.addClass('text-dark'); // normal clickable
+                    }
+
                     $suggestions.append($item);
                 });
             });
@@ -822,8 +1050,16 @@
                 const query = skuOrName.toLowerCase().trim();
                 const match = products.find(p => (p.product_sku || '').toLowerCase() === query);
                 var match_val = false;
+
                 if (match) {
                     match_val = true;
+
+                    // Check available stock
+                    if (match.available_qty <= 0) {
+                        alert('This product is out of stock!');
+                        return match_val;
+                    }
+
                     let product = {
                         id: match.product_id,
                         variant_id: match.variant_id,
@@ -835,21 +1071,33 @@
                         discount: parseFloat(match.discount),
                         varient_sku: match.varient_sku,
                         membership_price: parseFloat(match.subscription_price),
-                        mrp: parseFloat(match.mrp)
+                        mrp: parseFloat(match.mrp),
+                        available_qty: match.available_qty // ✅ Include stock
                     };
+
                     addProductRow(product); // Add to cart
                     $('#product_search').val(''); // Clear search box
                     $('#product_suggestions').empty();
                 }
+
                 return match_val;
             }
+
 
 
             // Click on suggestion
             $suggestions.on('click', '.list-group-item', function (e) {
                 e.preventDefault();
+
                 const p = $(this).data('product');
-                console.log(p);
+
+                // 🛑 Prevent click if product is out of stock
+                if (!p || p.available_qty <= 0) {
+                    // Optional: show alert or toast
+                    alert('This product is out of stock!');
+                    return;
+                }
+
                 let product = {
                     id: p.product_id,
                     variant_id: p.variant_id,
@@ -860,16 +1108,19 @@
                     type: "product",
                     discount: parseFloat(p.discount),
                     varient_sku: p.varient_sku,
+                    available_qty: p.available_qty,
                     membership_price: parseFloat(p.subscription_price),
                     mrp: parseFloat(p.mrp)
                 };
 
+                // ✅ Add to cart/list only if available
                 addProductRow(product);
 
-                // Clear search box & suggestions
+                // ✅ Clear search box & suggestions
                 $input.val('');
                 $suggestions.empty();
             });
+
 
             // Optional: close suggestions on outside click
             $(document).on('click', function (e) {
@@ -890,12 +1141,14 @@
                 let qty = parseInt($qtyInput.val()) || 1;
                 $qtyInput.val(qty + 1);
             } else {
+                let availableQty = product.available_qty || 0;
                 // Product does not exist → add new row
+                console.log("product.selling_price.toFixed(2)"+product.selling_price.toFixed(2));
                 rowCount++;
                 let row = `<tr data-id="${rowCount}"
                     data-product-id="${product.id}"
                     data-variant-id="${product.variant_id || 0}"
-                    data-subscription-price="${product.membership_price}" data-selling-price="${product.selling_price}"  data-type="${product.type}">
+                    data-subscription-price="${product.membership_price}" data-available-qty="${availableQty}" data-selling-price="${product.selling_price}"  data-type="${product.type}">
             <td>${rowCount}</td>
             <td>${product.code}</td>
             <td>${product.name} <br> ${product.unit}</td>
@@ -909,7 +1162,11 @@
             <td class="mrp">${product.mrp.toFixed(2)}</td>
             <td class="selling_price">${product.selling_price.toFixed(2)}</td>
             <td class="membership_price">${product.membership_price.toFixed(2)}</td>
-            <td class="discount">${product.discount.toFixed(2)}</td>
+             <td>
+                <input type="number" class="form-control form-control-sm text-end discount"
+                       value="${product.discount.toFixed(2)}" min="0" style="width:80px;" max=""
+       step="0.01">
+            </td>
             <td class="unit-cost">${product.selling_price.toFixed(2)}</td>
             <td class="net-amount">${product.selling_price.toFixed(2)}</td>
             <td><a class="btn btn-danger btn-sm remove-row">X</a></td>
@@ -917,21 +1174,66 @@
                 $("#cartBody").append(row);
             }
 
-            // Recalculate totals
+
             recalc();
         }
 
+        $(document).on('input', '.discount', function () {
+            let $row = $(this).closest('tr');
+            recalcRow($row);
+            recalc();
+        });
+        function recalcRow($row) {
+            let qty = parseFloat($row.find('.qty').val()) || 1;
+
+            // Extract numeric price safely (remove ₹ or commas)
+            let priceText = $row.find('.mrp').text().replace(/[^0-9.]/g, '');
+            let price = parseFloat(priceText) || 0;
+            console.log("pricepriceprice"+price);
+
+            // Get discount from input
+            let discount = parseFloat($row.find('.discount').val()) || 0;
+            console.log("discountdiscountdiscountdiscount"+discount);
+            // ✅ Prevent discount from exceeding price
+            if (discount > price) {
+                discount = price;
+                $row.find('.discount').val(price.toFixed(2)); // reset input visually
+            }
+
+            // Calculate unit and total
+            let unit = price - discount;
+            console.log("unitunitunit"+unit);
+            let net = unit * qty;
+            console.log("netnetnetnetnet"+net);
+            // Update UI
+            $row.find('.unit-cost').text(unit.toFixed(2));
+            $row.find('.net-amount').text(net.toFixed(2));
+
+            // Optional console debugging
+            // console.log({ qty, price, discount, unit, net });
+        }
 
         // Quantity +/- handler
         $(document).on("click", ".qty-plus", function () {
-            let input = $(this).siblings(".qty");
-            input.val(parseInt(input.val()) + 1);
-            recalc();
+            let $input = $(this).siblings(".qty");
+            let $row = $(this).closest("tr");
+            let availableQty = parseFloat($row.data("available-qty")) || 0;
+            let qty = parseInt($input.val()) || 1;
+
+            if (qty < availableQty) {
+                $input.val(qty + 1);
+                recalcRow($row);
+                recalc();
+            } else {
+                alert(`Maximum available quantity is ${availableQty}`);
+            }
         });
         $(document).on("click", ".qty-minus", function () {
-            let input = $(this).siblings(".qty");
-            let val = parseInt(input.val());
-            if (val > 1) input.val(val - 1);
+            let $row = $(this).closest('tr');
+            let $qty = $row.find('.qty');
+            let val = (parseInt($qty.val()) || 1);
+            if (val > 1) $qty.val(val - 1);
+            recalcRow($row);
             recalc();
         });
 
@@ -949,6 +1251,7 @@
         // Recalculate totals
         // Recalculate totals
         function recalc() {
+
             let subtotal = 0; // initialize subtotal
             let total_qty = 0; // initialize subtotal
             let total_mrp = 0; // initialize subtotal
@@ -962,10 +1265,10 @@
                 let mrp = parseFloat($(this).find(".mrp").text());
                 let selling_price = parseFloat($(this).find(".selling_price").text());
                 let membership_price = parseFloat($(this).find(".membership_price").text());
-                let discount = parseFloat($(this).find(".discount").text());
+                let discount = parseFloat($(this).find(".discount").val());
                 let addDisc = parseFloat($(this).find(".add-disc").val()) || 0;
 
-
+            console.log("selling_priceselling_priceselling_price"+selling_price);
                 let unitCost = 0;
                 let netAmount = 0;
                 let totalAmount = 0;
@@ -973,10 +1276,12 @@
                     unitCost = membership_price;
                 } else {
                     unitCost = mrp - discount;
+                    // unitCost = selling_price - discount;
                     unitCost -= (unitCost * addDisc / 100);
                 }
                 netAmount = unitCost * qty;
                 totalAmount = mrp * qty;
+                // totalAmount = selling_price * qty;
                 $(this).find(".unit-cost").text(unitCost.toFixed(2));
                 $(this).find(".net-amount").text(netAmount.toFixed(2));
 
@@ -987,6 +1292,16 @@
             // var additionalCharge = parseFloat($('#addtitional_charge').val()) || 0;
             // subtotal += additionalCharge;
             // Display subtotal
+
+            ////////////
+            var is_applied_credit_balance = $('#is_applied_credit_balance').val();
+            var credit_balance = $('#credit_balance').val();
+            if(is_applied_credit_balance === 1){
+                console.log("credit_balance"+credit_balance);
+                subtotal-=parseInt(credit_balance);
+            }
+            console.log("subtotalCallll"+subtotal);
+
             $("#subtotal_html").html(subtotal.toFixed(2));
             $("#subtotal").val(subtotal.toFixed(2));
             $("#total_qty").html(total_qty);
@@ -1021,6 +1336,17 @@
             var flatDiscountValue = (parseInt(total) * parseInt(flatDiscount)) / 100;
 
             total = total - parseInt(flatDiscountValue);
+
+            var is_applied_credit_balance = $('#is_applied_credit_balance').val();
+            var credit_balance = $('#credit_balance').val();
+            console.log(is_applied_credit_balance);
+            if(is_applied_credit_balance === 1 || is_applied_credit_balance === "1"){
+                console.log("credit_balance"+credit_balance);
+                total-=parseInt(credit_balance);
+            }
+            console.log("subtotalCallll"+total);
+
+
             $('#flat_discount_percent').val(flatDiscount);
             $('#flatDiscountValue').val(flatDiscountValue);
             // Update display
@@ -1369,6 +1695,10 @@
 
         $('#posForm').on('submit', function (e) {
             e.preventDefault();
+            let $submitBtn = $(this).find('button[type="submit"], input[type="submit"]');
+            if ($submitBtn.prop('disabled')) return; // already clicked, do nothing
+            $submitBtn.prop('disabled', true);
+
             let orderType = $('input[name="order_type"]:checked').val();
             let items = [];
             $("#cartBody tr").each(function () {
@@ -1378,6 +1708,8 @@
                     type: $(this).data('type'),
                     qty: $(this).find('.qty').val(),
                     price: $(this).find('.unit-cost').text(),
+                    mrp: $(this).find('.mrp').text(),
+                    discount: $(this).find('.discount').val(),
                     net_price: $(this).find('.net-amount').text(),
                     subscription_price: $(this).data('subscription-price') || null,
                     net_subscription_price: null
@@ -1392,6 +1724,7 @@
                     _token: "{{ csrf_token() }}",
                     user_id: $('#user_id').val(),
                     subtotal: $('#subtotal').val(),
+                    vendor_id: $('#vendor_id').val(),
                     payment_method: $('#payment_method').val(),
                     coupon_code: $('#appliedCoupon').val() || '',
                     coupon_discount: $('#couponDiscount').val() || 0,
@@ -1410,6 +1743,8 @@
                     is_print: $('#is_print').val(),
                     flatDiscountValue: $('#flatDiscountValue').val(),
                     flat_discount_percent: $('#flat_discount_percent').val(),
+                    is_applied_credit_balance: $('#is_applied_credit_balance').val(),
+                    credit_balance: $('#credit_balance').val(),
                     order_type: orderType
                 },
                 success: function (res) {
@@ -1421,7 +1756,12 @@
                         window.location.reload();
                     } else {
                         alert('Error: ' + res.message);
+                        $submitBtn.prop('disabled', false); // Re-enable on error
                     }
+                },
+                error: function () {
+                    alert('Something went wrong.');
+                    $submitBtn.prop('disabled', false); // Re-enable on error
                 }
             });
         });
@@ -1558,6 +1898,91 @@
             console.log("Cash:", cash, "Card:", card, "UPI:", upi);
             $('#multiplayModal').modal('hide');
         }
+
+    </script>
+
+    <script>
+        function applyCredit(e) {
+            e.preventDefault(); // prevent link from jumping
+            var creditCard = document.getElementById('creditCard');
+            var isApplied = document.getElementById('is_applied_credit_balance');
+
+            if (isApplied.value == "0") {
+                // Apply color
+                creditCard.style.backgroundColor = "#11AEAE";
+                creditCard.style.color = "white";
+                isApplied.value = "1";
+                calculateTotal();
+            } else {
+                // Remove color
+                creditCard.style.backgroundColor = "";
+                creditCard.style.color = "";
+                isApplied.value = "0";
+                calculateTotal();
+            }
+        }
+    </script>
+
+
+    <script>
+        function checkCashDifference() {
+            const totalCash = parseFloat(document.getElementById('total_cash_display').innerText) || 0;
+            const physicalCash = parseFloat(document.getElementById('today_last_balance').value) || 0;
+            const remarkEl = document.getElementById('cash_remark');
+
+            const difference = physicalCash - totalCash;
+
+            if (difference < 0) {
+                remarkEl.innerHTML = `Short : ₹ ${Math.abs(difference).toFixed(2)}`;
+                remarkEl.style.color = 'red';
+            } else if (difference > 0) {
+                remarkEl.innerHTML = `Excess : ₹ ${difference.toFixed(2)}`;
+                remarkEl.style.color = 'green';
+            } else {
+                remarkEl.innerHTML = `Matched ✅`;
+                remarkEl.style.color = 'blue';
+            }
+        }
+
+
+    </script>
+
+    <script>
+        $('#closePos').on('submit', function (e) {
+            e.preventDefault();
+            const physicalCash = parseFloat($('#today_last_balance').val()) || 0;
+            // Prepare data
+            let data = {
+                _token: $('input[name="_token"]').val(),
+                today_last_balance: physicalCash,
+                closing_note: $('input[name="closing_note"]').val(),
+                store_id: $('input[name="store_id"]').val() || null
+            };
+
+            $.ajax({
+                url: $(this).attr('action'),
+                type: 'POST',
+                dataType: 'JSON',
+                data: data,
+                success: function (res) {
+                    if (res.status) {
+                        alert(res.message || 'POS closed successfully!');
+                        $('#closePos')[0].reset();
+                        $('#cash_remark').text('');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (res.message || 'Failed to close POS.'));
+                    }
+                },
+                error: function (xhr) {
+                    console.error(xhr.responseText);
+                    alert('Something went wrong while closing POS!');
+                },
+                complete: function () {
+
+                }
+            });
+        });
 
     </script>
 

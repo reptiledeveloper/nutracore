@@ -32,15 +32,15 @@ class ClosingStockDataImport implements ToModel, WithHeadingRow
 
         $stock_batch = StockBatch::find($id);
         $old_qty = $stock_batch->quantity ?? '';
-        $new_qty = $old_qty - $closing_stock;
+        $new_qty = (int)$old_qty - (int)$closing_stock;
         // 2. Create or update StockBatch
         if ($stock_batch) {
-            $old_qty = $stock_batch->quantity ?? 0;
+            $old_qty = (int)$stock_batch->quantity ?? 0;
             $new_qty = $closing_stock;
 
             // Update StockBatch
             $stock_batch->update([
-                'quantity' => $new_qty,
+                'quantity' => (int)$closing_stock,
             ]);
 
             // Log the adjustment
@@ -49,7 +49,7 @@ class ClosingStockDataImport implements ToModel, WithHeadingRow
                 $stock_batch->variant_id,
                 $stock_batch->store_id,
                 'adjust',
-                $old_qty - $new_qty,
+                $closing_stock,
                 $stock_batch->related_id,
                 'Adjust'
             );

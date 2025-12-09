@@ -98,7 +98,7 @@
                         foreach ($subscriptions as $subscription) {
                             $user_data = \App\Helpers\CustomHelper::getUserDetails($subscription->user_id);
                             $user_image = \App\Helpers\CustomHelper::getImageUrl('users', $user_data->image);
-                            $days_left = \App\Helpers\CustomHelper::getDaysLeft($subscription->start_date ?? '', $subscription->end_date ?? '');
+                            $days_left = \App\Helpers\CustomHelper::getDaysLeft($user_data->subscription_start ?? '', $user_data->subscription_end ?? '');
                             ?>
                         <tr>
                             <td>{{$i++}}</td>
@@ -116,15 +116,15 @@
                             <td>
                                 @if($days_left >0)
                                     <button class="btn btn-success">{{$days_left}} Days Left
-                                        <br>{{$subscription->end_date??''}}</button>
+                                        <br>{{$user_data->subscription_end??''}}</button>
                                 @else
-                                    <button class="btn btn-danger">Expired<br>{{$subscription->end_date??''}}</button>
+                                    <button class="btn btn-danger">Expired<br>{{$user_data->subscription_end??''}}</button>
 
                                 @endif
 
                             </td>
-                            <td>{{ $subscription->start_date ?? '' }}</td>
-                            <td>{{ $subscription->end_date ?? '' }}</td>
+                            <td>{{ $user_data->start_date ?? '' }}</td>
+                            <td>{{ $user_data->subscription_end ?? '' }}</td>
                             <td>{{ $subscription->txn_id ?? '' }}</td>
                             <td>{{ \App\Helpers\CustomHelper::getStatusStr($subscription->status) }}</td>
 

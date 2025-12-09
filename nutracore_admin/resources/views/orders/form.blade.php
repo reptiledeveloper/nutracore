@@ -380,20 +380,20 @@
                             @foreach($order_items as $i => $value)
                                 @php
                                     $product = CustomHelper::getProductDeatils($value->product_id);
-                                    $image = CustomHelper::getImageUrl('products', $product->image);
+                                    $image = CustomHelper::getImageUrl('products', $product->image??"");
                                     $varients = CustomHelper::getAdminProductSingleVarients($value->product_id, $value->variant_id);
                                 @endphp
                                 <tr>
                                     <td>{{ $i + 1 }}</td>
                                     <td><img src="{{ $image }}" class="rounded" width="60" alt="..."></td>
-                                    <td>{{ $product->name }}</td>
-                                    <td>₹ {{ $value->price }}</td>
+                                    <td>{{ $product->name ??''}}</td>
+                                    <td>₹ {{ $value->price ??''}}</td>
                                     <td>{{ $varients->unit ??'' }} {{ $varients->unit_value ??'' }}</td>
                                     <td>{{ $value->qty ??'' }}</td>
                                     <td class="text-right">₹ {{ $value->net_price ??'' }}</td>
                                     <td>
                                         <select class="form-control"
-                                                onchange="update_order_status('{{ $value->order_items_id }}', this.value, '')">
+                                                onchange="update_order_status('{{ $value->id }}', this.value, '')">
                                             <option value="">Select Status</option>
                                             @foreach($order_status_arr as $stat => $val)
                                                 <option
@@ -475,7 +475,7 @@
                             @foreach($order_items as $i => $value)
                                 @php
                                     $product = CustomHelper::getProductDeatils($value->product_id);
-                                    $image = CustomHelper::getImageUrl('products', $product->image);
+                                    $image = CustomHelper::getImageUrl('products', $product->image??'');
                                     $varients = CustomHelper::getAdminProductSingleVarients($value->product_id, $value->variant_id);
                                 @endphp
                                 <input type="hidden" name="item_ids[]" value="{{$value->id??''}}">

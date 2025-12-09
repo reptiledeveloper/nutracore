@@ -73,6 +73,7 @@ $image = \App\Helpers\CustomHelper::getImageUrl('users', $users->image ?? '');
                 <h5 class="mb-1">{{$users->phone??''}}</h5>
 {{--                <h5 class="mb-1">Wallet : ₹ {{$users->wallet??0}}</h5>--}}
                 <h5 class="mb-1">NC Cash : ₹ {{$users->cashback_wallet??0}}</h5>
+                <h5 class="mb-1">Ban : {{$users->is_ban == 1?"Yes":"No"}}</h5>
                 <small>User</small>
             </div>
 

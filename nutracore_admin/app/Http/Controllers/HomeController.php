@@ -21,6 +21,7 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use FilesystemIterator;
 use Illuminate\Support\Facades\Mail;
+use App\Services\GoogleSheetService;
 
 class HomeController extends Controller
 {
@@ -46,6 +47,68 @@ class HomeController extends Controller
         return view('home.index', $data);
     }
 
+    public function sync_product_googlesheet(Request $request)
+    {
+        $sheet = new GoogleSheetService();
+        $rows = $sheet->read(); // all rows from sheet
+
+        // Convert rows to map: product_id => row_number
+        $sheetMap = [];
+        foreach ($rows as $index => $row) {
+            if ($index == 0) continue; // skip header
+            if (!empty($row[0])) {
+                $sheetMap[$row[0]] = $index + 1;
+            }
+        }
+
+        $products = Products::where('is_delete', 0)->get();
+
+        foreach ($products as $product) {
+            $variant = $product->variants()->where('is_delete', 0)->where('status', 1)->first();
+
+            $stock_data = CustomHelper::checkAvailableQty($product->id, $variant->id ?? 0) > 0 ? 'in_stock' : 'out_of_stock';
+
+            $url = "https://nutracore.in/products/" . ($product->slug ?? '');
+            $image_url = CustomHelper::getImageUrl('products', $product->image ?? '');
+            $selling_price = $product->product_selling_price ?: ($variant->selling_price ?? '');
+            $sku = $product->sku ?: ($variant->varient_sku ?? '');
+            $cleanDescription = strip_tags($product->short_description);
+
+
+            $formatted_url = '=HYPERLINK("' . $url . '","' . $url . '")';
+// 2. Format the Image URL column as a HYPERLINK formula
+            $formatted_image_url = '=HYPERLINK("' . $image_url . '",$image_url)';
+            $rowData = [
+                $product->id,
+                $product->name,
+                $cleanDescription,
+                $stock_data,
+                "",
+                "",
+                $url,
+                "",
+                $image_url,
+                $selling_price . ' INR',
+                "",
+                "",
+                'yes',
+                $sku,
+
+            ];
+
+            if (isset($sheetMap[$product->id])) {
+                // UPDATE existing row
+                $response =$sheet->updateRow($sheetMap[$product->id], $rowData);
+
+            } else {
+                // INSERT new row
+                $sheet->append($rowData);
+            }
+        }
+
+
+        return response()->json(['status' => 'success', 'message' => 'Product synced with Google Sheet']);
+    }
 
     public function save_tab(Request $request): void
     {
@@ -279,7 +342,6 @@ class HomeController extends Controller
             if (!empty($request->about_us_video)) {
                 $dbArray['about_us_video'] = $request->about_us_video;
             }
-
 
 
             Setting::where('id', 1)->update($dbArray);

@@ -107,89 +107,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="card widget">
-                    <h5 class="card-header">Order Items</h5>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <div class="table-responsive mt-3">
-                                <table class="table table-custom mb-0">
-                                    <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>IMAGE</th>
-                                        <th>PRODUCT</th>
-                                        <th>PRICE</th>
-                                        <th>Unit/Unit Value</th>
-                                        <th>QUANTITY</th>
-                                        <th>SUBTOTAL</th>
-                                        <th>Status</th>
-                                        <th>Action</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    @foreach($order_items as $i => $value)
-                                        @php
-                                            $product = CustomHelper::getProductDeatils($value->product_id);
-                                            $image = CustomHelper::getImageUrl('products', $product->image);
-                                            $varients = CustomHelper::getAdminProductSingleVarients($value->product_id, $value->variant_id);
-                                        @endphp
-                                        <tr>
-                                            <td>{{ $i + 1 }}</td>
-                                            <td><img src="{{ $image }}" class="rounded" width="60" alt="..."></td>
-                                            <td>{{ $product->name }}</td>
-                                            <td>₹ {{ $value->price }}</td>
-                                            <td>{{ $varients->unit ??'' }} {{ $varients->unit_value ??'' }}</td>
-                                            <td>{{ $value->qty ??'' }}</td>
-                                            <td class="text-right">₹ {{ $value->net_price ??'' }}</td>
-                                            <td>
-                                                <select class="form-control"
-                                                        onchange="update_order_status('{{ $value->order_items_id }}', this.value, '')">
-                                                    <option value="">Select Status</option>
-                                                    @foreach($order_status_arr as $stat => $val)
-                                                        <option
-                                                            value="{{ $stat }}" {{ $stat == $value->status ? 'selected' : '' }}>
-                                                            {{ $val }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </td>
-                                            <td><!-- Actions --></td>
-                                        </tr>
-                                    @endforeach
 
-                                    @if(!empty($orders->freebees_id) && $orders->freebees_id != "null")
-                                        @php
-                                            $freebees_product = \App\Models\FreeProduct::where('id',$orders->freebees_id)->first();
-                                                $pro = \App\Models\Products::where('id',$freebees_product->product_id)->first();
-
-                                                $image = \App\Helpers\CustomHelper::getImageUrl('products',$pro->image??'');
-                                        @endphp
-
-
-
-                                        <tr>
-                                            <td>{{ $i + 2 }}</td>
-                                            <td>
-                                                <a href="#">
-                                                    <img src="{{$image}}" class="rounded" width="60"
-                                                         alt="...">
-                                                </a>
-                                            </td>
-                                            <td>{{$pro->name??''}} </td>
-                                            <td> ₹ {{$freebees_product->amount??''}}</td>
-                                            <td></td>
-                                            <td>1</td>
-                                            <td class="text-right"> ₹ {{$freebees_product->amount??''}}</td>
-                                        </tr>
-                                    @endif
-
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
+
+            @php
+            $flatDiscountValue = round($orders->flatDiscountValue);
+            @endphp
             <div class="col-lg-4 col-md-12 mt-4 mt-lg-0">
                 <div class="card mb-4">
                     <div class="card-body">
@@ -211,6 +134,10 @@
                             <div class="col-4">₹ {{$orders->online_amount??'0'}}</div>
                         </div>
                         <div class="row justify-content-center mb-3">
+                            <div class="col-4 text-end">Discount ({{$orders->flat_discount_percent??0}} %):</div>
+                            <div class="col-4">₹ {{round($orders->flatDiscountValue)??'0'}}</div>
+                        </div>
+                        <div class="row justify-content-center mb-3">
                             <div class="col-4 text-end">COD Amount :</div>
                             <div class="col-4">₹ {{$orders->cod_amount??'0'}}</div>
                         </div>
@@ -222,6 +149,10 @@
                             <div class="col-4 text-end">
                                 <strong>Total :</strong>
                             </div>
+                            @php
+                            $flatDiscountValue = round($orders->flatDiscountValue);
+                            $total =  $orders->total_amount - $flatDiscountValue;
+                            @endphp
                             <div class="col-4">
                                 <strong>₹ {{$orders->total_amount??'0'}}</strong>
                             </div>
@@ -269,6 +200,95 @@
             </div>
         </div>
 
+        <div class="row mt-3">
+            <div class="card widget">
+                <h5 class="card-header">Order Items</h5>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <div class="table-responsive mt-3">
+                            <table class="table table-custom mb-0">
+                                <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>IMAGE</th>
+                                    <th>SKU</th>
+                                    <th>PRODUCT</th>
+                                    <th>PRICE</th>
+                                    <th>Unit/Unit Value</th>
+                                    <th>QUANTITY</th>
+                                    <th>MRP</th>
+                                    <th>Discount</th>
+                                    <th>SUBTOTAL</th>
+                                    <th>Status</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @foreach($order_items as $i => $value)
+                                    @php
+                                        $product = CustomHelper::getProductDeatils($value->product_id);
+                                        $image = CustomHelper::getImageUrl('products', $product->image);
+                                        $varients = CustomHelper::getAdminProductSingleVarients($value->product_id, $value->variant_id);
+                                    @endphp
+                                    <tr>
+                                        <td>{{ $i + 1 }}</td>
+                                        <td><img src="{{ $image }}" class="rounded" width="60" alt="..."></td>
+                                        <td>{{ $value->varient_sku ?? $product->sku??'' }}</td>
+                                        <td>{{ $product->name }}</td>
+                                        <td>₹ {{ $value->price }}</td>
+                                        <td>{{ $varients->unit ??'' }} {{ $varients->unit_value ??'' }}</td>
+
+                                        <td>{{ $value->qty ??'' }}</td>
+                                        <td>{{ $value->mrp ??'' }}</td>
+                                        <td>{{ $value->discount ??'' }}</td>
+                                        <td class="text-right">₹ {{ $value->net_price ??'' }}</td>
+                                        <td>
+                                            <select class="form-control"
+                                                    onchange="update_order_status('{{ $value->order_items_id }}', this.value, '')">
+                                                <option value="">Select Status</option>
+                                                @foreach($order_status_arr as $stat => $val)
+                                                    <option
+                                                        value="{{ $stat }}" {{ $stat == $value->status ? 'selected' : '' }}>
+                                                        {{ $val }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+                                    </tr>
+                                @endforeach
+
+                                @if(!empty($orders->freebees_id) && $orders->freebees_id != "null")
+                                    @php
+                                        $freebees_product = \App\Models\FreeProduct::where('id',$orders->freebees_id)->first();
+                                            $pro = \App\Models\Products::where('id',$freebees_product->product_id)->first();
+
+                                            $image = \App\Helpers\CustomHelper::getImageUrl('products',$pro->image??'');
+                                    @endphp
+
+
+
+                                    <tr>
+                                        <td>{{ $i + 2 }}</td>
+                                        <td>
+                                            <a href="#">
+                                                <img src="{{$image}}" class="rounded" width="60"
+                                                     alt="...">
+                                            </a>
+                                        </td>
+                                        <td>{{$pro->name??''}} </td>
+                                        <td> ₹ {{$freebees_product->amount??''}}</td>
+                                        <td></td>
+                                        <td>1</td>
+                                        <td class="text-right"> ₹ {{$freebees_product->amount??''}}</td>
+                                    </tr>
+                                @endif
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
 @endsection

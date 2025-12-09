@@ -6,6 +6,14 @@ use App\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Dotenv\Dotenv;
+
+
+$customEnvPath = dirname(__DIR__) . '/config';
+$customEnvFile = 'nutra_ad_hy1s3esd.env';
+$dotenv = Dotenv::createImmutable($customEnvPath, $customEnvFile);
+$dotenv->load();
+
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(

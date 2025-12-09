@@ -254,7 +254,7 @@
     <input type="hidden" id="amount" value="">
     <input type="hidden" id="type" value="">
     <input type="hidden" id="qty" value="">
-
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
 
         const typeList = @json($typeList);
@@ -324,8 +324,55 @@
                 alert("Please fill all fields.");
                 return;
             }
-            alert(`Selected Type: ${typeInput.value}\nAmount: ₹${amountInput.value}\nQty: ${qtyInput.value}`);
+
+            let amount = amountInput.value;
+            let qty = qtyInput.value;
+            let type = typeInput.value;
+
+            $.ajax({
+                url: "{{ url('buy_giftcard') }}",
+                type: "POST",
+                data: {
+                    amount: amount,
+                    qty: qty,
+                    type: type,
+                    _token: "{{ csrf_token() }}"
+                },
+                success: function (response) {
+
+                    let order_id = response.order_id;
+                    let razor = response.keys;
+
+                    // --------------------------
+                    // OPEN RAZORPAY POPUP
+                    // --------------------------
+                    var options = {
+                        "key": razor.key,
+                        "currency": "INR",
+                        "order_id": order_id,
+                        "handler": function (payment) {
+
+                        },
+                        "prefill": {
+                            "name": "{{ Auth::user()->name ?? '' }}",
+                            "email": "{{ Auth::user()->email ?? '' }}",
+                            "contact": "{{ Auth::user()->phone ?? '' }}"
+                        },
+                        "theme": {
+                            "color": "#3399cc"
+                        }
+                    };
+
+                    var rzp1 = new Razorpay(options);
+                    rzp1.open();
+                },
+                error: function (xhr) {
+                    console.log(xhr.responseText);
+                    alert("Something went wrong!");
+                }
+            });
         }
+
     </script>
 
 @endsection

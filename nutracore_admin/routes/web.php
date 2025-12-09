@@ -20,6 +20,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
     Route::match(['get', 'post'], '/googlecallback', 'GoogleController@googlecallback')->name('admin.googlecallback');
     Route::match(['get', 'post'], '/sendFCM', 'GoogleController@sendFCM')->name('admin.sendFCM');
 
+    Route::match(['get', 'post'], 'send_pdf/{id}', 'OrderController@generateInvoicePdf')->name('.send_pdf');
+
     Route::group(['prefix' => $ADMIN_ROUTE_NAME, 'middleware' => ['authadmin']], function () {
         Route::match(['get', 'post'], '/', 'HomeController@index')->name('home');
         Route::match(['get', 'post'], '/profile', 'HomeController@profile')->name('profile');
@@ -93,16 +95,33 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'send_redeem_nc_cash_otp', 'POSController@send_redeem_nc_cash_otp')->name('.send_redeem_nc_cash_otp');
             Route::match(['get', 'post'], 'verify_redeem_nc_cash_otp', 'POSController@verify_redeem_nc_cash_otp')->name('.verify_redeem_nc_cash_otp');
             Route::match(['get', 'post'], 'savePos', 'POSController@savePos')->name('.savePos');
+            Route::match(['get', 'post'], 'close', 'POSController@close')->name('.close');
+            Route::match(['get', 'post'], 'cash_management', 'POSController@cash_management')->name('.cash_management');
+            Route::match(['get', 'post'], 'cash_transactions', 'POSController@cash_transactions')->name('.cash_transactions');
+            Route::match(['get', 'post'], 'credit_note', 'POSController@credit_note')->name('.credit_note');
+            Route::match(['get', 'post'], 'cancel_order', 'POSController@cancel_order')->name('.cancel_order');
+            Route::match(['get', 'post'], 'cancel_order_save', 'POSController@cancel_order_save')->name('.cancel_order_save');
+            Route::match(['get', 'post'], 'expense', 'POSController@expense')->name('.expense');
+            Route::match(['get', 'post'], 'edit_expense/{id}', 'POSController@add_expense')->name('.edit_expense');
+            Route::match(['get', 'post'], 'delete_expense/{id}', 'POSController@delete_expense')->name('.delete_expense');
+            Route::match(['get', 'post'], 'add_expense', 'POSController@add_expense')->name('.add_expense');
         });
 
 
         ////reports
         Route::group(['prefix' => 'reports', 'as' => 'reports', 'middleware' => ['allowedmodule:reports,list']], function () {
+            Route::get('/', 'ExportController@index')->name('.index');
+            Route::get('/sales', 'ExportController@sales')->name('.sales');
+            Route::get('/sales_register_tax_report', 'ExportController@sales_register_tax_report')->name('.sales_register_tax_report');
+            Route::get('/supplier_bill', 'ExportController@supplier_bill')->name('.supplier_bill');
             Route::get('/delivery_agent', 'ExportController@delivery_agent')->name('.delivery_agent');
             Route::get('/sellers', 'ExportController@sellers')->name('.sellers');
             Route::get('/categories', 'ExportController@categories')->name('.categories');
             Route::get('/subcategories', 'ExportController@subcategories')->name('.subcategories');
             Route::get('/users', 'ExportController@users')->name('.users');
+            Route::get('/consultation', 'ExportController@consultation')->name('.consultation');
+            Route::get('/cash_management', 'ExportController@cash_management')->name('.cash_management');
+
 
         });
 
@@ -112,6 +131,14 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'add', 'AppSettingController@add')->name('.add');
             Route::match(['get', 'post'], 'edit/{id}', 'AppSettingController@add')->name('.edit');
             Route::match(['get', 'post'], 'delete/{id}', 'AppSettingController@delete')->name('.delete');
+        });
+
+        ////consultation
+        Route::group(['prefix' => 'consultation', 'as' => 'consultation', 'middleware' => ['allowedmodule:consultation,list']], function () {
+            Route::match(['get', 'post'], '/enquiry', 'ConsultationController@enquiry')->name('.enquiry');
+            Route::match(['get', 'post'], '/update_user', 'ConsultationController@update_user')->name('.update_user');
+            Route::match(['get', 'post'], '/nc_consult', 'ConsultationController@nc_consult')->name('.nc_consult');
+
         });
 ////pincode
         Route::group(['prefix' => 'pincode', 'as' => 'pincode', 'middleware' => ['allowedmodule:pincode,list']], function () {
@@ -301,6 +328,10 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'delete_data', 'StockController@delete_data')->name('.delete_data');
             Route::match(['get', 'post'], 'closing_stock_export', 'StockController@closing_stock_export')->name('.closing_stock_export');
             Route::match(['get', 'post'], 'update_closing_stock', 'StockController@update_closing_stock')->name('.update_closing_stock');
+            Route::match(['get', 'post'], 'update_cs_batch', 'StockController@update_cs_batch')->name('.update_cs_batch');
+            Route::match(['get', 'post'], 'get_closing_stock', 'StockController@get_closing_stock')->name('.get_closing_stock');
+            Route::match(['get', 'post'], 'update_stock_batch', 'StockController@update_stock_batch')->name('.update_stock_batch');
+            Route::match(['get', 'post'], 'verify_closing_stock', 'StockController@verify_closing_stock')->name('.verify_closing_stock');
 
         });
 ////return_request

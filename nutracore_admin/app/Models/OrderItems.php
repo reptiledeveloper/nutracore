@@ -12,5 +12,18 @@ class OrderItems extends Model{
 
     protected $guarded = ['id'];
 
+    public function order()
+    {
+        return $this->belongsTo(Order::class, 'order_id', 'id');
+    }
 
+    // ✅ Each item belongs to one product
+    public function product()
+    {
+        return $this->belongsTo(Products::class, 'product_id', 'id');
+    }
+    public function variant()
+    {
+        return $this->belongsTo(ProductVarient::class, 'variant_id', 'id');
+    }
 }

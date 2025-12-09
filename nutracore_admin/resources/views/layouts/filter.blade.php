@@ -10,6 +10,14 @@
     $tag = $_GET['tag'] ?? '';
     $type = $_GET['type'] ?? '';
     $product_id = $_GET['product_id'] ?? '';
+    $payment_method = $_GET['payment_method'] ?? '';
+    $pos_cancel_type = $_GET['pos_cancel_type'] ?? '';
+    $order_from = $_GET['order_from'] ?? '';
+    $status = $_GET['status'] ?? '';
+    $start_date = $_GET['start_date'] ?? '';
+    $end_date = $_GET['end_date'] ?? '';
+    $is_ban = $_GET['is_ban'] ?? '';
+    $low_stock = $_GET['low_stock'] ?? '';
 
     $current_url = url()->current();
 
@@ -27,6 +35,7 @@ $products = \App\Helpers\CustomHelper::getProducts();
 
     $is_export = $is_export ?? '';
     $is_import = $is_import ?? '';
+     $order_status_arr = config('custom.order_status_arr');
 @endphp
 
 <div class="row mb-3">
@@ -72,6 +81,38 @@ $products = \App\Helpers\CustomHelper::getProducts();
                                 </select>
                             </div>
                         @endif
+                        @if(!empty($order_from_show))
+                            <div class="col-md-4 mt-2">
+                                <label class="form-label">Order From</label>
+                                <select class="form-control" name="order_from" id="order_from">
+                                    <option value="" selected>Select Order From</option>
+                                    <option value="POS" {{$order_from == "POS" ?"selected":""}}>POS</option>
+                                    <option value="APP" {{$order_from == "APP" ?"selected":""}}>APP</option>
+                                </select>
+                            </div>
+                        @endif
+                        @if(!empty($is_ban_show))
+                            <div class="col-md-4 mt-2">
+                                <label class="form-label">Is Ban</label>
+                                <select class="form-control" name="is_ban" id="is_ban">
+                                    <option value="" selected>Select</option>
+                                    <option value="1" {{$is_ban == "1" ?"selected":""}}>Yes</option>
+                                    <option value="0" {{$is_ban == "0" ?"selected":""}}>No</option>
+                                </select>
+                            </div>
+                        @endif
+                        @if(!empty($low_stock_show))
+                            <div class="col-md-4 mt-2">
+                                <label class="form-label">Low Stock</label>
+                                <select class="form-control" name="low_stock" id="low_stock">
+                                    <option value="" selected>Select</option>
+                                    @for($i=0;$i<=10;$i++)
+                                        <option value="{{$i}}" {{$i == $low_stock ?"selected":""}}>{{$i}}</option>
+                                    @endfor
+
+                                </select>
+                            </div>
+                        @endif
                         @if(!empty($categories_show))
                             <div class="col-md-4 mt-2">
                                 <label class="form-label">Category</label>
@@ -93,6 +134,48 @@ $products = \App\Helpers\CustomHelper::getProducts();
                                     <option value="" selected>Select Registered By</option>
                                     <option value="app" {{$type == "app"?"selected":""}}>App</option>
                                     <option value="website" {{$type == "website"?"selected":""}}>Website</option>
+
+                                </select>
+                            </div>
+                        @endif
+                        @if(!empty($order_status_show))
+                            <div class="col-md-4 mt-2">
+                                <label class="form-label">Order Status :</label>
+                                <select class="form-control" name="status">
+                                    <option value="">Select Status</option>
+                                    @foreach($order_status_arr as $stat => $val)
+                                        <option
+                                            value="{{ $stat }}" {{ $stat == $status ? 'selected' : '' }}>
+                                            {{ $val }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
+                        @if(!empty($payment_method_show))
+                            <div class="col-md-4 mt-2">
+                                <label class="form-label">Payment Method</label>
+                                <select class="form-control" name="payment_method" id="payment_method">
+                                    <option value="" selected>Select Payment Method</option>
+                                    <option value="online" {{$type == "online"?"selected":""}}>Online</option>
+                                    <option value="cod" {{$type == "cod"?"selected":""}}>COD</option>
+                                    <option value="Multipay" {{$type == "Multipay"?"selected":""}}>Multipay</option>
+                                    <option value="UPI" {{$type == "UPI"?"selected":""}}>UPI</option>
+                                    <option value="Cash" {{$type == "Cash"?"selected":""}}>Cash</option>
+                                    <option value="Card" {{$type == "Card"?"selected":""}}>Card</option>
+
+                                </select>
+                            </div>
+                        @endif
+
+                        @if(!empty($pos_cancel_type_show))
+                            <div class="col-md-4 mt-2">
+                                <label class="form-label">POS Cancel Type</label>
+                                <select class="form-control" name="pos_cancel_type" id="pos_cancel_type">
+                                    <option value="" selected>Select</option>
+                                    <option value="exchange" {{$type == "exchange"?"selected":""}}>Exchange</option>
+                                    <option value="return" {{$type == "return"?"selected":""}}>Return</option>
+
 
                                 </select>
                             </div>
@@ -154,24 +237,37 @@ $products = \App\Helpers\CustomHelper::getProducts();
                                 </select>
                             </div>
                         @endif
-                            @if(!empty($product_show))
-                                <div class="col-md-4 mt-2">
-                                    <label class="form-label">Choose Product</label>
-                                    <select class="form-control select2" name="product_id">
-                                        <option value="" selected>Select Product</option>
-                                        @foreach($products as $product)
-                                            <option value="{{ $product->id }}" {{ $product->id == $product_id ? 'selected' : '' }}>
-                                                {{$product->sku??''}} - {{$product->name??''}}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            @endif
+                        @if(!empty($product_show))
+                            <div class="col-md-4 mt-2">
+                                <label class="form-label">Choose Product</label>
+                                <select class="form-control select2" name="product_id">
+                                    <option value="" selected>Select Product</option>
+                                    @foreach($products as $product)
+                                        <option
+                                            value="{{ $product->id }}" {{ $product->id == $product_id ? 'selected' : '' }}>
+                                            {{$product->sku??''}} - {{$product->name??''}}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
 
                         @if(!empty($date_show))
                             <div class="col-md-4 mt-2">
                                 <label class="form-label">Date</label>
                                 <input type="date" class="form-control" name="date" value="{{ $date }}">
+                            </div>
+                        @endif
+                        @if(!empty($start_date_show))
+                            <div class="col-md-4 mt-2">
+                                <label class="form-label">Start Date</label>
+                                <input type="date" class="form-control" name="start_date" value="{{ $start_date }}">
+                            </div>
+                        @endif
+                        @if(!empty($end_date_show))
+                            <div class="col-md-4 mt-2">
+                                <label class="form-label">End Date</label>
+                                <input type="date" class="form-control" name="end_date" value="{{ $end_date }}">
                             </div>
                         @endif
 

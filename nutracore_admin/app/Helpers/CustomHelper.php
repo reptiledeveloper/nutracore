@@ -55,6 +55,7 @@ use Carbon\Carbon;
 use DateTime;
 use DB;
 use Google\Auth\AccessToken\AccessToken;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Image;
 use League\OAuth2\Client\Provider\GenericProvider;
@@ -128,6 +129,7 @@ class CustomHelper
         return $dbarray;
 
     }
+
     public static function checkSubscription($user)
     {
 
@@ -156,6 +158,7 @@ class CustomHelper
         return $user->name ?? '';
 
     }
+
     public static function checkOutofStock($product_id, $varient_id)
     {
         $is_out_of_stock = 0;
@@ -186,6 +189,87 @@ class CustomHelper
         }
         return $is_out_of_stock;
     }
+
+
+    public function closingStockList(Request $request)
+    {
+        $sellerId = $request->input('vendor_id');
+        $search = $request->input('search');
+        $productId = $request->input('product_id');
+
+        // 1️⃣ Products WITH variants
+        $variantStocks = DB::table('products as p')
+            ->join('product_varients as pv', 'pv.product_id', '=', 'p.id')
+            ->leftJoin('stock_batches as sl', function ($join) {
+                $join->on('sl.variant_id', '=', 'pv.id')
+                    ->where('sl.is_delete', 0);
+            })
+            ->leftJoin('vendors as s', 's.id', '=', 'sl.store_id')
+            ->select(
+                DB::raw('COALESCE(s.id, 0) as seller_id'),
+                DB::raw('COALESCE(s.name, "N/A") as seller_name'),
+                'p.id as product_id',
+                'p.name as product_name',
+                DB::raw('pv.id as variant_id'),
+                DB::raw('pv.varient_sku as sku'),
+                DB::raw('pv.unit as unit'),
+                DB::raw('COALESCE(SUM(sl.quantity), 0) as closing_stock')
+            )
+            ->groupBy(
+                'seller_id', 'seller_name',
+                'p.id', 'p.name',
+                'pv.id', 'pv.varient_sku', 'pv.unit'
+            );
+
+        // 2️⃣ Products WITHOUT variants
+        $noVariantStocks = DB::table('products as p')
+            ->leftJoin('vendors as s', 's.id', '=', DB::raw('0')) // dummy join to keep seller columns
+            ->select(
+                DB::raw('0 as seller_id'),
+                DB::raw('"N/A" as seller_name'),
+                'p.id as product_id',
+                'p.name as product_name',
+                DB::raw('0 as variant_id'),
+                'p.sku as sku',
+                DB::raw('"-" as unit'),
+                DB::raw('(SELECT COALESCE(SUM(quantity),0)
+                      FROM stock_batches
+                      WHERE product_id = p.id AND (variant_id IS NULL OR variant_id = 0) AND is_delete = 0) as closing_stock')
+            )
+            ->whereNotExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('product_varients as pv')
+                    ->whereRaw('pv.product_id = p.id');
+            });
+
+        // Apply filters
+        if (!empty($search)) {
+            $variantStocks->where(function ($q) use ($search) {
+                $q->where('pv.varient_sku', $search)
+                    ->orWhere('p.sku', $search);
+            });
+            $noVariantStocks->where('p.sku', $search);
+        }
+
+        if (!empty($productId)) {
+            $variantStocks->where('p.id', $productId);
+            $noVariantStocks->where('p.id', $productId);
+        }
+
+        if (!empty($sellerId)) {
+            $variantStocks->where('s.id', $sellerId);
+            // for noVariantStocks, seller is always 0/N/A
+        }
+
+        // Merge results
+        $stocks = $variantStocks->unionAll($noVariantStocks)
+            ->orderBy('product_name')
+            ->paginate(500);
+
+
+        return view('stocks.closing_stock', compact('stocks', 'sellers'));
+    }
+
     public static function logStock($product_id, $variant_id, $store_id, $action, $quantity, $related_id = null, $related_type = null)
     {
         // Current closing stock from StockBatch
@@ -324,8 +408,8 @@ class CustomHelper
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_POSTFIELDS => '{
-    "email": "nutracore.in@gmail.com",
-    "password": "Nutra@5115"
+    "email": "nutracore.in+swiggyminis@gmail.com",
+    "password": "Ov7&vq!%o6rK9SBM"
 }',
             CURLOPT_HTTPHEADER => array(
                 'Content-Type: application/json'
@@ -377,44 +461,67 @@ class CustomHelper
         return $products;
     }
 
-    public static function getProductsWithVarients()
+    public static function getProductsWithVarients($vendor_id)
     {
         $productArr = [];
 
         $products = Products::where('status', 1)
             ->where('is_delete', 0)
+            ->orderBy('name')
             ->get();
+        $stockQuery = DB::table('stock_batches')
+            ->select(
+                DB::raw('product_id'),
+                DB::raw('COALESCE(variant_id, 0) as variant_id'),
+                DB::raw('SUM(quantity) as total_qty')
+            )
+            ->where('is_delete', 0)
+            ->when($vendor_id, function ($q) use ($vendor_id) {
+                $q->where('store_id', $vendor_id);
+            })
+            ->groupBy('product_id', 'variant_id')
+            ->get();
+
+        // ✅ Convert stock to lookup map for fast access
+        $stockMap = [];
+        foreach ($stockQuery as $s) {
+            $stockMap[$s->product_id . '_' . $s->variant_id] = (float)$s->total_qty;
+        }
 
         if ($products->isNotEmpty()) {
             foreach ($products as $product) {
                 if (!empty($product->variants) && count($product->variants) > 0) {
                     foreach ($product->variants as $varient) {
+                        $availableQty = $stockMap[$product->id . '_' . $varient->id] ?? 0;
                         $productArr[] = [
                             'product_id' => $product->id,
                             'product_name' => $product->name,
-                            'product_sku' => $varient->varient_sku ?? $product->sku ??'',
+                            'product_sku' => $varient->varient_sku ?? $product->sku ?? '',
                             'mrp' => $varient->mrp ?? 0,
                             'selling_price' => $varient->selling_price ?? 0,
                             'unit' => $varient->unit ?? '',
                             'subscription_price' => $varient->subscription_price ?? 0,
                             'varient_sku' => $varient->varient_sku ?? '',
                             'variant_id' => $varient->id ?? 0,
-                            'discount' => (int)$varient->mrp -(int) $varient->selling_price,
+                            'discount' => (int)$varient->mrp - (int)$varient->selling_price,
+                            'available_qty' => $availableQty,
                         ];
                     }
                 } else {
+                    $availableQty = $stockMap[$product->id . '_0'] ?? 0;
                     // product without variants
                     $productArr[] = [
                         'product_id' => $product->id,
                         'product_name' => $product->name,
-                        'product_sku' => $product->sku ??'',
+                        'product_sku' => $product->sku ?? '',
                         'mrp' => $product->product_mrp ?? 0,
                         'selling_price' => $product->product_selling_price ?? 0,
                         'unit' => '',
                         'subscription_price' => $product->product_subscription_price ?? 0,
                         'varient_sku' => $product->sku,
                         'variant_id' => 0,
-                        'discount' => (int)$product->product_mrp -(int) $product->product_selling_price,
+                        'discount' => (int)$product->product_mrp - (int)$product->product_selling_price,
+                        'available_qty' => $availableQty,
                     ];
                 }
             }
@@ -435,6 +542,50 @@ class CustomHelper
         return strtoupper($acronym);
     }
 
+    public static function sendInvoiceWP($user, $order)
+    {
+        $data = [
+            'countryCode' => '+91',
+            'phoneNumber' => $user->phone ?? '',
+            'fullPhoneNumber' => '',
+            'campaignId' => '',
+            'callbackData' => '',
+            'type' => 'Template',
+            'template' => [
+                'name' => 'invoice_vasy',
+                'languageCode' => 'en',
+                'headerValues' => [
+                    'https://admin.nutracore.in/send_pdf/' . $order->id
+                ],
+                'bodyValues' => [
+                    $user->name ?? "User",
+                    $order->total_amount ?? 0
+                ]
+            ]
+        ];
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://api.interakt.ai/v1/public/message/',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => json_encode($data),
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: application/json',
+                'Authorization: Basic UHRmVkdXamE3NVYzQmFRYVhaZjVPaW1TbEk0QllKbUx3eTc1WTlEeFp6VTo='
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        return $response;
+
+    }
 
     public static function getEMIStatus($emis)
     {
@@ -1651,7 +1802,7 @@ class CustomHelper
         curl_close($curl);
         $response = json_decode($response);
         if (!empty($response)) {
-            $exist = DB::table('order_courier')->where("order_id",$orders->id)->first();
+            $exist = DB::table('order_courier')->where("order_id", $orders->id)->first();
 
 
             $dbArray = [];
@@ -1663,15 +1814,15 @@ class CustomHelper
             $dbArray['tracking_url'] = $response->tracking_url ?? '';
             $dbArray['porter_data'] = json_encode($response);
             $dbArray['order_details_porter'] = null;
-            if(empty($exist)){
+            if (empty($exist)) {
                 DB::table('order_courier')->insert($dbArray);
-            }else{
-                DB::table('order_courier')->where('id',$exist->id)->update($dbArray);
+            } else {
+                DB::table('order_courier')->where('id', $exist->id)->update($dbArray);
             }
 
             /////Confirm Order///////
             $status = 'CONFIRM';
-            $order_id = $orders->id?? '';
+            $order_id = $orders->id ?? '';
             $dbArray = [];
             $dbArray['order_id'] = $order_id;
             $dbArray['status'] = $status;
@@ -1788,7 +1939,6 @@ class CustomHelper
         }
         return true;
     }
-
 
 
     public static function getPropertyOwnersType()
@@ -3972,8 +4122,8 @@ class CustomHelper
         $order_items = OrderItems::where('order_id', $orders->id)->get();
         $vendor = Vendors::where('id', $orders->vendor_id)->first();
         $address = UserAddress::where('id', $orders->address_id)->first();
-        self::updatePincodeData($address->pincode  ??'', $orders->address_id??'');
-        $envia_data = json_decode($address->envia_data ??'') ?? '';
+        self::updatePincodeData($address->pincode ?? '', $orders->address_id ?? '');
+        $envia_data = json_decode($address->envia_data ?? '') ?? '';
         $packages = [];
         $response = null;
         if (!empty($order_items)) {
@@ -3999,7 +4149,10 @@ class CustomHelper
                 }
             }
         }
-        if(!empty($address) && !empty($envia_data)){
+
+
+        $destination = $orders->house_no . ' ' . $orders->landmark;
+        if (!empty($address) && !empty($envia_data)) {
             $data = [
                 'origin' => [
                     'name' => $vendor->name ?? '',
@@ -4022,10 +4175,10 @@ class CustomHelper
                 'destination' => [
                     'name' => $orders->customer_name ?? '',
                     'company' => '',
-                    'email' => $orders->customer_name ?? '',
+                    'email' => $orders->email ?? 'app@nutracore.in',
                     'phone' => $orders->contact_no ?? '',
-                    'street' => $orders->house_no ?? '',
-                    'number' => $orders->landmark . ' ' . $orders->location,
+                    'street' => $destination,
+                    'number' => "",
                     'district' => $envia_data->locality ?? '',
                     'city' => $envia_data->locality ?? '',
                     'state' => $address->state ?? '',
@@ -4046,7 +4199,7 @@ class CustomHelper
                     'currency' => 'INR'
                 ]
             ];
-//        echo json_encode($data);die;
+//            echo json_encode($data);die;
             $curl = curl_init();
             curl_setopt_array($curl, array(
                 CURLOPT_URL => 'https://api.envia.com/ship/rate/',
@@ -4155,7 +4308,8 @@ class CustomHelper
                 'comments' => ''
             ]
         ];
-
+//        echo json_encode($data);
+//        die;
         $curl = curl_init();
         curl_setopt_array($curl, array(
             CURLOPT_URL => 'https://api.envia.com/ship/generate/',
@@ -4176,7 +4330,70 @@ class CustomHelper
         $response = curl_exec($curl);
 
         curl_close($curl);
+
+
         return json_decode($response);
+
+    }
+
+    public static function getClosingStock($product_id, $varient_id, $vendor_id)
+    {
+        $closing = 0;
+        $stock_logs = StockLog::where('is_delete', 0)->latest();
+        if (!empty($product_id)) {
+            $stock_logs->where('product_id', $product_id);
+        }
+        if (!empty($varient_id)) {
+            $stock_logs->where('variant_id', $varient_id);
+        }
+        if (!empty($vendor_id)) {
+            $stock_logs->where('store_id', $vendor_id);
+        }
+
+
+        $total_in = $stock_logs->whereIn('action',['purchase','stock_in'])->sum('quantity');
+        $total_out = $stock_logs->whereIn('action',['sale','stock_out'])->sum('quantity');
+//        $adjust = $stock_logs->whereIn('action',['adjust'])->sum('quantity');
+        $adjust = 0;
+        $adjust = $stock_logs->where('action',['adjust'])->latest()->first();
+        if(!empty($adjust)){
+            $closing = (int)$adjust;
+        }else{
+            $closing = (int)$total_in - (int)$total_out;
+        }
+
+        return $closing;
+    }
+
+    public static function trackEvent($user_id,$event,$traits)
+    {
+
+        $data = [
+            'userId' => $user_id,
+            'event' => $event,
+            'traits' => $traits
+        ];
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://api.interakt.ai/v1/public/track/events/',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => json_encode($data),
+            CURLOPT_HTTPHEADER => array(
+                'Authorization: Basic UHRmVkdXamE3NVYzQmFRYVhaZjVPaW1TbEk0QllKbUx3eTc1WTlEeFp6VTo=',
+                'Content-Type: application/json'
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        return $response;
 
     }
 

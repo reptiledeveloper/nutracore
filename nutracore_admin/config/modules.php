@@ -61,7 +61,9 @@ return [
                 'stock_transfers',
                 'return_request',
                 'stock_transfer_approval',
+                'stock_verify',
                 'pos',
+                'consultation',
 
 
         ],
@@ -127,6 +129,8 @@ return [
                 'loyality_system' => 'Loyality System',
                 'collections' => 'Collections',
                 'stock_transfer_approval' => 'Stock Transfer Approval',
+                'stock_verify' => 'Stock Verify',
+                'consultation' => 'Consultation',
                 'pos' => 'POS',
         ],
 

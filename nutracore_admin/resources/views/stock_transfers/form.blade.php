@@ -172,7 +172,14 @@
             <td><input type="number" name="qty[]" class="form-control qty" min="1" required></td>
             <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)">X</button></td>
         </tr>`;
-            document.querySelector("#transferTable tbody").insertAdjacentHTML('beforeend', row);
+
+            let tbody = document.querySelector("#transferTable tbody");
+            tbody.insertAdjacentHTML('beforeend', row);
+
+            // ✅ Reinitialize Select2 for new product dropdown
+            // $(tbody).find('.select2').select2({
+            //     width: '100%' // adjust as needed
+            // });
         }
 
         function removeRow(button) {
@@ -205,46 +212,55 @@
 
 
         document.addEventListener('change', function(e) {
-            if (e.target.classList.contains('product-select')) {
-                let productId = e.target.value;
-                let row = e.target.closest('tr');
-                let variantSelect = row.querySelector('.variant-select');
-                let skuInput = row.querySelector('.sku-input');
-                let batchSelect = row.querySelector('.batch-select');
+            if (!e.target.classList.contains('product-select')) return;
 
-                // Reset fields
-                variantSelect.innerHTML = '<option value="">-- Select Variant --</option>';
-                batchSelect.innerHTML = '<option value="">-- Select Batch --</option>';
-                skuInput.value = '';
+            let productId = e.target.value;
+            let row = e.target.closest('tr');
+            let variantSelect = row.querySelector('.variant-select');
+            let skuInput = row.querySelector('.sku-input');
+            let batchSelect = row.querySelector('.batch-select');
 
-                let product = products.find(p => p.id == productId);
+            // Reset fields
+            variantSelect.innerHTML = '<option value="">-- Select Variant --</option>';
+            batchSelect.innerHTML = '<option value="">-- Select Batch --</option>';
+            skuInput.value = '';
 
-                if (!product) return;
+            let product = products.find(p => p.id == productId);
+            if (!product) return;
 
-                if (product.variants && product.variants.length > 0) {
-                    // Populate variants
-                    product.variants.forEach(v => {
-                        variantSelect.innerHTML += `<option value="${v.id}" data-sku="${v.varient_sku}">${v.unit} - ₹${v.selling_price}</option>`;
+            if (product.variants && product.variants.length > 0) {
+                // Populate variants
+                product.variants.forEach(v => {
+                    variantSelect.innerHTML += `<option value="${v.id}" data-sku="${v.varient_sku}">${v.unit} - ₹${v.selling_price}</option>`;
+                });
+                // Refresh Select2
+                $(variantSelect).trigger('change.select2');
+
+            } else {
+                // No variants → fill SKU with product SKU
+                skuInput.value = product.sku ?? '';
+
+                // Load batches for product only (no variant)
+                const stockKey = productId + '_'; // variant id empty
+                const stockItem = stockMap.find(s => s.key === stockKey) || null;
+
+                if (stockItem && stockItem.batches) {
+                    stockItem.batches.forEach(b => {
+                        const label = `Batch: ${b.batch} | Qty: ${b.qty} ${b.exp ? '| Exp: ' + b.exp : ''}`;
+                        batchSelect.innerHTML += `<option value="${b.id}">${label}</option>`;
                     });
+                    $(batchSelect).trigger('change.select2');
                 } else {
-                    // No variants → fill SKU with product SKU
-                    skuInput.value = product.sku ?? '';
-
-                    // Load batches for product only
-                    const stockKey = productId + '_'; // variant id empty
-                    const stockItem = stockMap.find(s => s.key === stockKey) || null;
-
-                    if (stockItem && stockItem.batches) {
-                        stockItem.batches.forEach(b => {
-                            const label = `Batch: ${b.batch} | Qty: ${b.qty} ${b.exp ? '| Exp: ' + b.exp : ''}`;
-                            batchSelect.innerHTML += `<option value="${b.id}">${label}</option>`;
-                        });
-                    } else {
-                        batchSelect.innerHTML = `<option value="">-- No Batch Found --</option>`;
-                    }
+                    batchSelect.innerHTML = `<option value="">-- No Batch Found --</option>`;
+                    $(batchSelect).trigger('change.select2');
                 }
             }
+
+            // Trigger variant change manually to load batch if variants exist
+            $(variantSelect).trigger('change.select2');
         });
+
+
 
 
         document.addEventListener('change', function(e) {
@@ -353,7 +369,7 @@
                 let row = e.target.closest('tr');
                 let productSelect = row.querySelector('.product-select');
                 let variantSelect = row.querySelector('.variant-select');
-
+                let batchSelect = row.querySelector('.batch-select');
                 if (sku.length > 0) {
                     let foundProduct = null, foundVariant = null;
 
@@ -374,9 +390,25 @@
                         }
                     });
 
+                    // if (foundProduct) {
+                    //     // Select product
+                    //     productSelect.value = foundProduct.id;
+                    //
+                    //     // If product has variants
+                    //     if (foundProduct.variants && foundProduct.variants.length > 0) {
+                    //         variantSelect.innerHTML = '<option value="">-- Select Variant --</option>';
+                    //         foundProduct.variants.forEach(v => {
+                    //             variantSelect.innerHTML += `<option value="${v.id}" data-sku="${v.varient_sku}" ${foundVariant && v.id == foundVariant.id ? 'selected' : ''}>${v.unit} - ₹${v.selling_price}</option>`;
+                    //         });
+                    //     } else {
+                    //         // No variants → clear or disable variant dropdown
+                    //         variantSelect.innerHTML = '<option value="">No Variant</option>';
+                    //     }
+                    // }
+
                     if (foundProduct) {
                         // Select product
-                        productSelect.value = foundProduct.id;
+                        $(productSelect).val(foundProduct.id).trigger('change'); // ✅ Fix here
 
                         // If product has variants
                         if (foundProduct.variants && foundProduct.variants.length > 0) {
@@ -384,11 +416,33 @@
                             foundProduct.variants.forEach(v => {
                                 variantSelect.innerHTML += `<option value="${v.id}" data-sku="${v.varient_sku}" ${foundVariant && v.id == foundVariant.id ? 'selected' : ''}>${v.unit} - ₹${v.selling_price}</option>`;
                             });
+
+                            if (foundVariant) {
+                                $(variantSelect).val(foundVariant.id).trigger('change'); // ✅ auto-select variant too
+                            }
                         } else {
-                            // No variants → clear or disable variant dropdown
                             variantSelect.innerHTML = '<option value="">No Variant</option>';
                         }
+
+
+                        let productId = foundProduct.id;
+                        let variantId = foundVariant ? foundVariant.id : '';
+                        batchSelect.innerHTML = '<option value="">-- Select Batch --</option>';
+
+                        const stockKey = productId + '_' + variantId;
+                        const stockItem = stockMap.find(s => s.key === stockKey) || null;
+
+                        if (stockItem && stockItem.batches) {
+                            stockItem.batches.forEach(b => {
+                                const label = `Batch: ${b.batch} | Qty: ${b.qty} ${b.exp ? '| Exp: ' + b.exp : ''}`;
+                                batchSelect.innerHTML += `<option value="${b.id}">${label}</option>`;
+                            });
+                        } else {
+                            batchSelect.innerHTML = '<option value="">-- No Batch Found --</option>';
+                        }
+
                     }
+
                 }
             }
         });

@@ -1,0 +1,15 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.nutracore",
+      "sha256_cert_fingerprints": [
+        "C7:DA:BA:E7:43:88:B6:E1:54:11:85:C7:C3:F5:52:E7:B8:EE:F8:AF:D7:F7:3B:6B:B8:C8:C1:92:2B:55:9F:D3"
+      ]
+    }
+  }
+]
