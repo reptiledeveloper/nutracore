@@ -186,9 +186,10 @@ class ApiController extends Controller
         DB::table('new')->insert(['data' => json_encode($request->toArray())]);
         $response = $request->toArray();
         if (!empty($response)) {
-            $trackingNumber = $response->trackingNumber ?? '';
-            $status = $response->status ?? '';
+            $trackingNumber = $response['trackingNumber'] ?? '';
+            $status = $response['status'] ?? '';
             $exist = DB::table('order_courier')->where('trackingNumber', $trackingNumber)->first();
+
             if (!empty($exist)) {
                 $order_id = $exist->order_id ?? '';
                 $order = Order::find($order_id);
@@ -245,6 +246,30 @@ class ApiController extends Controller
                 $response = $this->send_whatsappsms($mobile, $code);
             }
         }
+        return $response;
+    }
+
+    public function send_sms($mobile, $code)
+    {
+        $user_name = "User";
+        $curl = curl_init();
+        curl_setopt_array($curl, [
+            CURLOPT_URL => "https://api.msg91.com/api/v5/flow/",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => "{\n  \"flow_id\": \"689227c998d5cf4ec72f5c53\",\n  \"sender\": \"NUTRCR\",\n  \"mobiles\": \"91$mobile\",\n  \"otp\": \"$code\",\n  \"user_name\": \"$user_name\"}",
+            CURLOPT_HTTPHEADER => [
+                "authkey: 431621ABncLfiKpzo6875ff9bP1",
+                "content-type: application/JSON"
+            ],
+        ]);
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        curl_close($curl);
         return $response;
     }
 
@@ -2512,10 +2537,10 @@ class ApiController extends Controller
                     }
                     $varient_images = [];
                     $varient->is_wishlist = $is_wishlist;
-                    $dbArray = [];
-                    $dbArray['id'] = 0;
-                    $dbArray['image'] = CustomHelper::getImageUrl('products', $product->image);
-                    $varient_images[] = $dbArray;
+//                    $dbArray = [];
+//                    $dbArray['id'] = 0;
+//                    $dbArray['image'] = CustomHelper::getImageUrl('products', $product->image);
+//                    $varient_images[] = $dbArray;
                     $product_images = DB::table('product_images')->where('product_id', $product->id)->where('varient_id', $varient->id)->get();
                     if (!empty($product_images)) {
                         foreach ($product_images as $product_image) {
@@ -2545,10 +2570,10 @@ class ApiController extends Controller
                 }
             } else {
                 $varient_images = [];
-                $dbArray = [];
-                $dbArray['id'] = 0;
-                $dbArray['image'] = CustomHelper::getImageUrl('products', $product->image);
-                $varient_images[] = $dbArray;
+//                $dbArray = [];
+//                $dbArray['id'] = 0;
+//                $dbArray['image'] = CustomHelper::getImageUrl('products', $product->image);
+//                $varient_images[] = $dbArray;
                 $nc_cash = self::getNcCashPercent($user, $product->product_selling_price ?? '');
                 $product_images = DB::table('product_images')->where('product_id', $product->id)->get();
                 if (!empty($product_images)) {
@@ -2650,7 +2675,11 @@ class ApiController extends Controller
             ->where('to_amount', '>=', $amount)
             ->first();
         if (!empty($active_loyalty)) {
-            return round(((int)$amount * (int)$active_loyalty->cashback) / 100);
+            $cashback = round(((int)$amount * (int)$active_loyalty->cashback) / 100);
+            if ((int)$cashback >= (int)$active_loyalty->max_cashback) {
+                $cashback = $active_loyalty->max_cashback;
+            }
+            return $cashback;
         }
         return 0;
 

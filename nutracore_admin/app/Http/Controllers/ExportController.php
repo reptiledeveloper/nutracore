@@ -176,10 +176,7 @@ class ExportController extends Controller
         $start_date = $request->start_date ?? Carbon::now()->startOfMonth();
         $end_date = $request->end_date ?? Carbon::now()->endOfMonth();
 
-        // ✅ Eager load related data
-//        $orders = Order::with(['order_items.product', 'userAddress'])
-//            ->whereBetween('created_at', [$start_date, $end_date])
-//            ->get();
+
         $orders = \App\Models\Order::where('is_delete', 0)
             ->where('status', 'DELIVERED')
             ->whereBetween('created_at', [
@@ -196,7 +193,7 @@ class ExportController extends Controller
 
             $address = $order->userAddress ?? null;
             $buyerState = $address->state ?? null; // State code from user_address (e.g., TG, MH)
-            if($order->order_from == 'POS'){
+            if ($order->order_from == 'POS') {
                 $buyerState = $unitState;
             }
             foreach ($order->items as $item) {
@@ -212,7 +209,7 @@ class ExportController extends Controller
                 $excelArr = [];
                 $excelArr['S.No.'] = $sr++;
                 $excelArr['Order Date'] = $order->created_at->format('d-M-Y');
-                $excelArr['Store Name'] = CustomHelper::getVendorName($order->vendor_id) ??'';
+                $excelArr['Store Name'] = CustomHelper::getVendorName($order->vendor_id) ?? '';
                 $excelArr['Invoice No.'] = $order->invoice_no ?? '';
                 $excelArr['Order No.'] = $order->unique_id ?? '';
                 $excelArr['Channel (Store/App/Web)'] = ucfirst($order->order_from ?? '');
@@ -226,12 +223,10 @@ class ExportController extends Controller
                 $excelArr['UOM'] = $variant->unit ?? '';
                 $excelArr['MRP (₹)'] = $item->price ?? 0;
                 $excelArr['Selling Price / Unit (₹)'] = round(($item->net_price / max($item->qty, 1)), 2);
-
-//                $grossAmount = (float)($item->net_price ?? 0);
-                $grossAmount = (int)$order->total_amount + (int)$order->delivery_charges - (int)$order->applied_cashback - (int)$order->flatDiscountValue;
+//                $grossAmount = (int)$order->total_amount + (int)$order->delivery_charges - (int)$order->applied_cashback - (int)$order->flatDiscountValue;
+                $grossAmount = $item->net_price ?? 0;
                 $discount = (float)($item->discount ?? 0);
                 $shipping = (float)($order->shipping_amount ?? 0);
-//                $finalAmount = max(($grossAmount - $discount), 0);
                 $finalAmount = $grossAmount;
                 $igst_rate = (float)($product->tax ?? 0);
                 $cgst_rate = $igst_rate / 2;
@@ -258,7 +253,7 @@ class ExportController extends Controller
                 $excelArr['Gross Amount (₹)'] = $invoiceValue;
                 $excelArr['Discount (₹)'] = $discount;
                 $excelArr['Shipping (₹)'] = $shipping;
-                $excelArr['Taxable Value (₹)'] = $taxableValue ;
+                $excelArr['Taxable Value (₹)'] = $taxableValue;
                 $excelArr['CGST %'] = $cgst_rate;
                 $excelArr['CGST (₹)'] = $cgst;
                 $excelArr['SGST %'] = $sgst_rate;

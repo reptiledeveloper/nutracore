@@ -44,6 +44,7 @@
                             <th>#</th>
                             <th>Product</th>
                             <th>Variant</th>
+                            <th>SKU</th>
                             <th>Batch</th>
                             <th>From Store </th>
                             <th>To Store</th>
@@ -62,6 +63,7 @@
                                 <td>{{ $transfers->firstItem() + $i }}</td>
                                 <td>{{ $t->product->name??'' }}</td>
                                 <td>{{ $t->variant->unit??'' }}</td>
+                                <td>{{ $t->variant->varient_sku??$t->product->sku??'' }}</td>
                                 <td>{{ $t->batch_number }}</td>
 
                                 <td>{{ \App\Helpers\CustomHelper::getVendorName($t->from_location??'') }}</td>

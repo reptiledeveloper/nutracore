@@ -1488,7 +1488,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                             <li><a href="{{url('terms')}}">Terms &amp; Conditions</a></li>
                             <li><a href="{{url('contact')}}">Contact Us</a></li>
                             <li><a href="{{url('return_policy')}}"> Refund & Cancellation policy</a></li>
-                            <li><a href="{{url('nc_partner')}}">Becone a NC Partner </a></li>
+                            <li><a href="{{route('nc_partner')}}">Become a NC Partner </a></li>
                         </ul>
                     </div>
                     <div class="footer-link-widget col wow animate__animated animate__fadeInUp" data-wow-delay=".4s">

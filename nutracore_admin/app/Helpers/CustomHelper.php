@@ -4264,8 +4264,11 @@ class CustomHelper
         $envia_data = json_decode($address->envia_data) ?? '';
 
         $customer_name = $orders->customer_name ?? '';
-        if(empty($customer_name)){
-            $customer_name =  $address->contact_person_name ??'';
+        if (empty($customer_name)) {
+            $customer_name = $address->contact_person_name ?? '';
+        }
+        if ($courier == 'Amazon Shipping') {
+            $courier = 'Amazon';
         }
         $packages = [];
         if (!empty($order_items)) {
@@ -4341,6 +4344,8 @@ class CustomHelper
                 'comments' => ''
             ]
         ];
+//        echo json_encode($data);
+//        die;
         $curl = curl_init();
         curl_setopt_array($curl, array(
             CURLOPT_URL => 'https://api.envia.com/ship/generate/',

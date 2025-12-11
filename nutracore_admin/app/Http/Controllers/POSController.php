@@ -140,6 +140,7 @@ class POSController extends Controller
         $date = $request->date ?? '';
         $agent_id = $request->agent_id ?? '';
         $pos_cancel_type = $request->pos_cancel_type ?? '';
+        $payment_method = $request->payment_method ?? '';
         $orders = Order::where('is_delete', 0)->where('order_from', 'POS')->orderBy('id', 'desc');
         if (!empty($order_status)) {
             $orders->where('status', $order_status);
@@ -155,6 +156,8 @@ class POSController extends Controller
         }
         if (!empty($pos_cancel_type)) {
             $orders->where('pos_cancel_type', $pos_cancel_type);
+        } if (!empty($payment_method)) {
+            $orders->where('payment_method', $payment_method);
         }
         if (!empty($date)) {
             //            $orders->whereDate('delivery_date',$date);
@@ -168,6 +171,7 @@ class POSController extends Controller
 
         $ordersData = Order::where('is_delete', 0)->where('order_from', 'POS')->get();
         foreach ($ordersData as $order) {
+
             self::update_pos_daily_cash_transaction($order);
         }
 
@@ -884,12 +888,13 @@ class POSController extends Controller
         $vendorId = $order->vendor_id;
         $paymentMethod = strtolower($order->payment_method);
         $is_delete = $order->is_delete ?? 0;
-        if ($paymentMethod === 'cod') {
+        if ($paymentMethod === 'cod' || $paymentMethod === 'Cash' ||  $paymentMethod === 'cash' ||  $paymentMethod === 'COD') {
+            $final_total = (int)$order->total_amount + (int)$order->delivery_charges - (int)$order->applied_cashback - (int)$order->flatDiscountValue;
             DB::table('pos_daily_cash_transaction')->updateOrInsert(
                 ['order_id' => $order->id], // condition (unique by order_id)
                 [
                     'vendor_id' => $vendorId,
-                    'amount' => $order->total_amount,
+                    'amount' => $final_total,
                     'date' => $date,
                     'type' => 'credit',
                     'status' => 1,
@@ -929,7 +934,7 @@ class POSController extends Controller
                     $product_id = $order_item->product_id ?? '';
                     $variant_id = $order_item->variant_id ?? '';
                     $qty = $order_item->qty ?? '';
-                    $exist = DB::table('stock_batches')->where('product_id', $product_id)->where('store_id',$order->vendor_id);
+                    $exist = DB::table('stock_batches')->where('product_id', $product_id)->where('store_id', $order->vendor_id);
                     if (!empty($variant_id)) {
                         $exist->where('variant_id', $variant_id);
                     }
@@ -1041,7 +1046,11 @@ class POSController extends Controller
             ->orderBy('from_amount', 'desc') // pick the highest matching tier
             ->first();
         if (!empty($active_loyalty)) {
-            return round(((int)$amount * (int)$active_loyalty->cashback) / 100);
+            $cashback = round(((int)$amount * (int)$active_loyalty->cashback) / 100);
+            if ((int)$cashback >= (int)$active_loyalty->max_cashback) {
+                $cashback = $active_loyalty->max_cashback;
+            }
+            return $cashback;
         }
         return 0;
 

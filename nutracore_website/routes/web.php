@@ -18,7 +18,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
     Route::match(['get', 'post'], '/cart', 'HomeController@cart')->name('cart');
     Route::match(['get', 'post'], '/search', 'HomeController@products')->name('search');
     Route::match(['get', 'post'], '/save_address', 'HomeController@save_address');
-    Route::match(['get', 'post'], '/nc_partner', 'HomeController@nc_partner');
+    Route::match(['get', 'post'], '/nc-partner', 'HomeController@nc_partner')->name('nc_partner');
     Route::match(['get', 'post'], '/brands', 'HomeController@brands');
     Route::match(['get', 'post'], '/store_location', 'HomeController@store_location');
     Route::match(['get', 'post'], '/explore', 'HomeController@explore');

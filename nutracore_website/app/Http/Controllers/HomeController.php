@@ -432,7 +432,11 @@ class HomeController extends Controller
             ->where('to_amount', '>=', $amount)
             ->first();
         if (!empty($active_loyalty)) {
-            return round(((int)$amount * (int)$active_loyalty->cashback) / 100);
+            $cashback = round(((int)$amount * (int)$active_loyalty->cashback) / 100);
+            if ((int)$cashback >= (int)$active_loyalty->max_cashback) {
+                $cashback = $active_loyalty->max_cashback;
+            }
+            return $cashback;
         }
         return 0;
 
@@ -2200,7 +2204,12 @@ class HomeController extends Controller
         $product_id = $request->product_id ?? '';
         $variant_id = $request->variant_id ?? '';
         $qty = $request->qty ?? '';
-        $product = Products::where('id', $product_id)->first();
+        $product = Product::where('id', $product_id)->first();
+
+
+        $available_qty = CustomHelper::checkAvailableQty($product_id, $variant_id);
+
+
         if (!empty($product)) {
             $check_varient = CustomHelper::checkProductPrice($product_id, $variant_id);
             if (empty($check_varient) && $variant_id != 0) {
@@ -2209,13 +2218,18 @@ class HomeController extends Controller
                     'message' => 'Product Not Available',
                 ], 200);
             }
-            $total_qty = 0;
             $exist = Cart::where(['product_id' => $product_id, 'variant_id' => $variant_id, 'user_id' => $user->id])->first();
             $dbArray = [];
             $dbArray['product_id'] = $product_id;
             $dbArray['variant_id'] = $variant_id;
             $dbArray['user_id'] = $user->id;
             $dbArray['qty'] = $qty;
+            if ((int)$qty > (int)$available_qty) {
+                return response()->json([
+                    'result' => false,
+                    'message' => "Available " . $available_qty . ' Only',
+                ], 200);
+            }
             if (empty($exist)) {
                 if ($qty > 0) {
                     Cart::insert($dbArray);
@@ -2228,12 +2242,18 @@ class HomeController extends Controller
                     Cart::where('id', $exist->id)->update($dbArray);
                 }
             }
-            $total_qty = Cart::where(['user_id' => $user->id])->sum('qty');
         }
+        $user_id = $user->id;
+        $product = Product::where('id', $product_id)->first();
+        $event = 'Add to Cart';
+        $traits = [
+            "product_name" => $product->name ?? '',
+            "quantity" => $qty ?? '',
+        ];
+        CustomHelper::trackEvent($user_id, $event, $traits);
         return response()->json([
             'result' => true,
-            'message' => 'Cart Updated SuccessFully',
-            "total_qty" => $total_qty
+            'message' => "Successfully",
         ], 200);
     }
 

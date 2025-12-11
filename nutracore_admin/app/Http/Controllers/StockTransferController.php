@@ -158,7 +158,7 @@ class StockTransferController extends Controller
         }
 
         // Get the stock record for this transfer
-        $stock = Stock::with('product', 'variant')->find($t->stock_id);
+        $stock = StockBatch::with('product', 'variant')->find($t->stock_id);
 
         if (!$stock) {
             return back()->withErrors('Stock record not found.');

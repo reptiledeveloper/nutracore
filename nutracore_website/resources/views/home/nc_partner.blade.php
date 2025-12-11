@@ -307,7 +307,8 @@
             margin-bottom: 6px;
             opacity: 0.9;
         }
-        select{
+
+        select {
             height: 64px;
             border-radius: 10px;
         }
@@ -316,12 +317,13 @@
         input:focus,
         textarea:focus,
         select:focus {
-            background-color: white !important;   /* Keep original background */
+            background-color: white !important; /* Keep original background */
         }
 
         input::placeholder {
             color: #6c7a8a;
         }
+
         .checkbox {
             display: flex;
             align-items: center;
@@ -353,11 +355,12 @@
                 flex-direction: column;
             }
         }
+
         .faq-container {
             margin: 0 auto;
             background: #fff;
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
 
@@ -408,10 +411,12 @@
             content: '-';
             transform: rotate(180deg);
         }
+
         option {
             background-color: #fff;
             color: #fff;
         }
+
         select {
             background-color: #ffffff !important;
             color: #000 !important;
@@ -423,91 +428,110 @@
         }
 
     </style>
-   <style>
-       /* Container that holds popup — FULL SCREEN but transparent */
-       .otp-popup {
-           position: fixed;
-           inset: 0;
-           display: none;        /* Hidden by default */
-           justify-content: center;
-           align-items: center;
-           z-index: 9999;
-           background: transparent;   /* No blur, no overlay */
-       }
+    <style>
+        /* Container that holds popup — FULL SCREEN but transparent */
+        .otp-popup {
+            position: fixed;
+            inset: 0;
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            background: transparent; /* No blur, no overlay */
+        }
 
-       /* Popup Box */
-       .otp-card {
-           width: 320px;
-           background: #fff;
-           border-radius: 14px;
-           padding: 22px 20px;
-           /*box-shadow: 0 10px 40px rgba(0,0,0,0.25);*/
-           position: relative;
-           animation: fadeIn 0.25s ease;
-       }
+        /* Popup Box */
+        .otp-card {
+            width: 320px;
+            background: #fff;
+            border-radius: 14px;
+            padding: 22px 20px;
+            /*box-shadow: 0 10px 40px rgba(0,0,0,0.25);*/
+            position: relative;
+            animation: fadeIn 0.25s ease;
+        }
 
-       /* Close Button */
-       .otp-close {
-           position: absolute;
-           right: 12px;
-           top: 8px;
-           background: none;
-           border: none;
-           font-size: 24px;
-           cursor: pointer;
-           color: #333;
-       }
+        /* Close Button */
+        .otp-close {
+            position: absolute;
+            right: 12px;
+            top: 8px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+        }
 
-       .otp-title {
-           font-size: 20px;
-           font-weight: bold;
-           margin-bottom: 4px;
-       }
+        .otp-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
 
-       .otp-desc {
-           font-size: 14px;
-           color: #666;
-           margin-bottom: 18px;
-       }
+        .otp-desc {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 18px;
+        }
 
-       .otp-input {
-           width: 100%;
-           padding: 12px;
-           text-align: center;
-           font-size: 22px;
-           border: 1px solid #ccc;
-           border-radius: 8px;
-           letter-spacing: 12px; /* Optional (bigger gap) */
-           font-weight: bold;
-           color: #000;
-           caret-color: transparent; /* Cursor invisible */
-       }
+        .otp-input {
+            width: 100%;
+            padding: 12px;
+            text-align: center;
+            font-size: 22px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            letter-spacing: 12px; /* Optional (bigger gap) */
+            font-weight: bold;
+            color: #000;
+            caret-color: transparent; /* Cursor invisible */
+        }
 
 
-       .otp-button {
-           width: 100%;
-           padding: 12px;
-           margin-top: 15px;
-           background: #ff7a00;
-           color: #fff;
-           border: none;
-           font-weight: bold;
-           border-radius: 8px;
-           cursor: pointer;
-       }
+        .otp-button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 15px;
+            background: #ff7a00;
+            color: #fff;
+            border: none;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+        }
 
-       /* Animation */
-       @keyframes fadeIn {
-           from { transform: translateY(-10px); opacity: 0; }
-           to   { transform: translateY(0); opacity: 1; }
-       }
+        /* Animation */
+        @keyframes fadeIn {
+            from {
+                transform: translateY(-10px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
 
-       .blur-background {
-           filter: blur(5px);
-           pointer-events: none; /* Cannot click background */
-       }
+        .blur-background {
+            filter: blur(5px);
+            pointer-events: none; /* Cannot click background */
+        }
 
-   </style>
+        input, select {
+            height: 45px;
+        }
+    select{
+        text-align: center;
+    }
+
+        textarea {
+            height: 100px !important;
+            min-height: 100px !important;
+            max-height: 100px !important;
+            resize: none;
+        }
+    </style>
 
     <main class="main pages" id="pageContent">
         <div class="page-header breadcrumb-wrap">
@@ -673,10 +697,10 @@
                         Partner with a brand built on trust, authenticity and customer experience
                     </p>
 
-                    <div class="join-grid">
-
+                    <div class="join-grid" style="gap: 100px">
                         <div class="join-item">
-                            <img src="{{url('public/assets/nc_partner/11.svg')}}" alt="Gym Owner" style=" border-radius: 0%;">
+                            <img src="{{url('public/assets/nc_partner/11.svg')}}" alt="Gym Owner"
+                                 style=" border-radius: 0%;">
                             <h4>100% Genuine
                                 Supplements</h4>
                         </div>
@@ -689,13 +713,15 @@
                         </div>
 
                         <div class="join-item">
-                            <img src="{{url('public/assets/nc_partner/13.svg')}}" alt="Influencers" style=" border-radius: 0%;">
+                            <img src="{{url('public/assets/nc_partner/13.svg')}}" alt="Influencers"
+                                 style=" border-radius: 0%;">
                             <h4>2-Hour Xpress
                                 Delivery</h4>
                         </div>
 
                         <div class="join-item">
-                            <img src="{{url('public/assets/nc_partner/14.svg')}}" alt="Nutritionists" style=" border-radius: 0%;">
+                            <img src="{{url('public/assets/nc_partner/14.svg')}}" alt="Nutritionists"
+                                 style=" border-radius: 0%;">
                             <h4>Trusted by 10000+
                                 Customers</h4>
                         </div>
@@ -758,14 +784,16 @@
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <h5 class="modal-title">Verify with OTP</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
                                 </div>
 
                                 <div class="modal-body">
-                                        <!-- Mobile Number -->
-                                        <div class="mb-3">
-                                            <input type="text" maxlength="4" class="otp-input" id="otp_input" placeholder="____">
-                                        </div>
+                                    <!-- Mobile Number -->
+                                    <div class="mb-3">
+                                        <input type="text" maxlength="4" class="otp-input" id="otp_input"
+                                               placeholder="____">
+                                    </div>
                                 </div>
                                 <div class="d-grid">
                                     <button class="btn btn-primary" id="verifyOtpBtn">Verify OTP</button>
@@ -775,43 +803,38 @@
                     </div>
 
 
-
-
                     <div class="nc-form-container" id="apply_now">
                         <form id="applyForm">
                             <div class="row">
                                 <div class="field">
-                                    <label>Full Name *</label>
-                                    <input type="text" name="full_name" >
+                                    <input type="text" name="full_name" placeholder="Full Name *">
                                 </div>
 
                                 <div class="field">
-                                    <label>Mobile Number *</label>
-                                    <input type="text" name="mobile_number" >
+                                    <input type="text" name="mobile_number" placeholder="Mobile Number *">
                                 </div>
                             </div>
 
                             <div class="row">
                                 <div class="field">
-                                    <label>Email *</label>
-                                    <input type="email" name="email" >
+                                    <input type="email" name="email" placeholder="Email *">
                                 </div>
 
                                 <div class="field">
-                                    <label>City *</label>
-                                    <input type="text" name="city" >
+                                    <input type="text" name="city" placeholder="City *">
                                 </div>
                             </div>
 
                             <div class="field full">
-                                <label>Complete Address with Pincode *</label>
-                                <textarea name="full_address" rows="1" ></textarea>
+    <textarea name="full_address"
+              placeholder="Complete Address with Pincode *"></textarea>
+
                             </div>
 
+
                             <div class="field full">
-                                <label>Role *</label>
-                                <select name="role" >
-                                    <option value="">Select</option>
+                                <select name="role">
+                                    <option value="">Select Role *</option>
                                     <option value="Trainer">Trainer</option>
                                     <option value="Gym Owner">Gym Owner</option>
                                     <option value="Coach">Coach</option>
@@ -821,14 +844,12 @@
                             </div>
 
                             <div class="field full">
-                                <label>Gym / Studio / Brand Name *</label>
-                                <input type="text" name="brand_name" >
+                                <input type="text" name="brand_name" placeholder="Gym / Studio / Brand Name *">
                             </div>
 
                             <div class="field full">
-                                <label>Approx. Active Clients *</label>
-                                <select name="active_clients" >
-                                    <option value="">Select</option>
+                                <select name="active_clients">
+                                    <option value="">Select Approx. Active Clients *</option>
                                     <option value="0-20">0–20</option>
                                     <option value="20-50">20–50</option>
                                     <option value="50-100">50–100</option>
@@ -839,39 +860,40 @@
 
                             <div class="row">
                                 <div class="field">
-                                    <label>Bank Name *</label>
-                                    <input type="text" name="bank_name" >
+
+                                    <input type="text" name="bank_name" placeholder="Bank Name *">
                                 </div>
 
                                 <div class="field">
-                                    <label>IFSC Code *</label>
-                                    <input type="text" name="ifsc_code" >
+
+                                    <input type="text" name="ifsc_code" placeholder="IFSC Code *">
                                 </div>
                             </div>
 
                             <div class="field full">
-                                <label>Account Number *</label>
-                                <input type="text" name="account_number" >
+
+                                <input type="text" name="account_number" placeholder="Account Number *">
                             </div>
 
                             <div class="field full">
-                                <label>How do you plan to promote NutraCore? *</label>
-                                <textarea rows="1" name="promotion_plan" ></textarea>
+                                <textarea name="promotion_plan"
+                                          placeholder="How do you plan to promote NutraCore? *"
+                                          style="height:120px;"></textarea>
                             </div>
 
                             <div class="field full">
-                                <label>Instagram / Social Links *</label>
-                                <input type="text" name="social_links" placeholder="@handle or URL" >
+                                <input type="text" name="social_links" placeholder="Instagram / Social Links *">
                             </div>
 
                             <div class="field full">
-                                <label>Active Followers (optional)</label>
-                                <input type="text" name="active_followers">
+                                <label></label>
+                                <input type="text" name="active_followers" placeholder="Active Followers (optional)">
                             </div>
 
                             <div class="field full">
                                 <label>Preferred Contact Method *</label>
-                                <select name="contact_method" >
+                                <select name="contact_method">
+                                    <option value="">Preferred Contact Method *</option>
                                     <option value="WhatsApp">WhatsApp</option>
                                     <option value="Call">Call</option>
                                     <option value="Email">Email</option>
@@ -879,8 +901,9 @@
                             </div>
 
                             <label class="checkbox">
-                                <input type="checkbox" name="agree_terms" value="1" >
-                                I agree to the NC Partner Network Terms & Conditions and consent to be contacted by NutraCore®.
+                                <input type="checkbox" name="agree_terms" value="1">
+                                I agree to the NC Partner Network Terms & Conditions and consent to be contacted by
+                                NutraCore®.
                             </label>
 
                             <button type="button" onclick="subForm()" class="submit-btn">Submit Application</button>
@@ -890,7 +913,6 @@
                     </div>
 
 
-
                 </div>
                 <div class="faq-container">
                     <h2>Frequently Asked Questions</h2>
@@ -898,14 +920,16 @@
                     <div class="faq-item">
                         <button class="faq-question">What is your return policy?</button>
                         <div class="faq-answer">
-                            <p>We accept returns within 30 days of purchase. The item must be unused and in original packaging.</p>
+                            <p>We accept returns within 30 days of purchase. The item must be unused and in original
+                                packaging.</p>
                         </div>
                     </div>
 
                     <div class="faq-item">
                         <button class="faq-question">Do you ship internationally?</button>
                         <div class="faq-answer">
-                            <p>Yes, we ship to most countries. Shipping costs and delivery times vary depending on the location.</p>
+                            <p>Yes, we ship to most countries. Shipping costs and delivery times vary depending on the
+                                location.</p>
                         </div>
                     </div>
 
@@ -947,17 +971,18 @@
             });
         });
 
-       function subForm(){
-           let mobile = document.querySelector("input[name=mobile_number]").value;
+        function subForm() {
+            let mobile = document.querySelector("input[name=mobile_number]").value;
 
-           if (mobile.length !== 10) {
-               alert("Enter a valid mobile number");
-               return;
-           }
+            if (mobile.length !== 10) {
+                alert("Enter a valid mobile number");
+                return;
+            }
 
-           // Show modal and send OTP
-           sendOtp(mobile);
-       }
+            // Show modal and send OTP
+            sendOtp(mobile);
+        }
+
         function sendOtp() {
             let form = document.getElementById("applyForm");
             let formData = new FormData(form);
@@ -994,7 +1019,7 @@
         }
 
 
-        function closeOtpModal(){
+        function closeOtpModal() {
             document.getElementById("otpModal").style.display = "none";
         }
 
@@ -1009,7 +1034,7 @@
                     "Content-Type": "application/json",
                     "X-CSRF-TOKEN": document.querySelector("input[name=_token]").value
                 },
-                body: JSON.stringify({ mobile: mobile, otp: otp })
+                body: JSON.stringify({mobile: mobile, otp: otp})
             })
                 .then(res => res.json())
                 .then(res => {
@@ -1021,6 +1046,7 @@
                     }
                 });
         });
+
         function submitPartnerForm() {
             let form = document.getElementById("applyForm");
             let formData = new FormData(form);
