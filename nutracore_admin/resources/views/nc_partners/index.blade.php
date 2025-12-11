@@ -72,6 +72,8 @@
                                             <span class="badge bg-warning">Pending</span>
                                         @elseif($p->status == 'Approved')
                                             <span class="badge bg-success">Approved</span>
+                                        @elseif($p->status == 'Ban')
+                                            <span class="badge bg-danger">Ban</span>
                                         @else
                                             <span class="badge bg-danger">Rejected</span>
                                         @endif
@@ -89,9 +91,9 @@
                                                        class="dropdown-item">Edit</a>
                                                     <a href="{{route('nc_partners.view',$p->id.'?back_url='.$BackUrl)}}"
                                                        class="dropdown-item">View</a>
-{{--                                                    <a href="{{route('nc_partners.delete',$p->id.'?back_url='.$BackUrl)}}"--}}
-{{--                                                       onclick="return confirm('Are you Want To Delete?')"--}}
-{{--                                                       class="dropdown-item">Delete</a>--}}
+                                                    {{--                                                    <a href="{{route('nc_partners.delete',$p->id.'?back_url='.$BackUrl)}}"--}}
+                                                    {{--                                                       onclick="return confirm('Are you Want To Delete?')"--}}
+                                                    {{--                                                       class="dropdown-item">Delete</a>--}}
                                                 </div>
                                             </div>
                                         </div>

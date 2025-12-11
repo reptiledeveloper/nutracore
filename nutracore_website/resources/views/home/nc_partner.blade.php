@@ -1,5 +1,9 @@
 @extends('home.layout')
 @section('content')
+    @php
+    $faqs = \App\Models\FAQ::where('type','nc_partner')->where('status',1)->where('is_delete',0)->get();
+    $settings = DB::table('settings')->where('id',1)->first();
+    @endphp
     <style>
         .partner-btn {
             position: absolute;
@@ -916,36 +920,23 @@
                 </div>
                 <div class="faq-container">
                     <h2>Frequently Asked Questions</h2>
-
-                    <div class="faq-item">
-                        <button class="faq-question">What is your return policy?</button>
-                        <div class="faq-answer">
-                            <p>We accept returns within 30 days of purchase. The item must be unused and in original
-                                packaging.</p>
+            @foreach($faqs as $faq)
+                        <div class="faq-item">
+                            <button class="faq-question">{!! $faq->question??"" !!}</button>
+                            <div class="faq-answer">
+                                <p>{!! $faq->answer??"" !!}</p>
+                            </div>
                         </div>
-                    </div>
+            @endforeach
 
-                    <div class="faq-item">
-                        <button class="faq-question">Do you ship internationally?</button>
-                        <div class="faq-answer">
-                            <p>Yes, we ship to most countries. Shipping costs and delivery times vary depending on the
-                                location.</p>
-                        </div>
-                    </div>
 
-                    <div class="faq-item">
-                        <button class="faq-question">How can I track my order?</button>
-                        <div class="faq-answer">
-                            <p>After your order is shipped, you will receive an email with tracking details.</p>
-                        </div>
-                    </div>
+
                 </div>
 
                 <section class="benefits-section">
                     <h2 class="title">Terms & Conditions Explained</h2>
                     <p class="subtitle">
-                        A complete support system to help you increase income, deliver better results for your clients
-                        and grow your brand.
+                        {!! $settings->nc_partner_tnc??'' !!}
                     </p>
 
                 </section>

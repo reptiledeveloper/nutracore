@@ -827,7 +827,7 @@
 
                             ////////Get Cart QTY//////////
                             getCartQty();
-                            updateVariantView(matchedVariant);
+
 
                             // Handle Add to Cart button based on stock
                             if (matchedVariant.is_out_of_stock == 1) {
@@ -837,7 +837,7 @@
                                 $('#addToCartBtn').prop('disabled', false).show();
                                 $('#outOfStockMsg').hide();
                             }
-
+                            updateVariantView(matchedVariant);
                         } else {
                             console.warn("No matching variant found for:", combinedValue);
                             $('#addToCartBtn').prop('disabled', true).hide();

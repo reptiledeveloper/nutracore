@@ -60,6 +60,7 @@
                                         <option value="subscription" {{ $type == 'subscription' ?"selected":"" }}>Subscription</option>
                                         <option value="refer" {{ $type == 'refer' ?"selected":"" }}>Refer & Earn</option>
                                         <option value="nc_cash" {{ $type == 'nc_cash' ?"selected":"" }}>NC Cash</option>
+                                        <option value="nc_partner" {{ $type == 'nc_partner' ?"selected":"" }}>NC Partner</option>
 
                                   </select>
 

@@ -43,6 +43,7 @@
     $delhivery_url = $settings->delhivery_url ?? '';
     $cutoff_time = $settings->cutoff_time ?? '';
     $about_us_video = $settings->about_us_video ?? '';
+    $nc_partner_tnc = $settings->nc_partner_tnc ?? '';
 
     ?>
     <style>
@@ -105,6 +106,11 @@
                                                 <label for="inputEmail4" class="form-label">Contact US</label>
                                                 <textarea name="contact_us"
                                                           class="editor">{{ old('contact_us', $contact_us) }}</textarea>
+                                            </div>
+                                            <div class="col-md-12">
+                                                <label for="inputEmail4" class="form-label">NC Partner TC</label>
+                                                <textarea name="nc_partner_tnc"
+                                                          class="editor">{{ old('nc_partner_tnc', $nc_partner_tnc) }}</textarea>
                                             </div>
                                             <div class="col-md-6 mt-3">
                                                 <label class="form-label">Contact Address</label>

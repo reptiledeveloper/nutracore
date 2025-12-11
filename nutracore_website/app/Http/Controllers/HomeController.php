@@ -3292,4 +3292,99 @@ class HomeController extends Controller
 
         return response()->json(['status' => true]);
     }
+    public function partner(Request $request)
+    {
+        $data = [];
+        $user = Auth::user();
+        $partner_data = DB::table('partner_applications')->where('mobile_number',$user->phone)->first();
+        if(empty($partner_data)){
+            return back();
+        }
+        $orders = Order::where('coupon_code',$partner_data->coupon_code)->latest()->paginate(10);
+        $data['partner_data'] = $partner_data;
+        $data['orders'] = $orders;
+        $today = Carbon::today();
+        $currentMonthStart = $today->copy()->startOfMonth();
+        $currentMonthEnd = $today->copy()->endOfMonth();
+        $lastMonthStart = $today->copy()->subMonth()->startOfMonth();
+        $lastMonthEnd = $today->copy()->subMonth()->endOfMonth();
+        $partnerId = $partner_data->id??'';
+        // Current Month Orders & Earnings
+        $currentMonthTotal = DB::table('partner_commissions')
+            ->where('partner_id', $partnerId)
+            ->where('status', 1)
+            ->whereBetween('date', [$currentMonthStart, $currentMonthEnd])
+            ->selectRaw('COUNT(*) as total_orders, SUM(commission) as total_earnings ,SUM(order_amount) as total_order_amount')
+            ->first();
+
+        // Last Month Earnings
+        $lastMonthEarnings = DB::table('partner_commissions')
+            ->where('partner_id', $partnerId)
+            ->where('status', 1)
+            ->whereBetween('date', [$lastMonthStart, $lastMonthEnd])
+            ->sum('commission');
+
+        // Lifetime Earnings
+        $lifetimeEarnings = DB::table('partner_commissions')
+            ->where('partner_id', $partnerId)
+            ->where('status', 1)
+            ->sum('commission');
+        $currentMonthOrders = DB::table('partner_commissions')
+            ->where('partner_id', $partnerId)
+            ->where('status', 1)
+            ->whereBetween('date', [$currentMonthStart, $currentMonthEnd])
+            ->count();
+        $tier = DB::table('nc_partner_tire_system')
+            ->where('status', 1)
+            ->where('is_delete', 0)
+            ->where('from_amount', '<=',(int) $currentMonthTotal->total_order_amount)
+            ->where('to_amount', '>=', (int)$currentMonthTotal->total_order_amount)
+            ->first();
+
+        // Fallback if no tier found
+        if (!$tier) {
+            $tier = DB::table('nc_partner_tire_system')->orderBy('from_amount', 'asc')->first();
+        }
+
+
+        $data['currentMonthData'] = $currentMonthTotal->total_earnings??0;
+        $data['lastMonthEarnings'] = $lastMonthEarnings;
+        $data['lifetimeEarnings'] = $lifetimeEarnings;
+        $data['currentMonthOrders'] = $currentMonthOrders;
+        $data['currentMonthTotal'] = $currentMonthTotal;
+        $data['tier'] = $tier;
+
+
+        $totalEarnings = DB::table('partner_commissions')
+            ->where('partner_id', $partnerId)
+            ->whereBetween('date', [$currentMonthStart, $currentMonthEnd])
+            ->where('status', 1)
+            ->sum('order_amount');
+
+        // Get all active tiers
+        $tiers = DB::table('nc_partner_tire_system')
+            ->where('status', 1)
+            ->where('is_delete', 0)
+            ->orderBy('from_amount')
+            ->get();
+
+        // Current tier
+        $currentTier = $tiers->filter(function($tier) use ($totalEarnings) {
+            return $totalEarnings >= $tier->from_amount && $totalEarnings <= $tier->to_amount;
+        })->first();
+
+        // Next tier
+        $nextTier = $tiers->firstWhere('from_amount', '>', $totalEarnings);
+
+        // Remaining amount to next tier
+        $remaining = $nextTier ? $nextTier->from_amount - $totalEarnings : 0;
+        $data['totalEarnings'] = $totalEarnings;
+        $data['tiers'] = $tiers;
+        $data['currentTier'] = $currentTier;
+        $data['nextTier'] = $nextTier;
+        $data['remaining'] = $remaining;
+
+        return view('partner.view',$data);
+
+    }
 }

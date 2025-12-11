@@ -242,6 +242,9 @@ class HomeController extends Controller
             if (!empty($request->refund_policy)) {
                 $dbArray['refund_policy'] = $request->refund_policy;
             }
+            if (!empty($request->nc_partner_tnc)) {
+                $dbArray['nc_partner_tnc'] = $request->nc_partner_tnc;
+            }
             if (!empty($request->grivance_policy)) {
                 $dbArray['grivance_policy'] = $request->grivance_policy;
             }
