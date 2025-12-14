@@ -123,10 +123,62 @@ class NCPartnerController extends Controller
         $isSaved = $admin->save();
 
         if ($isSaved) {
-
+            if ($admin->status == 'Approved') {
+                self:: sendNC_Partner_Approved($admin->mobile_number??'');
+            }
+            if ($admin->status == 'Rejected') {
+                self:: sendNC_Partner_Rejected($admin->mobile_number??'');
+            }
         }
 
         return $isSaved;
+    }
+
+
+    public function sendNC_Partner_Approved($mobile)
+    {
+        $curl = curl_init();
+        curl_setopt_array($curl, [
+            CURLOPT_URL => "https://api.msg91.com/api/v5/flow/",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => "{\n  \"flow_id\": \"693a54a7169ed9024c2ba2f5\",\n  \"sender\": \"NUTRCR\",\n  \"mobiles\": \"91$mobile\"}",
+            CURLOPT_HTTPHEADER => [
+                "authkey: 431621ABncLfiKpzo6875ff9bP1",
+                "content-type: application/JSON"
+            ],
+        ]);
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        curl_close($curl);
+        return $response;
+    }
+
+    public function sendNC_Partner_Rejected($mobile)
+    {
+        $curl = curl_init();
+        curl_setopt_array($curl, [
+            CURLOPT_URL => "https://api.msg91.com/api/v5/flow/",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => "{\n  \"flow_id\": \"693c016069251d4b3b0367cb\",\n  \"sender\": \"NUTRCR\",\n  \"mobiles\": \"91$mobile\"}",
+            CURLOPT_HTTPHEADER => [
+                "authkey: 431621ABncLfiKpzo6875ff9bP1",
+                "content-type: application/JSON"
+            ],
+        ]);
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        curl_close($curl);
+        return $response;
     }
 
 
@@ -161,6 +213,7 @@ class NCPartnerController extends Controller
         self::partnerCommissionForOrder(3, $id);
         return view('nc_partners.view', $data);
     }
+
     public function commission(Request $request)
     {
         $id = $request->id ?? '';
@@ -275,5 +328,70 @@ class NCPartnerController extends Controller
         ];
     }
 
+    public function withdrawal(Request $request)
+    {
+        $data = [];
+
+        $withdrawals = DB::table('partner_withdrawals')
+            ->orderBy('created_at', 'desc')
+            ->paginate(100);
+        $data['withdrawals'] = $withdrawals;
+        return view('nc_partners.withdrawal', $data);
+    }
+
+    public function with_draw_approve(Request $request)
+    {
+        $id = $request->id ?? '';
+        DB::transaction(function () use ($id) {
+
+            $withdraw = DB::table('partner_withdrawals')
+                ->where('id', $id)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$withdraw || $withdraw->status !== 'pending') {
+                return;
+            }
+
+            DB::table('partner_withdrawals')
+                ->where('id', $id)
+                ->update([
+                    'status' => 'completed',
+                    'updated_at' => now(),
+                ]);
+        });
+
+        return redirect()->back()->with('success', 'Withdrawal approved successfully.');
+    }
+
+    public function with_draw_reject(Request $request)
+    {
+        $id = $request->id ?? '';
+        DB::transaction(function () use ($id) {
+
+            $withdraw = DB::table('partner_withdrawals')
+                ->where('id', $id)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$withdraw || $withdraw->status !== 'pending') {
+                return;
+            }
+
+            // Refund wallet
+            DB::table('partner_applications')
+                ->where('id', $withdraw->partner_id)
+                ->increment('wallet', $withdraw->amount);
+
+            DB::table('partner_withdrawals')
+                ->where('id', $id)
+                ->update([
+                    'status' => 'rejected',
+                    'updated_at' => now(),
+                ]);
+        });
+
+        return redirect()->back()->with('success', 'Withdrawal rejected and amount refunded.');
+    }
 
 }

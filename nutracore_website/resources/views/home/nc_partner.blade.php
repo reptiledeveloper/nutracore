@@ -997,7 +997,9 @@
                     if (!res.status) {
                         // Display validation errors
                         if (res.errors) {
-                            Object.values(res.errors).forEach(err => alert(err[0]));
+                            // Object.values(res.errors).forEach(err => alert(err[0]));
+                            const firstError = Object.values(res.errors)[0][0];
+                            alert(firstError);
                         } else {
                             alert(res.message || "Something went wrong");
                         }

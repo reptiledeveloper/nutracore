@@ -111,6 +111,7 @@
                 border-radius: 12px;
             }
         }
+
         .home-banner {
             width: 100%;
             height: 400px;
@@ -131,17 +132,19 @@
                 height: 160px;
             }
         }
-        .padding_set{
+
+        .padding_set {
             padding-top: 458px;
         }
 
         @media (max-width: 768px) {
-            .padding_set{
+            .padding_set {
                 padding-top: 320px;
             }
         }
+
         @media (max-width: 480px) {
-            .padding_set{
+            .padding_set {
                 padding-top: 320px;
             }
         }
@@ -419,12 +422,11 @@
         }
     </style>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css"/>
 
     <main class="main">
 
         @include('home.countdown')
-
 
 
         <section class="home-slider position-relative mb-30">
@@ -471,7 +473,6 @@
         </section>
 
 
-
         <!--End hero slider-->
         <section class="popular-categories section-padding">
             <div class="container wow ">
@@ -513,8 +514,8 @@
             <div class="container">
                 <div class="row">
                     @foreach($small_banners as $banner)
-                       @php
-                        $slug = '';
+                        @php
+                            $slug = '';
                         @endphp
                         @if(!empty($banner->category_id))
                             @php
@@ -529,9 +530,9 @@
 
 
 
-                    @php
-                        $url =  url('collections/' . $slug);
-                    @endphp
+                        @php
+                            $url =  url('collections/' . $slug);
+                        @endphp
                         <div class="col-lg-4 col-md-6 p-2">
                             <a href="{{$url}}">
                                 <div class="banner-img wow animate__animated animate__fadeInUp" data-wow-delay="0">
@@ -720,24 +721,24 @@
                     <!-- Left Banner -->
                     <div class="col-12 col-md-8 d-flex flex-column d-none d-md-flex">
                         <div class="h-100">
-{{--                            <div class="position-relative banner-img">--}}
-{{--                                <img src="{{url('public/assets/images/refer.png')}}" class="img-fluid w-100 rounded"--}}
-{{--                                     alt="Refer Banner"/>--}}
-{{--                                <div class="position-absolute top-50 translate-middle text-left"--}}
-{{--                                     style="left: 30%;">--}}
-{{--                                    <span class="d-block text-white fs-5 fw-bold">--}}
-{{--                                        Refer a friend and earn rewards!--}}
-{{--                                    </span>--}}
-{{--                                    <p class="text-white mt-2 mb-3"--}}
-{{--                                       style="font-size: 12px; font-family: 'Lato', sans-serif;">--}}
-{{--                                        Explore the perfect supplements designed just for you! Start <br> your journey--}}
-{{--                                        to--}}
-{{--                                        better--}}
-{{--                                        health today and find what suits your needs best.--}}
-{{--                                    </p>--}}
-{{--                                    <a class='btn btn-primary' onclick="checkLoginRedirect('{{route('refer_earn')}}')">Join Now</a>--}}
-{{--                                </div>--}}
-{{--                            </div>--}}
+                            {{--                            <div class="position-relative banner-img">--}}
+                            {{--                                <img src="{{url('public/assets/images/refer.png')}}" class="img-fluid w-100 rounded"--}}
+                            {{--                                     alt="Refer Banner"/>--}}
+                            {{--                                <div class="position-absolute top-50 translate-middle text-left"--}}
+                            {{--                                     style="left: 30%;">--}}
+                            {{--                                    <span class="d-block text-white fs-5 fw-bold">--}}
+                            {{--                                        Refer a friend and earn rewards!--}}
+                            {{--                                    </span>--}}
+                            {{--                                    <p class="text-white mt-2 mb-3"--}}
+                            {{--                                       style="font-size: 12px; font-family: 'Lato', sans-serif;">--}}
+                            {{--                                        Explore the perfect supplements designed just for you! Start <br> your journey--}}
+                            {{--                                        to--}}
+                            {{--                                        better--}}
+                            {{--                                        health today and find what suits your needs best.--}}
+                            {{--                                    </p>--}}
+                            {{--                                    <a class='btn btn-primary' onclick="checkLoginRedirect('{{route('refer_earn')}}')">Join Now</a>--}}
+                            {{--                                </div>--}}
+                            {{--                            </div>--}}
 
 
                             <div class="position-relative banner-img" style="position: relative;">
@@ -758,7 +759,7 @@
                                     <p id="subscription_html1">
 
                                     </p>
-                                    <button class="btn" onclick="subscribeNow()"  style="
+                                    <button class="btn" onclick="subscribeNow()" style="
         width: 80%;
         border-radius: 8px;
         padding: 10px 20px;
@@ -800,7 +801,9 @@
             }
                                         @endphp
 
-                                        <div class="plan {{$key == 0 ? 'selected' : ''}}"  onclick="selectPlan('{{ $plan->id }}','{{ $plan->duration }}','{!! $plan->terms  !!}')"   id="plan{{ $plan->duration }}"
+                                        <div class="plan {{$key == 0 ? 'selected' : ''}}"
+                                             onclick="selectPlan('{{ $plan->id }}','{{ $plan->duration }}','{!! $plan->terms  !!}')"
+                                             id="plan{{ $plan->duration }}"
                                              data-duration="{{ $plan->duration }}"
                                              data-id="{{ $plan->id }}"
                                              data-terms="{{ htmlentities($plan->terms) }}"
@@ -821,9 +824,7 @@
                                 </div>
 
 
-
                             </div>
-
 
 
                         </div>
@@ -833,16 +834,17 @@
                         <div class="h-100">
                             <div class="position-relative banner-img mt-3 mt-md-0"
                                  style="min-height: 350px; ">
-                                <img src="{{ $instant_expert->banner_img??url('public/assets/images/consultation.png') }}"
-                                     class="img-fluid w-100 h-100"
-                                     style="object-fit: fill;" alt="Consultation Banner"/>
+                                <img
+                                    src="{{ $instant_expert->banner_img??url('public/assets/images/consultation.png') }}"
+                                    class="img-fluid w-100 h-100"
+                                    style="object-fit: fill;" alt="Consultation Banner"/>
                                 <div class="position-absolute top-50 translate-middle text-center p-3"
                                      style="border-radius: 10px; left:50%; width:100%;  display:flex; justify-content: space-between; flex-direction: column;">
                                     <div class="padding_set">
-{{--                                        <h5 class="text-white fw-bold">Instant Expert Guidance</h5>--}}
-{{--                                        <p class="text-white mb-3">--}}
-{{--                                            Get immediate access to expert advice and insights tailored just for you!--}}
-{{--                                        </p>--}}
+                                        {{--                                        <h5 class="text-white fw-bold">Instant Expert Guidance</h5>--}}
+                                        {{--                                        <p class="text-white mb-3">--}}
+                                        {{--                                            Get immediate access to expert advice and insights tailored just for you!--}}
+                                        {{--                                        </p>--}}
                                     </div>
                                     <div style="padding-bottom: 20px">
                                         <a class='btn btn-primary' href='{{url('nc_consult')}}'>Connect now</a>
@@ -858,17 +860,17 @@
             </div>
         </section>
 
-{{--        <section class="banners mb-25">--}}
-{{--            <div class="container">--}}
-{{--                <div class="row">--}}
-{{--                    <div class="col-lg-12">--}}
-{{--                        <div class="banner-img wow animate__animated animate__fadeInUp" data-wow-delay="0">--}}
-{{--                            <img src="{{ $fixed_banner_2->banner_img ?? '' }}" alt="" style="width: 100%"/>--}}
-{{--                        </div>--}}
-{{--                    </div>--}}
-{{--                </div>--}}
-{{--            </div>--}}
-{{--        </section>--}}
+        {{--        <section class="banners mb-25">--}}
+        {{--            <div class="container">--}}
+        {{--                <div class="row">--}}
+        {{--                    <div class="col-lg-12">--}}
+        {{--                        <div class="banner-img wow animate__animated animate__fadeInUp" data-wow-delay="0">--}}
+        {{--                            <img src="{{ $fixed_banner_2->banner_img ?? '' }}" alt="" style="width: 100%"/>--}}
+        {{--                        </div>--}}
+        {{--                    </div>--}}
+        {{--                </div>--}}
+        {{--            </div>--}}
+        {{--        </section>--}}
 
         <section class="banners mb-25">
             <div class="container">
@@ -1289,6 +1291,34 @@
                 </div>
             </div>
         </section>
+
+
+        <section class="featured section-padding">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="accordion" id="supplementsFaq">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingOne">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                        More Details about Health, Nutrition & Body Building Supplements
+                                    </button>
+                                </h2>
+                                <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#supplementsFaq">
+                                    <div class="accordion-body">
+                                        Health supplements are products intended to supplement your diet and provide nutrients such as vitamins, minerals, amino acids, and more.
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div> <!-- /.col-12 -->
+                </div> <!-- /.row -->
+            </div> <!-- /.container -->
+        </section>
+
+
     </main>
 
     <script>

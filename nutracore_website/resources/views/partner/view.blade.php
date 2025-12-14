@@ -8,10 +8,59 @@
     $initials = collect(explode(' ', $name))
         ->map(fn($w) => strtoupper(substr($w, 0, 1)))
         ->join('');
-
+    $imageList = [
+        url('public/assets/giftcard/BhaiDooj.png'),
+        url('public/assets/giftcard/HappyAnniversary.png'),
+        url('public/assets/giftcard/HappyBirthday.png'),
+        url('public/assets/giftcard/HappyDiwali.png'),
+        url('public/assets/giftcard/MerryChristmas.png'),
+        url('public/assets/giftcard/RakshaBandhan.png'),
+        url('public/assets/giftcard/ThankYou.png'),
+    ];
+    $typeList = [
+        "BhaiDooj",
+        "HappyAnniversary",
+        "HappyBirthday",
+        "HappyDiwali",
+        "MerryChristmas",
+        "RakshaBandhan",
+        "ThankYou",
+    ];
     ?>
 
     <style>
+        .giftcard-slider {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            padding: 10px 0;
+            scroll-behavior: smooth;
+        }
+
+        .slide-card {
+            flex: 0 0 auto; /* Prevent shrinking */
+            width: 140px;   /* Small card width */
+            height: 100px;   /* Small card height */
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .slide-card img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+
+        .slide-card.selected {
+            border-color: #28a745;
+            transform: scale(1.1);
+        }
+
         .status-card {
             background: #fff;
             padding: 20px;
@@ -241,7 +290,23 @@
         </div>
         <div class="page-content">
             <div class="container">
-                @if($partner_data->status == 'Pending Review')
+
+                @if(session('error'))
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {{ session('error') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
+
+                @if(session('success'))
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
+
+
+            @if($partner_data->status == 'Pending Review')
                     <div class="status-card">
                         <div class="title">Pending Review</div>
                         <div class="badge pending">Pending</div>
@@ -278,11 +343,13 @@
                                 <p>Current Earnings: ₹ {{ number_format($totalEarnings, 2) }}</p>
 
                                 @if($currentTier)
-                                    <p>Current Tier: <strong>{{ $currentTier->title }}</strong> (Cashback: {{ $currentTier->cashback }}%)</p>
+                                    <p>Current Tier: <strong>{{ $currentTier->title }}</strong>
+                                        (Cashback: {{ $currentTier->cashback }}%)</p>
                                 @endif
 
                                 @if($nextTier)
-                                    <p>Remaining to reach <strong>{{ $nextTier->title }}</strong>: ₹ {{ number_format($remaining, 2) }}</p>
+                                    <p>Remaining to reach <strong>{{ $nextTier->title }}</strong>:
+                                        ₹ {{ number_format($remaining, 2) }}</p>
                                 @else
                                     <p>You are at the highest tier! 🎉</p>
                                 @endif
@@ -310,9 +377,12 @@
                                                 }
                                             }
                                         @endphp
-                                        <div style="flex:1; background:#eee; border-radius:6px; overflow:hidden; position:relative; height:24px;">
-                                            <div style="width: {{ $width }}%; background: linear-gradient(90deg, #00a8a8, #f4ae53); height:100%;"></div>
-                                            <span style="position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); font-size:12px; font-weight:600; color:#111;">
+                                        <div
+                                            style="flex:1; background:#eee; border-radius:6px; overflow:hidden; position:relative; height:24px;">
+                                            <div
+                                                style="width: {{ $width }}%; background: linear-gradient(90deg, #00a8a8, #f4ae53); height:100%;"></div>
+                                            <span
+                                                style="position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); font-size:12px; font-weight:600; color:#111;">
                     {{ $tier->title }}
                 </span>
                                         </div>
@@ -336,7 +406,8 @@
                                 </div>
 
                                 <div class="field coupon mt-2" title="Coupon code">
-                                    <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+                                    <div
+                                        style="display:flex;align-items:center;justify-content:space-between;width:100%;">
                                         <div>
                                             <small style="display:block;line-height:1;">Coupon Code</small>
                                             <span id="couponCode">{{$partner_data->coupon_code ?? ''}}</span>
@@ -346,13 +417,14 @@
                                     </div>
                                 </div>
                                 <div class="field coupon mt-2" title="Coupon code">
-                                    <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+                                    <div
+                                        style="display:flex;align-items:center;justify-content:space-between;width:100%;">
                                         <div>
                                             <small style="display:block;line-height:1;">Wallet</small>
-                                            <span id="couponCode">₹ {{$partner_data->wallet ?? ''}}</span>
+                                            <span id="couponCode">₹ {{$partner_data->wallet ?? 0}}</span>
                                         </div>
 
-                                        <button class="copy-btn" >Withdraw</button>
+                                        <button class="copy-btn" onclick="openWithDrawModal()">Withdraw</button>
                                     </div>
                                 </div>
                                 <div class="field mt-2" title="Phone">
@@ -381,7 +453,7 @@
                                     <div class="small-muted">Snapshot of latest activity</div>
                                 </div>
                                 <div class="dashboard-cta">
-                                    <button class="btn-ghost" id="viewDashboard">View Withdrawal Status</button>
+                                    <button class="btn-ghost" onclick="openWithDrawStatusModal()">View Withdrawal Status</button>
                                 </div>
                             </div>
 
@@ -407,7 +479,7 @@
                             <div class="mt-3">
                                 <h5>Orders</h5>
                                 <div class="table-responsive">
-                                    <table class="table table-bordered table-hover table-striped mb-0" >
+                                    <table class="table table-bordered table-hover table-striped mb-0">
                                         <thead>
                                         <tr>
                                             <th>ID</th>
@@ -430,15 +502,18 @@
                                                 <td># {{ $order->unique_id ?? '' }}</td>
                                                 <td>
                                                     @if(!empty($order->customer_name))
-                                                        <strong>{{ $order->customer_name }}</strong><br>{{ $order->contact_no ?? '' }}
+                                                        <strong>{{ $order->customer_name }}</strong>
+                                                        <br>{{ $order->contact_no ?? '' }}
                                                     @else
-                                                        <strong>{{ $user->name ?? '' }}</strong><br>{{ $user->phone ?? '' }}
+                                                        <strong>{{ $user->name ?? '' }}</strong>
+                                                        <br>{{ $user->phone ?? '' }}
                                                     @endif
                                                 </td>
                                                 <td>₹ {{ $final_total }}</td>
                                                 <td>{!! \App\Helpers\CustomHelper::getOrderStatus($order->id) !!}</td>
                                                 <td>{{ date('d M Y', strtotime($order->created_at)) }}</td>
-                                                <td>({{ $partner_commissions->commission_percent ?? 0 }}%) - ₹{{ $partner_commissions->commission ?? 0 }}</td>
+                                                <td>({{ $partner_commissions->commission_percent ?? 0 }}%) -
+                                                    ₹{{ $partner_commissions->commission ?? 0 }}</td>
                                                 <td>{{ $partner_commissions->is_setteled == 1 ? 'Settled' : 'Not Settled' }}</td>
                                             </tr>
                                         @endforeach
@@ -459,6 +534,137 @@
             </div>
         </div>
     </main>
+
+
+    <div class="modal fade" id="WithdrawModal" tabindex="-1" aria-labelledby="WithdrawModalLabel" aria-hidden="true">
+        <div class="modal-dialog  modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Withdraw</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <form method="post" action="{{route('partner_withdraw')}}">
+                        @csrf
+                        <input type="hidden" name="partner_id" value="{{$partner_data->id}}">
+                        <div class="mb-3">
+                            <label for="amount" class="form-label">Withdrawal Amount</label>
+                            <input type="number" name="amount" id="amount" max="{{$partner_data->wallet ?? ''}}" class="form-control"
+                                   placeholder="Enter amount" required>
+                        </div>
+                        <!-- Withdrawal Type -->
+                        <div class="mb-3">
+                            <label class="form-label">Withdrawal Type</label>
+                            <select name="withdrawal_type" id="withdrawal_type" class="form-select" required>
+                                <option value="" selected disabled>Select option</option>
+                                <option value="giftcard">Gift Card (Instant Redeem)</option>
+                                <option value="bank">Bank Account (7 working days)</option>
+                            </select>
+                        </div>
+                        <div id="giftcard_section" style="display: none;">
+                            <label class="form-label">Select Gift Card</label>
+                            <div class="giftcard-slider">
+                                @foreach($imageList as $index => $image)
+                                    <div class="slide-card" data-index="{{ $index }}" data-type="{{$typeList[$index]}}">
+                                        <img src="{{ $image }}" alt="Gift Card">
+                                    </div>
+                                @endforeach
+                            </div>
+                            <input type="hidden" name="selected_giftcard" id="selected_giftcard">
+                            <input type="hidden" name="selected_type" id="selected_type">
+                        </div>
+                        <!-- Bank Details -->
+                        <div id="bank_section" style="display: none;">
+                            <div class="mb-3">
+                                <label for="bank_name" class="form-label">Bank Name</label>
+                                <input type="text" name="bank_name" id="bank_name" class="form-control" value="{{$partner_data->bank_name??''}}" placeholder="Enter bank name">
+                            </div>
+                            <div class="mb-3">
+                                <label for="account_number" class="form-label">Account Number</label>
+                                <input type="text" name="account_number" id="account_number" class="form-control" value="{{$partner_data->account_number??''}}" placeholder="Enter account number">
+                            </div>
+                            <div class="mb-3">
+                                <label for="ifsc_code" class="form-label">IFSC Code</label>
+                                <input type="text" name="ifsc_code" id="ifsc_code" class="form-control" value="{{$partner_data->ifsc_code??''}}" placeholder="Enter IFSC code">
+                            </div>
+                        </div>
+
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success">Withdraw</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="WithDrawStatusModal" tabindex="-1" aria-labelledby="WithDrawStatusModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Withdrawal Status</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped align-middle">
+                            <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Amount</th>
+                                <th>Type</th>
+                                <th>Gift Card / Bank</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Remarks</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @forelse($withdrawals as $withdrawal)
+                                <tr>
+                                    <td>{{ $withdrawal->id }}</td>
+                                    <td>₹{{ number_format($withdrawal->amount, 2) }}</td>
+                                    <td>{{ ucfirst($withdrawal->withdrawal_type) }}</td>
+                                    <td>
+                                        @if($withdrawal->withdrawal_type == 'giftcard')
+                                            {{ $withdrawal->selected_type ?? '-' }}
+                                        @else
+                                            {{ $withdrawal->bank_name ?? '-' }}
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($withdrawal->status == 'pending')
+                                            <span class="badge bg-warning text-dark">Pending</span>
+                                        @elseif($withdrawal->status == 'completed')
+                                            <span class="badge bg-success">Completed</span>
+                                        @else
+                                            <span class="badge bg-danger">Rejected</span>
+                                        @endif
+                                    </td>
+                                    <td>{{ \Carbon\Carbon::parse($withdrawal->created_at)->format('d M, Y H:i') }}</td>
+                                    <td>{{$withdrawal->remarks??''}}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="text-center">No withdrawal records found.</td>
+                                </tr>
+                            @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+
+
+
     <script>
         // Simple interactivity: copy coupon, regenerate, dashboard click
         const couponEl = document.getElementById('couponCode');
@@ -496,7 +702,6 @@
 
 
         viewDashboard.addEventListener('click', () => {
-// In real app this would route to dashboard
             alert('Opening dashboard... (implement navigation)');
         });
 
@@ -540,6 +745,61 @@
             document.getElementById('totalPayouts').textContent = '₹ ' + (172000).toLocaleString();
         }, 300);
 
+        function openWithDrawModal() {
+            $('#WithdrawModal').modal('show');
+        }
 
+        function openWithDrawStatusModal() {
+            $('#WithDrawStatusModal').modal('show');
+        }
     </script>
+
+    <script>
+        const typeSelect = document.getElementById('withdrawal_type');
+        const giftcardSection = document.getElementById('giftcard_section');
+        const bankSection = document.getElementById('bank_section');
+        const selectedGiftcardInput = document.getElementById('selected_giftcard');
+        const selected_typeInput = document.getElementById('selected_type');
+
+        typeSelect.addEventListener('change', function() {
+            if(this.value === 'giftcard') {
+                giftcardSection.style.display = 'block';
+                bankSection.style.display = 'none';
+            } else if(this.value === 'bank') {
+                giftcardSection.style.display = 'none';
+                bankSection.style.display = 'block';
+            } else {
+                giftcardSection.style.display = 'none';
+                bankSection.style.display = 'none';
+            }
+        });
+
+        // Gift Card selection
+        document.querySelectorAll('.slide-card').forEach(card => {
+            card.addEventListener('click', function() {
+                // Remove selection from others
+                document.querySelectorAll('.slide-card').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedGiftcardInput.value = this.dataset.index;
+                selected_typeInput.value = this.dataset.type;
+            });
+        });
+    </script>
+
+    <script>
+        const selectedGiftcardInput = document.getElementById('selected_giftcard');
+        const selected_typeInput = document.getElementById('selected_type');
+
+        document.querySelectorAll('.slide-card').forEach(card => {
+            card.addEventListener('click', function() {
+                // Remove selection from others
+                document.querySelectorAll('.slide-card').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedGiftcardInput.value = this.dataset.index;
+                selected_typeInput.value = this.dataset.type;
+            });
+        });
+    </script>
+
+
 @endsection

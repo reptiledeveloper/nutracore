@@ -94,6 +94,31 @@ class CustomHelper
         return $ADMIN_ROUTE_NAME;
     }
 
+    public static function sendGiftCardMessage($mobile, $code)
+    {
+        $user_name = "User";
+        $curl = curl_init();
+        curl_setopt_array($curl, [
+            CURLOPT_URL => "https://api.msg91.com/api/v5/flow/",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => "{\n  \"flow_id\": \"68ce502b77297a288a0370f4\",\n  \"sender\": \"NUTRCR\",\n  \"mobiles\": \"91$mobile\",\n  \"var1\": \"$code\"}",
+            CURLOPT_HTTPHEADER => [
+                "authkey: 431621ABncLfiKpzo6875ff9bP1",
+                "content-type: application/JSON"
+            ],
+        ]);
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        curl_close($curl);
+        return $response;
+
+    }
+
 
     public static function getNoOfStock($product_id, $varient_id, $vendor_id)
     {
@@ -101,6 +126,41 @@ class CustomHelper
         return $stock_data->no_of_stock ?? 0;
     }
 
+    public static function generateGiftCardCode(
+        int     $length = 12,
+        string  $prefix = 'NC-',
+        ?string $table = 'gift_card',
+        string  $column = 'code'
+    ): string
+    {
+        $alphabet = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
+        $maxAttempts = 5;
+
+        for ($attempt = 0; $attempt < $maxAttempts; $attempt++) {
+            // Build code
+            $code = '';
+            for ($i = 0; $i < $length; $i++) {
+                $code .= $alphabet[random_int(0, strlen($alphabet) - 1)];
+            }
+            $finalCode = $prefix . trim(chunk_split($code, 4, '-'), '-');
+
+            // If no DB table check required, return immediately
+            if (empty($table)) {
+                return $finalCode;
+            }
+
+            // Check if already exists in DB
+            $exists = DB::table($table)
+                ->where($column, $finalCode)
+                ->exists();
+
+            if (!$exists) {
+                return $finalCode;
+            }
+        }
+
+        throw new \RuntimeException('Unable to generate a unique gift card code after multiple attempts.');
+    }
 
     public static function checkWishlist($user_id, $productID, $varientID)
     {
@@ -4482,7 +4542,7 @@ class CustomHelper
             CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_POSTFIELDS => json_encode($data),
             CURLOPT_HTTPHEADER => array(
-                'api-key: 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',
+                'api-key: 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',
                 'Content-Type: application/json'
             ),
         ));

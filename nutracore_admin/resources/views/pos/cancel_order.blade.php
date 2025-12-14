@@ -99,7 +99,8 @@ $image = \App\Helpers\CustomHelper::getImageUrl('users', $user->image ?? '');
                             </div>
                         </div>
                     </div>
-
+                    <form action="{{route('pos.cancel_order_save')}}" method="post">
+                        @csrf
                     <div class="row mt-3">
                         <div class="card widget">
                             <div class="card-body">
@@ -141,8 +142,9 @@ $image = \App\Helpers\CustomHelper::getImageUrl('users', $user->image ?? '');
                                                 <td>{{ $value->qty ??'' }}</td>
                                                 <td class="text-right">₹ {{ $value->net_price ??'' }}</td>
                                                 <td>
+                                                    <input type="hidden" name="order_item_id[]" value="{{$value->id}}">
                                                     <select class="form-control"
-                                                            onchange="update_order_status('{{ $value->order_items_id }}', this.value, '')">
+                                                            onchange="update_order_status('{{ $value->order_items_id }}', this.value, '')" name="order_item_status[]">
                                                         <option value="">Select Status</option>
                                                         @foreach($order_status_arr as $stat => $val)
                                                             <option
@@ -195,27 +197,12 @@ $image = \App\Helpers\CustomHelper::getImageUrl('users', $user->image ?? '');
                            <div class="card mb-4">
                                <div class="card-body">
                                    <h6 class="card-title mb-4">Exchange/Return </h6>
-                                  <form action="{{route('pos.cancel_order_save')}}" method="post">
-                                      @csrf
                                       <input type="hidden" name="order_id" value="{{$orders->id}}">
-                                      <div class="form-group mt-3">
-                                          <label>Order Type:</label><br>
-                                          <div class="form-check form-check-inline">
-                                              <input class="form-check-input" type="radio" name="pos_cancel_type" id="exchange"
-                                                     value="exchange" {{$orders->pos_cancel_type == 'exchange'?"checked":""}}>
-                                              <label class="form-check-label" for="exchange">Exchange</label>
-                                          </div>
-                                          <div class="form-check form-check-inline">
-                                              <input class="form-check-input" type="radio" name="pos_cancel_type" id="return"
-                                                     value="return" {{$orders->pos_cancel_type == 'return'?"checked":""}}>
-                                              <label class="form-check-label" for="return">Return</label>
-                                          </div>
-                                      </div>
                                       <input type="text" class="form-control mt-3" name="pos_cancel_remarks" value="{{$orders->pos_cancel_remarks??''}}" placeholder="Enter Remarks">
                                       @if(empty($orders->pos_cancel_type))
                                           <button class="btn btn-primary mt-3">Save</button>
                                       @endif
-                                  </form>
+
 
                                </div>
                            </div>
@@ -261,6 +248,7 @@ $image = \App\Helpers\CustomHelper::getImageUrl('users', $user->image ?? '');
                        </div>
 
                    </div>
+                    </form>
                @endif
 
 

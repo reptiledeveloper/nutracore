@@ -47,7 +47,8 @@ $image = \App\Helpers\CustomHelper::getImageUrl('nc_partners', $nc_partners->ima
                        href="{{route('nc_partners.commission',$nc_partners->id.'?back_url='.$BackUrl)}}">Commissions</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link " href="">Withdraw</a>
+                    <a class="nav-link {{$current_route == 'nc_partners.partner_withdrawal' ? "active":""}}"
+                       href="{{route('nc_partners.partner_withdrawal',$nc_partners->id.'?back_url='.$BackUrl)}}">Withdrawal</a>
                 </li>
             </ul>
         </div>

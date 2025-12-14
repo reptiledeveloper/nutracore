@@ -22,14 +22,18 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
     Route::match(['get', 'post'], '/partner', 'HomeController@partner')->name('partner');
     Route::match(['get', 'post'], '/brands', 'HomeController@brands');
     Route::match(['get', 'post'], '/store_location', 'HomeController@store_location');
+    Route::match(['get', 'post'], '/partner_sign_agreement', 'HomeController@partner_sign_agreement')->name('partner_sign_agreement');
     Route::match(['get', 'post'], '/explore', 'HomeController@explore');
     Route::match(['get', 'post'], '/stores', 'HomeController@stores');
     Route::match(['get', 'post'], '/nutrapass', 'HomeController@nutrapass')->name('nutrapass');
+    Route::match(['get', 'post'], '/partner_withdraw', 'HomeController@partner_withdraw')->name('partner_withdraw');
     Route::match(['get', 'post'], '/profile', 'HomeController@profile')->name('profile');
     Route::match(['get', 'post'], '/my_orders', 'HomeController@my_orders')->name('my_orders');
+    Route::match(['get', 'post'], '/order-placed/{id}', 'HomeController@order_placed')->name('order_placed');
     Route::match(['get', 'post'], '/suppliment_recommendation', 'HomeController@suppliment_recommendation')->name('suppliment_recommendation');
     Route::match(['get', 'post'], '/suppliment_recommendation_list', 'HomeController@suppliment_recommendation_list')->name('suppliment_recommendation_list');
     Route::match(['get', 'post'], '/privacy_policy', 'HomeController@privacy_policy')->name('privacy_policy');
+    Route::match(['get', 'post'], '/policies/privacy-policy', 'HomeController@privacy_policy')->name('privacy_policy');
     Route::match(['get', 'post'], '/return_policy', 'HomeController@return_policy')->name('return_policy');
     Route::match(['get', 'post'], '/shipping_policy', 'HomeController@shipping_policy')->name('shipping_policy');
     Route::match(['get', 'post'], '/best_sellers', 'HomeController@best_sellers')->name('best_sellers');

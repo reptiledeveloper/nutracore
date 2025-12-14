@@ -790,6 +790,11 @@ $current_route = Route::currentRouteName();
                             <a class="{{$current_route == 'nc_partners.index' ? "active":""}}"
                                href="{{route('nc_partners.index')}}">NC Partner</a>
                         </li>
+                        <li>
+                            <a class="{{$current_route == 'nc_partners.withdrawal' ? "active":""}}"
+                               href="{{route('nc_partners.withdrawal')}}">WithDraw</a>
+                        </li>
+
 
                     </ul>
                 </li>

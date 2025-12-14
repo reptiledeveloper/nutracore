@@ -1508,13 +1508,13 @@ if(!empty($user)){
                             <li><a href="{{url('terms')}}">Terms &amp; Conditions</a></li>
                             <li><a href="{{url('contact')}}">Contact Us</a></li>
                             <li><a href="{{url('return_policy')}}"> Refund & Cancellation policy</a></li>
-                            <li><a href="{{route('nc_partner')}}">Become a NC Partner </a></li>
+                            <li><a href="{{route('nc_partner')}}">Become an NC Partner </a></li>
                         </ul>
                     </div>
                     <div class="footer-link-widget col wow animate__animated animate__fadeInUp" data-wow-delay=".4s">
                         <h4 class="widget-title">Popular</h4>
                         <ul class="footer-list mb-sm-5 mb-md-0">
-                            @foreach ($allcategories->where('is_popular',1)->take(5) as $category)
+                            @foreach ($allcategories->where('is_popular',1)->take(6) as $category)
                                 <li><a href="{{ url('collections/' . $category->slug) }}">{{$category->name??''}}</a>
                                 </li>
                             @endforeach
@@ -1525,7 +1525,7 @@ if(!empty($user)){
                     <div class="footer-link-widget col wow animate__animated animate__fadeInUp" data-wow-delay=".4s">
                         <h4 class="widget-title">Brands</h4>
                         <ul class="footer-list mb-sm-5 mb-md-0">
-                            @foreach ($brands->where('is_popular',1)->take(5) as $brand)
+                            @foreach ($brands->where('is_popular',1)->take(6) as $brand)
                                 <li><a href="{{ url('collections/' . $brand->slug) }}">{{$brand->brand_name??''}}</a>
                                 </li>
                             @endforeach

@@ -181,9 +181,84 @@ class ApiController extends Controller
 
     }
 
+    public function updateSubscription($order, $user)
+    {
+        if (!empty($user)) {
+            $subscription_start = $user->subscription_start ?? '';
+            $subscription_end = $user->subscription_end ?? '';
+            $subscription_plans = SubscriptionPlans::where('id', $order->subscription_id)->first();
+            if (!empty($subscription_plans)) {
+                $duration = (int)$subscription_plans->duration ?? 0;
+                if (empty($subscription_start)) {
+                    $subscription_start = date('Y-m-d');
+                    $subscription_end = date('Y-m-d', strtotime("+" . $duration . " months", strtotime(date('Y-m-d'))));
+                } else {
+                    $subscription_end = date('Y-m-d', strtotime("+" . $duration . " months", strtotime($subscription_end)));
+                }
+                $discount = $subscription_plans->max_discount ?? 0;
+                $total_discount = $user->total_discount + $discount;
+                User::where('id', $user->id)->update(['subscription_start' => $subscription_start, 'subscription_end' => $subscription_end, 'subscription_id' => $order->subscription_id, 'total_discount' => $total_discount]);
+                $txn_id = "NC" . rand(111111, 9999999);
+                $subsc = new Subscriptions();
+                $subsc->user_id = $user->id ?? '';
+                $subsc->subscription_id = $subscription_plans->subscription_id ?? '';
+                $subsc->txn_id = $txn_id ?? '';
+                $subsc->paid_status = 1;
+                $subsc->taken_by = "Self";
+                if (empty($subscription_start)) {
+                    $start_date = date('Y-m-d');
+                } else {
+                    $start_date = $subscription_end;
+                }
+                $subsc->start_date = $start_date;
+                $subsc->end_date = date('Y-m-d', strtotime("+" . $duration . " months", strtotime($start_date)));
+                $subsc->save();
+
+                $data = [];
+                $data['userID'] = $user->id ?? '';
+                $data['txn_no'] = $txn_id;
+                $data['amount'] = $subscription_plans->amount ?? 0;
+                $data['type'] = 'DEBIT';
+                $data['note'] = 'Take Subscription';
+                $data['against_for'] = 'subscription';
+                $data['paid_by'] = 'user';
+                $data['orderID'] = 0;
+                CustomHelper::saveTransaction($data);
+            }
+        }
+
+    }
+    public function creditNcCash($order)
+    {
+        $user = User::find($order->userID);
+        $amount = self::getNcCashPercent($user, $order->order_amount ?? '');
+        $cashback_wallet = $user->cashback_wallet ?? 0;
+        $new_wallet = (int)$cashback_wallet + (int)$amount;
+        $user->cashback_wallet = $new_wallet;
+        $user->save();
+        $order->nc_cash_earned = $amount;
+        $order->save();
+        $dbArray1 = [];
+        $dbArray1['userID'] = $user->id;
+        $dbArray1['txn_no'] = "NC" . rand(1111, 9999999);
+        $dbArray1['amount'] = $amount;
+        $dbArray1['wallet_type'] = "cashback_wallet";
+        $dbArray1['type'] = "CREDIT";
+        $dbArray1['note'] = "Earn NC Cash From Order " . $order->id ?? '';
+        $dbArray1['against_for'] = 'cashback_wallet';
+        $dbArray1['paid_by'] = 'order';
+        $dbArray1['orderID'] = 0;
+        CustomHelper::SaveTransaction($dbArray1);
+        $event = 'NC Cash Earned';
+        $traits = [
+            "nc_cash_earned" => $amount
+        ];
+        CustomHelper::trackEvent($user->id, $event, $traits);
+    }
+
     public function envia_webhook(Request $request)
     {
-        DB::table('new')->insert(['data' => json_encode($request->toArray())]);
+//        DB::table('new')->insert(['data' => json_encode($request->toArray())]);
         $response = $request->toArray();
         if (!empty($response)) {
             $trackingNumber = $response['trackingNumber'] ?? '';
@@ -195,6 +270,7 @@ class ApiController extends Controller
                 $order = Order::find($order_id);
                 $orderstatus = '';
                 if (!empty($order)) {
+                    $user = User::find($order->userID);
                     if ($status == 'Picked Up') {
                         $orderstatus = 'CONFIRM';
                     }
@@ -208,6 +284,13 @@ class ApiController extends Controller
 
                         ];
                         CustomHelper::trackEvent($order->userID, $event, $traits);
+                        if (!empty($order->subscription_id) && $order->subscription_id != "null") {
+                            $this->updateSubscription($order, $user);
+                        }
+                        $this->creditNcCash($order);
+
+                        CustomHelper::orderDelivered($user->phone ?? '', $order_id);
+                        CustomHelper::sendInvoiceWP($user, $order);
                     }
                     if ($status == 'Canceled') {
                         $orderstatus = 'CANCEL';

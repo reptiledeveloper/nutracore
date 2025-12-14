@@ -156,7 +156,8 @@ class POSController extends Controller
         }
         if (!empty($pos_cancel_type)) {
             $orders->where('pos_cancel_type', $pos_cancel_type);
-        } if (!empty($payment_method)) {
+        }
+        if (!empty($payment_method)) {
             $orders->where('payment_method', $payment_method);
         }
         if (!empty($date)) {
@@ -238,7 +239,7 @@ class POSController extends Controller
         $orderID = $request->orderID ?? '';
         $date = $request->date ?? '';
         $agent_id = $request->agent_id ?? '';
-        $orders = Order::where('is_delete', 0)->where('order_from', 'POS')->where('status', 'CANCEL')->orderBy('id', 'desc');
+        $orders = Order::where('is_delete', 0)->where('order_from', 'POS')->where('is_credit', '1')->orderBy('id', 'desc');
         if (!empty($order_status)) {
             $orders->where('status', $order_status);
         }
@@ -728,7 +729,8 @@ class POSController extends Controller
                 'user_id' => 'required|integer',
                 'order_type' => 'required',
                 'subtotal' => 'required|numeric',
-                'payment_method' => 'required',
+                'is_applied_credit_balance' => 'required|in:0,1',
+                'payment_method' => 'required_if:is_applied_credit_balance,0',
                 'items' => 'required|array|min:1',
                 'items.*.product_id' => 'required|integer',
                 'items.*.qty' => 'required|numeric|min:1',
@@ -863,6 +865,38 @@ class POSController extends Controller
             $this->creditNcCash($order_data);
             CustomHelper::sendInvoiceWP($user, $order_data);
 
+            if ($request->is_applied_credit_balance == 1) {
+                $user = User::where('id', $request->user_id)->first();
+                if (!empty($user)) {
+                    $subtotal = $request->subtotal - ($request->coupon_discount ?? 0) + ($request->delivery_charges ?? 0);
+                    $deduct_amount = $subtotal;
+                    $new_credit_balance = $user->credit_balance ?? 0;
+                    if ((int)$user->credit_balance < (int)$subtotal) {
+                        $new_credit_balance = 0;
+                        $deduct_amount = $user->credit_balance;
+                    } else {
+                        $new_credit_balance = (int)$user->credit_balance - (int)$subtotal;
+
+                        $deduct_amount = $subtotal;
+                    }
+                    $user->credit_balance = $new_credit_balance;
+                    $user->save();
+
+                    $dbArray = [];
+                    $dbArray['userID'] = $order->userID ?? '';
+                    $dbArray['type'] = 'DEBIT';
+                    $dbArray['amount'] = (int)$deduct_amount ?? 0;
+                    $dbArray['against_for'] = 'credit_balance';
+                    $dbArray['wallet_type'] = 'credit_balance';
+                    $dbArray['remarks'] = "Amount DEBITED From POS Order";
+                    $dbArray['note'] = "Amount DEBITED From POS Order";
+                    $dbArray['orderID'] = $order->id;
+                    $transaction_id = Transaction::insertGetId($dbArray);
+                    Transaction::where('id', $transaction_id)->update(['txn_no' => "NCCREDIT" . rand(111111, 9999999999)]);
+                }
+            }
+
+
             self::update_pos_daily_cash_transaction($order);
 
 
@@ -888,7 +922,7 @@ class POSController extends Controller
         $vendorId = $order->vendor_id;
         $paymentMethod = strtolower($order->payment_method);
         $is_delete = $order->is_delete ?? 0;
-        if ($paymentMethod === 'cod' || $paymentMethod === 'Cash' ||  $paymentMethod === 'cash' ||  $paymentMethod === 'COD') {
+        if ($paymentMethod === 'cod' || $paymentMethod === 'Cash' || $paymentMethod === 'cash' || $paymentMethod === 'COD') {
             $final_total = (int)$order->total_amount + (int)$order->delivery_charges - (int)$order->applied_cashback - (int)$order->flatDiscountValue;
             DB::table('pos_daily_cash_transaction')->updateOrInsert(
                 ['order_id' => $order->id], // condition (unique by order_id)
@@ -922,9 +956,52 @@ class POSController extends Controller
         }
     }
 
+    public function updateStock($order_id)
+    {
+        $order = Order::find($order_id);
+        if (!empty($order)) {
+            $order_items = OrderItems::where('order_id', $order_id)->get();
+            if (!empty($order_items)) {
+                foreach ($order_items as $order_item) {
+                    $product_id = $order_item->product_id ?? '';
+                    $variant_id = $order_item->variant_id ?? '';
+                    $qty = $order_item->qty ?? '';
+                    $exist = DB::table('stock_batches')->where('product_id', $product_id)->where('store_id', $order->vendor_id);
+                    if (!empty($variant_id)) {
+                        $exist->where('variant_id', $variant_id);
+                    }
+                    $exist = $exist->where('quantity', '>', 0)->orderBy('mfg_date', 'ASC')->first();
+
+                    if (!empty($exist)) {
+                        if ((int)$exist->quantity >= (int)$qty) {
+                            $new_qty = (int)$exist->quantity - (int)$qty;
+                            DB::table('stock_batches')->where('id', $exist->id)->update(['quantity' => $new_qty]);
+                            StockLog::create([
+                                'product_id' => $product_id,
+                                'variant_id' => $variant_id,
+                                'store_id' => $exist->store_id ?? '',
+                                'action' => "sale",
+                                'quantity' => $qty,
+                                'closing_stock' => $new_qty,
+                                'related_id' => 0,
+                                'related_type' => "Sale",
+                                'created_by' => auth()->id(),
+                                'order_id' => $order_id,
+                            ]);
+                        } else {
+
+                        }
+                    }
+                }
+            }
+            $order->stock_update = 1;
+            $order->save();
+        }
+
+    }
 
     public
-    function updateStock($order_id)
+    function updateStockold($order_id)
     {
         $order = Order::find($order_id);
         if (!empty($order)) {
@@ -1060,57 +1137,55 @@ class POSController extends Controller
     {
         $request->validate([
             'order_id' => 'required|exists:orders,id',
-            'pos_cancel_type' => 'required|string',
             'pos_cancel_remarks' => 'required|string',
         ], [
             'order_id.required' => 'Order ID is required.',
             'order_id.exists' => 'Invalid Order ID.',
-            'pos_cancel_type.required' => 'Cancel type is required.',
             'pos_cancel_remarks.required' => 'Cancel remarks are required.',
         ]);
-
+//        print_r($request->toArray());
+//        die;
         // 2️⃣ Retrieve order
         $order = \App\Models\Order::find($request->order_id);
-
+        $order_item_id = $request->order_item_id ?? '';
+        $order_item_status = $request->order_item_status ?? '';
         if (empty($order->pos_cancel_type)) {
             $refund_amount = 0;
-            $order_items = OrderItems::where('order_id', $request->order_id)->where('status', '!=', 'CANCEL')->get();
-            if (!empty($order_items)) {
-                foreach ($order_items as $order_item) {
-                    $qty = $order_item->qty ?? 0;
-                    $price = $order_item->price ?? 0;
-                    $subscription_price = $order_item->subscription_price ?? 0;
-                    if ($order->is_subscribe == 1) {
-                        $subscription_price = $subscription_price - (int)$order_item->discount;
-                        $refund_amount += ($qty * $subscription_price);
-
-                    } else {
-                        $refund_amount += ($qty * $price);
+//            $order_items = OrderItems::where('order_id', $request->order_id)->where('status', '!=', 'CANCEL')->get();
+//            if (!empty($order_items)) {
+//                foreach ($order_items as $order_item) {
+//                    $qty = $order_item->qty ?? 0;
+//                    $price = $order_item->price ?? 0;
+//                    $subscription_price = $order_item->subscription_price ?? 0;
+//                    if ($order->is_subscribe == 1) {
+//                        $subscription_price = $subscription_price - (int)$order_item->discount;
+//                        $refund_amount += ($qty * $subscription_price);
+//
+//                    } else {
+//                        $refund_amount += ($qty * $price);
+//                    }
+//                }
+//                $refund_amount = (int)$order->total_amount;
+//            }
+            if (!empty($order_item_id)) {
+                foreach ($order_item_id as $key => $value) {
+                    $order_items = OrderItems::where('order_id', $request->order_id)->where('id', $value)->whereNotIn('status', ['RETURN', 'EXCHANGE'])->first();
+                    if (!empty($order_items)) {
+                        if ($order_item_status[$key] == 'RETURN' || $order_item_status[$key] == 'EXCHANGE') {
+                            $refund_amount += (int)$order_items->net_price;
+                            $order_items->status = $order_item_status[$key] ?? '';
+                            $order_items->save();
+                        }
                     }
                 }
-                $refund_amount = (int)$order->total_amount;
             }
 
-            // 3️⃣ Update order fields
-            $status = '';
-            if ($request->pos_cancel_type == 'return') {
-                $status = 'RETURN';
-            }
-            if ($request->pos_cancel_type == 'exchange') {
-                $status = 'EXCHANGE';
-            }
             $order->pos_cancel_type = $request->pos_cancel_type;
             $order->pos_cancel_remarks = $request->pos_cancel_remarks;
-            if (!empty($status)) {
-                $order->status = $status;
-                OrderItems::where('order_id', $request->order_id)->where('status', '!=', 'CANCEL')->update(['status' => $status]);
-            }
-
-
             $order->pos_cancelled_at = now();
-//            $order->status = 'CANCEL';
             $order->refund_amount = $refund_amount;
             $order->is_refund = 1;
+            $order->is_credit = 1;
             $order->save();
 
             $user = User::where('id', $order->userID)->first();
@@ -1128,14 +1203,6 @@ class POSController extends Controller
             $dbArray['orderID'] = $order->id;
             $transaction_id = Transaction::insertGetId($dbArray);
             Transaction::where('id', $transaction_id)->update(['txn_no' => "NC" . rand(111111, 9999999999)]);
-
-            OrderItems::where('order_id', $request->order_id)->update(['status' => 'CANCEL']);
-
-            $dbArray = [];
-            $dbArray['order_id'] = $request->order_id;
-            $dbArray['status'] = 'CANCEL';
-            $dbArray['updated_by'] = 'admin_' . Auth::guard('admin')->user()->id ?? '';
-            OrderStatus::where('order_id', $request->order_id)->insert($dbArray);
         }
 
 

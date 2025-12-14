@@ -839,7 +839,7 @@ $total_product_price = 0;
                                 description: "Order Payment",
                                 handler: function (response) {
                                     // ✅ Payment success callback - redirect
-                                    window.location.href = "{{ url('my_orders') }}";
+                                    window.location.href = "{{ url('') }}/order-placed/" + resp.unique_id;
                                 }
                             };
 
@@ -851,7 +851,7 @@ $total_product_price = 0;
 
                     } else {
                         // ✅ For COD or wallet payment
-                        window.location.href = "{{ url('my_orders') }}";
+                        window.location.href = "{{ url('') }}/order-placed/" + resp.unique_id;
                     }
                 } else {
                     alert(resp.message);

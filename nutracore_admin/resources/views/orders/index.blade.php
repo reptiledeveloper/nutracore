@@ -102,7 +102,7 @@
                             <td>{{$count_order_items??''}}</td>
 {{--                            <td>₹ {{$order->total_amount??''}}</td>--}}
                             <td>₹ {{$final_total??''}}</td>
-                            <td>{{$order->payment_method??''}}</td>
+                            <td>{{$order->is_applied_credit_balance == 1?"Credit,":""}} {{$order->payment_method??''}}</td>
                             <td>@if(!empty($order->pos_cancel_type)){{$order->pos_cancel_type??''}} / ₹{{$order->refund_amount??0}}@endif</td>
                             <td>{{$order->order_from??''}}</td>
                             <td>{!! \App\Helpers\CustomHelper::getOrderStatus($order->id) !!}</td>

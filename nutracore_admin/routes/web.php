@@ -59,6 +59,10 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'delete/{id}', 'NCPartnerController@delete')->name('.delete');
             Route::match(['get', 'post'], 'view/{id}', 'NCPartnerController@view')->name('.view');
             Route::match(['get', 'post'], 'commission/{id}', 'NCPartnerController@commission')->name('.commission');
+            Route::match(['get', 'post'], 'partner_withdrawal/{id}', 'NCPartnerController@partner_withdrawal')->name('.partner_withdrawal');
+            Route::match(['get', 'post'], 'withdrawal', 'NCPartnerController@withdrawal')->name('.withdrawal');
+            Route::match(['get', 'post'], 'with_draw_approve/{id}', 'NCPartnerController@with_draw_approve')->name('.with_draw_approve');
+            Route::match(['get', 'post'], 'with_draw_reject/{id}', 'NCPartnerController@with_draw_reject')->name('.with_draw_reject');
         });
         ////nc_partner_tire
         Route::group(['prefix' => 'nc_partner_tire', 'as' => 'nc_partner_tire', 'middleware' => ['allowedmodule:nc_partner_tire,list']], function () {
@@ -147,6 +151,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::get('/users', 'ExportController@users')->name('.users');
             Route::get('/consultation', 'ExportController@consultation')->name('.consultation');
             Route::get('/cash_management', 'ExportController@cash_management')->name('.cash_management');
+            Route::get('/nc_cash_report', 'ExportController@nc_cash_report')->name('.nc_cash_report');
 
 
         });

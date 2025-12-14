@@ -16,6 +16,21 @@
     ?>
 
     <style>
+        .zoom-container {
+            overflow: hidden;
+            position: relative;
+        }
+
+        .zoom-img {
+            width: 100%;
+            transition: transform 0.4s ease;
+            cursor: zoom-in;
+        }
+
+        .zoom-container:hover .zoom-img {
+            transform: scale(1.8);
+        }
+
         .quantity-wrapper {
             display: flex !important;
             height: 45px !important;
@@ -173,22 +188,26 @@
             font-weight: bold;
             cursor: pointer;
         }
+
         .product-image-slider img {
             width: 100%;
             height: 100%; /* or any fixed height */
             object-fit: contain; /* FULL image visible */
             background-color: #fff; /* avoid black/blank background */
         }
+
         .slider-nav-thumbnails img {
             height: 150px;
         }
+
         .zoomContainer,
         .zoomWindowContainer {
-            z-index: 1 !important;  /* keep zoom behind modal */
+            z-index: 1 !important; /* keep zoom behind modal */
         }
     </style>
 
-
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
 
     <main class="main">
         <div class="container mb-30">
@@ -198,21 +217,31 @@
                         <div class="row mb-50 mt-30">
                             <div class="col-md-6 col-sm-12 col-xs-12 mb-md-0 mb-sm-5">
                                 <div class="detail-gallery">
-                                    <div class="product-image-slider" id="main-image-slider">
-                                        @foreach($selectedVarient->images ?? $product_data->images ?? [] as $img)
-                                            <figure class="border-radius-10">
-                                                <img src="{{ $img['image'] }}" alt="product image"/>
-                                            </figure>
-                                        @endforeach
-                                    </div>
-                                    <!-- THUMBNAILS -->
-                                    <div class="slider-nav-thumbnails" id="thumbnail-slider">
-                                        @foreach($selectedVarient->images ?? $product_data->images ?? [] as $img)
-                                            <div><img src="{{ $img['image'] }}" alt="product image"/></div>
-                                        @endforeach
 
+                                    <div class="swiper mainSwiper">
+                                        <div class="swiper-wrapper" id="main-image-slider">
+                                            @foreach($selectedVarient->images ?? $product_data->images ?? [] as $img)
+                                                <div class="swiper-slide zoom-container">
+                                                    <img src="{{ $img['image'] }}"
+                                                         alt="{{ $product_data->name }}"
+                                                         class="zoom-img">
+                                                </div>
+                                            @endforeach
+                                        </div>
                                     </div>
+
+                                    <div class="swiper thumbSwiper mt-2">
+                                        <div class="swiper-wrapper" id="thumbnail-slider">
+                                            @foreach($selectedVarient->images ?? $product_data->images ?? [] as $img)
+                                                <div class="swiper-slide">
+                                                    <img src="{{ $img['image'] }}" alt="thumb">
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+
                                 </div>
+
                                 <!-- End Gallery -->
                             </div>
                             <div class="col-md-6 col-sm-12 col-xs-12">
@@ -232,6 +261,8 @@
                                             </div>
                                         </div>
                                     @endif
+
+
                                     <div class="product-detail-rating">
                                         <div class="product-rate-cover text-end">
                                             <div class="product-rate d-inline-block">
@@ -755,7 +786,10 @@
         </div>
     </main>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
 
 
@@ -848,115 +882,58 @@
                 });
             });
 
+            let mainSwiper = null;
+            let thumbSwiper = null;
 
             function updateVariantView(variant) {
-                // Update price
+
+                /* ------------------------------
+                    UPDATE PRICES / TEXT
+                ------------------------------ */
                 document.getElementById('current-price').innerText = '₹' + variant.selling_price;
                 document.getElementById('old-price').innerText = '₹' + variant.mrp;
                 document.getElementById('top-discount').innerText = `${variant.discount_per}% OFF`;
-                document.getElementById('subscription_price').innerText = ` Get @ ₹ ${variant.subscription_price}`;
-                document.getElementById('nc_cash').innerText = ` Get ${variant.nc_cash} Nc Cash`;
+                document.getElementById('subscription_price').innerText =
+                    variant.subscription_price ? ` Get @ ₹ ${variant.subscription_price}` : '';
+                document.getElementById('nc_cash').innerText =
+                    variant.nc_cash ? ` Get ${variant.nc_cash} Nc Cash` : '';
 
-                // Correct selectors matching your initialized sliders
-                const $thumbSlider = $('.slider-nav-thumbnails');
-                const $mainSlider  = $('.product-image-slider');
+                if (mainSwiper) mainSwiper.destroy(true, true);
+                if (thumbSwiper) thumbSwiper.destroy(true, true);
 
-                /* ------------------------------
-                    DESTROY OLD SLIDERS SAFELY
-                ------------------------------ */
-                if ($thumbSlider.hasClass('slick-initialized')) {
-                    $thumbSlider.slick('unslick');
-                }
-
-                if ($mainSlider.hasClass('slick-initialized')) {
-                    $mainSlider.slick('unslick');
-                }
-
-                /* ------------------------------
-                    REBUILD SLIDER HTML
-                ------------------------------ */
-                $thumbSlider.html('');
-                $mainSlider.html('');
+                $('#main-image-slider').html('');
+                $('#thumbnail-slider').html('');
 
                 variant.images.forEach(img => {
-                    $thumbSlider.append(`
-            <div>
-                <img src="${img.image}" alt="product thumbnail">
+
+                    $('#main-image-slider').append(`
+            <div class="swiper-slide zoom-container">
+                <img src="${img.image}" class="zoom-img">
             </div>
         `);
 
-                    $mainSlider.append(`
-            <div>
-                <img src="${img.image}" alt="product image">
+                    $('#thumbnail-slider').append(`
+            <div class="swiper-slide">
+                <img src="${img.image}">
             </div>
         `);
                 });
 
-                /* ------------------------------
-                    REINITIALIZE SLICK
-                ------------------------------ */
-                $mainSlider.slick({
-                    slidesToShow: 1,
-                    slidesToScroll: 1,
-                    arrows: false,
-                    asNavFor: '.slider-nav-thumbnails'
+                thumbSwiper = new Swiper('.thumbSwiper', {
+                    slidesPerView: 4,
+                    spaceBetween: 10,
+                    watchSlidesProgress: true
                 });
 
-                $thumbSlider.slick({
-                    slidesToShow: 4,
-                    slidesToScroll: 1,
-                    asNavFor: '.product-image-slider',
-                    dots: false,
-                    focusOnSelect: true,
+                mainSwiper = new Swiper('.mainSwiper', {
+                    thumbs: {
+                        swiper: thumbSwiper
+                    }
                 });
-
             }
 
 
-            // document.addEventListener('DOMContentLoaded', function () {
-            //     // Auto-click the first value of each option group
-            //     document.querySelectorAll('.list-filter[data-option-index]').forEach(ul => {
-            //         const firstOption = ul.querySelector('.variant-option');
-            //         if (firstOption) {
-            //             console.log("firstOptionfirstOption",firstOption);
-            //             firstOption.click(); // triggers above listener
-            //         }
-            //     });
-            //
-            // });
-            // document.addEventListener("DOMContentLoaded", function () {
-            //     // Select all option lists
-            //     document.querySelectorAll('.list-filter[data-option-index]').forEach(ul => {
-            //         // Find the first li in each list
-            //         const firstLi = ul.querySelector('li');
-            //         if (firstLi) {
-            //             console.log("firstLifirstLifirstLi",firstLi);
-            //             // Find the link inside li and trigger click
-            //             const firstOption = firstLi.querySelector('.variant-option');
-            //             if (firstOption) {
-            //                 firstOption.click();
-            //             }
-            //         }
-            //     });
-            // });
-
         });
-
-        // $(document).ready(function () {
-        //     document.querySelectorAll('.list-filter[data-option-index]').forEach(ul => {
-        //         // Find the first li in each list
-        //         const firstLi = ul.querySelector('li');
-        //         if (firstLi) {
-        //             console.log("firstLifirstLifirstLi", firstLi);
-        //             // Find the link inside li and trigger click
-        //             const firstOption = firstLi.querySelector('.variant-option');
-        //             if (firstOption) {
-        //                 // firstOption.click();
-        //             }
-        //         }
-        //     });
-        //
-        // });
 
         document.addEventListener("DOMContentLoaded", function () {
             // Select all option groups
@@ -1008,8 +985,6 @@
                 this.style.display = "none";
             }
         });
-
-
 
 
     </script>

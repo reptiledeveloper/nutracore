@@ -13,10 +13,12 @@ use App\Models\Order;
 
 use App\Models\DeliveryAgents;
 use App\Models\Sellers;
+use App\Models\Subscriptions;
 use App\Models\User;
 use App\Models\Products;
 use App\Models\Transaction;
 use App\Exports\StockDataExport;
+use App\Models\Vendors;
 use Auth;
 use DB;
 use Google\Service\ShoppingContent\ProductsCustomBatchResponse;
@@ -647,53 +649,240 @@ class ExportController extends Controller
 
     }
 
+//    public function cash_management(Request $request)
+//    {
+//        $start_date = $request->start_date ?? '';
+//        $end_date = $request->end_date ?? '';
+//        $exportArr = [];
+//
+//        $records = POSDailyCashTransaction::select(
+//            'date',
+//            'vendor_id',
+//            DB::raw("SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END) as total_sales"),
+//            DB::raw("SUM(CASE WHEN type = 'debit' THEN amount ELSE 0 END) as total_expense"),
+//            DB::raw('COUNT(id) as total_transactions')
+//        )
+//            ->where('is_delete', 0);
+//
+//        if (!empty($start_date)) {
+//            $records->whereDate('date', '>=', $start_date);
+//        }
+//
+//        if (!empty($end_date)) {
+//            $records->whereDate('date', '<=', $end_date);
+//        }
+//
+//        $records->groupBy('date', 'vendor_id')
+//            ->orderByDesc('date')
+//            ->chunk(100, function ($rows) use (&$exportArr) {
+//                foreach ($rows as $row) {
+//                    $vendor = \App\Helpers\CustomHelper::getVendorDetails($row->vendor_id);
+//                    $excelArr = [];
+//
+//                    $excelArr['Date'] = $row->date ? date('d M Y', strtotime($row->date)) : '';
+//                    $excelArr['Vendor Name'] = $vendor->name ?? '';
+//                    $excelArr['Total Sales (Credit)'] = number_format($row->total_sales ?? 0, 2);
+//                    $excelArr['Total Expense (Debit)'] = number_format($row->total_expense ?? 0, 2);
+//                    $excelArr['Total Transactions'] = $row->total_transactions ?? 0;
+//
+//                    $exportArr[] = $excelArr;
+//                }
+//            });
+//
+//        if (!empty($exportArr)) {
+//            $headings = array_keys($exportArr[0]);
+//            $fileName = 'Cash-Transactions-' . date('Y-m-d-H-i-s') . '.xlsx';
+//            return Excel::download(new \App\Exports\StockDataExport($exportArr, $headings), $fileName);
+//        } else {
+//            return back()->with('error', 'No transaction data found for export.');
+//        }
+//    }
+
+
     public function cash_management(Request $request)
     {
-        $start_date = $request->start_date ?? '';
-        $end_date = $request->end_date ?? '';
+        $start_date = $request->start_date;
+        $end_date   = $request->end_date;
+
         $exportArr = [];
 
-        $records = POSDailyCashTransaction::select(
-            'date',
-            'vendor_id',
-            DB::raw("SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END) as total_sales"),
-            DB::raw("SUM(CASE WHEN type = 'debit' THEN amount ELSE 0 END) as total_expense"),
-            DB::raw('COUNT(id) as total_transactions')
-        )
-            ->where('is_delete', 0);
+        /** Vendors */
+        $vendors = Vendors::where('is_delete', 0)
+            ->pluck('name', 'id')
+            ->toArray();
 
-        if (!empty($start_date)) {
-            $records->whereDate('date', '>=', $start_date);
+        /** Orders mapped by unique_id */
+        $orders = Order::where('is_delete', 0)
+            ->select('unique_id','id', 'invoice_no', 'payment_method')
+            ->get()
+            ->keyBy('id');
+
+        $query = POSDailyCashTransaction::where('is_delete', 0)
+            ->orderBy('vendor_id')
+            ->orderBy('date')
+            ->orderBy('id');
+
+        if ($start_date) {
+            $query->whereDate('date', '>=', $start_date);
         }
 
-        if (!empty($end_date)) {
-            $records->whereDate('date', '<=', $end_date);
+        if ($end_date) {
+            $query->whereDate('date', '<=', $end_date);
         }
 
-        $records->groupBy('date', 'vendor_id')
-            ->orderByDesc('date')
-            ->chunk(100, function ($rows) use (&$exportArr) {
-                foreach ($rows as $row) {
-                    $vendor = \App\Helpers\CustomHelper::getVendorDetails($row->vendor_id);
-                    $excelArr = [];
+        $transactions = $query->get();
 
-                    $excelArr['Date'] = $row->date ? date('d M Y', strtotime($row->date)) : '';
-                    $excelArr['Vendor Name'] = $vendor->name ?? '';
-                    $excelArr['Total Sales (Credit)'] = number_format($row->total_sales ?? 0, 2);
-                    $excelArr['Total Expense (Debit)'] = number_format($row->total_expense ?? 0, 2);
-                    $excelArr['Total Transactions'] = $row->total_transactions ?? 0;
+        /** Balance key: vendor_id + date (DAILY RESET) */
+        $vendorDayBalance = [];
 
-                    $exportArr[] = $excelArr;
+        foreach ($transactions as $txn) {
+
+            $vendorId = $txn->vendor_id;
+            $dateKey  = date('Y-m-d', strtotime($txn->date));
+            $balanceKey = $vendorId . '_' . $dateKey;
+
+            /** Reset balance per vendor per day */
+            if (!isset($vendorDayBalance[$balanceKey])) {
+                $vendorDayBalance[$balanceKey] = 0;
+            }
+
+            $cashIn  = 0;
+            $cashOut = 0;
+
+            if ($txn->type === 'credit') {
+                $cashIn = (float) $txn->amount;
+                $vendorDayBalance[$balanceKey] += $cashIn;
+            }
+
+            if ($txn->type === 'debit') {
+                $cashOut = (float) $txn->amount;
+                $vendorDayBalance[$balanceKey] -= $cashOut;
+            }
+
+            $order = $orders[$txn->order_id] ?? null;
+
+
+
+            $exportArr[] = [
+                'Date' => date('d M Y', strtotime($txn->date)),
+
+                'Vendor Name' => $vendors[$vendorId] ?? 'N/A',
+
+                'Order No.' =>  $order->unique_id ?? '-',
+
+                'Invoice No.' => $order->invoice_no ?? '-',
+
+                'Description (Sale / Expense)' =>
+                    $txn->type === 'credit' ? 'Sale' : 'Expense',
+
+                'Mode of Payment' =>
+                    $order->payment_method ?? 'Cash',
+
+                'Cash In (₹)' =>
+                    $cashIn > 0 ? number_format($cashIn, 2) : '',
+
+                'Cash Out (₹)' =>
+                    $cashOut > 0 ? number_format($cashOut, 2) : '',
+
+                'Running Closing Balance (₹)' =>
+                    number_format($vendorDayBalance[$balanceKey], 2),
+
+                'Closing Entry' =>
+                    $txn->type === 'credit'
+                        ? 'Sale Entry'
+                        : 'Expense Entry',
+
+                'Closing Notes' => $txn->remarks ?? '',
+            ];
+        }
+
+
+
+        if (empty($exportArr)) {
+            return back()->with('error', 'No cash transactions found.');
+        }
+
+        $fileName = 'POS-Cash-Ledger-Daily-' . date('Y-m-d-H-i-s') . '.xlsx';
+
+        return Excel::download(
+            new \App\Exports\StockDataExport(
+                $exportArr,
+                array_keys($exportArr[0])
+            ),
+            $fileName
+        );
+    }
+
+
+    public function nc_cash_report(Request $request)
+    {
+        $exportArr = [];
+
+        Order::where('is_delete', 0)
+            ->where(function ($q) {
+                $q->where('nc_cash_earned', ' > ', 0)
+                    ->orWhere('applied_cashback', ' > ', 0);
+            })
+            ->orderBy('created_at', 'desc')
+            ->chunk(100, function ($orders) use (&$exportArr) {
+
+                foreach ($orders as $order) {
+                    $user = User::find($order->userID);
+                    $amount = $order->total_amount ?? 0;
+                    $earned = (float)($order->nc_cash_earned ?? 0);
+                    $redeemed = (float)($order->applied_cashback ?? 0);
+
+                    $exportArr[] = [
+                        'Date' => optional($order->created_at)->format('d - m - Y'),
+
+                        'Customer Name' => $order->customer_name ?? '',
+
+                        'Customer Mobile / Email' => $order->contact_no ?? '',
+
+                        'Order ID' => $order->invoice_no ?? $order->id,
+
+                        'Transaction Type(Earn / Bonus / Adjustment)' =>
+                            $earned > 0 && $redeemed > 0
+                                ? 'Earn & Redeem'
+                                : ($earned > 0 ? 'Earn' : 'Redeem'),
+
+                        'Transaction Description' =>
+                            $earned > 0
+                                ? 'NC Cash earned on order'
+                                : 'NC Cash redeemed on order',
+
+                        'Order Value(₹)' => $order->total_amount ?? 0,
+
+                        'NC Cash Earned' => $earned,
+
+                        'NC Cash Redeemed' => $redeemed,
+                        'Available Balance(After Txn)' => $user->cashback_wallet ?? '', // optional
+
+                        'Expiry Date' => '',
+
+                        'Channel(App / Store / Web)' =>
+                            ucfirst(strtolower($order->order_from ?? 'app')),
+
+                        'Loyalty Tier(Silver / Gold / Platinum)' => self::getActiveSubscription($user),
+
+                        'NutraPass Membership' =>
+                            $order->is_subscribe ? 'Yes' : 'No',
+
+                        'NutraPass Expiry Date' => $user->subscription_end,
+                    ];
                 }
             });
 
-        if (!empty($exportArr)) {
-            $headings = array_keys($exportArr[0]);
-            $fileName = 'Cash-Transactions-' . date('Y-m-d-H-i-s') . '.xlsx';
-            return Excel::download(new \App\Exports\StockDataExport($exportArr, $headings), $fileName);
-        } else {
-            return back()->with('error', 'No transaction data found for export.');
+        if (empty($exportArr)) {
+            return back()->with('error', 'No NC Cash data found');
         }
+
+        $fileName = 'NC - Cash - Order - Report - ' . date('Y - m - d - H - i - s') . ' . xlsx';
+
+        return Excel::download(
+            new SampleExport($exportArr, array_keys($exportArr[0])),
+            $fileName
+        );
     }
 
 

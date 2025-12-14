@@ -53,19 +53,19 @@
         ->where('created_at', '>', $lastUpdate) // only after last update
         ->get();
 
-    if(!empty($orders)){
-        foreach ($orders as $order){
-            $payment_method_values = json_decode($order->payment_method_values)??'';
-            if(!empty($payment_method_values)){
-                if((int)$payment_method_values->cash > 0){
-                    $order_amount+=(float)$payment_method_values->cash;
+    if (!empty($orders)) {
+        foreach ($orders as $order) {
+            $payment_method_values = json_decode($order->payment_method_values) ?? '';
+            if (!empty($payment_method_values)) {
+                if ((int)$payment_method_values->cash > 0) {
+                    $order_amount += (float)$payment_method_values->cash;
                 }
             }
         }
     }
     $total_cash = 0;
-    $expense = \App\Models\Expense::whereDate('expense_date',date('Y-m-d'))->where('is_delete',0)->sum('amount');
-    if(!empty($exist)){
+    $expense = \App\Models\Expense::whereDate('expense_date', date('Y-m-d'))->where('is_delete', 0)->sum('amount');
+    if (!empty($exist)) {
         $total_cash = (float)$exist->today_balance + (float)$order_amount - (float)$expense;
     }
 
@@ -204,15 +204,17 @@
                             <div class="col-md-12 mt-3">
                                 <label>Physical Drawer <span style="color:red">*</span></label>
                                 <div class="input-group">
-                                    <input type="number" name="today_last_balance" id="today_last_balance" class="form-control"
+                                    <input type="number" name="today_last_balance" id="today_last_balance"
+                                           class="form-control"
                                            placeholder="Physical Drawer" oninput="checkCashDifference()">
                                 </div>
                             </div>
                             <span id="cash_remark" style="font-weight:600;"></span>
                             <div class="col-md-12 mt-3">
-                                <label>Closing Note  <span style="color:red">*</span></label>
+                                <label>Closing Note <span style="color:red">*</span></label>
                                 <div class="input-group">
-                                    <input type="text" name="closing_note" class="form-control" placeholder="Closing Note" required>
+                                    <input type="text" name="closing_note" class="form-control"
+                                           placeholder="Closing Note" required>
                                 </div>
                             </div>
                         </div>
@@ -244,13 +246,15 @@
                             <div class="col-md-12 mt-3">
                                 <label for="expense_amount" class="form-label">Amount</label>
                                 <div class="input-group">
-                                    <input type="number" step="0.01" name="amount" id="expense_amount" class="form-control" placeholder="Enter Amount" required>
+                                    <input type="number" step="0.01" name="amount" id="expense_amount"
+                                           class="form-control" placeholder="Enter Amount" required>
                                 </div>
                             </div>
                             <!-- Expense Description -->
                             <div class="col-md-12 mt-3">
                                 <label for="expense_description" class="form-label">Description</label>
-                                <textarea name="description" id="expense_description" class="form-control" rows="2" placeholder="Enter Description"></textarea>
+                                <textarea name="description" id="expense_description" class="form-control" rows="2"
+                                          placeholder="Enter Description"></textarea>
                             </div>
 
                             <!-- Payment Method -->
@@ -282,7 +286,7 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary" >Save</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
                     </div>
                 </form>
 
@@ -366,7 +370,8 @@
                                         </select>
                                         <br>
                                     @else
-                                        <input type="hidden" name="vendor_id" id="vendor_id" value="{{$vendor_id_selected}}">
+                                        <input type="hidden" name="vendor_id" id="vendor_id"
+                                               value="{{$vendor_id_selected}}">
                                         <br>
                                     @endif
                                     <select name="user_id" class="form-control select2user" id="user_id">
@@ -1084,7 +1089,6 @@
             }
 
 
-
             // Click on suggestion
             $suggestions.on('click', '.list-group-item', function (e) {
                 e.preventDefault();
@@ -1143,7 +1147,7 @@
             } else {
                 let availableQty = product.available_qty || 0;
                 // Product does not exist → add new row
-                console.log("product.selling_price.toFixed(2)"+product.selling_price.toFixed(2));
+                console.log("product.selling_price.toFixed(2)" + product.selling_price.toFixed(2));
                 rowCount++;
                 let row = `<tr data-id="${rowCount}"
                     data-product-id="${product.id}"
@@ -1183,17 +1187,18 @@
             recalcRow($row);
             recalc();
         });
+
         function recalcRow($row) {
             let qty = parseFloat($row.find('.qty').val()) || 1;
 
             // Extract numeric price safely (remove ₹ or commas)
             let priceText = $row.find('.mrp').text().replace(/[^0-9.]/g, '');
             let price = parseFloat(priceText) || 0;
-            console.log("pricepriceprice"+price);
+            console.log("pricepriceprice" + price);
 
             // Get discount from input
             let discount = parseFloat($row.find('.discount').val()) || 0;
-            console.log("discountdiscountdiscountdiscount"+discount);
+            console.log("discountdiscountdiscountdiscount" + discount);
             // ✅ Prevent discount from exceeding price
             if (discount > price) {
                 discount = price;
@@ -1202,9 +1207,9 @@
 
             // Calculate unit and total
             let unit = price - discount;
-            console.log("unitunitunit"+unit);
+            console.log("unitunitunit" + unit);
             let net = unit * qty;
-            console.log("netnetnetnetnet"+net);
+            console.log("netnetnetnetnet" + net);
             // Update UI
             $row.find('.unit-cost').text(unit.toFixed(2));
             $row.find('.net-amount').text(net.toFixed(2));
@@ -1268,7 +1273,7 @@
                 let discount = parseFloat($(this).find(".discount").val());
                 let addDisc = parseFloat($(this).find(".add-disc").val()) || 0;
 
-            console.log("selling_priceselling_priceselling_price"+selling_price);
+                console.log("selling_priceselling_priceselling_price" + selling_price);
                 let unitCost = 0;
                 let netAmount = 0;
                 let totalAmount = 0;
@@ -1296,11 +1301,11 @@
             ////////////
             var is_applied_credit_balance = $('#is_applied_credit_balance').val();
             var credit_balance = $('#credit_balance').val();
-            if(is_applied_credit_balance === 1){
-                console.log("credit_balance"+credit_balance);
-                subtotal-=parseInt(credit_balance);
+            if (is_applied_credit_balance === 1) {
+                console.log("credit_balance" + credit_balance);
+                subtotal -= parseInt(credit_balance);
             }
-            console.log("subtotalCallll"+subtotal);
+            console.log("subtotalCallll" + subtotal);
 
             $("#subtotal_html").html(subtotal.toFixed(2));
             $("#subtotal").val(subtotal.toFixed(2));
@@ -1340,11 +1345,14 @@
             var is_applied_credit_balance = $('#is_applied_credit_balance').val();
             var credit_balance = $('#credit_balance').val();
             console.log(is_applied_credit_balance);
-            if(is_applied_credit_balance === 1 || is_applied_credit_balance === "1"){
-                console.log("credit_balance"+credit_balance);
-                total-=parseInt(credit_balance);
+            if (is_applied_credit_balance === 1 || is_applied_credit_balance === "1") {
+                console.log("credit_balance" + credit_balance);
+                total -= parseInt(credit_balance);
             }
-            console.log("subtotalCallll"+total);
+            if (total < 0) {
+                total = 0;
+            }
+            console.log("subtotalCallll" + total);
 
 
             $('#flat_discount_percent').val(flatDiscount);
@@ -1912,12 +1920,14 @@
                 creditCard.style.backgroundColor = "#11AEAE";
                 creditCard.style.color = "white";
                 isApplied.value = "1";
+                // $('#payment_method').val('credit');
                 calculateTotal();
             } else {
                 // Remove color
                 creditCard.style.backgroundColor = "";
                 creditCard.style.color = "";
                 isApplied.value = "0";
+                // $('#payment_method').val('credit');
                 calculateTotal();
             }
         }

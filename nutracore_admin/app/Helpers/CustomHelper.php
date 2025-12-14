@@ -130,6 +130,11 @@ class CustomHelper
 
     }
 
+    public static function getPartner($partner_id)
+    {
+        return DB::table('partner_applications')->where('id',$partner_id)->first();
+
+    }
     public static function checkSubscription($user)
     {
 
