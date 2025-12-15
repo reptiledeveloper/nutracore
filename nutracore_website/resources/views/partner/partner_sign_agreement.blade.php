@@ -1,6 +1,35 @@
 @extends('home.layout')
 @section('content')
+<style>
+    .agreement-box {
+        border: 1px solid #d1d5db;   /* thinner border */
+        padding: 16px;
+        font-size: 13px;            /* smaller text */
+        line-height: 1.6;
+    }
 
+    .agreement-box h1 {
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .agreement-box h2 {
+        font-size: 15px;
+        font-weight: 600;
+        margin-top: 12px;
+    }
+
+    .agreement-box h3 {
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .agreement-box p,
+    .agreement-box li {
+        font-size: 13px;
+    }
+
+</style>
     <main class="main pages">
         <div class="page-header breadcrumb-wrap">
             <div class="container">
@@ -12,7 +41,7 @@
         </div>
         <div class="page-content">
             <div class="container">
-                <div id="agreement-content">
+                <div id="agreement-content" class="agreement-box">
                     <h1 class="mb-4">NC Partner Agreement & Consent Form</h1>
 
                     <div class="mt-3">

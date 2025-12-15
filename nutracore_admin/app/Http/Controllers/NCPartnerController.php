@@ -210,7 +210,7 @@ class NCPartnerController extends Controller
         $orders = Order::where('coupon_code', $nc_partners->coupon_code)->latest()->paginate(20);
         $data['orders'] = $orders;
 
-        self::partnerCommissionForOrder(3, $id);
+//        self::partnerCommissionForOrder(3, $id);
         return view('nc_partners.view', $data);
     }
 
@@ -337,6 +337,20 @@ class NCPartnerController extends Controller
             ->paginate(100);
         $data['withdrawals'] = $withdrawals;
         return view('nc_partners.withdrawal', $data);
+    }
+
+    public function partner_withdrawal(Request $request)
+    {
+        $data = [];
+        $id = $request->id??'';
+        $nc_partners = NCPartner::find($id);
+        $data['nc_partners'] = $nc_partners;
+        $withdrawals = DB::table('partner_withdrawals')
+            ->where('partner_id',$id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(100);
+        $data['withdrawals'] = $withdrawals;
+        return view('nc_partners.partner_withdrawal', $data);
     }
 
     public function with_draw_approve(Request $request)

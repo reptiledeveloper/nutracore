@@ -3384,7 +3384,7 @@ class HomeController extends Controller
             return back();
         }
 
-        if ($partner_data->is_sign_agreement == 0) {
+        if ($partner_data->is_sign_agreement == 0 && $partner_data->status == 'Approved') {
             return redirect(route('partner_sign_agreement'));
         }
 
