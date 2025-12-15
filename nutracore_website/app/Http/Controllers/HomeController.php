@@ -3352,6 +3352,9 @@ class HomeController extends Controller
     public function partner_sign_agreement(Request $request)
     {
         $user = Auth::user();
+        if(empty($user)){
+            return redirect(route('home'));
+        }
         $partner_data = DB::table('partner_applications')->where('mobile_number', $user->phone)->first();
         $method = $request->method();
         if ($method == 'post' || $method == 'POST') {
@@ -3379,6 +3382,9 @@ class HomeController extends Controller
     {
         $data = [];
         $user = Auth::user();
+        if(empty($user)){
+            return back();
+        }
         $partner_data = DB::table('partner_applications')->where('mobile_number', $user->phone)->first();
         if (empty($partner_data)) {
             return back();

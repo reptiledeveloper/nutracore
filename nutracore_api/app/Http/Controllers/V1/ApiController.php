@@ -228,6 +228,7 @@ class ApiController extends Controller
         }
 
     }
+
     public function creditNcCash($order)
     {
         $user = User::find($order->userID);
@@ -287,6 +288,9 @@ class ApiController extends Controller
                         if (!empty($order->subscription_id) && $order->subscription_id != "null") {
                             $this->updateSubscription($order, $user);
                         }
+                        $order->deliverred_at = date('Y-m-d H:i:s');
+                        $order->save();
+                        CustomHelper::partnerCommissionForOrder($order->id);
                         $this->creditNcCash($order);
 
                         CustomHelper::orderDelivered($user->phone ?? '', $order_id);
@@ -400,7 +404,6 @@ class ApiController extends Controller
     }
 
 
-
     public function verify_otp(Request $request): \Illuminate\Http\JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -429,6 +432,7 @@ class ApiController extends Controller
             ], 200);
         }
     }
+
     public function profile(Request $request): \Illuminate\Http\JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -506,6 +510,7 @@ class ApiController extends Controller
             'active_loyalty' => $active_loyalty,
         ], 200);
     }
+
     public function splash_screens(Request $request): \Illuminate\Http\JsonResponse
     {
         $splash_screens = [];
@@ -522,6 +527,7 @@ class ApiController extends Controller
 
         ], 200);
     }
+
     public function login(Request $request): \Illuminate\Http\JsonResponse
     {
         $input = $request->only(['phone', 'otp']);
@@ -1541,7 +1547,6 @@ class ApiController extends Controller
             "success" => json_decode($success)
         ], 200);
     }
-
 
 
     public function checkGuest($user)
@@ -5668,5 +5673,145 @@ class ApiController extends Controller
             "pincode_data" => $pincode_data,
         ], 200);
     }
+
+
+    public function update_commission(Request $request)
+    {
+        // Fetch all unsettled commissions
+        $commissions = DB::table('partner_commissions')
+            ->where('is_setteled', 0)
+            ->where('is_delete', 0)
+            ->get();
+
+        if ($commissions->isEmpty()) {
+            return response()->json(['message' => 'No pending commissions']);
+        }
+
+        $settledCount = 0;
+
+        foreach ($commissions as $commission) {
+
+            // Fetch order
+            $order = DB::table('orders')->where('id', $commission->order_id)->first();
+            if (!$order || empty($order->delivered_at)) {
+                continue; // not delivered yet
+            }
+
+            // ⏳ Check 42 hours condition
+            $eligibleTime = Carbon::parse($order->delivered_at)->addHours(42);
+            if (now()->lt($eligibleTime)) {
+                continue; // wait period not completed
+            }
+
+            // Fetch partner
+            $partner = DB::table('partner_applications')->where('id', $commission->partner_id)->first();
+            if (!$partner) {
+                continue;
+            }
+
+            // 🚨 Atomic settlement
+            DB::transaction(function () use ($commission, $partner, $order, &$settledCount) {
+
+                // Credit wallet
+                DB::table('partner_applications')
+                    ->where('id', $partner->id)
+                    ->update([
+                        'wallet' => DB::raw('wallet + ' . floatval($commission->commission))
+                    ]);
+
+                // Mark commission settled
+                DB::table('partner_commissions')
+                    ->where('id', $commission->id)
+                    ->update([
+                        'is_setteled' => 1,
+                        'updated_at' => now()
+                    ]);
+
+                // Optional: save commission in order
+                DB::table('orders')
+                    ->where('id', $order->id)
+                    ->update([
+                        'commission' => $commission->commission
+                    ]);
+                $this->creditFirstOrderPartnerBonus($order->id);
+                $settledCount++;
+            });
+        }
+
+        return response()->json([
+            'message' => 'Commission settlement completed',
+            'settled_count' => $settledCount
+        ]);
+    }
+
+
+    public static function creditFirstOrderPartnerBonus($orderId)
+    {
+        $order = Order::find($orderId);
+        if (!$order) return;
+
+        // ✅ Only App orders
+        if ($order->order_from !== 'APP') return;
+
+        // ✅ Partner coupon required
+        if (empty($order->coupon_code)) return;
+
+        // ✅ Check if this is customer's FIRST order
+        $previousOrders = Order::where('user_id', $order->userID)
+            ->where('id', '!=', $order->id)
+            ->exists();
+
+        if ($previousOrders) return;
+
+        // ✅ Fetch approved partner
+        $partner = DB::table('partner_applications')->where('coupon_code', $order->coupon_code)
+            ->where('status', 'Approved')
+            ->first();
+
+        if (!$partner) return;
+
+        // ✅ Check if bonus already credited (extra safety)
+        $alreadyCredited = DB::table('partner_commissions')
+            ->where('order_id', $order->id)
+            ->where('is_first_order_bonus', 1)
+            ->exists();
+
+        if ($alreadyCredited) return;
+
+        // ✅ Get bonus amount from settings
+        $bonusAmount = DB::table('settings')
+            ->where('key', 'partner_bonus')
+            ->value('value') ?? 0;
+
+        if ($bonusAmount <= 0) return;
+
+        DB::transaction(function () use ($partner, $order, $bonusAmount) {
+
+            // 💰 Credit wallet
+            DB::table('nc_partners')
+                ->where('id', $partner->id)
+                ->update([
+                    'wallet' => DB::raw("wallet + {$bonusAmount}")
+                ]);
+
+            // 🧾 Log bonus in commissions table
+            DB::table('partner_commissions')->insert([
+                'partner_id' => $partner->id,
+                'order_id' => $order->id,
+                'date' => date('Y-m-d'),
+                'order_amount' => 0,
+                'total_order_amount_till_date' => 0,
+                'commission_percent' => 0,
+                'commission' => $bonusAmount,
+                'is_first_order_bonus' => 1,
+                'is_setteled' => 1,
+                'status' => 1,
+                'is_delete' => 0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        });
+    }
+
 
 }

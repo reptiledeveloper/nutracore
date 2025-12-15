@@ -29,6 +29,35 @@
         font-size: 13px;
     }
 
+
+
+    /* Scrollable agreement */
+    .agreement-box {
+        max-height: calc(100vh - 200px); /* header + spacing */
+        overflow-y: auto;
+
+        padding: 25px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+
+        position: relative;
+    }
+
+    /* Sticky button */
+    .sticky-pay-btn {
+        position: sticky;
+        bottom: 0;
+
+        margin-top: 30px;
+        padding: 15px;
+
+        background: #ffffff;
+        border-top: 1px solid #e5e7eb;
+        z-index: 10;
+    }
+
+
 </style>
     <main class="main pages">
         <div class="page-header breadcrumb-wrap">
@@ -277,8 +306,13 @@
                     @csrf
                     <input type="hidden" name="agreement_version" value="v1.0_2026-01-05">
                     <input type="hidden" name="agreement_text" id="agreement_text">
-                    <div class="mt-3 mb-20">
-                        <button type="submit" class="btn btn-primary">I Accept</button>
+
+                    <!-- Agreement content here -->
+
+                    <div class="sticky-pay-btn">
+                        <button type="submit" class="btn btn-primary w-100">
+                            I Accept & Continue
+                        </button>
                     </div>
                 </form>
 

@@ -523,6 +523,8 @@ class OrderController extends Controller
 
         if ($status == 'DELIVERED') {
             $order = Order::where('id', $order_id)->first();
+            $order->deliverred_at = date('Y-m-d H:i:s');
+            $order->save();
             $user = User::where('id', $order->userID)->first();
             $token = $user->device_token ?? '';
             $not = CustomHelper::getNotifyData('delivered');
@@ -546,6 +548,7 @@ class OrderController extends Controller
 
             CustomHelper::orderDelivered($user->phone ?? '', $order_id);
             CustomHelper::sendInvoiceWP($user, $order);
+            CustomHelper::partnerCommissionForOrder($order->id);
             $event = 'Order Delivered';
             $traits = [
 

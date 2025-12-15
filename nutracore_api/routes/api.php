@@ -30,6 +30,7 @@ Route::match(['get', 'post'], '/envia_webhook', [ApiController::class, 'envia_we
 Route::prefix('v1/')->group(function () {
     Route::match(['get', 'post'], '/update_payment_status', [ApiController::class, 'update_payment_status'])->name('update_payment_status');
     Route::match(['get', 'post'], '/porter_webhook', [ApiController::class, 'porter_webhook'])->name('porter_webhook');
+    Route::match(['get', 'post'], '/update_commission', [ApiController::class, 'update_commission'])->name('update_commission');
     //////10/10/2024
     Route::post('/splash_screens', [ApiController::class, 'splash_screens']);
     Route::post('/send_test_notitication', [ApiController::class, 'send_test_notitication']);

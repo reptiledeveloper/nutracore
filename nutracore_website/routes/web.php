@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Route;
 // });
 Route::group(['namespace' => 'App\Http\Controllers'], function () {
 
-    Route::match(['get', 'post'], '/', 'HomeController@index');
+    Route::match(['get', 'post'], '/', 'HomeController@index')->name('home');
     Route::match(['get', 'post'], '/products', 'HomeController@products');
     Route::match(['get', 'post'], '/sitemap.xml', 'HomeController@sitemap');
     Route::post('/send-otp', [HomeController::class, 'sendPartnerOtp']);
