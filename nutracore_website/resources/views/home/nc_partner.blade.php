@@ -1,8 +1,8 @@
 @extends('home.layout')
 @section('content')
     @php
-    $faqs = \App\Models\FAQ::where('type','nc_partner')->where('status',1)->where('is_delete',0)->get();
-    $settings = DB::table('settings')->where('id',1)->first();
+        $faqs = \App\Models\FAQ::where('type','nc_partner')->where('status',1)->where('is_delete',0)->get();
+        $settings = DB::table('settings')->where('id',1)->first();
     @endphp
     <style>
         .partner-btn {
@@ -525,9 +525,10 @@
         input, select {
             height: 45px;
         }
-    select{
-        text-align: center;
-    }
+
+        select {
+            text-align: center;
+        }
 
         textarea {
             height: 100px !important;
@@ -920,15 +921,14 @@
                 </div>
                 <div class="faq-container">
                     <h2>Frequently Asked Questions</h2>
-            @foreach($faqs as $faq)
+                    @foreach($faqs as $faq)
                         <div class="faq-item">
                             <button class="faq-question">{!! $faq->question??"" !!}</button>
                             <div class="faq-answer">
                                 <p>{!! $faq->answer??"" !!}</p>
                             </div>
                         </div>
-            @endforeach
-
+                    @endforeach
 
 
                 </div>
@@ -1056,7 +1056,7 @@
                         alert("Application Submitted! Status = Pending Review");
                         location.reload();
                     } else {
-                        alert("Something went wrong!");
+                        alert(res.message || "Something Went Wrong");
                     }
                 });
         }

@@ -3299,6 +3299,29 @@ class HomeController extends Controller
 
     public function submit_partner_form(Request $request)
     {
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'full_name' => 'required',
+            'mobile_number' => 'required|digits:10|unique:partner_applications,mobile_number',
+            'email' => 'required|email',
+            'city' => 'required',
+            'full_address' => 'required',
+            'role' => 'required',
+            'brand_name' => 'required',
+            'active_clients' => 'required',
+            'bank_name' => 'required',
+            'ifsc_code' => 'required',
+            'account_number' => 'required',
+            'promotion_plan' => 'required',
+            'social_links' => 'required',
+            'contact_method' => 'required',
+            'agree_terms' => 'required',
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(),
+            ]);
+        }
         DB::table('partner_applications')->insert([
             'full_name' => $request->full_name,
             'mobile_number' => $request->mobile_number,
@@ -3322,7 +3345,10 @@ class HomeController extends Controller
         $this->sendNC_Partner_Application_Received($request->mobile_number);
 
 
-        return response()->json(['status' => true]);
+        return response()->json([
+            'status' => true,
+            'message' => "Successfully",
+        ]);
     }
 
     public function sendNC_Partner_Application_Received($mobile)
