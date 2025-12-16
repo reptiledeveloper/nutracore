@@ -181,19 +181,96 @@ class ApiController extends Controller
 
     }
 
+    public function updateSubscription($order, $user)
+    {
+        if (!empty($user)) {
+            $subscription_start = $user->subscription_start ?? '';
+            $subscription_end = $user->subscription_end ?? '';
+            $subscription_plans = SubscriptionPlans::where('id', $order->subscription_id)->first();
+            if (!empty($subscription_plans)) {
+                $duration = (int)$subscription_plans->duration ?? 0;
+                if (empty($subscription_start)) {
+                    $subscription_start = date('Y-m-d');
+                    $subscription_end = date('Y-m-d', strtotime("+" . $duration . " months", strtotime(date('Y-m-d'))));
+                } else {
+                    $subscription_end = date('Y-m-d', strtotime("+" . $duration . " months", strtotime($subscription_end)));
+                }
+                $discount = $subscription_plans->max_discount ?? 0;
+                $total_discount = $user->total_discount + $discount;
+                User::where('id', $user->id)->update(['subscription_start' => $subscription_start, 'subscription_end' => $subscription_end, 'subscription_id' => $order->subscription_id, 'total_discount' => $total_discount]);
+                $txn_id = "NC" . rand(111111, 9999999);
+                $subsc = new Subscriptions();
+                $subsc->user_id = $user->id ?? '';
+                $subsc->subscription_id = $subscription_plans->subscription_id ?? '';
+                $subsc->txn_id = $txn_id ?? '';
+                $subsc->paid_status = 1;
+                $subsc->taken_by = "Self";
+                if (empty($subscription_start)) {
+                    $start_date = date('Y-m-d');
+                } else {
+                    $start_date = $subscription_end;
+                }
+                $subsc->start_date = $start_date;
+                $subsc->end_date = date('Y-m-d', strtotime("+" . $duration . " months", strtotime($start_date)));
+                $subsc->save();
+
+                $data = [];
+                $data['userID'] = $user->id ?? '';
+                $data['txn_no'] = $txn_id;
+                $data['amount'] = $subscription_plans->amount ?? 0;
+                $data['type'] = 'DEBIT';
+                $data['note'] = 'Take Subscription';
+                $data['against_for'] = 'subscription';
+                $data['paid_by'] = 'user';
+                $data['orderID'] = 0;
+                CustomHelper::saveTransaction($data);
+            }
+        }
+
+    }
+    public function creditNcCash($order)
+    {
+        $user = User::find($order->userID);
+        $amount = self::getNcCashPercent($user, $order->order_amount ?? '');
+        $cashback_wallet = $user->cashback_wallet ?? 0;
+        $new_wallet = (int)$cashback_wallet + (int)$amount;
+        $user->cashback_wallet = $new_wallet;
+        $user->save();
+        $order->nc_cash_earned = $amount;
+        $order->save();
+        $dbArray1 = [];
+        $dbArray1['userID'] = $user->id;
+        $dbArray1['txn_no'] = "NC" . rand(1111, 9999999);
+        $dbArray1['amount'] = $amount;
+        $dbArray1['wallet_type'] = "cashback_wallet";
+        $dbArray1['type'] = "CREDIT";
+        $dbArray1['note'] = "Earn NC Cash From Order " . $order->id ?? '';
+        $dbArray1['against_for'] = 'cashback_wallet';
+        $dbArray1['paid_by'] = 'order';
+        $dbArray1['orderID'] = 0;
+        CustomHelper::SaveTransaction($dbArray1);
+        $event = 'NC Cash Earned';
+        $traits = [
+            "nc_cash_earned" => $amount
+        ];
+        CustomHelper::trackEvent($user->id, $event, $traits);
+    }
+
     public function envia_webhook(Request $request)
     {
-        DB::table('new')->insert(['data' => json_encode($request->toArray())]);
+//        DB::table('new')->insert(['data' => json_encode($request->toArray())]);
         $response = $request->toArray();
         if (!empty($response)) {
-            $trackingNumber = $response->trackingNumber ?? '';
-            $status = $response->status ?? '';
+            $trackingNumber = $response['trackingNumber'] ?? '';
+            $status = $response['status'] ?? '';
             $exist = DB::table('order_courier')->where('trackingNumber', $trackingNumber)->first();
+
             if (!empty($exist)) {
                 $order_id = $exist->order_id ?? '';
                 $order = Order::find($order_id);
                 $orderstatus = '';
                 if (!empty($order)) {
+                    $user = User::find($order->userID);
                     if ($status == 'Picked Up') {
                         $orderstatus = 'CONFIRM';
                     }
@@ -207,6 +284,13 @@ class ApiController extends Controller
 
                         ];
                         CustomHelper::trackEvent($order->userID, $event, $traits);
+                        if (!empty($order->subscription_id) && $order->subscription_id != "null") {
+                            $this->updateSubscription($order, $user);
+                        }
+                        $this->creditNcCash($order);
+
+                        CustomHelper::orderDelivered($user->phone ?? '', $order_id);
+                        CustomHelper::sendInvoiceWP($user, $order);
                     }
                     if ($status == 'Canceled') {
                         $orderstatus = 'CANCEL';
@@ -245,6 +329,30 @@ class ApiController extends Controller
                 $response = $this->send_whatsappsms($mobile, $code);
             }
         }
+        return $response;
+    }
+
+    public function send_sms($mobile, $code)
+    {
+        $user_name = "User";
+        $curl = curl_init();
+        curl_setopt_array($curl, [
+            CURLOPT_URL => "https://api.msg91.com/api/v5/flow/",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => "{\n  \"flow_id\": \"689227c998d5cf4ec72f5c53\",\n  \"sender\": \"NUTRCR\",\n  \"mobiles\": \"91$mobile\",\n  \"otp\": \"$code\",\n  \"user_name\": \"$user_name\"}",
+            CURLOPT_HTTPHEADER => [
+                "authkey: 431621ABncLfiKpzo6875ff9bP1",
+                "content-type: application/JSON"
+            ],
+        ]);
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        curl_close($curl);
         return $response;
     }
 
@@ -291,35 +399,7 @@ class ApiController extends Controller
         return $response;
     }
 
-    public function send_sms($mobile, $code)
-    {
-        $user_name = "User";
-        $curl = curl_init();
-        curl_setopt_array($curl, [
-            CURLOPT_URL => "https://api.msg91.com/api/v5/flow/",
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => "POST",
-            CURLOPT_POSTFIELDS => "{\n  \"flow_id\": \"689227c998d5cf4ec72f5c53\",\n  \"sender\": \"NUTRCR\",\n  \"mobiles\": \"91$mobile\",\n  \"otp\": \"$code\",\n  \"user_name\": \"$user_name\"}",
-            CURLOPT_HTTPHEADER => [
-                "authkey: 431621ABncLfiKpzo6875ff9bP1",
-                "content-type: application/JSON"
-            ],
-        ]);
-        $response = curl_exec($curl);
-        $err = curl_error($curl);
-        curl_close($curl);
-        return $response;
-        //        if ($err) {
-//
-//        } else {
-//
-//        }
 
-    }
 
     public function verify_otp(Request $request): \Illuminate\Http\JsonResponse
     {
@@ -349,8 +429,6 @@ class ApiController extends Controller
             ], 200);
         }
     }
-
-
     public function profile(Request $request): \Illuminate\Http\JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -428,7 +506,6 @@ class ApiController extends Controller
             'active_loyalty' => $active_loyalty,
         ], 200);
     }
-
     public function splash_screens(Request $request): \Illuminate\Http\JsonResponse
     {
         $splash_screens = [];
@@ -445,8 +522,6 @@ class ApiController extends Controller
 
         ], 200);
     }
-
-
     public function login(Request $request): \Illuminate\Http\JsonResponse
     {
         $input = $request->only(['phone', 'otp']);
@@ -1291,8 +1366,6 @@ class ApiController extends Controller
                                             CustomHelper::sendPlaceNewOrder($user->phone ?? '', $exist->order_id ?? '');
                                             self::updateNCCashAfterOrder($order_id);
                                             self::sendOrderNotification($exist->order_id ?? '');
-                                            self::updateStock($order_id);
-
                                             $event = 'Place Order';
                                             $traits = [
 
@@ -1469,47 +1542,6 @@ class ApiController extends Controller
         ], 200);
     }
 
-
-    public function updateStock($order_id)
-    {
-        $order = Order::find($order_id);
-        if (!empty($order)) {
-            $order_items = OrderItems::where('order_id', $order_id)->get();
-            if (!empty($order_items)) {
-                foreach ($order_items as $order_item) {
-                    $product_id = $order_item->product_id ?? '';
-                    $variant_id = $order_item->variant_id ?? '';
-                    $qty = $order_item->qty ?? '';
-                    $exist = DB::table('stock_batches')->where('product_id', $product_id);
-                    if (!empty($variant_id)) {
-                        $exist->where('variant_id', $variant_id);
-                    }
-                    $exist = $exist->where('quantity', '>', 0)->orderBy('mfg_date', 'ASC')->first();
-                    if (!empty($exist)) {
-                        if ((int)$exist->quantity <= (int)$qty) {
-                            $new_qty = (int)$exist->quantity - (int)$qty;
-                            DB::table('stock_batches')->where('id', $exist->id)->update(['quantity' => $new_qty]);
-                            StockLog::create([
-                                'product_id' => $product_id,
-                                'variant_id' => $variant_id,
-                                'store_id' => $exist->store_id ?? '',
-                                'action' => "sale",
-                                'quantity' => $qty,
-                                'closing_stock' => $new_qty,
-                                'related_id' => 0,
-                                'related_type' => "Sale",
-                                'created_by' => auth()->id(),
-                                'order_id' => $order_id,
-                            ]);
-                        } else {
-
-                        }
-                    }
-                }
-            }
-        }
-
-    }
 
 
     public function checkGuest($user)
@@ -2588,10 +2620,10 @@ class ApiController extends Controller
                     }
                     $varient_images = [];
                     $varient->is_wishlist = $is_wishlist;
-                    $dbArray = [];
-                    $dbArray['id'] = 0;
-                    $dbArray['image'] = CustomHelper::getImageUrl('products', $product->image);
-                    $varient_images[] = $dbArray;
+//                    $dbArray = [];
+//                    $dbArray['id'] = 0;
+//                    $dbArray['image'] = CustomHelper::getImageUrl('products', $product->image);
+//                    $varient_images[] = $dbArray;
                     $product_images = DB::table('product_images')->where('product_id', $product->id)->where('varient_id', $varient->id)->get();
                     if (!empty($product_images)) {
                         foreach ($product_images as $product_image) {
@@ -2621,10 +2653,10 @@ class ApiController extends Controller
                 }
             } else {
                 $varient_images = [];
-                $dbArray = [];
-                $dbArray['id'] = 0;
-                $dbArray['image'] = CustomHelper::getImageUrl('products', $product->image);
-                $varient_images[] = $dbArray;
+//                $dbArray = [];
+//                $dbArray['id'] = 0;
+//                $dbArray['image'] = CustomHelper::getImageUrl('products', $product->image);
+//                $varient_images[] = $dbArray;
                 $nc_cash = self::getNcCashPercent($user, $product->product_selling_price ?? '');
                 $product_images = DB::table('product_images')->where('product_id', $product->id)->get();
                 if (!empty($product_images)) {
@@ -2726,7 +2758,11 @@ class ApiController extends Controller
             ->where('to_amount', '>=', $amount)
             ->first();
         if (!empty($active_loyalty)) {
-            return round(((int)$amount * (int)$active_loyalty->cashback) / 100);
+            $cashback = round(((int)$amount * (int)$active_loyalty->cashback) / 100);
+            if ((int)$cashback >= (int)$active_loyalty->max_cashback) {
+                $cashback = $active_loyalty->max_cashback;
+            }
+            return $cashback;
         }
         return 0;
 
@@ -4287,9 +4323,6 @@ class ApiController extends Controller
             }
         }
 
-        if ($payment_method == 'COD') {
-            self::updateStock($order_id);
-        }
         self::updateOrderStatus($order_id, "PLACED");
 
         return $order_id;

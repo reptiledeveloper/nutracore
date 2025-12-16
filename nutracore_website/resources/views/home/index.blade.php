@@ -87,92 +87,384 @@
 
     </style>
     <style>
-        /* Desktop */
         .banner-slide {
             width: 100%;
-            padding-top: 28%; /* Desktop responsive height */
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: 100% auto !important; /* Prevent height increase */
-            background-color: #f8f8f8;
-            border-radius: 12px;
+            height: 400px;
+            border-radius: 20px;
+            background-size: cover !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
         }
 
         /* Tablet */
         @media (max-width: 768px) {
             .banner-slide {
-                padding-top: 28.57% !important;
-                /*height: 300px !important;*/
-                object-fit: cover;
-                background-size: 100% auto !important; /* Key line */
+                height: 200px;
+                border-radius: 16px;
             }
         }
 
         /* Mobile */
         @media (max-width: 480px) {
             .banner-slide {
-                padding-top: 28.57% !important;
-                /*height: 200px !important; !* smaller height *!*/
-                background-size: 100% auto !important; /* ensures no height increase */
+                height: 200px;
+                border-radius: 12px;
             }
         }
 
+        .home-banner {
+            width: 100%;
+            height: 400px;
+            border-radius: 20px;
+            object-fit: fill; /* better than fill */
+        }
+
+        /* Tablet */
+        @media (max-width: 768px) {
+            .home-banner {
+                height: 200px;
+            }
+        }
+
+        /* Mobile */
+        @media (max-width: 480px) {
+            .home-banner {
+                height: 160px;
+            }
+        }
+
+        .padding_set {
+            padding-top: 458px;
+        }
+
+        @media (max-width: 768px) {
+            .padding_set {
+                padding-top: 320px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .padding_set {
+                padding-top: 320px;
+            }
+        }
+
+
+    </style>
+    <style>
+        /* General */
+        * {
+            font-family: "Poppins", sans-serif;
+            box-sizing: border-box;
+        }
+
+        /* Main Container */
+        .nutrapass-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: stretch;
+            background: linear-gradient(90deg, #f8d57a, #f6c34a);
+            border-radius: 16px;
+            padding: 30px;
+            width: 100%;
+            max-width: 850px;
+            margin: 50px auto;
+            color: #000;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Left Section */
+        .left-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .left-section h3 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .left-section p {
+            font-size: 14px;
+            margin: 4px 0;
+        }
+
+        .join-btn {
+            margin-top: 10px;
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            width: fit-content;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .join-btn:hover {
+            background: #fef1c5;
+        }
+
+        /* Right Section */
+        .right-section {
+            flex: 1.2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .logo h2 {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .nutra {
+            color: #fff;
+        }
+
+        .pass {
+            background: #fff;
+            color: #f5b700;
+            padding: 0 5px;
+            border-radius: 4px;
+        }
+
+        .tagline {
+            font-size: 10px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        /* Plans Scroll Container */
+        .scroll-container-right {
+            display: flex;
+            justify-content: flex-start;
+            gap: 20px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-behavior: smooth;
+            width: 100%;
+            padding-bottom: 10px;
+            scrollbar-width: none; /* Firefox */
+        }
+
+        .scroll-container-right::-webkit-scrollbar {
+            display: none; /* Chrome/Safari/Edge */
+        }
+
+        /* Plan Cards */
+        .plan {
+            background: rgba(255, 255, 255, 0.8);
+            color: #333;
+            padding: 10px;
+            padding-top: 0px;
+            border-radius: 12px;
+            width: 100px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .plan:hover {
+            transform: translateY(-4px);
+        }
+
+        .plan.active {
+            background: #fff;
+            border: 2px solid #f5b700;
+            color: #000;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            transform: scale(1.05);
+        }
+
+        /* 👇 Highlight "months" text in active plan */
+        .plan.active .months {
+            color: #f5b700;
+        }
+
+        .plan .plan-title {
+            background: #f6c34a;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            /* padding: 3px 6px; */
+            border-radius: 3px;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+
+        .plan .months {
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        .plan .details {
+            font-size: 12px;
+            line-height: 1.4;
+            margin-top: 6px;
+        }
+
+        .plan .price {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .highlight {
+            background: #f5b700 !important;
+        }
+
+        .save {
+            color: #ff3b3b;
+            font-weight: 700;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nutrapass-container {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .left-section,
+            .right-section {
+                align-items: center;
+            }
+
+            .scroll-container-right {
+                justify-content: center;
+            }
+        }
+    </style>
+    <style>
+        .scroll-container-right {
+            display: flex;
+            overflow-x: auto;
+            /* Horizontal scroll */
+            justify-content: flex-end;
+            /* Align plans to right */
+            gap: 15px;
+            padding: 10px;
+            scroll-behavior: smooth;
+            /* smooth scroll */
+        }
+
+        .scroll-container-right::-webkit-scrollbar {
+            height: 6px;
+            /* scrollbar height */
+        }
+
+        .scroll-container-right::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+
+        .plan {
+            min-width: 150px;
+            background: transparent;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            flex-shrink: 0;
+            /* prevent shrinking */
+        }
+
+        .plan.selected {
+            background: white;
+            color: black;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            border: 2px solid #f5b300;
+        }
+
+        /* Recolor text inside selected plan */
+        .plan.selected h4,
+        .plan.selected .months,
+        .plan.selected .price {
+            color: #f5b300;
+        }
+
+        .plan.selected h4 {
+            background: linear-gradient(90deg, #f7ce68, #f5b300);
+            color: #0A6A6A
+        }
+
+        .months {
+            font-size: 28px;
+            font-weight: bold;
+            color: white
+        }
+
+        .plan h4 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            padding: 5px 10px;
+            display: inline-block;
+            border-radius: 5px;
+            background: transparent;
+            color: white;
+        }
+
+        .plan:not(:has(h4)) .details {
+            margin-top: 20px;
+            /* or any value that aligns the text properly */
+        }
     </style>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css"/>
 
     <main class="main">
 
         @include('home.countdown')
 
 
-
         <section class="home-slider position-relative mb-30">
             <div class="container">
                 <div class="home-slide-cover mt-30">
 
-                    <!-- Swiper Slider -->
                     <div class="swiper myBannerSwiper">
                         <div class="swiper-wrapper">
 
                             @foreach($website_main_banner as $banner)
                                 @php
                                     $slug = '';
+
+                                    if (!empty($banner->category_id)) {
+                                        $slug = \App\Models\Category::find($banner->category_id)->slug ?? '';
+                                    }
+
+                                    if (!empty($banner->brand_id)) {
+                                        $slug = \App\Models\Brand::find($banner->brand_id)->slug ?? '';
+                                    }
+
+                                    $url = url('collections/' . $slug);
                                 @endphp
-                                @if(!empty($banner->category_id))
-                                    @php
-                                        $slug = \App\Models\Category::find($banner->category_id)->slug??'';
-                                    @endphp
-                                @endif
-                                @if(!empty($banner->brand_id))
-                                    @php
-                                        $slug = \App\Models\Brand::find($banner->brand_id)->slug??'';
-                                    @endphp
-                                @endif
 
-
-
-                                @php
-                                    $url =  url('collections/' . $slug);
-                                @endphp
                                 @if(!empty($banner->banner_img))
                                     <div class="swiper-slide">
-                                       <a href="{{$url}}">
-                                           <div class="banner-slide"
-                                                style="background-image: url('{{ $banner->banner_img }}')">
-                                           </div>
-                                       </a>
+                                        <a href="{{ $url }}">
+                                            <img src="{{ $banner->banner_img }}"
+                                                 class="img-fluid home-banner"
+                                                 alt="Banner">
+                                        </a>
                                     </div>
                                 @endif
                             @endforeach
 
                         </div>
 
-{{--                        <!-- Navigation Arrows -->--}}
-{{--                        <div class="swiper-button-next"></div>--}}
-{{--                        <div class="swiper-button-prev"></div>--}}
-
-                        <!-- Pagination Dots -->
+                        <!-- Pagination -->
                         <div class="swiper-pagination"></div>
                     </div>
 
@@ -222,8 +514,8 @@
             <div class="container">
                 <div class="row">
                     @foreach($small_banners as $banner)
-                       @php
-                        $slug = '';
+                        @php
+                            $slug = '';
                         @endphp
                         @if(!empty($banner->category_id))
                             @php
@@ -238,9 +530,9 @@
 
 
 
-                    @php
-                        $url =  url('collections/' . $slug);
-                    @endphp
+                        @php
+                            $url =  url('collections/' . $slug);
+                        @endphp
                         <div class="col-lg-4 col-md-6 p-2">
                             <a href="{{$url}}">
                                 <div class="banner-img wow animate__animated animate__fadeInUp" data-wow-delay="0">
@@ -422,81 +714,6 @@
             </div>
         </section>
 
-        <style>
-            .scroll-container-right {
-                display: flex;
-                overflow-x: auto;
-                /* Horizontal scroll */
-                justify-content: flex-end;
-                /* Align plans to right */
-                gap: 15px;
-                padding: 10px;
-                scroll-behavior: smooth;
-                /* smooth scroll */
-            }
-
-            .scroll-container-right::-webkit-scrollbar {
-                height: 6px;
-                /* scrollbar height */
-            }
-
-            .scroll-container-right::-webkit-scrollbar-thumb {
-                background: #888;
-                border-radius: 3px;
-            }
-
-            .plan {
-                min-width: 150px;
-                background: transparent;
-                color: white;
-                text-align: center;
-                padding: 15px;
-                border-radius: 10px;
-                cursor: pointer;
-                flex-shrink: 0;
-                /* prevent shrinking */
-            }
-
-            .plan.selected {
-                background: white;
-                color: black;
-                box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-                border: 2px solid #f5b300;
-            }
-
-            /* Recolor text inside selected plan */
-            .plan.selected h4,
-            .plan.selected .months,
-            .plan.selected .price {
-                color: #f5b300;
-            }
-
-            .plan.selected h4 {
-                background: linear-gradient(90deg, #f7ce68, #f5b300);
-                color: #0A6A6A
-            }
-
-            .months {
-                font-size: 28px;
-                font-weight: bold;
-                color: white
-            }
-
-            .plan h4 {
-                font-size: 18px;
-                margin-bottom: 10px;
-                padding: 5px 10px;
-                display: inline-block;
-                border-radius: 5px;
-                background: transparent;
-                color: white;
-            }
-
-            .plan:not(:has(h4)) .details {
-                margin-top: 20px;
-                /* or any value that aligns the text properly */
-            }
-        </style>
 
         <section class="product-tabs section-padding position-relative">
             <div class="container">
@@ -504,24 +721,24 @@
                     <!-- Left Banner -->
                     <div class="col-12 col-md-8 d-flex flex-column d-none d-md-flex">
                         <div class="h-100">
-                            <div class="position-relative banner-img">
-                                <img src="{{url('public/assets/images/refer.png')}}" class="img-fluid w-100 rounded"
-                                     alt="Refer Banner"/>
-                                <div class="position-absolute top-50 translate-middle text-left"
-                                     style="left: 30%;">
-                                    <span class="d-block text-white fs-5 fw-bold">
-                                        Refer a friend and earn rewards!
-                                    </span>
-                                    <p class="text-white mt-2 mb-3"
-                                       style="font-size: 12px; font-family: 'Lato', sans-serif;">
-                                        Explore the perfect supplements designed just for you! Start <br> your journey
-                                        to
-                                        better
-                                        health today and find what suits your needs best.
-                                    </p>
-                                    <a class='btn btn-primary' onclick="checkLoginRedirect('{{route('refer_earn')}}')">Join Now</a>
-                                </div>
-                            </div>
+                            {{--                            <div class="position-relative banner-img">--}}
+                            {{--                                <img src="{{url('public/assets/images/refer.png')}}" class="img-fluid w-100 rounded"--}}
+                            {{--                                     alt="Refer Banner"/>--}}
+                            {{--                                <div class="position-absolute top-50 translate-middle text-left"--}}
+                            {{--                                     style="left: 30%;">--}}
+                            {{--                                    <span class="d-block text-white fs-5 fw-bold">--}}
+                            {{--                                        Refer a friend and earn rewards!--}}
+                            {{--                                    </span>--}}
+                            {{--                                    <p class="text-white mt-2 mb-3"--}}
+                            {{--                                       style="font-size: 12px; font-family: 'Lato', sans-serif;">--}}
+                            {{--                                        Explore the perfect supplements designed just for you! Start <br> your journey--}}
+                            {{--                                        to--}}
+                            {{--                                        better--}}
+                            {{--                                        health today and find what suits your needs best.--}}
+                            {{--                                    </p>--}}
+                            {{--                                    <a class='btn btn-primary' onclick="checkLoginRedirect('{{route('refer_earn')}}')">Join Now</a>--}}
+                            {{--                                </div>--}}
+                            {{--                            </div>--}}
 
 
                             <div class="position-relative banner-img" style="position: relative;">
@@ -535,15 +752,14 @@
       left: 30px;
       color: #333;
       font-weight: bold;
-      max-width: 320px;
+      max-width: 450px;
       transform: translateY(-50%);
   ">
                                     <h3 style="font-weight: 700; font-size: 25px;">Join Wellness+ Membership</h3>
-                                    <p class="mt-2">🔥 10% OFF every order</p>
-                                    <p class="mt-2">🚚 Free Express Delivery</p>
-                                    <p class="mt-2">🎁 Monthly Freebie Box</p>
-                                    <p class="mt-2">⏰ Early Access & Secret Sales</p>
-                                    <button class="btn" style="
+                                    <p id="subscription_html1">
+
+                                    </p>
+                                    <button class="btn" onclick="subscribeNow()" style="
         width: 80%;
         border-radius: 8px;
         padding: 10px 20px;
@@ -585,7 +801,13 @@
             }
                                         @endphp
 
-                                        <div class="plan {{$key == 0 ? 'selected' : ''}}" onclick="selectPlan(this)">
+                                        <div class="plan {{$key == 0 ? 'selected' : ''}}"
+                                             onclick="selectPlan('{{ $plan->id }}','{{ $plan->duration }}','{!! $plan->terms  !!}')"
+                                             id="plan{{ $plan->duration }}"
+                                             data-duration="{{ $plan->duration }}"
+                                             data-id="{{ $plan->id }}"
+                                             data-terms="{{ htmlentities($plan->terms) }}"
+                                             data-price="{{ $plan->price }}">
 
                                             @if($plan->is_best_value == 1)
                                                 <h4 class="plan-title">Best Value</h4>
@@ -601,230 +823,9 @@
                                     @endforeach
                                 </div>
 
-                                <style>
-                                    /* General */
-                                    * {
-                                        font-family: "Poppins", sans-serif;
-                                        box-sizing: border-box;
-                                    }
-
-                                    /* Main Container */
-                                    .nutrapass-container {
-                                        display: flex;
-                                        justify-content: space-between;
-                                        align-items: stretch;
-                                        background: linear-gradient(90deg, #f8d57a, #f6c34a);
-                                        border-radius: 16px;
-                                        padding: 30px;
-                                        width: 100%;
-                                        max-width: 850px;
-                                        margin: 50px auto;
-                                        color: #000;
-                                        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-                                    }
-
-                                    /* Left Section */
-                                    .left-section {
-                                        flex: 1;
-                                        display: flex;
-                                        flex-direction: column;
-                                        justify-content: center;
-                                        gap: 8px;
-                                    }
-
-                                    .left-section h3 {
-                                        font-size: 20px;
-                                        font-weight: 700;
-                                    }
-
-                                    .left-section p {
-                                        font-size: 14px;
-                                        margin: 4px 0;
-                                    }
-
-                                    .join-btn {
-                                        margin-top: 10px;
-                                        background: #fff;
-                                        color: #000;
-                                        border: none;
-                                        padding: 10px 20px;
-                                        border-radius: 8px;
-                                        font-weight: 600;
-                                        width: fit-content;
-                                        cursor: pointer;
-                                        transition: all 0.3s ease;
-                                    }
-
-                                    .join-btn:hover {
-                                        background: #fef1c5;
-                                    }
-
-                                    /* Right Section */
-                                    .right-section {
-                                        flex: 1.2;
-                                        display: flex;
-                                        flex-direction: column;
-                                        align-items: center;
-                                        justify-content: space-between;
-                                    }
-
-                                    .logo {
-                                        text-align: center;
-                                        margin-bottom: 10px;
-                                    }
-
-                                    .logo h2 {
-                                        font-size: 22px;
-                                        font-weight: 700;
-                                    }
-
-                                    .nutra {
-                                        color: #fff;
-                                    }
-
-                                    .pass {
-                                        background: #fff;
-                                        color: #f5b700;
-                                        padding: 0 5px;
-                                        border-radius: 4px;
-                                    }
-
-                                    .tagline {
-                                        font-size: 10px;
-                                        color: #333;
-                                        font-weight: 500;
-                                    }
-
-                                    /* Plans Scroll Container */
-                                    .scroll-container-right {
-                                        display: flex;
-                                        justify-content: flex-start;
-                                        gap: 20px;
-                                        overflow-x: auto;
-                                        overflow-y: hidden;
-                                        scroll-behavior: smooth;
-                                        width: 100%;
-                                        padding-bottom: 10px;
-                                        scrollbar-width: none; /* Firefox */
-                                    }
-
-                                    .scroll-container-right::-webkit-scrollbar {
-                                        display: none; /* Chrome/Safari/Edge */
-                                    }
-
-                                    /* Plan Cards */
-                                    .plan {
-                                        background: rgba(255, 255, 255, 0.8);
-                                        color: #333;
-                                        padding: 10px;
-                                        padding-top: 0px;
-                                        border-radius: 12px;
-                                        width: 100px;
-                                        text-align: center;
-                                        cursor: pointer;
-                                        transition: all 0.3s ease;
-                                        border: 1px solid transparent;
-                                    }
-
-                                    .plan:hover {
-                                        transform: translateY(-4px);
-                                    }
-
-                                    .plan.active {
-                                        background: #fff;
-                                        border: 2px solid #f5b700;
-                                        color: #000;
-                                        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-                                        transform: scale(1.05);
-                                    }
-
-                                    /* 👇 Highlight "months" text in active plan */
-                                    .plan.active .months {
-                                        color: #f5b700;
-                                    }
-
-                                    .plan .plan-title {
-                                        background: #f6c34a;
-                                        color: white;
-                                        font-size: 12px;
-                                        font-weight: 600;
-                                        /* padding: 3px 6px; */
-                                        border-radius: 3px;
-                                        margin-bottom: 8px;
-                                        display: inline-block;
-                                    }
-
-                                    .plan .months {
-                                        font-size: 26px;
-                                        font-weight: 700;
-                                    }
-
-                                    .plan .details {
-                                        font-size: 12px;
-                                        line-height: 1.4;
-                                        margin-top: 6px;
-                                    }
-
-                                    .plan .price {
-                                        font-weight: 600;
-                                        font-size: 13px;
-                                    }
-
-                                    .highlight {
-                                        background: #f5b700 !important;
-                                    }
-
-                                    .save {
-                                        color: #ff3b3b;
-                                        font-weight: 700;
-                                    }
-
-                                    /* Responsive */
-                                    @media (max-width: 768px) {
-                                        .nutrapass-container {
-                                            flex-direction: column;
-                                            text-align: center;
-                                        }
-
-                                        .left-section,
-                                        .right-section {
-                                            align-items: center;
-                                        }
-
-                                        .scroll-container-right {
-                                            justify-content: center;
-                                        }
-                                    }
-                                </style>
 
                             </div>
 
-                            <script>
-                                document.addEventListener("DOMContentLoaded", function () {
-                                    const plans = document.querySelectorAll(".plan");
-
-                                    // ✅ Default first plan active
-                                    if (plans.length > 0) {
-                                        plans[0].classList.add("active");
-                                        plans[0].querySelector(".months").style.color = "#db6001";
-                                    }
-
-                                    // ✅ Click event for each plan
-                                    plans.forEach(plan => {
-                                        plan.addEventListener("click", function () {
-                                            // sab plans se active class hatao
-                                            plans.forEach(p => {
-                                                p.classList.remove("active");
-                                                p.querySelector(".months").style.color = "#000"; // reset color
-                                            });
-
-                                            // clicked plan ko active karo
-                                            this.classList.add("active");
-                                            this.querySelector(".months").style.color = "#db6001";
-                                        });
-                                    });
-                                });
-                            </script>
 
                         </div>
                     </div>
@@ -833,16 +834,17 @@
                         <div class="h-100">
                             <div class="position-relative banner-img mt-3 mt-md-0"
                                  style="min-height: 350px; ">
-                                <img src="{{ $instant_expert->banner_img??url('public/assets/images/consultation.png') }}"
-                                     class="img-fluid w-100 h-100"
-                                     style="object-fit: fill;" alt="Consultation Banner"/>
+                                <img
+                                    src="{{ $instant_expert->banner_img??url('public/assets/images/consultation.png') }}"
+                                    class="img-fluid w-100 h-100"
+                                    style="object-fit: fill;" alt="Consultation Banner"/>
                                 <div class="position-absolute top-50 translate-middle text-center p-3"
                                      style="border-radius: 10px; left:50%; width:100%;  display:flex; justify-content: space-between; flex-direction: column;">
-                                    <div style="padding-top: 30px">
-{{--                                        <h5 class="text-white fw-bold">Instant Expert Guidance</h5>--}}
-{{--                                        <p class="text-white mb-3">--}}
-{{--                                            Get immediate access to expert advice and insights tailored just for you!--}}
-{{--                                        </p>--}}
+                                    <div class="padding_set">
+                                        {{--                                        <h5 class="text-white fw-bold">Instant Expert Guidance</h5>--}}
+                                        {{--                                        <p class="text-white mb-3">--}}
+                                        {{--                                            Get immediate access to expert advice and insights tailored just for you!--}}
+                                        {{--                                        </p>--}}
                                     </div>
                                     <div style="padding-bottom: 20px">
                                         <a class='btn btn-primary' href='{{url('nc_consult')}}'>Connect now</a>
@@ -858,17 +860,17 @@
             </div>
         </section>
 
-        <section class="banners mb-25">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="banner-img wow animate__animated animate__fadeInUp" data-wow-delay="0">
-                            <img src="{{ $fixed_banner_2->banner_img ?? '' }}" alt="" style="width: 100%"/>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+        {{--        <section class="banners mb-25">--}}
+        {{--            <div class="container">--}}
+        {{--                <div class="row">--}}
+        {{--                    <div class="col-lg-12">--}}
+        {{--                        <div class="banner-img wow animate__animated animate__fadeInUp" data-wow-delay="0">--}}
+        {{--                            <img src="{{ $fixed_banner_2->banner_img ?? '' }}" alt="" style="width: 100%"/>--}}
+        {{--                        </div>--}}
+        {{--                    </div>--}}
+        {{--                </div>--}}
+        {{--            </div>--}}
+        {{--        </section>--}}
 
         <section class="banners mb-25">
             <div class="container">
@@ -1289,6 +1291,34 @@
                 </div>
             </div>
         </section>
+
+
+        <section class="featured section-padding">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="accordion" id="supplementsFaq">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingOne">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                        More Details about Health, Nutrition & Body Building Supplements
+                                    </button>
+                                </h2>
+                                <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#supplementsFaq">
+                                    <div class="accordion-body">
+                                        Health supplements are products intended to supplement your diet and provide nutrients such as vitamins, minerals, amino acids, and more.
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div> <!-- /.col-12 -->
+                </div> <!-- /.row -->
+            </div> <!-- /.container -->
+        </section>
+
+
     </main>
 
     <script>
@@ -1349,6 +1379,34 @@
             },
             speed: 600,
             spaceBetween: 20,
+        });
+    </script>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const plans = document.querySelectorAll(".plan");
+
+            // ✅ Default first plan active
+            if (plans.length > 0) {
+                plans[0].classList.add("active");
+                plans[0].querySelector(".months").style.color = "#db6001";
+            }
+
+            // ✅ Click event for each plan
+            plans.forEach(plan => {
+                plan.addEventListener("click", function () {
+                    // sab plans se active class hatao
+                    plans.forEach(p => {
+                        p.classList.remove("active");
+                        p.querySelector(".months").style.color = "#000"; // reset color
+                    });
+
+                    // clicked plan ko active karo
+                    this.classList.add("active");
+                    this.querySelector(".months").style.color = "#db6001";
+                });
+            });
         });
     </script>
 

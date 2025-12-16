@@ -41,6 +41,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
         Route::match(['get', 'post'], '/delete_image', 'HomeController@delete_image')->name('admin.delete_image');
         Route::match(['get', 'post'], '/search_image', 'HomeController@search_image')->name('admin.search_image');
         Route::match(['get', 'post'], '/send_test_email', 'HomeController@send_test_email')->name('send_test_email');
+        Route::match(['get', 'post'], '/sync_product_googlesheet', 'HomeController@sync_product_googlesheet')->name('sync_product_googlesheet');
 
 ////banners
         Route::group(['prefix' => 'banners', 'as' => 'banners', 'middleware' => ['allowedmodule:banners,list']], function () {
@@ -49,9 +50,38 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'edit/{id}', 'BannerController@add')->name('.edit');
             Route::match(['get', 'post'], 'delete/{id}', 'BannerController@delete')->name('.delete');
         });
+
+        ////nc_partners
+        Route::group(['prefix' => 'nc_partners', 'as' => 'nc_partners', 'middleware' => ['allowedmodule:nc_partners,list']], function () {
+            Route::get('/', 'NCPartnerController@index')->name('.index');
+            Route::match(['get', 'post'], 'add', 'NCPartnerController@add')->name('.add');
+            Route::match(['get', 'post'], 'edit/{id}', 'NCPartnerController@add')->name('.edit');
+            Route::match(['get', 'post'], 'delete/{id}', 'NCPartnerController@delete')->name('.delete');
+            Route::match(['get', 'post'], 'view/{id}', 'NCPartnerController@view')->name('.view');
+            Route::match(['get', 'post'], 'commission/{id}', 'NCPartnerController@commission')->name('.commission');
+            Route::match(['get', 'post'], 'partner_withdrawal/{id}', 'NCPartnerController@partner_withdrawal')->name('.partner_withdrawal');
+            Route::match(['get', 'post'], 'withdrawal', 'NCPartnerController@withdrawal')->name('.withdrawal');
+            Route::match(['get', 'post'], 'with_draw_approve/{id}', 'NCPartnerController@with_draw_approve')->name('.with_draw_approve');
+            Route::match(['get', 'post'], 'with_draw_reject/{id}', 'NCPartnerController@with_draw_reject')->name('.with_draw_reject');
+        });
+        ////nc_partner_tire
+        Route::group(['prefix' => 'nc_partner_tire', 'as' => 'nc_partner_tire', 'middleware' => ['allowedmodule:nc_partner_tire,list']], function () {
+            Route::get('/', 'NCPartnerTireController@index')->name('.index');
+            Route::match(['get', 'post'], 'add', 'NCPartnerTireController@add')->name('.add');
+            Route::match(['get', 'post'], 'edit/{id}', 'NCPartnerTireController@add')->name('.edit');
+            Route::match(['get', 'post'], 'delete/{id}', 'NCPartnerTireController@delete')->name('.delete');
+        });
+
+        ////countdown_timer
+        Route::group(['prefix' => 'countdown_timer', 'as' => 'countdown_timer', 'middleware' => ['allowedmodule:countdown_timer,list']], function () {
+            Route::match(['get', 'post'],'/', 'CountDownTimerController@index')->name('.index');
+            Route::match(['get', 'post'], 'add', 'CountDownTimerController@add')->name('.add');
+            Route::match(['get', 'post'], 'edit/{id}', 'CountDownTimerController@add')->name('.edit');
+            Route::match(['get', 'post'], 'delete/{id}', 'CountDownTimerController@delete')->name('.delete');
+        });
         ////banners
         Route::group(['prefix' => 'suppliments', 'as' => 'suppliments', 'middleware' => ['allowedmodule:suppliments,list']], function () {
-            Route::get('/', 'SupplimentsController@index')->name('.index');
+            Route::match(['get', 'post'], '/', 'SupplimentsController@index')->name('.index');
             Route::match(['get', 'post'], 'add', 'SupplimentsController@add')->name('.add');
             Route::match(['get', 'post'], 'edit/{id}', 'SupplimentsController@add')->name('.edit');
             Route::match(['get', 'post'], 'delete/{id}', 'SupplimentsController@delete')->name('.delete');
@@ -121,6 +151,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::get('/users', 'ExportController@users')->name('.users');
             Route::get('/consultation', 'ExportController@consultation')->name('.consultation');
             Route::get('/cash_management', 'ExportController@cash_management')->name('.cash_management');
+            Route::get('/nc_cash_report', 'ExportController@nc_cash_report')->name('.nc_cash_report');
 
 
         });
@@ -332,6 +363,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'get_closing_stock', 'StockController@get_closing_stock')->name('.get_closing_stock');
             Route::match(['get', 'post'], 'update_stock_batch', 'StockController@update_stock_batch')->name('.update_stock_batch');
             Route::match(['get', 'post'], 'verify_closing_stock', 'StockController@verify_closing_stock')->name('.verify_closing_stock');
+            Route::match(['get', 'post'], 'get-stock-by-store', 'StockController@getStockAjax')->name('.get-stock-by-store');
 
         });
 ////return_request

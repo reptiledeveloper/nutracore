@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap-theme.min.css"
+          integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.7.0/fonts/remixicon.css" rel="stylesheet" />
+    <style>
+        .cart-box {
+            border-radius: 12px;
+        }
+
+        .highlight-box {
+            font-size: 16px;
+        }
+
+        .btn-teal {
+            background: #00a8a5;
+        }
+
+        .btn-teal:hover {
+            background: #008f8c;
+        }
+
+        .quantity-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            border: 1px solid gray;
+            border-radius: 3px;
+        }
+
+
+        .Right_sidr_section {
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            gap: 20px;
+        }
+
+        .quantity-box span {
+            font-size: 18px;
+        }
+
+        .cart_Images {
+            border: 1px solid gray;
+            height: 100px;
+            width: 100px;
+            border-radius: 5px;
+        }
+
+        .Product_Name_Price {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .product_Detail_name h5 {
+            font-size: 20px;
+        }
+
+        .product_Detail_name h6 {
+            font-weight: 600;
+        }
+
+        .Product_image_section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .Product_Section_Main {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .Delete_button {
+            display: none;
+        }
+
+        .desktop_main {
+            display: flex;
+            width: 100%;
+            gap: 10px
+        }
+
+        .Cart_Card_section_right_side {
+            height: 125px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            border: 1px solid rgb(110, 110, 110);
+            border-radius: 10px;
+            min-width: 250px;
+            padding: 10px;
+            flex-shrink: 0;
+        }
+
+        .Right_section_slider {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            scroll-behavior: smooth;
+            width: 100%;
+            white-space: nowrap;
+        }
+
+        .Right_section_slider::-webkit-scrollbar {
+            height: 6px;
+        }
+
+
+        @media (max-width: 604px) {
+
+            .Product_Section_Main {
+                flex-wrap: wrap;
+            }
+
+            .Right_sidr_section {
+                display: flex;
+                align-items: center;
+                flex-direction: row;
+                justify-content: space-between;
+                height: 100%;
+                gap: 20px;
+                margin-top: 10px;
+            }
+
+            .product_Detail_name h5 {
+                font-size: 15px !important;
+            }
+
+            .product_Detail_name h6 {
+                font-weight: 600;
+                font-size: 13px !important;
+            }
+
+            .cart_Images {
+                border: 1px solid gray;
+                height: 100px;
+                width: 130px;
+                border-radius: 5px;
+            }
+
+            .quantity-box {
+                width: 90px
+            }
+
+            .Delete_button {
+                display: block;
+            }
+
+            .Delete_desktop {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+
+<div class="container my-4">
+    <div class="row g-3 align-items-start">
+
+        <div class="col-md-7">
+
+            <div style="border:1px solid gray;padding:10px; border-radius: 10px;margin-top: 10px;">
+                <div class="Product_Section_Main">
+
+                    <div class="Product_image_section">
+                        <div class="cart_Images"></div>
+
+                        <div class="product_Detail_name">
+                            <h5 class="fw-bold" style="color:#008f8c;font-weight: 600;">MuscleTech Nitro-Tech Whey
+                                Protein,</h5>
+                            <h6 class="fw-bold" style="color: #898a8a;">4kg, Milk Chocolate</h6>
+
+                            <div class="Product_Name_Price d-flex align-items-center gap-3">
+                                <h4 class="fw-bold text-dark mb-0" style="color: #575757;">₹10989</h4>
+                                <del class="text-secondary" style="color: rgb(185, 185, 185);">₹14699</del>
+                                <span class="badge bg-success" style="background: #008f8c ;">25% OFF</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="Right_sidr_section">
+
+                        <div class="desktop_main">
+                            <div
+                                class="quantity-box d-flex align-items-center bg-white shadow-sm px-3 py-2 rounded-pill">
+                                <button class="btn btn-sm btn-outline-primary rounded-circle">−</button>
+                                <span class="mx-3 fw-semibold">2</span>
+                                <button class="btn btn-sm btn-outline-primary rounded-circle">＋</button>
+                            </div>
+
+                            <button class="Delete_desktop btn btn-teal text-white fw-bold py-2 rounded mt-2"
+                                    style="color:white; background: red;;">
+                                <i class="ri-delete-bin-line"></i>
+                            </button>
+                        </div>
+
+                        <button style="color: white;" class="btn btn-teal text-white fw-bold py-2 rounded mt-2">
+                            Move to Wishlist
+                        </button>
+
+                        <button class="Delete_button btn btn-teal text-white fw-bold py-2 rounded mt-2"
+                                style="color:white; background: red;;">
+                            <i class="ri-delete-bin-line"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5" style="height:300px;">
+            <div class="Right_section_slider" style="margin-top: 10px;">
+                <div class="Cart_Card_section_right_side">
+                    <div style="padding:15px;">
+                        <label style="font-weight: 700; font-size: 18px;"> 1 Months Pass</label>
+                        <p style="color: #898a8a;font-weight: 600;"> Add for 1 months @ ₹1 only</p>
+                    </div>
+
+                    <div>
+                        <button class="btn btn-teal text-white fw-bold rounded mt-2"
+                                style="color:white; padding-left: 30px;padding-right: 30px; padding-top: 10px; padding-bottom: 10px;">
+                            Add
+                        </button>
+                    </div>
+                </div>
+                <div class="Cart_Card_section_right_side">
+                    <div style="padding:15px;">
+                        <label style="font-weight: 700; font-size: 18px;"> 1 Months Pass</label>
+                        <p style="color: #898a8a;font-weight: 600;"> Add for 1 months @ ₹1 only</p>
+                    </div>
+
+                    <div>
+                        <button class="btn btn-teal text-white fw-bold rounded mt-2"
+                                style="color:white; padding-left: 30px;padding-right: 30px; padding-top: 10px; padding-bottom: 10px;">
+                            Add
+                        </button>
+                    </div>
+                </div>
+                <div class="Cart_Card_section_right_side">
+                    <div style="padding:15px;">
+                        <label style="font-weight: 700; font-size: 18px;"> 1 Months Pass</label>
+                        <p style="color: #898a8a;font-weight: 600;"> Add for 1 months @ ₹1 only</p>
+                    </div>
+
+                    <div>
+                        <button class="btn btn-teal text-white fw-bold rounded mt-2"
+                                style="color:white; padding-left: 30px;padding-right: 30px; padding-top: 10px; padding-bottom: 10px;">
+                            Add
+                        </button>
+                    </div>
+                </div>
+                <div class="Cart_Card_section_right_side">
+                    <div style="padding:15px;">
+                        <label style="font-weight: 700; font-size: 18px;"> 1 Months Pass</label>
+                        <p style="color: #898a8a;font-weight: 600;"> Add for 1 months @ ₹1 only</p>
+                    </div>
+
+                    <div>
+                        <button class="btn btn-teal text-white fw-bold rounded mt-2"
+                                style="color:white; padding-left: 30px;padding-right: 30px; padding-top: 10px; padding-bottom: 10px;">
+                            Add
+                        </button>
+                    </div>
+                </div>
+                <div class="Cart_Card_section_right_side">
+                    <div style="padding:15px; width: 100%;">
+                        <label style="font-weight: 700; font-size: 18px;"> 1 Months Pass</label>
+                        <p style="color: #898a8a;font-weight: 600;"> Add for 1 months @ ₹1 only</p>
+                    </div>
+
+                    <div>
+                        <button class="btn btn-teal text-white fw-bold rounded mt-2"
+                                style="width:100%; color:white; padding-left: 30px;padding-right: 30px; padding-top: 10px; padding-bottom: 10px;">
+                            Add
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"
+        integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+        crossorigin="anonymous"></script>
+
+
+
+</body>
+
+</html>

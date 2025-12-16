@@ -9,7 +9,7 @@
         "ext-openssl": "*",
         "barryvdh/laravel-dompdf": "^3.0",
         "barryvdh/laravel-snappy": "^1.0",
-        "google/apiclient": "^2.17",
+        "google/apiclient": "^2.18",
         "laravel/framework": "^11.9",
         "laravel/tinker": "^2.9",
         "league/flysystem-aws-s3-v3": "^3.29",

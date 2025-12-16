@@ -62,6 +62,7 @@ class OrderController extends Controller
         }
         if (!empty($search)) {
             $orders->where('id', $search);
+            $orders->orWhere('unique_id', $search);
         }
         if (!empty($pos_cancel_type)) {
             $orders->where('pos_cancel_type', $pos_cancel_type);
@@ -718,7 +719,11 @@ class OrderController extends Controller
             ->orderBy('from_amount', 'desc') // pick the highest matching tier
             ->first();
         if (!empty($active_loyalty)) {
-            return round(((int)$amount * (int)$active_loyalty->cashback) / 100);
+            $cashback = round(((int)$amount * (int)$active_loyalty->cashback) / 100);
+            if ((int)$cashback >= (int)$active_loyalty->max_cashback) {
+                $cashback = $active_loyalty->max_cashback;
+            }
+            return $cashback;
         }
         return 0;
 

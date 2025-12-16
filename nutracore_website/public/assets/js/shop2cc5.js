@@ -16,7 +16,7 @@
             asNavFor: '.product-image-slider',
             dots: false,
             focusOnSelect: true,
-            
+
             prevArrow: '<button type="button" class="slick-prev"><i class="fi-rs-arrow-small-left"></i></button>',
             nextArrow: '<button type="button" class="slick-next"><i class="fi-rs-arrow-small-right"></i></button>'
         });
@@ -73,12 +73,12 @@
 
             $('.qty-up').on('click', function (event) {
                 event.preventDefault();
-                qtyval = qtyval + 1;   
+                qtyval = qtyval + 1;
                 $(this).prev().val(qtyval);
             });
 
              $(".qty-down").on("click", function (event) {
-                 event.preventDefault(); 
+                 event.preventDefault();
                  qtyval = qtyval - 1;
                  if (qtyval > 1) {
                      $(this).next().val(qtyval);

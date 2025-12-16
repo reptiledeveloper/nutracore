@@ -43,6 +43,13 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
         $b->brand_icon = $b->brand_img;
         $b->certificate = CustomHelper::getImageUrl('brands', $b->certificate);
     }));
+$isPartner = 0;
+if(!empty($user)){
+    $check = DB::table('partner_applications')->where('mobile_number',$user->phone)->first();
+    if(!empty($check)){
+        $isPartner = 1;
+    }
+}
 ?>
 
     <!DOCTYPE html>
@@ -67,7 +74,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
     <link rel="stylesheet" href="{{url('public/assets')}}/css/main2cc5.css?v=5.6"/>
     <link rel="stylesheet" href="{{url('public/assets')}}/css/responsive.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-{{--    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>--}}
+    {{--    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>--}}
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link
@@ -80,12 +87,27 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
         type="text/css"
         href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"
     />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.min.css"/>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GT-K55F9G2F"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
 
+        gtag('config', 'GT-K55F9G2F');
+    </script>
 
 </head>
-
-<body class="bg-gray-100 min-h-screen flex flex-col justify-between">
+<noscript>
+    <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-K9FG2LRP"
+            height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
+<!-- End Google Tag Manager (noscript) -->
 <div id="toast" class="toast"></div>
+<body class="bg-gray-100 min-h-screen flex flex-col justify-between">
+
 
 <style>
     .toast {
@@ -885,7 +907,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
         <div class="container">
             <div class="header-wrap">
                 <div class="logo logo-width-1">
-                    <a href='{{url('/')}}'><img src="{{url('public/assets')}}/logo.png" alt="logo"/></a>
+                    <a href='{{url('/')}}'><img src="{{url('public/assets/nc_partner/NutraCoreLogoMain.svg')}}" alt="logo"/></a>
                 </div>
                 <div class="header-right">
                     <div class="search-style-2">
@@ -950,6 +972,12 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                                                         class="fi fi-rs-user mr-10"></i>My
                                                     Account</a>
                                             </li>
+                                            @if($isPartner == 1)
+                                                <li>
+                                                    <a onclick="checkLoginRedirect('{{url('partner')}}')"><i
+                                                            class="fi fi-rs-user mr-10"></i>Partner</a>
+                                                </li>
+                                            @endif
                                             <li>
                                                 <a onclick="checkLoginRedirect('{{route('wishlist')}}')"><i
                                                         class="fi fi-rs-heart mr-10"></i>Wishlist</a>
@@ -986,7 +1014,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                                                         class="fi fi-rs-settings-sliders mr-10"></i>GiftCard</a>
                                             </li>
                                             <li>
-                                                <a onclick="checkLoginRedirect('{{route('refer_earn')}}')" ><i
+                                                <a onclick="checkLoginRedirect('{{route('refer_earn')}}')"><i
                                                         class="fi fi-rs-settings-sliders mr-10"></i>Refer & Earn</a>
                                             </li>
                                             <li>
@@ -1092,7 +1120,8 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                                                                 <div class="border-1 text-center">
                                                                     <figure>
                                                                         <a href="{{ url('collections/' . $brand->slug) }}">
-                                                                            <img src="{{ $brand->brand_img }}" alt="" style="height:100px;" />
+                                                                            <img src="{{ $brand->brand_img }}" alt=""
+                                                                                 style="height:100px;"/>
                                                                         </a>
                                                                     </figure>
                                                                     <h4>{{ $brand->brand_name ?? '' }}</h4>
@@ -1208,7 +1237,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                 </div>
                 <div class="hotline d-none d-lg-flex">
                     <img src="{{url('public/assets')}}/imgs/theme/icons/icon-headphone.svg" alt="hotline"/>
-                    <p>+91 88850 65550<span>24/7 Support Center</span></p>
+                    <p>+91 88850 65550<span>10:00 - 18:00, Mon - Sat</span></p>
                 </div>
                 <div class="header-action-icon-2 d-block d-lg-none">
                     <div class="burger-icon burger-icon-white">
@@ -1258,7 +1287,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
     <div class="mobile-header-wrapper-inner">
         <div class="mobile-header-top">
             <div class="mobile-header-logo">
-                <a href='{{url('/')}}'><img src="{{url('public/assets')}}/logo.png" alt="logo"/></a>
+                <a href='{{url('/')}}'><img src="{{url('public/assets/nc_partner/NutraCoreLogoMain.svg')}}" alt="logo"/></a>
             </div>
             <div class="mobile-menu-close close-style-wrap close-style-position-inherit">
                 <button class="close-style search-close">
@@ -1331,6 +1360,11 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                             <div class="menu-item">
                                 <a onclick="checkLoginRedirect('{{route('address')}}')"><span>Address Detail</span></a>
                             </div>
+                            @if($isPartner == 1)
+                                <div class="menu-item">
+                                    <a onclick="checkLoginRedirect('{{url('partner')}}')"> <span>Partner</span></a>
+                                </div>
+                            @endif
                             <div class="menu-item">
                                 <a onclick="checkLoginRedirect('{{route('wishlist')}}')"><span>Wishlist</span></a>
                             </div>
@@ -1339,7 +1373,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
 
                             </div>
                             <div class="menu-item">
-                                <a href="{{route('suppliment_recommendation')}}"><span> My Supplement Recommendation</span></a>
+                                <a onclick="checkLoginRedirect('{{route('suppliment_recommendation')}}')"><span> My Supplement Recommendation</span></a>
 
                             </div>
                             <div class="menu-item">
@@ -1446,10 +1480,11 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
             <div class="container pt-15 pb-20">
                 <div class="row">
                     <div class="col">
-                        <div class="widget-about font-md mb-md-3 mb-lg-3 mb-xl-0 wow animate__animated animate__fadeInUp"
-                             data-wow-delay="0">
+                        <div
+                            class="widget-about font-md mb-md-3 mb-lg-3 mb-xl-0 wow animate__animated animate__fadeInUp"
+                            data-wow-delay="0">
                             <div class="logo" style="margin:0px;width: 85%;">
-                                <img src="{{url('public/assets')}}/logo.png"
+                                <img src="{{url('public/assets/nc_partner/NutraCoreLogoFooter.svg')}}"
                                      alt="logo"/>
 
                             </div>
@@ -1473,13 +1508,15 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                             <li><a href="{{url('terms')}}">Terms &amp; Conditions</a></li>
                             <li><a href="{{url('contact')}}">Contact Us</a></li>
                             <li><a href="{{url('return_policy')}}"> Refund & Cancellation policy</a></li>
+                            <li><a href="{{route('nc_partner')}}">Become an NC Partner </a></li>
                         </ul>
                     </div>
                     <div class="footer-link-widget col wow animate__animated animate__fadeInUp" data-wow-delay=".4s">
                         <h4 class="widget-title">Popular</h4>
                         <ul class="footer-list mb-sm-5 mb-md-0">
-                            @foreach ($allcategories->where('is_popular',1)->take(5) as $category)
-                                <li><a href="{{ url('collections/' . $category->slug) }}">{{$category->name??''}}</a></li>
+                            @foreach ($allcategories->where('is_popular',1)->take(6) as $category)
+                                <li><a href="{{ url('collections/' . $category->slug) }}">{{$category->name??''}}</a>
+                                </li>
                             @endforeach
 
                         </ul>
@@ -1488,8 +1525,9 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                     <div class="footer-link-widget col wow animate__animated animate__fadeInUp" data-wow-delay=".4s">
                         <h4 class="widget-title">Brands</h4>
                         <ul class="footer-list mb-sm-5 mb-md-0">
-                            @foreach ($brands->where('is_popular',1)->take(5) as $brand)
-                                <li><a href="{{ url('collections/' . $brand->slug) }}">{{$brand->brand_name??''}}</a></li>
+                            @foreach ($brands->where('is_popular',1)->take(6) as $brand)
+                                <li><a href="{{ url('collections/' . $brand->slug) }}">{{$brand->brand_name??''}}</a>
+                                </li>
                             @endforeach
 
                         </ul>
@@ -1503,7 +1541,8 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                                class="hover-up mb-sm-2 mb-lg-0"><img class="active"
                                                                      src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"
                                                                      alt=""/></a>
-                            <a target="_blank" href="https://play.google.com/store/apps/details?id=com.nutracore&hl=en_IN"
+                            <a target="_blank"
+                               href="https://play.google.com/store/apps/details?id=com.nutracore&hl=en_IN"
                                class="hover-up mb-sm-2"><img
                                     src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
                                     alt=""/></a>
@@ -1563,10 +1602,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
 
         <div class="benefits-card">
             <ul id="subscription_html">
-                {{--                <li>🔥 10% OFF every order</li>--}}
-                {{--                <li>🚚 Free Express Delivery</li>--}}
-                {{--                <li>🎁 Monthly Freebie Box</li>--}}
-                {{--                <li>⏰ Early Access & Secret Sales</li>--}}
+
             </ul>
         </div>
 
@@ -1770,6 +1806,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
         selectedPlanId = id;
         if (terms) {
             $('#subscription_html').html(terms);
+            $('#subscription_html1').html(terms);
         }
 
         $(".plan-item").removeClass("active");
@@ -1779,6 +1816,11 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
     function subscribeNow() {
         if (!selectedPlanId) {
             alert("Please select a plan first");
+            return;
+        }
+        var user_id = '{{$user->id??''}}';
+        if (user_id == "") {
+            checkLogin();
             return;
         }
         $.ajax({
@@ -1893,7 +1935,8 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
                     <div class="mb-3">
                         <label style="font-size:14px;">
                             <input type="checkbox" id="termsCheckbox" style="margin-right:6px;" checked="checked">
-                            By continuing, I agree to the <a href="{{url('terms')}}" target="_blank">Terms of use</a> & <a href="{{url('privacy_policy')}}" target="_blank">Privacy Policy</a>
+                            By continuing, I agree to the <a href="{{url('terms')}}" target="_blank">Terms of use</a> &
+                            <a href="{{url('privacy_policy')}}" target="_blank">Privacy Policy</a>
                         </label>
                     </div>
 
@@ -1941,8 +1984,10 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
     function checkLogin() {
         var user_id = '{{ $user->id ?? '' }}';
         if (user_id == '') {
+            closePopup();
             $('.mobile-header-active').removeClass('sidebar-visible');
             $('body').removeClass('mobile-menu-active');
+
             $('#otpLoginModal').modal('show');
 
         }
@@ -1977,7 +2022,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
         });
     }
 
-    function wishlist_save(product_id, variant_id,remove_cart=false) {
+    function wishlist_save(product_id, variant_id, remove_cart = false) {
         var user_id = '{{ $user->id ?? '' }}';
         if (user_id == '') {
             $('#otpLoginModal').modal('show');
@@ -1997,7 +2042,7 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
             success: function (resp) {
                 let icon = $("#wishlist_icon_" + variant_id);
 
-                if(remove_cart == true || remove_cart == "true"){
+                if (remove_cart == true || remove_cart == "true") {
                     DeleteCart(product_id, variant_id);
                 }
                 // If added to wishlist
@@ -2048,7 +2093,6 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
     }
 
 
-
     function updateCart(product_id, variant_id, type) {
 
         var user_id = '{{ $user->id ?? '' }}';
@@ -2077,9 +2121,9 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
             cache: false,
             success: function (resp) {
                 $('#cart_quantity' + variant_id).val(qty);
-                $('#cart_qty').html(resp.total_qty??0);
-                $('#cart_qty_phone1').html(resp.total_qty??0);
-                $('#cart_qty_phone2').html(resp.total_qty??0);
+                $('#cart_qty').html(resp.total_qty ?? 0);
+                $('#cart_qty_phone1').html(resp.total_qty ?? 0);
+                $('#cart_qty_phone2').html(resp.total_qty ?? 0);
                 showToast(resp.message);
                 getCartHtml();
             }

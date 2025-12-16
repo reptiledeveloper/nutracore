@@ -365,11 +365,11 @@ $categories = $supplimentsArray['goal_categories'] ??[];
                         <label for="full-name"><strong>Gender*</strong></label>
                         <div class="gender-selection">
                             <input type="radio" id="male" name="gender"
-                                   value="male" {{$user->gender == 'male' ?"checked":""}}>
+                                   value="male" {{!empty($user->gender) && $user->gender == 'male' ?"checked":""}}>
                             <label for="male">Male</label>
 
                             <input type="radio" id="female" name="gender"
-                                   value="female" {{$user->gender == 'female' ?"checked":""}}>
+                                   value="female" {{!empty($user->gender) && $user->gender == 'female' ?"checked":""}}>
                             <label for="female">Female</label>
                         </div>
                     </div>

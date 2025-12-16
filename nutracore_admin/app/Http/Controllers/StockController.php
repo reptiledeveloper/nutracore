@@ -481,23 +481,17 @@ class StockController extends Controller
         $qty = $request->qty ?? '';
         $updated_qty = $request->updated_qty ?? '';
         $from_location = $request->from_location ?? '';
-        echo "<pre>";
-        print_r($request->toArray());
-        echo "sdfsdsdf";
         if (!empty($sku)) {
             foreach ($sku as $key => $value) {
                 if (!empty($product_id[$key]) && !empty($batch_id[$key]) && isset($updated_qty[$key]) && !empty($from_location)) {
-                    $stocks = Stock::where('id', $batch_id[$key])->where('is_delete', 0)->first();
-
+                    $stocks = StockBatch::where('id', $batch_id[$key])->where('is_delete', 0)->first();
                     if (!empty($stocks)) {
                         $exist = [];
                         if (empty($variant_id[$key])) {
                             $exist = StockBatch::where('batch_number', $stocks->batch_number)->where('store_id', $from_location)->where('product_id', $product_id[$key])->first();
                         } else {
                             $exist = StockBatch::where('batch_number', $stocks->batch_number)->where('store_id', $from_location)->where('product_id', $product_id[$key])->where('variant_id', $variant_id[$key])->first();
-
                         }
-
                         DB::table('closing_stock_verify')->insert([
                             "product_id" => $product_id[$key] ?? '',
                             "variant_id" => $variant_id[$key] ?? 0,
@@ -544,17 +538,17 @@ class StockController extends Controller
                                     'Adjust'
                                 );
                             } else {
-                                $dbArray = [];
-                                $dbArray['product_id'] = $exist->product_id ?? '';
-                                $dbArray['variant_id'] = $exist->variant_id ?? '';
-                                $dbArray['store_id'] = $exist->store_id ?? '';
-                                $dbArray['batch_number'] = $exist->batch_number ?? '';
-                                $dbArray['type'] = 'adjust';
-                                $dbArray['mfg_date'] = $exist->mfg_date ?? '';
-                                $dbArray['expiry_date'] = $exist->expiry_date ?? '';
-                                $dbArray['quantity'] = $exist->updated_qty;
-                                $dbArray['stock_id'] = '';
-                                StockBatch::insert($dbArray);
+//                                $dbArray = [];
+//                                $dbArray['product_id'] = $exist->product_id ?? '';
+//                                $dbArray['variant_id'] = $exist->variant_id ?? '';
+//                                $dbArray['store_id'] = $exist->store_id ?? '';
+//                                $dbArray['batch_number'] = $exist->batch_number ?? '';
+//                                $dbArray['type'] = 'adjust';
+//                                $dbArray['mfg_date'] = $exist->mfg_date ?? '';
+//                                $dbArray['expiry_date'] = $exist->expiry_date ?? '';
+//                                $dbArray['quantity'] = $exist->updated_qty;
+//                                $dbArray['stock_id'] = '';
+//                                StockBatch::insert($dbArray);
 
                                 CustomHelper::logStock(
                                     $exist->product_id,
@@ -590,7 +584,13 @@ class StockController extends Controller
         $batchId = $request->batch_id;
         $storeId = $request->store_id;
 
-        $stock = Stock::where('id', $batchId)->first();
+//        $stock = Stock::where('id', $batchId)->first();
+//        $batch_no = '';
+//        if (!empty($stock)) {
+//            $batch_no = $stock->batch_number ?? '';
+//        }
+
+        $stock = StockBatch::where('id', $batchId)->first();
         $batch_no = '';
         if (!empty($stock)) {
             $batch_no = $stock->batch_number ?? '';
@@ -602,13 +602,13 @@ class StockController extends Controller
             ->when($variantId, fn($q) => $q->where('variant_id', $variantId))
             ->when($batch_no, fn($q) => $q->where('batch_number', $batch_no))
             ->where('store_id', $storeId)
-            ->sum('quantity');
+//            ->sum('quantity');
+            ->first()->quantity??0;
 
         return response()->json(['stock' => $qty]);
     }
 
-    public
-    function update_stock_batch(Request $request)
+    public function update_stock_batch(Request $request)
     {
         $stocks = Stock::where('is_delete', 0)->get();
         $stockArr = [];

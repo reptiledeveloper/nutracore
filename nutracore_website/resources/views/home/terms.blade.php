@@ -6,11 +6,15 @@
 
 
     ?>
-
+    <style>
+        .no-tailwind * {
+            all: revert;
+        }
+    </style>
     <main class="main">
         <section class="popular-categories section-padding">
             <div class="container wow ">
-                <div class="row">
+                <div class="row no-tailwind">
                     {!! CustomHelper::getSettings('terms') !!}
 
                 </div>

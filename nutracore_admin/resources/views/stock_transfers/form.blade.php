@@ -54,7 +54,7 @@
                             <div class="row mt-3">
                                 <div class="col-md-6">
                                     <label class="form-label">From Store</label>
-                                    <select class="form-select" name="from_location" required>
+                                    <select class="form-select" name="from_location" id="from_location" required>
                                         <option value="">-- Select Store --</option>
                                         @foreach($stores as $store)
                                             <option
@@ -114,42 +114,36 @@
     </div>
 
 
-
-    @php
-        $stockMap = $stocks->groupBy(function($s) {
-            return $s->product_id.'_'.$s->variant_id; // unique per product+variant
-        })->map(function($group) {
-            $first = $group->first();
-            $key = $first->product->id??'';
-            $key.='_';
-            $key.=$first->variant->id ??'';
-            return [
-                'id'      => $first->id,
-                'key'      => $key,
-                'label'   => implode(' ', array_filter([
-                                $first->product->name ?? '',
-                                $first->variant ? '- '.$first->variant->unit : null,
-                            ])),
-                'batches' => $group->map(function($s) {
-                    return [
-                        'id'    => $s->id,
-                        'batch' => $s->batch_number,
-                        'qty'   => $s->quantity,
-                        'exp'   => $s->expiry_date,
-                    ];
-                })->values()
-            ];
-        })->values();
-
-
-    @endphp
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
     <script>
-        const stockMap = @json($stockMap);
         const products = @json($products);
+        let stockMap = []; // dynamic data
+        $('#from_location').on('change', function () {
+            let storeId = $(this).val();
+
+            $.ajax({
+                url: '{{route('stocks.get-stock-by-store')}}',
+                type: 'GET',
+                data: {store_id: storeId},
+                dataType: 'json',
+                success: function (response) {
+                    stockMap = response;   // Update dynamic stock map
+                },
+                error: function () {
+                    alert("Failed to load stock data.");
+                }
+            });
+        });
+
         // Structure: [{id, name, variants:[{id, varient_sku, unit, selling_price}]}]
 
         function addRow() {
+            let storeId = $('#from_location').val();
+            if (storeId == '') {
+                alert('Please Select Store First');
+                return;
+            }
             let row = `
         <tr>
             <td><input type="text" name="sku[]" class="form-control sku-input" required></td>

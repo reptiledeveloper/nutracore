@@ -174,7 +174,7 @@
         .single-hero-slider {
             width: 100%;
             height: 500px;
-            background-size: 100% 100% !important; /* force stretch width & height */
+            background-size: 100% 100% !important;
             background-position: center center !important;
             background-repeat: no-repeat !important;
         }
@@ -219,6 +219,34 @@
                 max-width: 50%;
             }
         }
+        .single-hero-slider {
+            width: 100%;
+            height: 400px;  /* adjust */
+            background-size: cover !important;
+            background-position: center !important;
+            border-radius: 10px;
+        }
+        .home-banner {
+            width: 100%;
+            height: 400px;
+            border-radius: 20px;
+            object-fit: fill; /* better than fill */
+        }
+
+        /* Tablet */
+        @media (max-width: 768px) {
+            .home-banner {
+                height: 200px;
+            }
+        }
+
+        /* Mobile */
+        @media (max-width: 480px) {
+            .home-banner {
+                height: 200px;
+            }
+        }
+
     </style>
     <main class="main pages">
         <div class="page-header breadcrumb-wrap">
@@ -229,22 +257,29 @@
                 </div>
             </div>
         </div>
-        <div class="page-content pb-150">
-            <div class="container">
-                <section class="home-slider position-relative mb-30">
-                    <div class="container">
-                        <div class="home-slide-cover mt-30">
-                            <div class="hero-slider-1 style-4">
-                                @foreach($banners as $banner)
-                                    <div class="single-hero-slider single-animation-wrap"
-                                         style="background-image: url({{$banner->banner_img}})">
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                </section>
-                <div class="row product-grid">
+        <div class="page-content">
+                <div class="container">
+                    <img src="{{ $banners[0]->banner_img ?? '' }}"
+                         class="img-fluid home-banner"
+                         alt="Banner">
+
+                    {{--   <section class="home-slider position-relative mb-30">
+                           <div class="container">
+                               <div class="home-slide-cover mt-30">
+                                   @if(isset($banners[0]))
+                                       <div class="single-hero-slider single-animation-wrap"
+                                            style="background-image: url('{{ $banners[0]->banner_img }}');
+                                   background-size: cover;
+                                   background-position: center;
+                                   height: 400px; /* adjust based on your design */
+                            ">
+                                       </div>
+                                   @endif
+                               </div>
+                           </div>
+                       </section>--}}
+
+                <div class="row product-grid mt-30">
                     @foreach ($products as $product)
                         <div class="col-6 col-sm-4 col-md-3 col-lg-2 custom-col">
                             @include('home.single_product', ['product' => $product])

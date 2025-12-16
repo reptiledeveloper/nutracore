@@ -37,6 +37,19 @@
                     <div class="card-body">
                         <div class="d-md-flex align-items-center">
                             <div class="row w-75">
+                                {{-- Vendor (Pickup) --}}
+                                <div class="col-md-6">
+                                    <label class="form-label">Select Pickup Location :</label>
+                                    <select class="form-control" onchange="update_order_status('', '', '', this.value)">
+                                        <option value="">Select Vendor</option>
+                                        @foreach($vendors as $vendor)
+                                            <option
+                                                value="{{ $vendor->id }}" {{ $vendor->id == $orders->vendor_id ? 'selected' : '' }}>
+                                                {{ $vendor->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
 
                                 {{-- Order Status --}}
                                 <div class="col-md-6">
@@ -52,19 +65,7 @@
                                     </select>
                                 </div>
 
-                                {{-- Vendor (Pickup) --}}
-                                <div class="col-md-6">
-                                    <label class="form-label">Select Pickup Location :</label>
-                                    <select class="form-control" onchange="update_order_status('', '', '', this.value)">
-                                        <option value="">Select Vendor</option>
-                                        @foreach($vendors as $vendor)
-                                            <option
-                                                value="{{ $vendor->id }}" {{ $vendor->id == $orders->vendor_id ? 'selected' : '' }}>
-                                                {{ $vendor->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
+
 
                                 {{-- Logistics --}}
                                 <div class="col-md-6 mt-3">
@@ -180,8 +181,8 @@
                                         </div>
                                         <div>Name:
                                             {{ !empty($orders->customer_name) ? $orders->customer_name : $user->name ??''}}</div>
-                                        <div>{{ $orders->house_no }} {{ $orders->apartment }}</div>
-                                        <div>{{ $orders->landmark }}</div>
+                                        <div>{{ $orders->house_no }} {{ $orders->apartment }} {{$address->building_name??''}} {{$address->flat_no??''}}</div>
+                                        <div>{{ $orders->landmark }} {{$address->landmark??''}}</div>
                                         <div>{{ $orders->location }}</div>
                                         <div>{{ $orders->pincode }}</div>
                                         <div><a href="https://maps.google.com/?q={{$orders->latitude??''}},{{$orders->longitude??''}}" target="_blank">Click Here</a></div>
@@ -201,9 +202,10 @@
                                         </div>
                                         <div>Name:
                                             {{ !empty($orders->customer_name) ? $orders->customer_name : $user->name ??''}}</div>
-                                        <div>{{ $orders->house_no }} {{ $orders->apartment }}</div>
-                                        <div>{{ $orders->landmark }}</div>
+                                        <div>{{ $orders->house_no }} {{ $orders->apartment }} {{$address->building_name??''}} {{$address->flat_no??''}}</div>
+                                        <div>{{ $orders->landmark }} {{$address->landmark??''}}</div>
                                         <div>{{ $orders->location }}</div>
+                                        <div>{{ $orders->pincode }}</div>
                                         <div><a href="https://maps.google.com/?q={{$orders->latitude??''}},{{$orders->longitude??''}}" target="_blank">Click Here</a></div>
                                         <div>
                                             <i class="bi bi-telephone me-2"></i> {{ !empty($orders->contact_no) ? $orders->contact_no : $user->phone ??''}}
@@ -273,7 +275,14 @@
                         </div>
                         <div class="row justify-content-center">
                             <div class="col-4 text-end"><strong>Total :</strong></div>
-                            <div class="col-4"><strong>₹ {{ $orders->total_amount ?? 0 }}</strong></div>
+                            @php
+                                $final_total = (int)$orders->total_amount + (int)$orders->delivery_charges - (int)$orders->applied_cashback - (int)$orders->flatDiscountValue;
+                               $flatDiscountValue = round($orders->flatDiscountValue);
+                               $total =  $orders->total_amount - $flatDiscountValue;
+                            @endphp
+                            <div class="col-4">
+                                <strong>₹ {{$final_total??'0'}}</strong>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -368,6 +377,7 @@
                                 <th>#</th>
                                 <th>IMAGE</th>
                                 <th>PRODUCT</th>
+                                <th>SKU</th>
                                 <th>PRICE</th>
                                 <th>Unit/Unit Value</th>
                                 <th>QUANTITY</th>
@@ -387,6 +397,7 @@
                                     <td>{{ $i + 1 }}</td>
                                     <td><img src="{{ $image }}" class="rounded" width="60" alt="..."></td>
                                     <td>{{ $product->name ??''}}</td>
+                                    <td>{{ $product->sku??$varients->varient_sku ??''}}</td>
                                     <td>₹ {{ $value->price ??''}}</td>
                                     <td>{{ $varients->unit ??'' }} {{ $varients->unit_value ??'' }}</td>
                                     <td>{{ $value->qty ??'' }}</td>
@@ -566,10 +577,13 @@
                 $.ajax({
                     url: "{{ route('orders.update_order_status') }}",
                     type: "POST",
+                    dataType:"JSON",
                     data: {status, order_id, item_id, delivery_boy, vendor_id},
                     headers: {'X-CSRF-TOKEN': _token},
                     success: function (resp) {
-                        // alert('Updated...');
+                        if(resp.message != ""){
+                            alert(resp.message);
+                        }
                     }
                 });
             }

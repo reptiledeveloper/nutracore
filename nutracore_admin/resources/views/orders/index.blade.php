@@ -27,7 +27,7 @@
         </div>
         @include('snippets.errors')
         @include('snippets.flash')
-        @include('layouts.filter',['order_from_show'=>'order_from_show','order_status_show'=>'order_status_show','pos_cancel_type_show'=>'pos_cancel_type_show','payment_method_show'=>'payment_method_show','vendor_show'=>'vendor_show','date_show'=>'date_show'])
+        @include('layouts.filter',['search_show'=>'search_show','order_from_show'=>'order_from_show','order_status_show'=>'order_status_show','pos_cancel_type_show'=>'pos_cancel_type_show','payment_method_show'=>'payment_method_show','vendor_show'=>'vendor_show','date_show'=>'date_show'])
         <div class="row">
             <div class="col-md-12">
                 <div class="card">
@@ -71,6 +71,7 @@
                             $order_items = \App\Helpers\CustomHelper::getOrderItemsWithProduct($order->id);
 
                             $count_order_items = count($order_items);
+                            $final_total = (int)$order->total_amount + (int)$order->delivery_charges - (int)$order->applied_cashback - (int)$order->flatDiscountValue;
                             ?>
                         <tr>
                             <td># {{ $order->unique_id ?? '' }}</td>
@@ -99,8 +100,9 @@
                             </td>
                             <td class="text-wrap">{{$order->house_no??''}} {{$order->land_mark??''}} {{$order->apartment??''}} {{$order->location??''}}</td>
                             <td>{{$count_order_items??''}}</td>
-                            <td>₹ {{$order->total_amount??''}}</td>
-                            <td>{{$order->payment_method??''}}</td>
+{{--                            <td>₹ {{$order->total_amount??''}}</td>--}}
+                            <td>₹ {{$final_total??''}}</td>
+                            <td>{{$order->is_applied_credit_balance == 1?"Credit,":""}} {{$order->payment_method??''}}</td>
                             <td>@if(!empty($order->pos_cancel_type)){{$order->pos_cancel_type??''}} / ₹{{$order->refund_amount??0}}@endif</td>
                             <td>{{$order->order_from??''}}</td>
                             <td>{!! \App\Helpers\CustomHelper::getOrderStatus($order->id) !!}</td>

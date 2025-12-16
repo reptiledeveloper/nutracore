@@ -8,8 +8,6 @@ $images = $selectedVarient->images ?? '';
 $defaultImage = $images[0]['image'] ?? url('public/assets/images/default.png');
 
 
-
-
 ?>
 
 <style>
@@ -106,9 +104,10 @@ $defaultImage = $images[0]['image'] ?? url('public/assets/images/default.png');
     .wishlist-icon.active {
         color: red !important;
     }
+
     .product-img img {
-        width: 100%;       /* Keep image responsive */
-        height: 260px;     /* Default height for desktop */
+        width: 100%; /* Keep image responsive */
+        height: 260px; /* Default height for desktop */
         object-fit: cover; /* Ensures image covers the area without distortion */
     }
 
@@ -129,8 +128,10 @@ $defaultImage = $images[0]['image'] ?? url('public/assets/images/default.png');
 
         <div class="product-img product-img-zoom">
             <a href='{{ url('products/' . $product->slug ?? '') }}'>
-                <img class="default-img" src="{{ $product->image??$defaultImage ??'' }}" alt="" />
-                <img class="hover-img" src="{{ $product->image??$defaultImage ??'' }}" alt=""/>
+                <img class="default-img" src="{{ $product->image??$defaultImage ??'' }}"
+                     alt="{{$product->name??''}} - {{$selectedVarient->unit??''}}"/>
+                <img class="hover-img" src="{{ $product->image??$defaultImage ??'' }}"
+                     alt="{{$product->name??''}} - {{$selectedVarient->unit??''}}"/>
             </a>
         </div>
 

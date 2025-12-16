@@ -7,6 +7,7 @@ use App\Models\Admin;
 use App\Models\Category;
 use App\Models\DeliveryAgents;
 use App\Models\FeaturedSection;
+use App\Models\GiftCard;
 use App\Models\Offers;
 use App\Models\Order;
 use App\Models\OrderItems;
@@ -16,6 +17,7 @@ use App\Models\ProductImage;
 use App\Models\Products;
 use App\Models\QRCodes;
 use App\Models\Suppliments;
+use App\Models\Transaction;
 use App\Models\Wishlist;
 use App\Models\RazorpayOrders;
 use App\Models\Setting;
@@ -287,7 +289,12 @@ class HomeController extends Controller
         if (!empty($category_slug) && empty($brand_id)) {
             $brand_id = Brand::where('slug', $category_slug)->first()->id ?? '';
         }
-
+        if ($category_slug == 'deals') {
+            $product_countdowns = DB::table('product_countdowns')->where('id', 1)->first();
+            if (!empty($product_countdowns)) {
+                $product_id = explode(",", $product_countdowns->product_ids ?? '');
+            }
+        }
 
         $products = Product::select(
             'products.id',
@@ -427,7 +434,11 @@ class HomeController extends Controller
             ->where('to_amount', '>=', $amount)
             ->first();
         if (!empty($active_loyalty)) {
-            return round(((int)$amount * (int)$active_loyalty->cashback) / 100);
+            $cashback = round(((int)$amount * (int)$active_loyalty->cashback) / 100);
+            if ((int)$cashback >= (int)$active_loyalty->max_cashback) {
+                $cashback = $active_loyalty->max_cashback;
+            }
+            return $cashback;
         }
         return 0;
 
@@ -464,8 +475,6 @@ class HomeController extends Controller
     public static function getProductDetails($product_id, $user_id = null)
     {
         date_default_timezone_set("Asia/Kolkata");
-
-        // 1️⃣ User & Address
         $user = $user_id ? User::find($user_id) : null;
         $latitude = session('latitude') ?? '17.44757253036007';
         $longitude = session('longitude') ?? '78.30504618870073';
@@ -477,120 +486,148 @@ class HomeController extends Controller
             $longitude = $address->longitude ?? $longitude;
             $pincode = $user->pincode ?? $address->pincode ?? $pincode;
         }
-//        Cache::flush();
-        // 2️⃣ Nearest seller (cache 5 minutes)
         $seller = Cache::remember("nearest_seller_{$user_id}_{$latitude}_{$longitude}", 300, function () use ($latitude, $longitude) {
             return self::getNearestSeller($latitude, $longitude, 2, 40);
         });
 
-        // 3️⃣ Estimated delivery day (cache 10 minutes per user or pincode)
         $estimated_day = self::getEstimatedDayCached($user, $seller, $pincode);
-
-        // 4️⃣ Product + variants with eager loading
-        $product = Product::with(['varients' => fn($q) => $q->where('status', 1)->where('is_delete', 0)])
-            ->find($product_id);
-        if (!$product) return null;
-
-        // 5️⃣ Product images in batch
-//        $product_images = DB::table('product_images')
-//            ->where('product_id', $product->id)
-//            ->get()
-//            ->groupBy('varient_id');
-
-        // 6️⃣ Brand
-        $brand = $product->brand_id ? Brand::find($product->brand_id) : null;
-
-        // 7️⃣ Map variants
-        $product_varients = [];
-        foreach ($product->varients as $varient) {
-
+        $product = Product::where('id', $product_id)->first();
+        if (!empty($product)) {
+            $share_link = '';
+            $product->share_link = $share_link;
             $dbArray = [];
+            $images = [];
             $dbArray['id'] = 0;
+            $is_out_of_stock = 0;
             $dbArray['image'] = CustomHelper::getImageUrl('products', $product->image);
-            $varient_images[] = $dbArray;
-            $product_images = DB::table('product_images')->where('product_id', $product->id)->where('varient_id', $varient->id)->get();
-            if (!empty($product_images)) {
-                foreach ($product_images as $product_image) {
-                    $dbArray = [];
-                    $dbArray['id'] = $product_image->id ?? '';
-                    $dbArray['image'] = CustomHelper::getImageUrl('products', $product_image->image);
-                    $varient_images[] = $dbArray;
+            $images[] = $dbArray;
+            $varients = $product->varients()->where('is_delete', 0)->where('status', 1)->get();
+            $product->estimated_day = $estimated_day;
+            if (!empty($varients) && count($varients) > 0) {
+                foreach ($varients as $varient) {
+                    $qty = 0;
+                    if (!empty($user)) {
+                        $qty = CustomHelper::getCartQty($user_id, $product->id, $varient->id);
+                    }
+                    $varient->qty = $qty;
+                    $varient->discount_per = self::calculateDiscountPer($varient->mrp ?? 0, $varient->selling_price ?? 0);
+                    $is_wishlist = 0;
+                    if (!empty($user)) {
+                        $is_wishlist = CustomHelper::checkWishlist($user_id, $product->id, $varient->id);
+                    }
+                    $varient_images = [];
+                    $varient->is_wishlist = $is_wishlist;
+//                    $dbArray = [];
+//                    $dbArray['id'] = 0;
+//                    $dbArray['image'] = CustomHelper::getImageUrl('products', $product->image);
+//                    $varient_images[] = $dbArray;
+                    $product_images = DB::table('product_images')->where('product_id', $product->id)->where('varient_id', $varient->id)->get();
+                    if (!empty($product_images)) {
+                        foreach ($product_images as $product_image) {
+                            $dbArray = [];
+                            $dbArray['id'] = $product_image->id ?? '';
+                            $dbArray['image'] = CustomHelper::getImageUrl('products', $product_image->image);
+                            $varient_images[] = $dbArray;
+                        }
+                    }
+
+                    $product_images = DB::table('product_images')->where('product_id', $product->id)->where('varient_id', null)->get();
+                    if (!empty($product_images)) {
+                        foreach ($product_images as $product_image) {
+                            $dbArray = [];
+                            $dbArray['id'] = $product_image->id ?? '';
+                            $dbArray['image'] = CustomHelper::getImageUrl('products', $product_image->image);
+                            $varient_images[] = $dbArray;
+                        }
+                    }
+                    $varient->images = $varient_images;
+                    $nc_cash = self::getNcCashPercent($user, $varient->selling_price ?? '');
+
+                    $varient->nc_cash = $nc_cash;
+                    $is_out_of_stock = CustomHelper::checkOutofStock($product->id, $varient->id);
+                    $varient->is_out_of_stock = $is_out_of_stock;
+
                 }
-            }
-
-            $product_images = DB::table('product_images')->where('product_id', $product->id)->where('varient_id', null)->get();
-            if (!empty($product_images)) {
-                foreach ($product_images as $product_image) {
-                    $dbArray = [];
-                    $dbArray['id'] = $product_image->id ?? '';
-                    $dbArray['image'] = CustomHelper::getImageUrl('products', $product_image->image);
-                    $varient_images[] = $dbArray;
+            } else {
+                $varient_images = [];
+//                $dbArray = [];
+//                $dbArray['id'] = 0;
+//                $dbArray['image'] = CustomHelper::getImageUrl('products', $product->image);
+//                $varient_images[] = $dbArray;
+                $nc_cash = self::getNcCashPercent($user, $product->product_selling_price ?? '');
+                $product_images = DB::table('product_images')->where('product_id', $product->id)->get();
+                if (!empty($product_images)) {
+                    foreach ($product_images as $product_image) {
+                        $dbArray = [];
+                        $dbArray['id'] = $product_image->id ?? '';
+                        $dbArray['image'] = CustomHelper::getImageUrl('products', $product_image->image);
+                        $varient_images[] = $dbArray;
+                    }
                 }
+                $qty = 0;
+                if (!empty($user)) {
+                    $qty = CustomHelper::getCartQty($user_id, $product->id, 0);
+                }
+                $is_out_of_stock = CustomHelper::checkOutofStock($product->id, 0);
+                $varients = [[
+                    'id' => 0, // You can keep it product_id or generate a fake ID
+                    'product_id' => $product->id,
+                    'mrp' => $product->product_mrp,
+                    'selling_price' => $product->product_selling_price,
+                    'actual_price' => null,
+                    'unit' => null, // You can set this dynamically if available
+                    'unit_value' => null,
+                    'subscription_price' => $product->product_subscription_price,
+                    'reward_points' => null,
+                    'status' => $product->status,
+                    'is_delete' => $product->is_delete,
+                    'created_at' => $product->created_at,
+                    'updated_at' => $product->updated_at,
+                    'varient_sku' => $product->sku,
+                    'qty' => $qty,
+                    'discount_per' => $product->product_mrp && $product->product_selling_price
+                        ? round((($product->product_mrp - $product->product_selling_price) / $product->product_mrp) * 100)
+                        : 0,
+                    'is_wishlist' => 0,
+                    'images' => $varient_images,
+                    'nc_cash' => $nc_cash,
+                    'is_out_of_stock' => $is_out_of_stock,
+                ]];
             }
-
-            $product_varients[] = [
-                'id' => $varient->id,
-                'product_id' => $product->id,
-                'mrp' => $varient->mrp,
-                'selling_price' => $varient->selling_price,
-                'subscription_price' => $varient->subscription_price,
-                'unit' => $varient->unit,
-                'qty' => $user ? CustomHelper::getCartQty($user_id, $product->id, $varient->id) : 0,
-                'discount_per' => self::calculateDiscountPer($varient->mrp, $varient->selling_price),
-                'is_wishlist' => $user ? CustomHelper::checkWishlist($user_id, $product->id, $varient->id) : 0,
-                'images' => $varient_images,
-                'nc_cash' => self::getNcCashPercent($user, $varient->selling_price),
-                'is_out_of_stock' => CustomHelper::checkOutofStock($product->id, $varient->id),
-            ];
-        }
-
-        // 8️⃣ Product-level images
-
-        // 9️⃣ Final product object
-        if (empty($product_varients)) {
-            $varient_images = [];
-            $dbArray = [];
-            $dbArray['id'] = 0;
-            $dbArray['image'] = CustomHelper::getImageUrl('products', $product->image);
-            $varient_images[] = $dbArray;
-            $nc_cash = self::getNcCashPercent($user, $product->product_selling_price ?? '');
             $product_images = DB::table('product_images')->where('product_id', $product->id)->get();
             if (!empty($product_images)) {
                 foreach ($product_images as $product_image) {
                     $dbArray = [];
                     $dbArray['id'] = $product_image->id ?? '';
                     $dbArray['image'] = CustomHelper::getImageUrl('products', $product_image->image);
-                    $varient_images[] = $dbArray;
+                    $images[] = $dbArray;
                 }
             }
-            $product_varients[] = [
-                'id' => 0,
-                'product_id' => $product->id,
-                'mrp' => $product->product_mrp,
-                'unit' => "",
-                'subscription_price' => $product->product_subscription_price,
-                'selling_price' => $product->product_selling_price,
-                'qty' => $user ? CustomHelper::getCartQty($user_id, $product->id, 0) : 0,
-                'discount_per' => $product->product_mrp && $product->product_selling_price
-                    ? round((($product->product_mrp - $product->product_selling_price) / $product->product_mrp) * 100)
-                    : 0,
-                'is_wishlist' => $user ? CustomHelper::checkWishlist($user_id, $product->id, 0) : 0,
-                'images' => $varient_images,
-                'nc_cash' => self::getNcCashPercent($user, $product->product_selling_price),
-                'is_out_of_stock' => CustomHelper::checkOutofStock($product->id, 0),
-            ];
+            $product->images = $images;
+            $product->image = CustomHelper::getImageUrl('products', $product->image);
+
+
+            $product->varients = $varients;
+
+            $product->options = CustomHelper::getProductOptions($product->id ?? '', $product->option_name ?? '');
+            $attribute_values = explode(',', $product->attribute_values ?? '');
+            $option_name = explode(',', $product->option_name ?? '');
+            $product->get_no_coins = 0;
+            $brand = [];
+            if (!empty($product->brand_id)) {
+                $brand = Brand::find($product->brand_id);
+            }
+            $product->rating = "0";
+            $product->seller = $seller;
+            $nc_cash = 0;
+
+            $product->certificate = CustomHelper::getImageUrl('brands', $brand->certificate ?? '');
+//            if (!empty($varients) && count($varients) > 0) {
+//                return $product;
+//            }
+            return $product;
         }
 
-        $product->varients = $product_varients;
-//        $product->images = $images;
-        $product->image = CustomHelper::getImageUrl('products', $product->image);
-        $product->seller = $seller;
-        $product->estimated_day = $estimated_day;
-        $product->certificate = CustomHelper::getImageUrl('brands', $brand->certificate ?? '');
-        $product->options = CustomHelper::getProductOptions($product->id, $product->option_name ?? '');
-        $product->rating = "0";
-
-        return $product;
     }
 
     public static function calculateEstimatedDay($user = null, $seller = null, $pincode = null)
@@ -1115,8 +1152,9 @@ class HomeController extends Controller
         $applied_cashback = $cartValue['applied_cashback'] ?? '';
         $subscription_plans_new = self::getMembershipPlans($user->id);
         $data['subscription_plans_new'] = $subscription_plans_new;
+        $data['subscription_id_customer'] = $cart_data['subscription_id'] ?? '';
         $html = view('home.cart_html', $data)->render();
-        return response()->json(['html' => $html, 'cart_data' => $cart_data, 'applied_cashback' => $applied_cashback]);
+        return response()->json(['html' => $html, 'data_req' => $data, 'cart_data' => $cart_data, 'applied_cashback' => $applied_cashback]);
     }
 
     public function getMembershipPlans($user_id)
@@ -1962,13 +2000,12 @@ class HomeController extends Controller
 
             $emaildata = [
                 "to_email" => "support@nutracore.in",
+//                "to_email" => "reptiledeveloper@gmail.com",
                 "name" => $request->name ?? '',
                 "subject" => $request->subject ?? '',
                 "htmlContent" => $htmlContent ?? '',
             ];
-
             $success = CustomHelper::sendEmailApi($emaildata);
-
             return back();
         }
         $data = [];
@@ -2084,7 +2121,8 @@ class HomeController extends Controller
         if ($phone == '7065452862' || $phone == '6370371406') {
             $otp = 1234;
         } else {
-             $otp = rand(1111, 9999);
+            $otp = rand(1111, 9999);
+//            $otp = 1234;
         }
         $expired_at = Carbon::now()->addMinutes(10);
         User::updateOrCreate(
@@ -2117,7 +2155,6 @@ class HomeController extends Controller
         ], 200);
     }
 
-
     public function send_sms($mobile, $code)
     {
         $user_name = "User";
@@ -2140,7 +2177,6 @@ class HomeController extends Controller
         $err = curl_error($curl);
         curl_close($curl);
         return $response;
-
     }
 
     function getReferalCode($length): string
@@ -2180,7 +2216,7 @@ class HomeController extends Controller
 
     public function search(Request $request)
     {
-        $search = $request->search??'';
+        $search = $request->search ?? '';
     }
 
     public function logout(Request $request)
@@ -2195,7 +2231,12 @@ class HomeController extends Controller
         $product_id = $request->product_id ?? '';
         $variant_id = $request->variant_id ?? '';
         $qty = $request->qty ?? '';
-        $product = Products::where('id', $product_id)->first();
+        $product = Product::where('id', $product_id)->first();
+
+
+        $available_qty = CustomHelper::checkAvailableQty($product_id, $variant_id);
+
+
         if (!empty($product)) {
             $check_varient = CustomHelper::checkProductPrice($product_id, $variant_id);
             if (empty($check_varient) && $variant_id != 0) {
@@ -2204,13 +2245,18 @@ class HomeController extends Controller
                     'message' => 'Product Not Available',
                 ], 200);
             }
-            $total_qty = 0;
             $exist = Cart::where(['product_id' => $product_id, 'variant_id' => $variant_id, 'user_id' => $user->id])->first();
             $dbArray = [];
             $dbArray['product_id'] = $product_id;
             $dbArray['variant_id'] = $variant_id;
             $dbArray['user_id'] = $user->id;
             $dbArray['qty'] = $qty;
+            if ((int)$qty > (int)$available_qty) {
+                return response()->json([
+                    'result' => false,
+                    'message' => "Available " . $available_qty . ' Only',
+                ], 200);
+            }
             if (empty($exist)) {
                 if ($qty > 0) {
                     Cart::insert($dbArray);
@@ -2223,12 +2269,18 @@ class HomeController extends Controller
                     Cart::where('id', $exist->id)->update($dbArray);
                 }
             }
-            $total_qty = Cart::where(['user_id' => $user->id])->sum('qty');
         }
+        $user_id = $user->id;
+        $product = Product::where('id', $product_id)->first();
+        $event = 'Add to Cart';
+        $traits = [
+            "product_name" => $product->name ?? '',
+            "quantity" => $qty ?? '',
+        ];
+        CustomHelper::trackEvent($user_id, $event, $traits);
         return response()->json([
             'result' => true,
-            'message' => 'Cart Updated SuccessFully',
-            "total_qty" => $total_qty
+            'message' => "Successfully",
         ], 200);
     }
 
@@ -2527,6 +2579,7 @@ class HomeController extends Controller
             'message' => "Order Placed Successfully",
             'online_payment' => $online_payment->original ?? null,
             'order_id' => $order_id,
+            'unique_id' => Order::where('id', $order_id)->first()->unique_id ?? '',
 
         ], 200);
     }
@@ -2545,7 +2598,7 @@ class HomeController extends Controller
                 }
             }
             $wallet_applied = (bool)$request->apply_cashback ?? false;
-            $address = UserAddress::where('id', $request->address_id)->first();
+            $address = UserAddress::where('id', $request->selected_addressID)->first();
             $cartValue = $cart_data['cartValue'] ?? '';
             $cart_list = $cart_data['cart_list'] ?? '';
 
@@ -2553,7 +2606,7 @@ class HomeController extends Controller
             $dbArray['unique_id'] = Order::generateOrderId();
             $dbArray['userID'] = $user_id;
             $dbArray['wallet'] = $request->applied_wallet_amount ?? 0;
-            $dbArray['address_id'] = $request->address_id ?? '';
+            $dbArray['address_id'] = $request->selected_addressID ?? '';
             $dbArray['delivery_type'] = $request->delivery_type ?? 'home_delivery';
             $dbArray['customer_name'] = $address->contact_person_name ?? '';
             $dbArray['delivery_date'] = date('Y-m-d', strtotime($request->delivery_date)) ?? '';
@@ -2679,9 +2732,6 @@ class HomeController extends Controller
             }
         }
 
-        if ($payment_method == 'COD') {
-            self::updateStock($order_id);
-        }
         self::updateOrderStatus($order_id, "PLACED");
 
         return $order_id;
@@ -2764,46 +2814,6 @@ class HomeController extends Controller
         ], 200);
     }
 
-    public function updateStock($order_id)
-    {
-        $order = Order::find($order_id);
-        if (!empty($order)) {
-            $order_items = OrderItems::where('order_id', $order_id)->get();
-            if (!empty($order_items)) {
-                foreach ($order_items as $order_item) {
-                    $product_id = $order_item->product_id ?? '';
-                    $variant_id = $order_item->variant_id ?? '';
-                    $qty = $order_item->qty ?? '';
-                    $exist = DB::table('stock_batches')->where('product_id', $product_id);
-                    if (!empty($variant_id)) {
-                        $exist->where('variant_id', $variant_id);
-                    }
-                    $exist = $exist->where('quantity', '>', 0)->orderBy('mfg_date', 'ASC')->first();
-                    if (!empty($exist)) {
-                        if ((int)$exist->quantity <= (int)$qty) {
-                            $new_qty = (int)$exist->quantity - (int)$qty;
-                            DB::table('stock_batches')->where('id', $exist->id)->update(['quantity' => $new_qty]);
-                            StockLog::create([
-                                'product_id' => $product_id,
-                                'variant_id' => $variant_id,
-                                'store_id' => $exist->store_id ?? '',
-                                'action' => "sale",
-                                'quantity' => $qty,
-                                'closing_stock' => $new_qty,
-                                'related_id' => 0,
-                                'related_type' => "Sale",
-                                'created_by' => auth()->id(),
-                                'order_id' => $order_id,
-                            ]);
-                        } else {
-
-                        }
-                    }
-                }
-            }
-        }
-
-    }
 
     public function sendOrderNotification($order_id)
     {
@@ -2847,7 +2857,15 @@ class HomeController extends Controller
     public function pages_app(Request $request)
     {
         $data = [];
+        $agent = $request->header('User-Agent');
 
+        if (preg_match('/android/i', $agent)) {
+            return redirect('https://play.google.com/store/apps/details?id=com.nutracore&hl=en_IN');
+        }
+
+        if (preg_match('/iPad|iPhone|iPod/', $agent)) {
+            return redirect('https://apps.apple.com/in/app/nutracore-supplement-store/id6749866050');
+        }
 
         return view('home.pages_app', $data);
 
@@ -3101,6 +3119,472 @@ class HomeController extends Controller
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => "inline; filename=\"{$filename}\""
         ]);
+
+    }
+
+    public function sitemap()
+    {
+        // Base URL
+        $baseUrl = url('/');
+
+        // Static pages (add/remove as needed)
+        $staticUrls = [
+            '/',
+            '/products',
+            '/brands',
+            '/explore',
+            '/stores',
+            '/nutrapass',
+            '/profile',
+            '/my_orders',
+            '/suppliment_recommendation',
+            '/suppliment_recommendation_list',
+            '/privacy_policy',
+            '/return_policy',
+            '/shipping_policy',
+            '/best_sellers',
+            '/best_deals',
+            '/new_arrivals',
+            '/terms',
+            '/nc_cash',
+            '/giftcard',
+            '/refer_earn',
+            '/coupons',
+            '/address',
+            '/categories',
+            '/about',
+            '/wishlist',
+            '/contact',
+            '/deals',
+            '/suppliment_product',
+        ];
+
+        // Dynamic: products
+        $products = \DB::table('products')
+            ->select('slug', 'updated_at')
+            ->where('status', 1)
+            ->where('is_delete', 0)
+            ->get();
+
+        // Dynamic: collections
+        $categories = \DB::table('categories')
+            ->select('slug', 'updated_at')
+            ->where('status', 1)
+            ->where('is_delete', 0)
+            ->get();
+        $brands = \DB::table('brands')
+            ->select('slug', 'updated_at')
+            ->where('status', 1)
+            ->where('is_delete', 0)
+            ->get();
+
+
+        // Start XML
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>';
+        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+
+        // Add static URLs
+        foreach ($staticUrls as $url) {
+            $xml .= "
+        <url>
+            <loc>{$baseUrl}{$url}</loc>
+            <changefreq>weekly</changefreq>
+            <priority>0.8</priority>
+        </url>";
+        }
+
+        // Add product URLs
+        foreach ($products as $p) {
+            $xml .= "
+        <url>
+            <loc>{$baseUrl}/products/{$p->slug}</loc>
+            <lastmod>" . date('Y-m-d', strtotime($p->updated_at)) . "</lastmod>
+            <changefreq>daily</changefreq>
+            <priority>1.0</priority>
+        </url>";
+        }
+
+        // Add collections URLs
+        foreach ($categories as $c) {
+            $xml .= "
+        <url>
+            <loc>{$baseUrl}/collections/{$c->slug}</loc>
+            <lastmod>" . date('Y-m-d', strtotime($c->updated_at)) . "</lastmod>
+            <changefreq>weekly</changefreq>
+            <priority>0.7</priority>
+        </url>";
+        }
+        // Add collections URLs
+        foreach ($brands as $c) {
+            $xml .= "
+        <url>
+            <loc>{$baseUrl}/collections/{$c->slug}</loc>
+            <lastmod>" . date('Y-m-d', strtotime($c->updated_at)) . "</lastmod>
+            <changefreq>weekly</changefreq>
+            <priority>0.7</priority>
+        </url>";
+        }
+
+        $xml .= '</urlset>';
+
+        return response($xml, 200)
+            ->header('Content-Type', 'application/xml');
+    }
+
+    public function nc_partner(Request $request)
+    {
+        $data = [];
+        $banners = Banner::where('status', 1)
+            ->where('is_delete', 0)
+            ->where('type', 'nc_partner')
+            ->first();
+        $data['banner'] = $banners;
+        return view('home.nc_partner', $data);
+
+    }
+
+
+    public function sendPartnerOtp(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'full_name' => 'required',
+                'mobile_number' => 'required|digits:10|unique:partner_applications,mobile_number',
+                'email' => 'required|email',
+                'city' => 'required',
+                'full_address' => 'required',
+                'role' => 'required',
+                'brand_name' => 'required',
+                'active_clients' => 'required',
+                'bank_name' => 'required',
+                'ifsc_code' => 'required',
+                'account_number' => 'required',
+                'promotion_plan' => 'required',
+                'social_links' => 'required',
+                'contact_method' => 'required',
+                'agree_terms' => 'required',
+            ]);
+            $otp = rand(1111, 9999);
+            User::updateOrCreate(
+                ['phone' => $request->mobile_number],
+                [
+                    'otp' => $otp,
+                    'name' => $request->full_name ?? 'Guest',
+                    'email' => $request->email ?? uniqid() . '@example.com',
+                ]
+            );
+            $this->send_sms($request->mobile_number, $otp);
+
+            return response()->json(['status' => true]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+
+            return response()->json([
+                'status' => false,
+                'errors' => $e->errors()
+            ]);
+        }
+
+    }
+
+    public function verifyOtp(Request $request)
+    {
+        $success = User::where(['phone' => $request->mobile, 'otp' => $request->otp])->where('is_delete', 0)->first();
+        if (!empty($success)) {
+            return response()->json(['status' => true]);
+        }
+
+        return response()->json(['status' => false]);
+    }
+
+    public function submit_partner_form(Request $request)
+    {
+        DB::table('partner_applications')->insert([
+            'full_name' => $request->full_name,
+            'mobile_number' => $request->mobile_number,
+            'email' => $request->email,
+            'city' => $request->city,
+            'full_address' => $request->full_address,
+            'role' => $request->role,
+            'brand_name' => $request->brand_name,
+            'active_clients' => $request->active_clients,
+            'bank_name' => $request->bank_name,
+            'ifsc_code' => $request->ifsc_code,
+            'account_number' => $request->account_number,
+            'promotion_plan' => $request->promotion_plan,
+            'social_links' => $request->social_links,
+            'active_followers' => $request->active_followers,
+            'contact_method' => $request->contact_method,
+            'agree_terms' => $request->agree_terms,
+            'status' => 'Pending Review'
+        ]);
+
+        $this->sendNC_Partner_Application_Received($request->mobile_number);
+
+
+        return response()->json(['status' => true]);
+    }
+
+    public function sendNC_Partner_Application_Received($mobile)
+    {
+        $user_name = "User";
+        $curl = curl_init();
+        curl_setopt_array($curl, [
+            CURLOPT_URL => "https://api.msg91.com/api/v5/flow/",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => "{\n  \"flow_id\": \"693a548d3d48626354683982\",\n  \"sender\": \"NUTRCR\",\n  \"mobiles\": \"91$mobile\"}",
+            CURLOPT_HTTPHEADER => [
+                "authkey: 431621ABncLfiKpzo6875ff9bP1",
+                "content-type: application/JSON"
+            ],
+        ]);
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        curl_close($curl);
+        return $response;
+    }
+
+    public function partner_sign_agreement(Request $request)
+    {
+        $user = Auth::user();
+        $partner_data = DB::table('partner_applications')->where('mobile_number', $user->phone)->first();
+        $method = $request->method();
+        if ($method == 'post' || $method == 'POST') {
+            $agreementText = $request->agreement_text;
+            $hash = hash('sha256', $agreementText);
+
+            DB::table('partner_applications')->where('mobile_number', $user->phone)->update([
+                'agreement_version' => $request->agreement_version,
+                'full_text_hash' => $hash,
+                'accepted_at' => Carbon::now('Asia/Kolkata'),
+                'accepted_ip' => $request->ip(),
+                'user_agent' => $request->header('User-Agent'),
+                'accepted_via' => 'web', // or detect mobile
+                'is_sign_agreement' => '1', // or detect mobile
+            ]);
+
+            return redirect(url('partner'));
+        }
+        $data = [];
+        $data['partner_data'] = $partner_data;
+        return view('partner.partner_sign_agreement', $data);
+    }
+
+    public function partner(Request $request)
+    {
+        $data = [];
+        $user = Auth::user();
+        $partner_data = DB::table('partner_applications')->where('mobile_number', $user->phone)->first();
+        if (empty($partner_data)) {
+            return back();
+        }
+
+        if ($partner_data->is_sign_agreement == 0 && $partner_data->status == 'Approved') {
+            return redirect(route('partner_sign_agreement'));
+        }
+
+
+        $orders = Order::where('coupon_code', $partner_data->coupon_code)->latest()->paginate(10);
+        $data['partner_data'] = $partner_data;
+        $data['orders'] = $orders;
+        $today = Carbon::today();
+        $currentMonthStart = $today->copy()->startOfMonth();
+        $currentMonthEnd = $today->copy()->endOfMonth();
+        $lastMonthStart = $today->copy()->subMonth()->startOfMonth();
+        $lastMonthEnd = $today->copy()->subMonth()->endOfMonth();
+        $partnerId = $partner_data->id ?? '';
+        // Current Month Orders & Earnings
+        $currentMonthTotal = DB::table('partner_commissions')
+            ->where('partner_id', $partnerId)
+            ->where('status', 1)
+            ->whereBetween('date', [$currentMonthStart, $currentMonthEnd])
+            ->selectRaw('COUNT(*) as total_orders, SUM(commission) as total_earnings ,SUM(order_amount) as total_order_amount')
+            ->first();
+
+        // Last Month Earnings
+        $lastMonthEarnings = DB::table('partner_commissions')
+            ->where('partner_id', $partnerId)
+            ->where('status', 1)
+            ->whereBetween('date', [$lastMonthStart, $lastMonthEnd])
+            ->sum('commission');
+
+        // Lifetime Earnings
+        $lifetimeEarnings = DB::table('partner_commissions')
+            ->where('partner_id', $partnerId)
+            ->where('status', 1)
+            ->sum('commission');
+        $currentMonthOrders = DB::table('partner_commissions')
+            ->where('partner_id', $partnerId)
+            ->where('status', 1)
+            ->whereBetween('date', [$currentMonthStart, $currentMonthEnd])
+            ->count();
+        $tier = DB::table('nc_partner_tire_system')
+            ->where('status', 1)
+            ->where('is_delete', 0)
+            ->where('from_amount', '<=', (int)$currentMonthTotal->total_order_amount)
+            ->where('to_amount', '>=', (int)$currentMonthTotal->total_order_amount)
+            ->first();
+
+        // Fallback if no tier found
+        if (!$tier) {
+            $tier = DB::table('nc_partner_tire_system')->orderBy('from_amount', 'asc')->first();
+        }
+
+
+        $data['currentMonthData'] = $currentMonthTotal->total_earnings ?? 0;
+        $data['lastMonthEarnings'] = $lastMonthEarnings;
+        $data['lifetimeEarnings'] = $lifetimeEarnings;
+        $data['currentMonthOrders'] = $currentMonthOrders;
+        $data['currentMonthTotal'] = $currentMonthTotal;
+        $data['tier'] = $tier;
+
+
+        $totalEarnings = DB::table('partner_commissions')
+            ->where('partner_id', $partnerId)
+            ->whereBetween('date', [$currentMonthStart, $currentMonthEnd])
+            ->where('status', 1)
+            ->sum('order_amount');
+
+        // Get all active tiers
+        $tiers = DB::table('nc_partner_tire_system')
+            ->where('status', 1)
+            ->where('is_delete', 0)
+            ->orderBy('from_amount')
+            ->get();
+
+        // Current tier
+        $currentTier = $tiers->filter(function ($tier) use ($totalEarnings) {
+            return $totalEarnings >= $tier->from_amount && $totalEarnings <= $tier->to_amount;
+        })->first();
+
+        // Next tier
+        $nextTier = $tiers->firstWhere('from_amount', '>', $totalEarnings);
+
+        // Remaining amount to next tier
+        $remaining = $nextTier ? $nextTier->from_amount - $totalEarnings : 0;
+        $data['totalEarnings'] = $totalEarnings;
+        $data['tiers'] = $tiers;
+        $data['currentTier'] = $currentTier;
+        $data['nextTier'] = $nextTier;
+        $data['remaining'] = $remaining;
+        $withdrawals = DB::table('partner_withdrawals')
+            ->where('partner_id', $partnerId)
+            ->orderBy('created_at', 'desc')
+            ->get();
+        $data['withdrawals'] = $withdrawals;
+        return view('partner.view', $data);
+
+    }
+
+    public function partner_withdraw(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'partner_id' => 'required|exists:partner_applications,id',
+            'amount' => 'required|numeric|min:1',
+            'withdrawal_type' => 'required|in:giftcard,bank',
+            'selected_giftcard' => 'required_if:withdrawal_type,giftcard',
+            'selected_type' => 'required_if:withdrawal_type,giftcard',
+            'bank_name' => 'required_if:withdrawal_type,bank',
+            'account_number' => 'required_if:withdrawal_type,bank',
+            'ifsc_code' => 'required_if:withdrawal_type,bank',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        // ✅ Fetch partner BEFORE transaction
+        $partner = DB::table('partner_applications')->where('id', $request->partner_id)->first();
+
+        if (!$partner) {
+            return redirect()->back()->with('error', 'Partner not found.');
+        }
+
+        if (($partner->wallet ?? 0) < $request->amount) {
+            return redirect()->back()->with('error', 'Insufficient wallet balance.');
+        }
+
+        try {
+            DB::transaction(function () use ($request, $partner) {
+
+                // Lock & deduct wallet
+                DB::table('partner_applications')
+                    ->where('id', $request->partner_id)
+                    ->update([
+                        'wallet' => DB::raw('wallet - ' . $request->amount)
+                    ]);
+
+                $status = 'pending';
+                $amount = $request->amount;
+
+                // 🎁 Giftcard logic
+                if ($request->withdrawal_type === 'giftcard') {
+                    $user = User::where('phone', $partner->mobile_number)->first();
+
+                    $duration = 12;
+                    $code = CustomHelper::generateGiftCardCode();
+
+                    GiftCard::create([
+                        'amount' => $amount,
+                        'duration' => $duration,
+                        'code' => $code,
+                        'user_id' => $user->id ?? null,
+                        'type' => $request->selected_type,
+                        'purchase_date' => now()->toDateString(),
+                        'expire_date' => now()->addMonths($duration)->toDateString(),
+                    ]);
+
+                    $txnId = Transaction::insertGetId([
+                        'userID' => $user->id,
+                        'type' => 'DEBIT',
+                        'amount' => $amount,
+                        'type_val' => 'giftcard',
+                        'remarks' => 'GiftCard Purchase',
+                        'is_approved' => 1,
+                    ]);
+
+                    Transaction::where('id', $txnId)
+                        ->update(['txn_no' => 'NCREEDEM' . rand(111111, 999999)]);
+
+                    CustomHelper::sendGiftCardMessage($user->phone ?? '', $code);
+
+                    $status = 'completed';
+                }
+
+                // Save withdrawal
+                DB::table('partner_withdrawals')->insert([
+                    'partner_id' => $request->partner_id,
+                    'amount' => $amount,
+                    'withdrawal_type' => $request->withdrawal_type,
+                    'selected_giftcard' => $request->withdrawal_type === 'giftcard' ? $request->selected_giftcard : null,
+                    'selected_type' => $request->withdrawal_type === 'giftcard' ? $request->selected_type : null,
+                    'bank_name' => $request->withdrawal_type === 'bank' ? $request->bank_name : null,
+                    'account_number' => $request->withdrawal_type === 'bank' ? $request->account_number : null,
+                    'ifsc_code' => $request->withdrawal_type === 'bank' ? $request->ifsc_code : null,
+                    'status' => $status,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            });
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Something went wrong. Please try again.');
+        }
+
+        return redirect()->back()->with('success', 'Withdrawal processed successfully.');
+    }
+
+
+    public function order_placed(Request $request)
+    {
+        $data = [];
+        $data['unique_id'] = $request->id ?? '';
+        return view('home.order_placed', $data);
 
     }
 }

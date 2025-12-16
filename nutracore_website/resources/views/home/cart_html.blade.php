@@ -321,6 +321,11 @@ $total_product_price = 0;
                     $total_product_price += $prototal_price;
                     $images = $selectedVarient->images ??'';
                     $defaultImage = $images[0]['image'] ??url('public/assets/images/default.png');
+                    $selling_price = $product->product_selling_price ?? $selectedVarient->selling_price ?? 0;
+
+                    if(!empty($subscription_id_customer)){
+                        $selling_price = $product->product_subscription_price ?? $selectedVarient->subscription_price ?? 0;
+                    }
                 @endphp
                 <div style="border:2px solid #00a8a8;padding:10px; border-radius: 10px;margin-top: 10px;">
                     <div class="Product_Section_Main">
@@ -336,10 +341,10 @@ $total_product_price = 0;
 
                                 <div class="Product_Name_Price d-flex align-items-center gap-3">
                                     <h4 class="fw-bold text-dark mb-0" style="color: #575757;">
-                                        ₹ {{ $selectedVarient->selling_price ?? '' }}</h4>
+                                        ₹ {{ $selling_price ?? '' }}</h4>
                                     <del class="text-secondary" style="color: rgb(185, 185, 185);">
                                         ₹ {{ $selectedVarient->mrp ?? '' }}</del>
-                                    <span class="badge bg-success" style="background: #008f8c ;">{{$selectedVarient->discount_per?? 0}}% OFF</span>
+                                    <span class="badge bg-success" style="background: #008f8c ;">{{$selectedVarient->discount_per?? 0}} % OFF</span>
                                 </div>
 
                                 <div class="d-flex gap-3 subscription-row mt-5">
@@ -435,7 +440,7 @@ $total_product_price = 0;
             }
 
             ?>
-        <div class="col-lg-4">
+        <div class="col-lg-4 mb-100">
             <div class="card" style="
     border: 1.5px solid #00A8A8;
     background: #E6FFFE;
@@ -834,7 +839,7 @@ $total_product_price = 0;
                                 description: "Order Payment",
                                 handler: function (response) {
                                     // ✅ Payment success callback - redirect
-                                    window.location.href = "{{ url('my_orders') }}";
+                                    window.location.href = "{{ url('') }}/order-placed/" + resp.unique_id;
                                 }
                             };
 
@@ -846,7 +851,7 @@ $total_product_price = 0;
 
                     } else {
                         // ✅ For COD or wallet payment
-                        window.location.href = "{{ url('my_orders') }}";
+                        window.location.href = "{{ url('') }}/order-placed/" + resp.unique_id;
                     }
                 } else {
                     alert(resp.message);

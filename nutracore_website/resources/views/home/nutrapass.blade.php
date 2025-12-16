@@ -601,7 +601,11 @@
         }
                                     @endphp
 
-                                    <div class="plan {{$key == 0 ? 'selected' : ''}}" onclick="selectPlan(this)">
+                                    <div class="plan {{$key == 0 ? 'selected' : ''}}" onclick="selectPlan('{{ $plan->id }}','{{ $plan->duration }}','{!! $plan->terms  !!}')"   id="plan{{ $plan->duration }}"
+                                         data-duration="{{ $plan->duration }}"
+                                         data-id="{{ $plan->id }}"
+                                         data-terms="{{ htmlentities($plan->terms) }}"
+                                         data-price="{{ $plan->price }}">
 
                                         @if($plan->is_best_value == 1)
                                             <h4 class="plan-title">Best Value</h4>
@@ -621,7 +625,7 @@
                         </div>
 
                         <div class="mt-20">
-                            <a href="#" class="btn btn-warning text-white w-50">JOIN NOW</a>
+                            <a  class="btn btn-warning text-white w-50" onclick="subscribeNow()">JOIN NOW</a>
                         </div>
                     </div>
                 </div>

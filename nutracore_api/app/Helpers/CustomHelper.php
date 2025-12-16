@@ -481,7 +481,7 @@ class CustomHelper
             CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_POSTFIELDS => json_encode($data),
             CURLOPT_HTTPHEADER => array(
-                'api-key: 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',
+                'api-key: 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',
                 'Content-Type: application/json'
             ),
         ));
@@ -3911,6 +3911,75 @@ class CustomHelper
 
             }
         }
+
+    }
+    public static function sendInvoiceWP($user, $order)
+    {
+        $data = [
+            'countryCode' => '+91',
+            'phoneNumber' => $user->phone ?? '',
+            'fullPhoneNumber' => '',
+            'campaignId' => '',
+            'callbackData' => '',
+            'type' => 'Template',
+            'template' => [
+                'name' => 'invoice_vasy',
+                'languageCode' => 'en',
+                'headerValues' => [
+                    'https://admin.nutracore.in/send_pdf/' . $order->id
+                ],
+                'bodyValues' => [
+                    $user->name ?? "User",
+                    $order->total_amount ?? 0
+                ]
+            ]
+        ];
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://api.interakt.ai/v1/public/message/',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => json_encode($data),
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: application/json',
+                'Authorization: Basic UHRmVkdXamE3NVYzQmFRYVhaZjVPaW1TbEk0QllKbUx3eTc1WTlEeFp6VTo='
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        return $response;
+
+    }
+
+    public static function orderDelivered($mobile, $orderID)
+    {
+        $user_name = "User";
+        $curl = curl_init();
+        curl_setopt_array($curl, [
+            CURLOPT_URL => "https://api.msg91.com/api/v5/flow/",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => "{\n  \"flow_id\": \"68d0ef48e1c9106fae00a859\",\n  \"sender\": \"NUTRCR\",\n  \"mobiles\": \"91$mobile\",\n  \"var\": \"$orderID\"}",
+            CURLOPT_HTTPHEADER => [
+                "authkey: 431621ABncLfiKpzo6875ff9bP1",
+                "content-type: application/JSON"
+            ],
+        ]);
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        curl_close($curl);
+        return $response;
 
     }
 

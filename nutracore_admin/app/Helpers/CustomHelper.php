@@ -130,6 +130,11 @@ class CustomHelper
 
     }
 
+    public static function getPartner($partner_id)
+    {
+        return DB::table('partner_applications')->where('id',$partner_id)->first();
+
+    }
     public static function checkSubscription($user)
     {
 
@@ -3941,6 +3946,35 @@ class CustomHelper
         return $response;
     }
 
+    public static function checkAvailableQty($product_id, $variant_id = null)
+    {
+        // Default: in stock
+        $is_out_of_stock = 0;
+
+        if (!empty($variant_id)) {
+            // Product with a variant: sum stock for that variant
+            $stock = DB::table('stock_batches as sl')
+                ->where('sl.variant_id', $variant_id)
+                ->where('sl.product_id', $product_id)
+                ->where('sl.is_delete', 0)
+                ->select(DB::raw('COALESCE(SUM(sl.quantity), 0) as closing_stock'))
+                ->first();
+        } else {
+            // Product without variant: sum stock at product level
+            $stock = DB::table('stock_batches as sl')
+                ->where('sl.product_id', $product_id)
+                ->where(function ($q) {
+                    $q->whereNull('sl.variant_id')
+                        ->orWhere('sl.variant_id', 0);
+                })
+                ->where('sl.is_delete', 0)
+                ->select(DB::raw('COALESCE(SUM(sl.quantity), 0) as closing_stock'))
+                ->first();
+        }
+
+        return $stock->closing_stock ?? 0;
+    }
+
     public static function saveTransaction($data): void
     {
 
@@ -4234,6 +4268,13 @@ class CustomHelper
         $address = UserAddress::where('id', $orders->address_id)->first();
         $envia_data = json_decode($address->envia_data) ?? '';
 
+        $customer_name = $orders->customer_name ?? '';
+        if (empty($customer_name)) {
+            $customer_name = $address->contact_person_name ?? '';
+        }
+        if ($courier == 'Amazon Shipping') {
+            $courier = 'Amazon';
+        }
         $packages = [];
         if (!empty($order_items)) {
             foreach ($order_items as $items) {
@@ -4278,12 +4319,12 @@ class CustomHelper
                 ]
             ],
             'destination' => [
-                'name' => $orders->customer_name ?? '',
+                'name' => $customer_name,
                 'company' => '',
                 'email' => $orders->email ?? 'test@gmail.com',
-                'phone' => $orders->contact_no ?? '',
-                'street' => $orders->house_no ?? '',
-                'number' => $orders->landmark . ' ' . $orders->location,
+                'phone' => $orders->contact_no ?? $address->contact_person_mobile ?? '',
+                'street' => $address->flat_no ?? '',
+                'number' => $address->building_name . ' ' . $address->landmark,
                 'district' => $envia_data->locality ?? '',
                 'city' => $envia_data->locality ?? '',
                 'state' => $address->state ?? '',
@@ -4351,21 +4392,21 @@ class CustomHelper
         }
 
 
-        $total_in = $stock_logs->whereIn('action',['purchase','stock_in'])->sum('quantity');
-        $total_out = $stock_logs->whereIn('action',['sale','stock_out'])->sum('quantity');
+        $total_in = $stock_logs->whereIn('action', ['purchase', 'stock_in'])->sum('quantity');
+        $total_out = $stock_logs->whereIn('action', ['sale', 'stock_out'])->sum('quantity');
 //        $adjust = $stock_logs->whereIn('action',['adjust'])->sum('quantity');
         $adjust = 0;
-        $adjust = $stock_logs->where('action',['adjust'])->latest()->first();
-        if(!empty($adjust)){
+        $adjust = $stock_logs->where('action', ['adjust'])->latest()->first();
+        if (!empty($adjust)) {
             $closing = (int)$adjust;
-        }else{
+        } else {
             $closing = (int)$total_in - (int)$total_out;
         }
 
         return $closing;
     }
 
-    public static function trackEvent($user_id,$event,$traits)
+    public static function trackEvent($user_id, $event, $traits)
     {
 
         $data = [

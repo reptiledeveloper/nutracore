@@ -63,7 +63,10 @@ return [
                 'stock_transfer_approval',
                 'stock_verify',
                 'pos',
+                'countdown_timer',
                 'consultation',
+                'nc_partners',
+                'nc_partner_tire',
 
 
         ],
@@ -107,6 +110,8 @@ return [
                 'offers' => 'Offers',
                 'app_settings' => 'App Settings',
                 'tax' => 'TAX',
+                'nc_partners' => 'NC Partners',
+                'nc_partner_tire' => 'NC Partners Tire',
                 'slots' => 'Slots',
                 'subscription_plans' => 'Subscription Plans',
                 'withdraw_request' => 'Withdraw Request',
@@ -121,8 +126,7 @@ return [
                 'reports' => 'Reports',
                 'export' => 'export',
                 'ratings' => 'Ratings',
-
-                'reports' => 'Reports',
+                'countdown_timer' => 'Countdown Timer',
 
                 'notifications' => 'Notifications',
                 'free_product' => 'Free Product',
