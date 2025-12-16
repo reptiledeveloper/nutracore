@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Company;
 use App\Models\Order;
 use App\Models\PartnerCommission;
+use App\Models\SubscriptionPlans;
+use App\Models\Subscriptions;
 use Carbon\Carbon;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -39,6 +41,53 @@ class NCPartnerController extends Controller
         $this->ADMIN_ROUTE_NAME = CustomHelper::getAdminRouteName();
     }
 
+    public function orders(Request $request)
+    {
+        $data = [];
+        $order_status = $request->order_status ?? '';
+        $search = $request->search ?? '';
+        $vendor_id = $request->vendor_id ?? '';
+        $orderID = $request->orderID ?? '';
+        $date = $request->date ?? '';
+        $agent_id = $request->agent_id ?? '';
+        $pos_cancel_type = $request->pos_cancel_type ?? '';
+        $payment_method = $request->payment_method ?? '';
+
+
+        $partner_coupons = DB::table('partner_applications')->where('coupon_code', '!=', null)->pluck('coupon_code')->toArray();
+
+
+        $orders = Order::where('is_delete', 0)->whereIn('coupon_code', $partner_coupons)->orderBy('id', 'desc');
+        if (!empty($order_status)) {
+            $orders->where('status', $order_status);
+        }
+        if (!empty($search)) {
+            $orders->where('unique_id', $search);
+        }
+        if (!empty($vendor_id)) {
+            $orders->where('vendor_id', $vendor_id);
+        }
+        if (!empty($agent_id)) {
+            $orders->where('agent_id', $agent_id);
+        }
+        if (!empty($pos_cancel_type)) {
+            $orders->where('pos_cancel_type', $pos_cancel_type);
+        }
+        if (!empty($payment_method)) {
+            $orders->where('payment_method', $payment_method);
+        }
+        if (!empty($date)) {
+            //            $orders->whereDate('delivery_date',$date);
+            $orders->whereDate('created_at', $date);
+        }
+        if (!empty($orderID)) {
+            $orders->where('id', $orderID);
+        }
+        $orders = $orders->paginate(30);
+
+        $data['orders'] = $orders;
+        return view('orders.index', $data);
+    }
 
     public function index(Request $request)
     {
@@ -103,15 +152,17 @@ class NCPartnerController extends Controller
     public function save(Request $request, $id = 0)
     {
 
+        $settings = DB::table('settings')->where('id',1)->first();
         $data = $request->except(['_token', 'back_url', 'image', 'image_text', 'product_id']);
         $oldImg = '';
-
+        $oldStatus = null;
         $admin = new NCPartner();
         if (is_numeric($id) && $id > 0) {
             $exist = NCPartner::find($id);
             if (isset($exist->id) && $exist->id == $id) {
                 $admin = $exist;
                 $oldImg = $exist->image;
+                $oldStatus = $exist->status;
             }
         }
         //prd($oldImg);
@@ -123,20 +174,89 @@ class NCPartnerController extends Controller
         $isSaved = $admin->save();
 
         if ($isSaved) {
-            if ($admin->status == 'Approved') {
-                self:: sendNC_Partner_Approved($admin->mobile_number??'');
+            if ($oldStatus !== $admin->status) {
+                if ($request->status == 'Approved') {
+                    self:: sendNC_Partner_Approved($admin->mobile_number ?? '');
+
+                }
+                if ($request->status == 'Rejected') {
+                    self:: sendNC_Partner_Rejected($admin->mobile_number ?? '');
+                }
             }
-            if ($admin->status == 'Rejected') {
-                self:: sendNC_Partner_Rejected($admin->mobile_number??'');
+            if(!empty($settings) && $settings->partner_subscription_id != 0){
+                $this->assignSubscription($admin);
             }
+
         }
 
         return $isSaved;
     }
 
+    public function assignSubscription($partner)
+    {
+        if($partner->is_activate_subscription == 1){
+            return '';
+        }
+        $user = User::where('phone', $partner->mobile_number)->first();
+        $subscription_start = $user->subscription_start ?? '';
+        $subscription_end = $user->subscription_end ?? '';
+
+        $settings = DB::table('settings')->where('id',1)->first();
+
+        $subscription_plans = SubscriptionPlans::where('id', $settings->partner_subscription_id)->first();
+        if (!empty($subscription_plans)) {
+            $duration = (int)$subscription_plans->duration ?? 0;
+            if (empty($subscription_start)) {
+                $subscription_start = date('Y-m-d');
+                $subscription_end = date('Y-m-d', strtotime("+" . $duration . " months", strtotime(date('Y-m-d'))));
+            } else {
+                $subscription_end = date('Y-m-d', strtotime("+" . $duration . " months", strtotime($subscription_end)));
+            }
+            $discount = $subscription_plans->max_discount ?? 0;
+            $txn_id = 'NCPARTSUBS' . rand(111111, 99999999);
+            User::where('id', $user->id)->update(['subscription_start' => $subscription_start, 'subscription_end' => $subscription_end, 'subscription_id' => $subscription_plans->id ?? '']);
+            $subsc = new Subscriptions();
+            $subsc->user_id = $user->id ?? '';
+            $subsc->subscription_id = $subscription_plans->id ?? '';
+            $subsc->txn_id = $txn_id ?? '';
+            $subsc->paid_status = 1;
+            $subsc->taken_by = "Admin";
+            if (empty($subscription_start)) {
+                $start_date = date('Y-m-d');
+            } else {
+                $start_date = $subscription_end;
+            }
+            $subsc->start_date = $start_date;
+            $subsc->end_date = date('Y-m-d', strtotime("+" . $duration . " months", strtotime($start_date)));
+            $subsc->save();
+
+            $data = [];
+            $data['userID'] = $user->id ?? '';
+            $data['txn_no'] = $txn_id;
+            $data['amount'] = 0;
+            $data['type'] = 'DEBIT';
+            $data['note'] = 'Take Subscription';
+            $data['against_for'] = 'subscription';
+            $data['paid_by'] = 'admin';
+            $data['orderID'] = 0;
+            CustomHelper::saveTransaction($data);
+
+            $event = 'NutraPass Activated';
+            $traits = [
+
+            ];
+            CustomHelper::trackEvent($user->id, $event, $traits);
+
+            $partner->is_activate_subscription = 1;
+            $partner->save();
+        }
+    }
+
 
     public function sendNC_Partner_Approved($mobile)
     {
+
+
         $curl = curl_init();
         curl_setopt_array($curl, [
             CURLOPT_URL => "https://api.msg91.com/api/v5/flow/",
@@ -155,6 +275,8 @@ class NCPartnerController extends Controller
         $response = curl_exec($curl);
         $err = curl_error($curl);
         curl_close($curl);
+//        print_r($response);
+//        die;
         return $response;
     }
 
@@ -342,11 +464,11 @@ class NCPartnerController extends Controller
     public function partner_withdrawal(Request $request)
     {
         $data = [];
-        $id = $request->id??'';
+        $id = $request->id ?? '';
         $nc_partners = NCPartner::find($id);
         $data['nc_partners'] = $nc_partners;
         $withdrawals = DB::table('partner_withdrawals')
-            ->where('partner_id',$id)
+            ->where('partner_id', $id)
             ->orderBy('created_at', 'desc')
             ->paginate(100);
         $data['withdrawals'] = $withdrawals;

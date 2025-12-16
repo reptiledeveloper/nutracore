@@ -5,6 +5,7 @@
     use App\Helpers\CustomHelper;
 
     $name = $partner_data->full_name ?? '';
+    $settings = DB::table('settings')->where('id',1)->first();
     $initials = collect(explode(' ', $name))
         ->map(fn($w) => strtoupper(substr($w, 0, 1)))
         ->join('');
@@ -430,11 +431,11 @@
                                 <div class="field mt-2" title="Phone">
                                     <div>
                                         <small>Uses Tips</small>
-                                        <div id="userPhone"></div>
+                                        <div id="userPhone"> {!! $settings->uses_tip??'' !!}</div>
                                     </div>
                                 </div>
                                 <div class="actions mt-2">
-                                    <button class="btn-primary" id="promoBtn">Share Coupon Code</button>
+                                    <button class="btn-primary" data-bs-toggle="modal" data-bs-target="#partnerBenifitsModal">Partner Benefits</button>
                                 </div>
                             </div>
 
@@ -535,7 +536,20 @@
         </div>
     </main>
 
+    <div class="modal fade" id="partnerBenifitsModal" tabindex="-1" aria-labelledby="WithdrawModalLabel" aria-hidden="true">
+        <div class="modal-dialog  modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Partner Benifits</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
 
+                <div class="modal-body">
+                    {!! $settings->partner_benifits??'' !!}
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="modal fade" id="WithdrawModal" tabindex="-1" aria-labelledby="WithdrawModalLabel" aria-hidden="true">
         <div class="modal-dialog  modal-dialog-centered">
             <div class="modal-content">

@@ -22,6 +22,7 @@
     $razorpay_secret_live = $settings->razorpay_secret_live ?? '';
     $send_otp_through = $settings->send_otp_through ?? '';
     $is_live = $settings->is_live ?? 0;
+    $partner_subscription_id = $settings->partner_subscription_id ?? 0;
     $refer_amount = $settings->refer_amount ?? '';
     $contact_whatsapp = $settings->contact_whatsapp ?? 0;
     $subscription_month = $settings->subscription_month ?? 3;
@@ -29,6 +30,8 @@
     $is_handling_charges = $settings->is_handling_charges ?? 0;
     $handling_charges = $settings->handling_charges ?? '';
     $shipping_delivery_policy = $settings->shipping_delivery_policy ?? '';
+    $partner_benifits = $settings->partner_benifits ?? '';
+    $uses_tip = $settings->uses_tip ?? '';
 
     $is_surge_fee = $settings->is_surge_fee ?? 0;
     $surge_fee = $settings->surge_fee ?? '';
@@ -40,11 +43,12 @@
     $small_cart_fee = $settings->small_cart_fee ?? '';
     $cashback_wallet_use = $settings->cashback_wallet_use ?? '';
     $delhivery_key = $settings->delhivery_key ?? '';
+    $partner_bonus = $settings->partner_bonus ?? '';
     $delhivery_url = $settings->delhivery_url ?? '';
     $cutoff_time = $settings->cutoff_time ?? '';
     $about_us_video = $settings->about_us_video ?? '';
     $nc_partner_tnc = $settings->nc_partner_tnc ?? '';
-
+    $subscriptions = \App\Helpers\CustomHelper::getSubscriptionPlans();
     ?>
     <style>
         #fileInput {
@@ -112,6 +116,17 @@
                                                 <textarea name="nc_partner_tnc"
                                                           class="editor">{{ old('nc_partner_tnc', $nc_partner_tnc) }}</textarea>
                                             </div>
+
+                                            <div class="col-md-12">
+                                                <label for="inputEmail4" class="form-label">NC Partner Benifits</label>
+                                                <textarea name="partner_benifits"
+                                                          class="editor">{{ old('partner_benifits', $partner_benifits) }}</textarea>
+                                            </div>
+                                            <div class="col-md-12">
+                                                <label for="inputEmail4" class="form-label">Uses Tips</label>
+                                                <textarea name="uses_tip"
+                                                          class="editor">{{ old('uses_tip', $uses_tip) }}</textarea>
+                                            </div>
                                             <div class="col-md-6 mt-3">
                                                 <label class="form-label">Contact Address</label>
                                                 <input type="text" class="form-control" placeholder="Contact Address"
@@ -173,6 +188,19 @@
                                                 </select>
                                             </div>
                                             <div class="col-md-6 mt-3">
+                                                <label for="" class="form-label">Partner Subscription</label>
+                                                <select class="form-control" name="partner_subscription_id">
+                                                    <option value="0" selected>Select</option>
+                                                    @foreach($subscriptions as $subscription)
+                                                        <option
+                                                            value=" {{$subscription->id??''}}" <?php if ($partner_subscription_id == $subscription->id) echo "selected" ?>>
+                                                            {{$subscription->name??''}}
+                                                        </option>
+                                                    @endforeach
+
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6 mt-3">
                                                 <label for="" class="form-label">Google Map Key</label>
                                                 <input type="text" class="form-control"
                                                        placeholder="Google Map Key"
@@ -192,6 +220,14 @@
                                                        placeholder="Referal Amount"
                                                        name="refer_amount"
                                                        value="{{ old('refer_amount', $refer_amount) }}">
+                                            </div>
+
+                                            <div class="col-md-6 mt-3">
+                                                <label for="" class="form-label">Partner Bonus </label>
+                                                <input type="number" class="form-control"
+                                                       placeholder="Partner Bonus "
+                                                       name="partner_bonus"
+                                                       value="{{ old('partner_bonus', $partner_bonus) }}">
                                             </div>
 
                                             <div class="col-md-6 mt-3">

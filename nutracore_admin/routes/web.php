@@ -63,6 +63,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function () {
             Route::match(['get', 'post'], 'withdrawal', 'NCPartnerController@withdrawal')->name('.withdrawal');
             Route::match(['get', 'post'], 'with_draw_approve/{id}', 'NCPartnerController@with_draw_approve')->name('.with_draw_approve');
             Route::match(['get', 'post'], 'with_draw_reject/{id}', 'NCPartnerController@with_draw_reject')->name('.with_draw_reject');
+            Route::match(['get', 'post'], 'orders', 'NCPartnerController@orders')->name('.orders');
         });
         ////nc_partner_tire
         Route::group(['prefix' => 'nc_partner_tire', 'as' => 'nc_partner_tire', 'middleware' => ['allowedmodule:nc_partner_tire,list']], function () {

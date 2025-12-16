@@ -248,6 +248,18 @@ class HomeController extends Controller
             if (!empty($request->grivance_policy)) {
                 $dbArray['grivance_policy'] = $request->grivance_policy;
             }
+            if (!empty($request->partner_benifits)) {
+                $dbArray['partner_benifits'] = $request->partner_benifits;
+            }
+            if (!empty($request->partner_bonus)) {
+                $dbArray['partner_bonus'] = $request->partner_bonus;
+            }
+            if (isset($request->partner_subscription_id)) {
+                $dbArray['partner_subscription_id'] = $request->partner_subscription_id;
+            }
+            if (!empty($request->uses_tip)) {
+                $dbArray['uses_tip'] = $request->uses_tip;
+            }
             if (!empty($request->google_map_key)) {
                 $dbArray['google_map_key'] = $request->google_map_key;
             }

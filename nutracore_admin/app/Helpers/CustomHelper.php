@@ -20,6 +20,7 @@ use App\Models\DeliveryAgents;
 use App\Models\DocumentRequired;
 use App\Models\EventImages;
 use App\Models\Manufacturer;
+use App\Models\NCPartner;
 use App\Models\Order;
 use App\Models\OrderItems;
 use App\Models\OrderStatus;
@@ -130,6 +131,122 @@ class CustomHelper
 
     }
 
+
+    public static function partnerCommissionForOrder($order_id): array
+    {
+        // Fetch necessary models
+        $order = Order::find($order_id);
+        $partner = [];
+        if(!empty($order)){
+            if(empty($order->coupon_code)){
+                return  [];
+            }
+            $partner = DB::table('partner_applications')->where('coupon_code',$order->coupon_code)->where('status','Approved')->first();
+            if(empty($partner)){
+                return  [];
+
+            }
+        }
+
+        $partnerId = $partner->id??'';
+        $partner = NCPartner::find($partnerId); // Assuming NCPartner is your Partner model
+
+        // Basic validation
+        if (!$order || !$partner) {
+            // Handle case where order or partner is not found
+            return ['error' => 'Order or Partner not found.'];
+        }
+
+        $orderAmount = $order->total_amount;
+        $orderDate = $order->created_at;
+
+        // 1. Get Start & End of Month
+        $startOfMonth = Carbon::parse($orderDate)->startOfMonth();
+        $endOfMonth = Carbon::parse($orderDate)->endOfMonth();
+
+        // 2. Calculate Total Sales This Month Till Current Order
+        $totalSales = DB::table('orders')
+            ->where('coupon_code', $partner->coupon_code)
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->where('id', '<=', $order->id)
+            ->sum('total_amount');
+
+        // 3. Determine Commission Percent
+        $tierData = DB::table('nc_partner_tire_system')
+            ->where('from_amount', '<=', $totalSales)
+            ->where('to_amount', '>=', $totalSales)
+            ->first();
+
+        if ($tierData) {
+            $commissionPercent = $tierData->cashback;
+            $tierTitle = $tierData->title;
+        } else {
+            $commissionPercent = 0;
+            $tierTitle = 'Unknown';
+        }
+
+        // 4. Calculate Commission Amount For This Order
+        $commissionAmount = ($orderAmount * $commissionPercent) / 100;
+
+        // --- 5. Save/Update Commission Record and Mark as SETTLED ---
+
+        $dataToSave = [
+            'partner_id' => $partnerId,
+            'date' => $orderDate,
+            'order_amount' => $orderAmount,
+            'total_order_amount_till_date' => $totalSales,
+            'commission_percent' => $commissionPercent,
+            'commission' => $commissionAmount,
+            'status' => 1,
+            'is_delete' => 0,
+            'is_setteled' => 0,
+            'updated_at' => now(),
+            'delivered_at' => now(),
+        ];
+
+        $existingCommission = DB::table('partner_commissions')
+            ->where('order_id', $order->id)
+            ->first();
+
+        if ($existingCommission) {
+            DB::table('partner_commissions')
+                ->where('id', $existingCommission->id)
+                ->update($dataToSave);
+            $action = 'Updated & Settled';
+        } else {
+            $dataToSave['order_id'] = $order->id;
+            $dataToSave['created_at'] = now();
+            DB::table('partner_commissions')->insert($dataToSave);
+            $action = 'Inserted & Settled';
+        }
+
+        // --- 6. Add Commission to Partner's Wallet/Balance ---
+
+        // *Crucial Check*: Only update the wallet if the commission was NOT previously settled.
+        // If $existingCommission was found AND it was already settled, we skip the wallet update.
+//        $walletUpdateNeeded = !$existingCommission || ($existingCommission && $existingCommission->is_setteled == 0);
+//
+//        $walletUpdated = false;
+//
+//        if ($walletUpdateNeeded && $commissionAmount > 0) {
+//            // Ensure the model is being used correctly and the column name ('wallet') is accurate.
+//            $wallet = $partner->wallet ?? 0;
+//            $new_wallet = floatval($wallet) + floatval($commissionAmount);
+//            $partnerUpdated = NCPartner::where('id', $partnerId)
+//                ->update(['wallet' => $new_wallet]);
+//            $walletUpdated = (bool)$partnerUpdated; // The increment method returns the number of affected rows (1 or 0)
+//            $order->commission = $commissionAmount;
+//            $order->save();
+//        }
+        return [
+            'action' => $action,
+            'tier' => $tierTitle,
+            'commission_percent' => $commissionPercent,
+            'commission' => $commissionAmount,
+            'total_sales' => $totalSales,
+            'wallet_status' => 'No Balance Change Needed',
+        ];
+    }
     public static function getPartner($partner_id)
     {
         return DB::table('partner_applications')->where('id',$partner_id)->first();

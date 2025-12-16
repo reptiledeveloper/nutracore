@@ -59,6 +59,7 @@
                             <th>Payment</th>
                             <th>Refund Status/Amount</th>
                             <th>Order From</th>
+                            <th>Coupon Code</th>
                             <th>Status</th>
                             <th>Date</th>
 
@@ -105,6 +106,7 @@
                             <td>{{$order->is_applied_credit_balance == 1?"Credit,":""}} {{$order->payment_method??''}}</td>
                             <td>@if(!empty($order->pos_cancel_type)){{$order->pos_cancel_type??''}} / ₹{{$order->refund_amount??0}}@endif</td>
                             <td>{{$order->order_from??''}}</td>
+                            <td>{{$order->coupon_code??''}}</td>
                             <td>{!! \App\Helpers\CustomHelper::getOrderStatus($order->id) !!}</td>
                             <td>{{ date('d M Y h:i A',strtotime($order->created_at)) }}</td>
                             <td class="text-end">

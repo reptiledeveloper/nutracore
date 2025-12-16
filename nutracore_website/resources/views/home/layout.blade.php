@@ -44,9 +44,9 @@ $brands = \App\Models\Brand::select('id', 'brand_img', 'brand_name', 'certificat
         $b->certificate = CustomHelper::getImageUrl('brands', $b->certificate);
     }));
 $isPartner = 0;
-if(!empty($user)){
-    $check = DB::table('partner_applications')->where('mobile_number',$user->phone)->first();
-    if(!empty($check)){
+if (!empty($user)) {
+    $check = DB::table('partner_applications')->where('mobile_number', $user->phone)->first();
+    if (!empty($check)) {
         $isPartner = 1;
     }
 }
@@ -87,13 +87,19 @@ if(!empty($user)){
         type="text/css"
         href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"
     />
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css"/>
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.min.css"/>
+    <link rel="stylesheet" type="text/css"
+          href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css"/>
+    <link rel="stylesheet" type="text/css"
+          href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.min.css"/>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=GT-K55F9G2F"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+
         gtag('js', new Date());
 
         gtag('config', 'GT-K55F9G2F');
@@ -907,7 +913,8 @@ if(!empty($user)){
         <div class="container">
             <div class="header-wrap">
                 <div class="logo logo-width-1">
-                    <a href='{{url('/')}}'><img src="{{url('public/assets/nc_partner/NutraCoreLogoMain.svg')}}" alt="logo"/></a>
+                    <a href='{{url('/')}}'><img src="{{url('public/assets/nc_partner/NutraCoreLogoMain.svg')}}"
+                                                alt="logo"/></a>
                 </div>
                 <div class="header-right">
                     <div class="search-style-2">
@@ -975,7 +982,7 @@ if(!empty($user)){
                                             @if($isPartner == 1)
                                                 <li>
                                                     <a onclick="checkLoginRedirect('{{url('partner')}}')"><i
-                                                            class="fi fi-rs-user mr-10"></i>Partner</a>
+                                                            class="fi fi-rs-user mr-10"></i>Partner Dashboard</a>
                                                 </li>
                                             @endif
                                             <li>
@@ -1362,7 +1369,8 @@ if(!empty($user)){
                             </div>
                             @if($isPartner == 1)
                                 <div class="menu-item">
-                                    <a onclick="checkLoginRedirect('{{url('partner')}}')"> <span>Partner</span></a>
+                                    <a onclick="checkLoginRedirect('{{url('partner')}}')">
+                                        <span>Partner Dashboard</span></a>
                                 </div>
                             @endif
                             <div class="menu-item">
